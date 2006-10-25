@@ -1,0 +1,28 @@
+.textbox { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; width: 120pt}
+.textboxsmall { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; font-weight: normal; width: 20pt}
+.textboxmid { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; width: 40pt; clip:  rect(   )}
+.textboxlarge { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; width: 220pt}
+
+.listbox { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; width: 170pt}
+.listbox2 { font-family: Courier; font-size: 10pt; width: 170pt}
+.listbox130 { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; width: 132pt}
+.listbox30 { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; width: 30pt}
+
+.smalltext {font-family:Arial,Helvetica,sans-serif;font-size:7pt;font-weight:normal}
+.parenttext {font-family:Arial,Helvetica,sans-serif;font-size:11pt;font-weight:normal}
+.normaltext {font-family:Arial,Helvetica,sans-serif;font-size:10pt;font-weight:normal}
+.childtext {font-family:Arial,Helvetica,sans-serif;font-size:9pt;font-weight:normal}
+.labeltext {font-family:Arial,Helvetica,sans-serif;font-size:10pt;font-weight:normal}
+.legendtext {font-family:Arial,Helvetica,sans-serif;font-size:10pt;font-weight:bold}
+fieldset {
+border-width:2;border-left-color:#FFFFFF;border-bottom-color:#FFFFFF;
+border-right-color:#FFFFFF;border-top-color:#FFFFFF;border-right-style:groove;
+border-top-style:groove; border-left-style:groove;border-bottom-style:groove
+}
+
+.button {font-family:Arial,Helvetica,sans-serif;font-size:10pt;height:18pt;width:90pt;background-color:#CCCCCC}
+
+a:link { text-decoration:none; font-weight:bold; color:#000000; }
+a:visited { text-decoration:none; font-weight:bold; color:#000000; }
+a:hover { text-decoration:none; font-weight:bold; background-color:#CCCCCC; }
+a:active { text-decoration:none; font-weight:bold; background-color:#CCCCCC; }
