@@ -1,0 +1,39 @@
+==================
+EBKuS 3.2 Handbuch
+==================
+
+--------------------------------------------------------------------------------------------------------------------
+Klientenverwaltung, Aktendokumentation, Gruppenverwaltung und Statistik für Erziehungs- und Familienberatungsstellen
+--------------------------------------------------------------------------------------------------------------------
+
+:Autor: Jürg Huber (juerg@pantau.in-berlin.de)
+:Autor: Albrecht Schmiedel (atms@alibi.in-berlin.de)
+:Homepage: http://ebkus.berlios.de/index.html
+:Mailing-Liste: ebkus-support@lists.berlios.de
+:Revision: $Revision: 1.3 $
+:Date: $Date: 2004/10/17 11:44:21 $
+
+.. |dist_url| replace:: ftp://ftp.bke.de/pub/ebkus/ebkus-3.2/ebkus-3.2-dist.zip
+.. |src_url_berlios| replace:: http://ebkus.berlios.de/ebkus/ebkus-3.2-src.zip
+.. |src_url_bke| replace:: ftp://ftp.bke.de/pub/ebkus/ebkus-3.2/ebkus-3.2-src.zip
+
+
+.. make.py fügt hier den Navigationstipp und die Anweisung für
+   Kapitelnumerierung ein.
+
+%(NAVIG)s
+
+%(SECNUM)s
+
+.. contents::
+
+.. include:: einleitung.txt
+
+.. include:: anwendungsbeschreibung.txt
+
+.. include:: bedienungsanleitung.txt
+
+.. include:: administration.txt
+
+.. include:: installation.txt
+ 

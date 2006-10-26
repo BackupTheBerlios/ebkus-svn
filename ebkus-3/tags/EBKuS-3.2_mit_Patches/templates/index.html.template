@@ -1,0 +1,47 @@
+<html>
+<head>
+<title>EBKuS %(INSTANCE_NAME)s</title>
+</head>
+<body style="font-family: sans-serif">
+<table border="0"><tr><td width="10%%"></td><td>
+<p><a href="/ebkus/%(INSTANCE_NAME)s/cgi/do/login">
+<img border="0" alt="/ebkus/ebkus_icons/ebkus_logo.gif" src="/ebkus/ebkus_icons/ebkus_logo.gif" />
+</a>
+</p>
+<h1>%(INSTANCE_NAME)s</h1>
+<p><a href="/ebkus/%(INSTANCE_NAME)s/cgi/do/login">Anmelden</a></p>
+<p>Bei Problemen wenden Sie sich bitte an den Anwendungsbetreuer:</p>
+<blockquote>
+<p>%(ADMIN_NAME)s<br />
+Telefon: %(ADMIN_TEL)s<br />
+E-Mail: <a href="mailto:%(ADMIN_EMAIL)s">
+%(ADMIN_EMAIL)s</a>
+</p>
+</blockquote>
+<p><a href="/ebkus/doc/EBKuS_Handbuch.html">Handbuch</a>
+<a href="/ebkus/doc/EBKuS_Handbuch.pdf">(PDF)</a>
+</p>
+<hr />
+<small>
+<small>
+<p>EBKuS 3.2 <br />
+Copyright (1997-2004) 
+<a href="mailto:juerg@pantau.in-berlin.de">Jürg Huber</a>,
+<a href="mailto:atms@alibi.in-berlin.de">Albrecht Schmiedel</a>
+<br/>
+Mailing-Liste: <a href= "mailto:ebkus-support@lists.berlios.de">
+ebkus-support@lists.berlios.de</a>
+<br />
+Homepage: <a href="http://ebkus.berlios.de/index.html">
+http://ebkus.berlios.de/index.html</a>
+</p>
+<p>Dieses Programm ist freie Software. <br />
+Sie können es unter den Bedingungen <br />
+der <a href="http://www.gnu.de/gpl-ger.html">
+GNU General Public License (GPL)</a> <br />
+verwenden, modifizieren und weitergeben.</p>
+</small>
+</small>
+</td></tr></table>
+</body>
+</html>

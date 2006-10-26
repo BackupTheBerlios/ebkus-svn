@@ -1,0 +1,1340 @@
+Bedienungsanleitung
+===================
+
+Allgemeines
+-----------
+
+Die Eingabebestätigung erscheint einheitlich in einer der folgenden Formen:
+
+- *Ok*: Die Anwendereingaben werden an das Programm zur Bearbeitung und Beantwortung gesandt
+- *Speichern*: Eingaben speichern in der EBKuS-Datenbank
+- *Zurücksetzen*: Setzt das Formular in den Ursprungszustand zurück
+- *Abbrechen*: Abbruch der Eingabe und Zurückleiten zum vorherigem Dokument
+
+Bei Fehleingaben erhält der Anwender in der Regel eine spezifische, differenzierte Rückmeldung von EBKuS.
+
+Start
+-----
+
+Die Programmanwender starten auf ihrem Arbeitsplatzrechner einen
+Internet-Browser (z. B. Internet Browser, Mozilla, Netscape) und
+rufen die URL (Internet-Adresse)::
+
+  https://ihr-www-server/ebkus/ihre-dienststelle/cgi/do/login 
+
+auf. Die Namen für "ihr-www-server" und "ihre-dienststelle"
+werden bei der Installation festgelegt (siehe `Konfiguration`_, 
+*server_name*, *instance_name*)
+
+Wichtig: Die Anwendung kann nur über "https", nicht über "http"
+aufgerufen werden. Sämtliche Sicherheitszertifikate sind vom
+Anwender anzunehmen.
+
+Für die tägliche Arbeit sollte diese URL als Startseite in den
+Internetoptionen/Einstellung des Internet-Browsers eingetragen
+werden.
+
+Nach dem Start der Anwendung wird der Anwender mit der
+Anmelde-Maske zur Eingabe seines Benutzernamens und seines
+Passworts aufgefordert. Sollte die Anmeldung fehlschlagen, wird
+der Benutzer darauf hingewiesen und erhält die Möglichkeit der
+Neueingabe. Bei erstmaliger Anmeldung eines Benutzers wird ein
+Fenster zur Passwortänderung angezeigt. Dies ist aus
+Sicherheitsgründen notwendig, weil nach Neuanlegen einer
+Benutzerkennung das Passwort standardmäÂßig identisch mit dem
+Benutzernamen ist.
+
+Das Hauptmenü
+-------------
+
+.. figure:: figures/hauptmenu.png
+   :scale: 53
+
+   Hauptmenü
+
+Das Hauptmenü bietet dem Benutzer die Auswahl seiner Klienten
+sowie Menüpunkte für Akteneinträge und häufig gebrauchte
+Datenbankabfragen an. Des weiteren hat der Benutzer zu jeder Zeit
+die Möglichkeit, sein Passwort zu ändern. In der Klientenkarte
+bekommt der Anwender alle Informationen auf einen Blick
+zusammengefasst und hat Möglichkeiten der weiteren Bearbeitung
+einzelner Informationen.
+
+Das Menü der Klientenverwaltung
+...............................
+
+Das rechte Auswahlfenster zeigt dem Benutzer alle Klienten
+(Bearbeiter, Klientenvor- und -nachname, Geburtsdatum,
+Fallnummer) aus seinen laufenden Beratungen. Die Auswahl eines
+Klientennamens mit der Maus und die Eingabebestätigung fordern
+die zugehörige Klientenkarte mit allen Einträgen für diesen
+Klienten an. Soll gleichzeitig ein bestimmtes Formular für eine
+Eingabe zum ausgewählten Klienten geladen werden, ist dieses im
+Menü links zu markieren (z. B. 'Fachstatistik',
+'Bundesjugendhilfestatistik'), bevor mit der Maus die Eingabe
+bestätigt wird. Die Anwendung erwartet, dass immer genau ein
+Klient und ein Formular ausgewählt sind. Ausnahmen bilden die
+Klientenkarte, bei der die Auswahl des Klienten für die Anzeige
+der Klientenkarte ausreichend ist, sowie die Suchfunktion.
+
+Die Menüauswahl neben der Klientenauswahl enthält die
+Formularseiten bzw. Aktionen in folgenden Untermenüs:
+
+- *Neu*: Neuaufnahme, Neue Gruppe, Neue Statistikformulare
+- *Ändern*: Statistikeinträge korrigieren
+- *Ansicht*: Klientenkarte, Aktenvorblatt, Akte (Dokumente), Gruppenmenü
+- *Suche*: Klientenkarte, Gruppenkarte
+
+Das Feld 'Statistische Abfragen'
+................................
+
+Das Abfragenfeld auf der Eingangsseite gruppiert sich in:
+
+- *Beratungen*: Listen für laufende, abgeschlossene, alle Beratungen
+  ab Datum oder ab Fallnummer 
+- *Klientenzahl*: Neumeldungen und Abschlüsse, Klienten pro Mitarbeiter
+- *Bundesstatistik*: Bundesstatistikabfrage
+- *Fachstatistik*: Fachstatistik, Itemauswahl, Kategorieauswahl, Planungs- und
+  Sozialraum, Konsultationszahl, Konsultationssumme, Beratungsdauer,
+  Beratungsdauer-Leistung
+
+Wird die Bundes- oder Fachstatistik aufgerufen, muss eingestellt
+werden, für welches Jahr und welche Dienststelle das Ergebnis
+ausgegeben werden soll. Anschließend wird das Ergebnis
+angezeigt. Die Ergebnisse können auch als Balkendiagramme
+ausgegeben werden.
+
+- *Laufende Fälle*: Anzeigen aller laufenden Beratungen für den 
+  aktuellen Mitarbeiter
+- *Alle Fälle*: Anzeigen aller vorhandenen Beratungen für den 
+  aktuellen Mitarbeiter
+- *Abgeschlossene Fälle*: Anzeigen aller abgeschlossenen 
+  Beratungen für den aktuellen Mitarbeiter
+- *Fälle ab Fallnummer*: 
+
+  1. Formular -  Eingabe der Suchkriterien hinsichtlich der 
+     Fallnummer für das Anzeigen der Beratungen
+  2. Formular - Ausgabe des Ergebnisses der Abfrage
+
+- *Neumeldungen u. Abschlüsse*: Anzahl der neugemeldeten und
+  abgeschlossenen Fälle für ein bestimmtes Jahr, hierbei wird
+  eine quartalsweise Aufschlüsselung vorgenommen 
+- *Klienten pro Mitarbeiter*: Anzahl der Klienten pro Mitarbeiter
+  für ein bestimmtes Jahr 
+
+- *Bundesstatistik*: 
+
+  1. Formular - Suchkriterien für das Anzeigen der Bundesstatistik 
+     eingeben
+  2. Formular - Ergebnisausgabe der Bundesstatistikabfrage
+
+- *Fachstatistik*: 
+
+  1. Formular - Suchkriterien für das Anzeigen der Fachstatistik eingeben 
+  2. Formular - Ergebnisausgabe der Bundesstatistikabfrage
+
+- *Itemauswahl*: 
+
+  1. Formular - Auswahl einer Kategorie für das Anzeigen der Statistik 
+  2. Formular - Auswahl der Items der Kategorie, die in der Abfrage 
+     berücksichtigt werden sollen 
+  3. Formular - Ergebnisse der Abfrage
+
+- *Kategorieauswahl*: 
+  
+  1. Formular - Auswahl mehrerer Kategorien gleichzeitig für das Anzeigen 
+     der Statistik 
+  2. Formular - Auswahl der Items für die gewählten Kategorien, die in der
+     Abfrage berücksichtigt werden sollen 
+  3. Formular - Ergebnisse der Abfrage
+
+- *Planungs- und Sozialraum*:
+
+  1. Formular - Auswahl der Planungsräume und des Zeitraumes der Abfrage
+  2. Formular - Ergebnisse der Abfrage
+
+- *Konsultationszahl*: 
+  
+   1. Formular - Festlegen des Zeitraumes für die Abfrage
+   2. Formular - Ergebnisausgabe Anzahl der abgeschlossenen 
+      Beratungsfälle mit den verschiedenen Konsultationszahlen bei 
+      den verschiedenen Personen oder Institutionen
+
+- *Konsultationssumme*: 
+  
+  1. Formular - Festlegen des Zeitraumes für die Abfrage 
+  2. Formular - Übersicht über die Anzahl der abgeschlossenen 
+     Beratungsfälle mit den verschiedenen Konsultationssummen
+
+- *Beratungsdauer*: 
+
+  1. Formular - Festlegen des Zeitraumes für die Abfrage
+  2. Formular - Übersicht über die abgeschlossenen Beratungsfälle 
+     mit den verschiedenen Laufzeiten (in Monaten)
+
+- *Beratungsdauer-Leistung*: 
+
+  1. Formular - Festlegen des Zeitraumes und der Leistung für die Abfrage 
+  2. Formular - Übersicht über die abgeschlossenen Beratungsfälle 
+     mit den verschiedenen Laufzeiten (in Monaten) zu einer bestimmten  
+     Leistung
+
+- *Gruppenüberblick*: Überblick von Gruppen für einen bestimmten Zeitraum
+
+
+Das Hauptmenü 'Administration'
+------------------------------
+
+.. figure:: figures/hauptmenu_admin.png
+   :scale: 53
+
+   Hauptmenü - Administration
+
+Das Administrationsmenü auf der Eingangsseite enthält die Hauptpunkte:
+
+- *Mitarbeiter*: Neueintrag, Änderung
+- *Akten*: Löschen (löscht alle Akten, die älter als die Löschfrist sind)
+- *Bundesstatistik*: Exportieren, Downloadliste
+- *Kategorien*: Alle, Leistungen, Fachstatistik, Mitarbeiter
+- *Protokoll*: Archivieren, Setzen/Einstellen der maximalen Anzahl an
+  Einträgen (Füllgrenze)
+
+
+Neuen Mitarbeiter
+.................
+
+.. figure:: figures/neuer_mitarbeiter.png
+   :scale: 53
+
+   Neuen Mitarbeiter eintragen
+
+Aufruf: Administrator-Hauptmenü Mitarbeiter (Neueintrag)
+
+Benutzerberechtigung: Administrator
+
+Formularfelder: Vorname, Name, Benutzer (einmaliger Benutzername
+bzw. -zeichen) Status (im Dienst, außer Dienst),
+Benutzungsrecht (Benutzergruppe), Hauptdienststelle
+
+Voraussetzung zum Speichern: Alle Felder
+
+Seitenfuß: Zeigt die in der Datenbank eingetragenen Mitarbeiter
+an (Mitarbeiterliste) 
+
+Mitarbeiter bearbeiten
+......................
+
+.. figure:: figures/mitarbeiter_aendern.png
+   :scale: 53
+
+   Mitarbeitereintrag zum Ändern auswählen
+
+Aufruf: Administrator-Hauptmenü Mitarbeiter (Änderung)
+
+Benutzerberechtigung: Administrator
+
+Formularfelder: Vorname, Name, Benutzer (einmaliger Benutzername bzw. -zeichen)
+Status (im Dienst, außer Dienst), Benutzungsrecht
+(Benutzergruppe), Hauptdienststelle
+
+Voraussetzung zum Speichern: Alle Felder
+
+*Hinweis*: Die geänderten Attributwerte sind sofort nach dem
+Speichern in der Datenbank abgelegt.  Für den Administrator
+werden die durchgeführten Änderungen aber erst nach einem
+Neustart des Servers sichtbar.
+
+Kategorien
+..........
+
+.. figure:: figures/kategorie_merkmalsliste.png
+   :scale: 53
+
+   Kategorie- und Merkmalslisten zu: 'Fachstatistikleistung'
+
+Aufruf: Administrator-Hauptmenü Kategorien Leistungen 
+
+Benutzerberechtigung: Administrator
+
+Formularfelder: Code (Codename, maximal 8 Zeichen, einmalig
+innerhalb der Kategorie), Merkmalsname, Sort (Sortierreihenfolge
+für die Anzeige), off (Merkmal erscheint nicht mehr im
+Eingabeformular), ab (ab wann das Merkmal als ungültig gilt),
+Dokumentation (maximal 255 Zeichen)
+
+Formularfelder, die im Änderungsformular vorhanden sind: Code
+Codename, maximal 8 Zeichen, einmalig innerhalb der Kategorie),
+Merkmalsname, Sort (Sortierreihenfolge für die Anzeige), Minimum
+Bereichsangabe für Zahleneingaben der Statistik), Maximum
+Bereichsangabe für Zahleneingaben der Statistik), off (Merkmal
+erscheint nicht mehr im Eingabeformular), Monat, Jahr (ab wann
+ein Merkmal ungültig ist), Dokumentation (maximal 255 Zeichen)
+
+Seitenfuß: Aktuelle Codeliste der Kategorie Erbrachte Leistungen
+
+Formularfeld "Neues Merkmal hinzufügen": Code (Codename, maximal
+8 Zeichen, einmalig innerhalb der Kategorie), Merkmalsname, Sort
+Sortierreihenfolge für die Anzeige), Minimum (Bereichsangabe für
+Zahleneingaben der Statistik), Maximum (Bereichsangabe für
+Zahleneingaben der Statistik), Dokumentation (maximal 255
+Zeichen)
+
+Voraussetzung zum Speichern: Alle Felder bis auf die
+Dokumentation und die Bereichsangaben
+
+Seitenfuß: Zeigt die in der Datenbank eingetragenen Merkmale der
+Kategorie an. 
+
+
+Die Klientenkarte
+-----------------
+
+.. figure:: figures/klientenkarte.png
+   :scale: 53
+
+   Klientenkarte
+
+Aufruf: Hauptmenü Klient 
+
+Die Klientenkarte fasst alle eingetragenen Informationen zu einem
+Klienten zusammen.
+
+Sie enthält die Stammdaten des Klienten und der Bezugspersonen
+aus der Beratung, die Anmeldeinformation, die
+Einrichtungskontakte, die Beratungsleistungen, -datumsangaben und
+-mitarbeiter, den zuständigen Bearbeiter, den Beratungsstand
+(laufend, z. d. A.) sowie das Vorliegen der Statistikeinträge,
+Notizen und evtl. Zugehörigkeit zu einer Gruppe.
+
+
+Änderung: Nach jeder Änderung bzw. jedem Neueintrag wird die
+angezeigte Klientenkarte mit den in der Datenbank eingegebenen
+Daten aktualisiert.
+
+Die Schaltfläche "Bearbeiten bzw. Hinzufügen von Einträgen" in
+der Klientenkarte steht nur für laufende Beratungsfälle zur
+Verfügung.
+
+Nach dem z. d. A-Eintrag (Beratungsabschluss) erscheint die
+Klientenkarte im "Lesemodus", mit inaktiven Schaltflächen zum
+Bearbeiten oder Hinzufügen. Die Wiederaufnahme oder das
+Rückgängigmachen des z. d. A-Eintrages revidiert die Anzeige für
+den aktuellen "Beratungsfall" wieder auf eine mit aktiven
+Schaltflächen, während die abgeschlossenen "Beratungsfälle"
+dauerhaft mit inaktiven Schaltflächen dargestellt werden.
+
+Neuer Eintrag in Klientenakte
+.............................
+
+Aufruf: Schaltfläche "Hinzufügen" 
+
+Ein Mausklick auf die Schaltfläche fordert ein Formular für den
+gewünschten Neueintrag an (wie z. B. Bezugspersonen, Leistung,
+Stand, Bearbeiter usw.).
+
+Korrektur eines Eintrages in der Klientenkarte
+..............................................
+
+Aufruf: Klientendaten über Schaltfläche "Bearbeiten", ansonsten über
+diese |bearbeiten_symbol| oder diese
+|statistik_bearbeiten_symbol| Schaltfläche.
+
+Ein Mausklick auf die Schaltfläche
+fordert ein Korrekturformular für den ausgewählten Eintrag an.
+Diese Formulare entsprechen den Formularen beim Neueintrag des
+jeweiligen Bereiches.
+
+
+Notizen in der Klientenkarte
+............................
+
+Vorhandene Notizen werden gesammelt im unteren Teil der Seite
+angezeigt.
+
+Wordexport
+----------
+
+Datensätze aus der Datenbank wie z.B. Name und Adresse können damit auf
+Windowssystemen in die Textverarbeitung Word übernommen werden. Es lassen sich
+damit z.B. eigene Aktenvorblätter gestalten oder Adressdaten in
+Briefe übernehmen.
+
+.. figure:: figures/wordauswahl.png
+   :scale: 53
+
+   Wordauswahl
+
+Aufruf: Kopfmenü [Anzeige] Wordexport
+
+Diese Exportfunktionalität setzt das Betriebssystem Windows ab
+Version 9.x / NT / XP mit installiertem Internet Explorer ab Version
+5.0 und Microsoft Word ab Version 97 voraus. Eine Wordvorlage
+muss erstellt werden. In dieser Wordvorlage müssen Textboxen mit
+folgender Struktur (Inhalt) erstellt werden: siehe Wordexport
+Beispielvorlage ``ebkus/vorlagen/klkarteexp2.doc``
+
+Außerdem müssen die Internet Explorer-Sicherheitseinstellungen
+für das lokale Netzwerk auf niedrig gestellt werden, damit ein
+Wordobjekt erstellt werden kann, welches die Ersetzung der
+Platzhalter in der Vorlage mit gültigen Werten vornimmt.  Bei 1
+zu n-Beziehung muss eine laufende Nummer mit eingebunden werden,
+z. B. ``%bzp(lfdnr)s_vn -> %bzp1s_vn = Vorname``
+
+Klientenstammdaten (1 zu 1 Beziehung)::
+
+ %kl_vn = Vorname des Klienten
+ %kl_na = Nachname des Klienten
+ %kl_gb = Geburtstag des Klienten
+ %kl_str = Straße des Klienten
+ %kl_plz = Postleitzahl des Klienten
+ %kl_ort = Wohnort des Klienten
+ %kl_tl1 = 1. Telefonnummer des Klienten
+ %kl_tl2 = 2. Telefonnummer des Klienten
+ %kl_ber = Ausbildung des Klienten
+ %kl_bei = Klient wohnt bei ...
+
+Bezugsperson Nr. (lfdnr) (1 zu n Beziehung)::
+
+ %bzp(lfdnr)s_vn = Vorname der Bezugsperson (lfdnr) des Klienten
+ %bzp(lfdnr)s_na = Nachname der Bezugsperson (lfdnr) des Klienten
+ %bzp(lfdnr)s_gb = Geburtstag der Bezugsperson (lfdnr) des Klienten
+ %bzp(lfdnr)s_str = Straße der Bezugsperson (lfdnr) des Klienten
+ %bzp(lfdnr)s_plz = Postleitzahl der Bezugsperson (lfdnr) des Klienten
+ %bzp(lfdnr)s_ort = Wohnort der Bezugsperson (lfdnr) des Klienten
+ %bzp(lfdnr)s_tl1 = 1. Telefonnummer der Bezugsperson (lfdnr) des Klienten
+ %bzp(lfdnr)s_tl2 = 2. Telefonnummer der Bezugsperson (lfdnr) des Klienten
+ %bzp(lfdnr)s_ber = Ausbildung der Bezugsperson (lfdnr) des Klienten
+ %bzp(lfdnr)s_bei = Bezugsperson (lfdnr) des Klienten wohnt bei ...
+
+Leistungen Nr. (lfdnr) (1 zu n Beziehung)::
+
+ %lst(lfdnr)s_bea = Bearbeiter der (lfdnr). Leistung
+ %lst(lfdnr)s_lst = Art der (lfdnr). Leistung
+ %lst(lfdnr)s_beg = Beginn der (lfdnr). Leistung
+ %lst(lfdnr)s_end = Ende der (lfdnr). Leistung
+
+Stand Nr. (lfdnr) (1 zu n Beziehung)::
+
+ %std(lfdnr)s_fnr = Fallnummer des Stands (lfdnr)
+ %std(lfdnr)s_beg = Beginndatum
+ %std(lfdnr)s_end = Endedatum
+
+Bearbeiter Nr. (lfdnr) (1 zu n Beziehung)::
+
+ %brb(lfdnr)s_bea = Bearbeiterkennung von Nr. (lfdnr)
+ %brb(lfdnr)s_beg = Bearbeitungsbeginn von Nr. (lfdnr)
+ %brb(lfdnr)s_end = Bearbeitungsende von Nr. (lfdnr)
+
+
+Anmeldungskontakte Nr. (lfdnr) (1 zu n-Beziehung)::
+
+ %amd(lfdnr)s_von = Angemeldet von
+ %amd(lfdnr)s_am = Datum der Anmeldung
+ %amd(lfdnr)s_tel = Telefon des Bearbeiters
+ %amd(lfdnr)s_zgs = Zugangsart
+ %amd(lfdnr)s_epf = Empfehlung von
+ %amd(lfdnr)s_grd = Grund der Anmeldung
+ %amd(lfdnr)s_ntz = Notiz
+
+Einrichtungskontakte Nr. (lfdnr) (1 zu n Beziehung)::
+
+ %einr(lfdnr)s_art = Art des Einrichtungskontakt
+ %einr(lfdnr)s_na = Name
+ %einr(lfdnr)s_tl1 = 1. Telefonnummer
+ %einr(lfdnr)s_tl2 = 2. Telefonnummer
+ %einr(lfdnr)s_ntz = Notiz
+ %einr(lfdnr)s_wtg = Wichtig?
+
+Fachstatistiken Nr. (lfdnr) (1 zu n Beziehung)::
+
+ %fst(lfdnr)s_jhr = Jahr der (lfdnr). Fachstatistik
+
+Jugendhilfestatistiken Nr. (lfdnr) (1 zu n Beziehung)::
+
+ %jgh(lfdnr)s_jhr = Jahr der (lfdnr). Bundesstatistik/Jugendhilfestatistik
+
+Gruppenkarten des Falls Nr. (lfdnr) (1 zu n Beziehung)::
+
+ %gkf(lfdnr)s_nr = Nummer der (lfdnr). Gruppe
+ %gkf(lfdnr)s_na = Name der (lfdnr). Gruppe
+
+Gruppenkarten der Bezugspersonen Nr. (lfdnr) (1 zu n Beziehung)::
+
+ %gkb(lfdnr)s_nr = Nummer der (lfdnr). Gruppe
+ %gkb(lfdnr)s_na = Name der (lfdnr). Gruppe
+
+Notizen der Klientenkarte Nr. (lfdnr) (1 zu n Beziehung):
+
+Notiz Klient::
+
+ %ntz0 = Notiz bei Anlegen des Klienten
+
+Notiz Bezugsperson, Einrichtungskontakte und Anmeldungskontakte::
+
+ %ntz(lfdnr)s = Notiz (lfdnr). Nach Erstellungsreihenfolge
+
+Bei Fehler bitten wir wie folgt vorzugehen:
+
+- Prüfen, ob Sicherheit für lokales Intranet auf niedrig steht.
+- Prüfen, ob Javascript installiert ist. 
+
+Der Fehler "Cannot create Automation Object"
+tritt bei wenigen Systemen auf, die folgende
+Software installiert haben: 
+
+- MS Office, 
+- Norton Antivirus, 
+- Visual Basic.
+
+Gehen Sie wie folgt vor [#]_:
+
+.. [#] Entnommen aus: 
+   http://www.notes.net/46dom.nsf/ShowMyTopicsAllFlatweb/4b92eb9b89ba4d0985256b1700538bb3?OpenDocument
+
+
+1. Möglichkeit:
+
+   a. Start -> Ausführen
+   b. Folgendes eingeben (Pfad gegebenenfalls anpassen)::
+
+        regsvr32 /U "C:\Programme\Norton AntiVirus\OfficeAV.dll
+
+   c. Dialogfeld müsste Änderung bestätigen.
+
+2. Möglichkeit:
+
+   a. Deinstallieren Sie Office
+   b. Deinstallieren Sie Norton Antivirus
+   c. Visual Basic Runtime-Dateien [#]_ updaten
+   d. Office neu installieren (Ab hier müsste es gehen)
+   e. Norton Antivirus installieren (Ab hier wieder nicht)
+   f. 1. Möglichkeit ausführen.
+
+
+.. TODO Der folgende Link (microsoft ist nicht optimal!!
+
+.. [#]
+   http://download.microsoft.com/download/vb60pro/Redist/sp4/win98/EN-US/VBRun60sp4.exe
+
+
+.. (das ist ein Kommentar)
+   http://www.notes.net/46dom.nsf/ShowMyTopicsAllFlatweb/4b92eb9b89ba4d0985256b1700538bb3?OpenDocument
+
+
+Die Dokumentenkarte/Aktenindex
+------------------------------
+
+Aufruf: Hauptmenü Ansicht Akte + Klient,
+Kopfmenü [Anzeige] Akte
+
+Die Dokumentenkarte zeigt den Dokumentenindex einer Akte sowie
+den Index der Beraternotizen an.
+
+Sie enthält in der Kopfzeile das Hauptmenü für die
+dokumentenbezogenen Funktionen (Import, Neuer Text, Ändern,
+Löschen) und die Print- und Viewausgaben der Dokumente.
+
+Änderung: Nach jeder Änderung bzw. jedem Neueintrag oder Import
+einer Datei in die Akte wird die angezeigte Dokumentenkarte mit
+den in der Datenbank eingegebenen Daten aktualisiert. 
+
+Die Schaltflächen in der Dokumentenkarte stehen für laufende
+Beratungsfälle dem zuständigen Berater zur Verfügung. Nach dem
+z. d. A-Eintrag (Beratungsabschluss) erscheint die
+Dokumentenkarte im "Lesemodus" mit inaktiven Schaltflächen. Die
+Wiederaufnahme oder das Rückgängigmachen des z. d. A Eintrages
+setzt die Anzeige für die Dokumentenliste zurück (aktive
+Schaltflächen).
+
+Menü der Dokumentenkarte
+........................
+
+.. figure:: figures/dokumentenindex_akte.png
+   :scale: 53
+
+   Dokumentenindex der Akte
+
+Aufruf: Kopfmenü [Anzeige] Akte; für die einzelnen
+Dokumente im Inhaltsverzeichnis der Akte
+ 
+Felder: Akte - Schaltflächen von links nach rechts:
+Neuen Vermerk anfügen, Vermerk zum Bearbeiten auswählen,
+Vermerk entfernen, Datei hochladen 
+Klientenkarte anzeigen, Aktenvorblatt anzeigen,
+Dokumentenindex der Akte anzeigen, Suche in der Kartei 
+
+Die entsprechenden Formulare erhält der Anwender durch Mausklick
+auf die jeweiligen Schaltflächen. 
+
+Aufbau: Es gliedert sich in vier Teile: Aktendokumente,
+Beraternotizen, Printausgaben, Suche in den Texten. Jedes
+Dokument bzw. jeder Eintrag wird über die Schaltfläche  im
+Lesemodus geöffnet. 
+
+Das Gruppenmenü
+---------------
+
+.. figure:: figures/gruppenkartei.png
+   :scale: 53
+
+   Gruppenkartei
+
+
+Aufruf: Hauptmenü Ansicht Gruppenmenü,
+Klientenkarte Schaltfläche "Gruppenmenü"
+
+Das rechte Auswahlfenster zeigt dem Benutzer die Gruppen
+(Benutzername, Gruppenname) aus seinen laufenden Beratungen. Die
+Auswahl eines Gruppennamens mit der Maus fordert nach einer
+Eingabebestätigung die zugehörige Gruppenkarte mit allen
+Einträgen für diese Gruppe an.
+
+Soll gleichzeitig ein bestimmtes Formular für eine Eingabe zur
+ausgewählten Gruppe geladen werden, ist das entsprechende
+Formular im Menü links auszuwählen (z. B. 'Teilnehmer',
+'Gruppenkarte'), bevor mit der Maus die Eingabe bestätigt
+wird. Die Anwendung erwartet, dass immer eine Gruppe und ein
+Formular angegeben sind. Eine Ausnahme bildet die
+Gruppenkarte. Hier ist die Auswahl der Gruppe für die Anzeige der
+Gruppenkarte ausreichend.
+
+Das Gruppenmenü enthält folgende Hauptpunkte:
+
+- Neu: Gruppe
+- Ansicht: Teilnehmer, Gruppenkarte, Hauptmenü
+- Suche: Klientenkarte, Gruppenkarte
+
+
+Gruppenkarte
+............
+
+.. figure:: figures/dokumentenindex_gruppe.png
+   :scale: 53
+
+   Dokumentenindex der Gruppe
+
+Aufruf: Gruppenmenü Ansicht Gruppenkarte
+
+Felder:
+
+    -  Steuerung: Schaltflächen "Hauptmenü" und "Gruppenmenü" (Wechsel zu diesen Menüs)
+    -  Gruppe: die Schaltflächen fordern beim Klicken das dazugehörige Formular an.
+
+       - neue Gruppe anlegen |neue_gruppe_symbol|
+       - Gruppe bearbeiten |gruppenakte_symbol|
+       - neuen Teilnehmer hinzufügen |neuer_teilnehmer_symbol|
+       - Teilnehmer bearbeiten |teilnehmer_bearbeiten_symbol|
+       - Teilnehmerliste anzeigen |teilnehmer_liste_anzeigen_symbol|
+       - Neuen Vermerk anfügen |neuer_vermerk_symbol|
+       - Vermerk zum Bearbeiten auswählen |vermerk_bearbeiten_symbol|
+       - Vermerk entfernen |vermerk_entfernen_symbol|
+       - Datei hochladen |datei_hochladen_symbol|
+
+    - Gruppenakte: Ansicht oder Bearbeitung der Gruppenakte
+    - Teilnehmerliste: Liste der Teilnehmer (Möglichkeit, sich die Klientenkarten anzusehen)
+    - Beraternotizen
+    - Printausgabe: Möglichkeit, Aktentexte und Beraternotizen zu drucken
+    - Suche in den Texten: Suche nach Texten oder Wörtern in den Gruppennotizen
+
+Neue Gruppe
+...........
+
+
+.. figure:: figures/neue_gruppe.png
+   :scale: 53
+
+   Neue Gruppe erstellen
+
+Aufruf: Hauptmenü Neu Gruppe, Gruppenmenü Neu Gruppe
+
+Felder: 
+
+- Neue Gruppe 'GruppenNummer': Gruppenname, Gruppenthema
+- Gruppendetails: Beginndatum, Teilnehmer, Mitarbeiter,
+  Endedatum, Gruppenart, Teilnehmerzahl, Stundenzahl 
+
+Gruppe bearbeiten
+.................
+
+.. figure:: figures/gruppe_bearbeiten.png
+   :scale: 53
+
+   Gruppe bearbeiten
+
+Die Daten, die beim Anlegen der Akte eingegeben und gespeichert
+wurden, können in diesem Formular korrigiert und bearbeitet
+werden. Der Aufbau des Formulars entspricht dem Formular zum
+Neuanlegen einer Gruppe.
+
+Gruppenteilnehmer hinzufügen
+............................
+
+.. figure:: figures/gruppe_teilnehmerauswahl.png
+   :scale: 53
+
+   Teilnehmerauswahl aus der Klientenkartei
+
+In den beiden großen Auswahlfeldern werden die Klienten auf der
+linken und die Familienangehörigen auf der rechten Seite
+aufgelistet. Aus beiden Feldern können beliebig viele Personen
+ausgewählt werden.  Mit den Feldern "Beginndatum" und "Endedatum"
+kann der Zeitraum der Gruppenzugehörigkeit bestimmt werden.
+
+Gruppenteilnehmer bearbeiten
+............................
+
+.. figure:: figures/gruppe_teilnehmer_datum_aendern.png
+   :scale: 53
+
+   Datum des Gruppenteilnehmers ändern
+
+In diesem Formular können Sie einen bestimmten Gruppenteilnehmer bearbeiten.
+
+Felder: Vorname, Nachname (nicht editierbar), Beginndatum,
+Endedatum 
+
+Gruppenteilnehmer löschen
+.........................
+
+.. figure:: figures/gruppe_teilnehmer_loeschen.png
+   :scale: 53
+
+   Teilnehmer der Gruppe löschen
+
+Über dieses Formular können Sie Gruppenteilnehmer aus der Gruppe
+entfernen.
+
+Zum Löschen markieren Sie die entsprechende/n Person(en) und
+drücken die Schaltfläche "Löschen".  Es wird nur die
+Gruppenzugehörigkeit ausgetragen. Die Klienten und Personen
+werden in der Datenbank nicht gelöscht.
+
+
+Die Straßenauswahl
+------------------
+
+Dieser Punkt beschreibt das Vorgehen bei der Auswahl einer Straße
+aus dem Straßenkatalog. Er gilt nur für die spezielle Demoversion
+und die spezielle Berliner Version, da hier das vollständige
+Straßenverzeichnis der Stadt bei der Installation in die
+Datenbank importiert wird. In der allgemeinen Version wird die
+Klientenadresse von Hand in das Stammdatenformular für die
+Klienten und Bezugspersonen eingegeben.
+
+Für die Auswahl der Adresse aus dem Straßenkatalog öffnet der
+Anwender über die Schaltfläche von einer der Karten
+"Neuaufnahme", "Wiederaufnahme", "Akte ändern", "Bezugsperson
+hinzufügen" oder "Bezugsperson bearbeiten" den
+Straßenauswahldialog, der wie folgt aussieht:
+
+
+.. figure:: figures/strassenauswahl.png
+   :scale: 53
+
+   EBKuS - Straßenauswahl
+
+Der Dialog ist zweigeteilt. Die linke Hälfte enthält
+Formularfelder zur Eingabe der Suchkriterien Straßenname,
+Hausnummer, und Postleitzahl sowie eine Schaltfläche zum Starten
+der Straßensuche.
+
+Die rechte Dialogfläche enthält ein Listenfeld zur Anzeige von
+gefundenen Straßennamen in Kombination mit Hausnummern,
+Postleitzahlen und Planungsräumen sowie Schaltflächen zur
+Übernahme eines in der Liste selektierten Eintrages in die
+öffnende Karte (z.B. "Neuaufnahme") bzw. zum Abbrechen des
+Auswahldialoges.
+
+Es findet vorerst keine Datenbankabfrage bezüglich des
+Straßenkataloges statt, alle Eingabefelder und das Listenfeld
+sind leer. Der Anwender macht eine Eingabe im Feld "Straße",
+wobei er mindestens die ersten beiden Buchstaben eines
+Straßennamens angeben muss. Unzureichende Eingaben führen zu
+einer Fehlermeldung. Zusätzlich zum Straßennamen (zwei
+Anfangsbuchstaben bis vollständiger Name) kann der Anwender eine
+Hausnummer und/oder Postleitzahl in die entsprechenden Felder
+eintragen. Je genauer er seine Suchkriterien spezifiziert, um so
+kleiner ist die Liste der möglichen Suchergebnisse und um so
+schneller ist die Datenbankabfrage beendet. Bestenfalls sind die
+Eingaben so eindeutig, dass genau ein Eintrag (Straßenname mit
+Hausnummer, Postleitzahl und Planungsraum) gefunden wird. 
+
+Im Anschluss an die eigentliche Straßensuche, die durch Klicken
+der Schaltfläche "Straße suchen" gestartet wird, selektiert der
+Anwender mit der Maus eine Zeile in der Ergebnisliste und klickt
+anschließend auf die Schaltfläche "Übernehmen". Die Werte
+(Straßenname, Hausnummer, Postleitzahl) der selektierten Zeile
+werden in die entsprechenden Felder der Karte "Neuaufnahme" (oder
+eine der o. g. anderen Karten) übernommen und der Auswahldialog
+wird automatisch geschlossen. Möchte der Anwender doch keine
+Straße auswählen, kann er mit der Schaltfläche "Abbrechen" die
+Eingaben verwerfen und den Auswahldialog schließen.
+
+Die Formulare - Aufruf, Felder, Hinweise
+----------------------------------------
+
+Die folgenden Unterkapitel beschreiben die einzelnen
+Eingabeformulare. Es werden zuerst die Verweise genannt, mit
+denen das Formular aufgerufen wird ('Aufruf'), dann die
+Eingabefelder dieses Formulars aufgezählt ('Formularfelder')
+sowie die Felder erwähnt, welche unbedingt als Pflichtfelder
+ausgefüllt werden müssen ('Voraussetzung zum Speichern'). Falls
+ein Pflichtfeld beim Ausfüllen des Formulars leer gelassen worden
+ist, erhält der Anwender eine Rückmeldung, dass dieses Feld nicht
+ausgefüllt wurde und deshalb der Datensatz nicht abgespeichert
+werden kann. Im Seitenfuß des Formulars sieht der Benutzer in der
+Regel die schon in der Datenbank vorhandenen Daten des
+Klienten. Unter der Bezeichnung "Übernahme in ..." wird
+aufgeführt, welche Formulareinträge später z. B. in die
+Statistiktabelle übernommen werden. Zusätzlich werden auch die
+vorausgesetzte Benutzerberechtigung sowie die für die Bedienung
+relevanten Besonderheiten einzelner Formulare beschrieben.
+
+Neuaufnahme - Neue Klientenakte anlegen
+.......................................
+
+
+.. figure:: figures/neue_akte.png
+   :scale: 53
+
+   Neue Akte anlegen
+
+
+Aufruf: Hauptmenü Neuaufnahme,
+Kopfmenü [neu] Neuaufnahme
+
+Formularfelder: Stammdaten zum Klienten (Kind, Jugendlicher,
+junger Erwachsener), Anschrift, Notiz (max. 255 Zeichen),
+Beginndatum des Beratungsfalles, zuständiger Bearbeiter,
+Leistungsart, Mitarbeiter, Leistungsbeginndatum. 
+
+Beratungsfallnummer: Bei einer Neuaufnahme generiert EBKuS eine
+sog. Fallnummer (Beispiel: 58-1998A). Die Zahl vor dem
+Bindestrich gibt die Anzahl der Beratungsfälle seit Jahresbeginn,
+die Buchstaben nach der Jahreszahl das (maximal achtstellige)
+Stellenzeichen (Kürzel) an. Die Beratungsfallnummer dient bei
+anonymen Beratungsfällen und bei der Statistik zur Abstimmung mit
+der Papier-Akte bzw. anderen Formularen. 
+
+Anschrift: Wenn die Straße außerhalb Berlins liegt müssen die
+Straße, die Hausnummer, der Ort und die Postleitzahl per Hand
+eingegeben werden. 
+Liegt die Straße innerhalb Berlins, wird der Straßenname aus
+dem Straßenkatalog ausgewählt (siehe `Die Straßenauswahl`_). 
+
+Pflichteinträge: Pflichteinträge für das Anlegen einer Akte und
+eines Falles sind: Namenseintrag (z. B. 'anonym') und
+Geburtsdatum. 
+
+Das Geburtsdatum muss in einer korrekten Form (TT.MM.JJJJ)
+eingegeben werden. 
+
+Im Feld  ' bei ' stehen die Merkmale zum Familienstatus .
+
+Dienststelle: Beim Speichern wird die Dienststelle der Datenbank
+zur Akte (in Stellenzeichen 'Beginn' und Stellenzeichen
+'aktuell') eingetragen, falls das Formular keine Wahl der
+Dienststelle anzeigt. 
+
+Übernahme in andere Tabellen: Familienstatus, Leistungsart,
+Fallbeginn und Fallnummer werden beim Ausfüllen der Fach- und
+Bundesjugendhilfestatistikkarte zur Übernahme angeboten. 
+    
+Neue Bezugspersonen - Eltern, Geschwister, Verwandte
+....................................................
+
+.. figure:: figures/neue_person.png
+   :scale: 53
+
+   Neue Person eintragen
+
+Aufruf: Kopfmenü [Neu] Familie, Klientenkarte Bezugspersonen
+Schaltfläche "Hinzufügen" 
+
+Mit der Schaltfläche |ansicht_symbol| kann sich der Bearbeiter
+die Daten zur Bezugsperson ansehen. 
+
+Formularfelder: Stammdaten zur Bezugsperson des Klienten,
+Verwandtschaftsart, Familienstatus, Notiz 
+
+Mit der Schaltfläche |strassenauswahl_symbol| hat der Bearbeiter
+die Möglichkeit, eine Straße aus dem Straßenkatalog auszuwählen
+(siehe `Die Straßenauswahl`_).
+
+Voraussetzung zum Speichern: 'Vor- oder Nachname' bzw. 'anonym'
+
+Seitenfuß: Zeigt die bisher aufgenommenen Bezugspersonen des
+Klienten an 
+
+Neue Anmeldeinformation
+.......................
+
+.. figure:: figures/neue_anmeldung.png
+   :scale: 53
+
+Neue Anmeldeinformation eintragen
+
+Es existiert immer genau ein Anmeldekontakt zu einer Fallnummer.
+
+Das Bearbeiten eines Anmeldekontaktes von einem bereits
+abgeschlossenem Fall ist nicht möglich. 
+
+Aufruf: Kopfmenü  Anmeldung, Klientenkarte Anmeldung
+Schaltfläche "Hinzufügen" 
+
+Mit der Schaltfläche "Bearbeiten" können die bestehenden
+Anmeldedaten bearbeitet werden.  
+
+Formularfelder: gemeldet von, gemeldet am, Telefon, auf
+Empfehlung von, Zugangsart, Anmeldegrund, Notiz 
+
+Voraussetzung zum Speichern: Eintrag in 'gemeldet von'
+
+Übernahme in andere Tabellen: Der Zugangsmodus wird zur
+Übernahme in die Fach- und Bundesstatistik angeboten. 
+
+Neuer Einrichtungskontakt
+.........................
+
+.. figure:: figures/neuer_einrichtungskontakt.png
+   :scale: 53
+
+   Neuen Einrichtungskontakt eintragen
+
+Aufruf: Kopfmenü [Neu] Einrichtung, Klientenkarte
+Einrichtungskontakte Schaltfläche "Hinzufügen" 
+
+Mit der Schaltfläche |bearbeiten_symbol| kann der
+Einrichtungskontakt angesehen und evtl. bearbeitet werden.
+
+Formularfelder: Einrichtungsart, Einrichtungsname,
+Kontaktperson, Telefon1, Telefon2, Notiz 
+
+Voraussetzung zum Speichern: Eintrag in 'Einrichtungsname'
+
+Seitenfuß: Zeigt die schon vorhandenen Einrichtungskontakte an.
+
+Neue Leistung
+.............
+
+.. figure:: figures/neue_leistung.png
+   :scale: 53
+
+   Neue Leistung eintragen
+
+Aufruf: Kopfmenü [Neu] Leistung, Klientenkarte Leistungen
+Schaltfläche "Hinzufügen"
+
+Mit der Schaltfläche |bearbeiten_symbol| kann die Leistung
+angesehen und evtl. bearbeitet werden.
+
+Formularfelder: Leistungsart, Mitarbeitername, Beginndatum,
+Endedatum 
+
+Voraussetzung zum Speichern: Leistungsart, Mitarbeitername,
+Beginndatum 
+
+Seitenfuß: Zeigt die schon eingegebenen Leistungen und
+Mitarbeiter an 
+
+Übernahme in andere Tabellen: Die eingegebenen Leistungsarten
+werden im Formular 'Fachstatistik' zur Übernahme angeboten 
+
+Neue Zuständigkeit - Bearbeiter
+...............................
+
+.. figure:: figures/neue_zustaendigkeit.png
+   :scale: 53
+
+   Neue Zuständigkeit eintragen
+
+Aufruf: Kopfmenü [Neu] Bearbeiter, Klientenkarte Bearbeiter
+Schaltfläche "Hinzufügen" 
+
+Formularfelder: Neuer zuständiger Mitarbeiter, Beginn der
+Zuständigkeit 
+
+Voraussetzung zum Speichern: Alle Felder 
+
+Seitenfuß: Zeigt die bisher zuständigen Bearbeiter an 
+
+Zuständigkeitsende: Die Zuständigkeit des bisherigen Bearbeiters
+wird mit dem Beginndatum des neu zuständigen Mitarbeiters
+automatisch ausgetragen. 
+
+Abschlussdatum - z. d. A.
+.........................
+
+
+.. figure:: figures/zda.png
+   :scale: 53
+
+   Abschlussdatum eintragen
+
+
+Aufruf: Kopfmenü [Neu] z. d. A., Klientenkarte Stand
+Schaltfläche "Zu den Akten" 
+
+Mit der Schaltfläche |bearbeiten_symbol| erhält man das Formular,
+um das Beginndatum zu verändern.
+
+Stand: Ein Mausklick auf die Schaltfläche "Zu den Akten" in der
+Klientenkarte liefert das Formular für den
+Beratungsabschluss. Ist ein Fall zu den Akten gelegt, wird die
+Schaltfläche "Zu den Akten" durch die Schaltfläche "Zu den Akten
+rückgängig" ersetzt, falls seit Datum des Abschlusses noch kein
+Monat vergangen ist. Liegt der Abschluss bereits länger als einen
+Monat zurück, trägt die Schaltfläche die Aufschrift
+"Wiederaufnehmen". 
+
+Formularfelder: Abschlussdatum des 'Beratungsfalles'
+
+Voraussetzung zum Speichern: Abschlussdatum, Vorliegen der Fach-
+und Bundesjugendhilfestatistik 
+
+Seitenfuß: Zeigt die bisherigen Beratungsfälle und
+Zuständigkeiten an. 
+
+Zuständigkeitsende: Die Zuständigkeit des bisherigen Bearbeiters
+wird mit dem Abschlussdatum automatisch ausgetragen. 
+
+Lesemodus: Die Akte ist nach dem Eintrag des Abschlussdatums
+nicht mehr beschreibbar. Eine Anzeige im Klientenauswahlfenster
+des Hauptmenüs unterbleibt. 
+
+Um sie wieder beschreibbar zu machen, muss der Abschluss
+rückgängig gemacht (bis einen Monat nach Abschluss)  oder die
+Akte wiederaufgenommen (ein Monat nach Abschluss) werden, wenn
+ein erneuter Beratungsfall beginnt. 
+
+Abschlussdatum Rückgängigmachen
+...............................
+
+.. figure:: figures/zda_rueckgaengig.png
+   :scale: 53
+
+   Abschlussdatum rückgängig machen
+
+Aufruf: Klientenkarte Stand Schaltfläche "z. d. A. Rückgängig"
+
+Ein Zugriff auf die Daten zum Ändern oder Ansehen über die
+entsprechenden Schaltflächen ist nicht möglich (Schaltfläche
+inaktiv). 
+
+Stand: Ein Mausklick auf die Schaltfläche "z. d. A. Rückgängig"
+in der Klientenkarte liefert das Formular zum Ändern des
+Beginndatums. Dies ist nur möglich, wenn seit dem Abschluss  des
+Falles kein Monat vergangen ist.  
+
+Formularfelder: Mitarbeiter, Beginndatum
+
+
+Wiederaufnahme der Klientenakte
+...............................
+
+.. figure:: figures/wiederaufnahme.png
+   :scale: 53
+
+   Wiederaufnahme des Klienten
+
+Aufruf: Klientenkarte Stand Schaltfläche "Wiederaufnahme"
+
+Ein Zugriff auf die Daten zum Ändern oder Ansehen über die
+entsprechenden Schaltflächen ist nicht möglich (Schaltfläche
+inaktiv). 
+
+Stand: Ein Mausklick auf die Schaltfläche "Wiederaufnahme" in
+der Klientenkarte liefert das Formular zum Wiederaufnehmen der
+Akte.  
+
+Formularfelder: Stammdaten aus der bisherigen Akte des Klienten  
+
+Mit der Schaltfläche  |strassenauswahl_symbol| hat der Bearbeiter
+die Möglichkeit, eine Straße aus dem Straßenkatalog auszuwählen
+(siehe `Die Straßenauswahl`_).
+
+Neuer Text, Aktenvermerk, Beraternotiz
+......................................
+
+.. figure:: figures/neuer_text.png
+   :scale: 53
+
+   Neuen Texteintrag zur Akte hinzufügen
+
+Aufruf: Klientenkarte [Neu] Vermerk, Klientenkarte [Anzeige]
+Akte Akte Schaltfläche |neuer_vermerk_symbol|
+
+Formularfelder:  Klientendaten, Betreffzeile, Datum, Textfeld,
+Mitarbeiter, Art des Textes 
+
+Voraussetzung zum Speichern: Betreff, Datumskontrolle,
+Autorisierung, Text 
+
+Dokument (Datei) importieren
+............................
+
+.. figure:: figures/datei_importieren.png
+   :scale: 53
+
+   Datei in die Akte aufnehmen
+
+Aufruf: Klientenkarte [Neu] Dateiimport, Klientenkartei
+Anzeige] Akte Akte Schaltfläche |datei_hochladen_symbol|
+
+Formularfelder: Betreffzeile, Datum, Datei, Mitarbeiter, Art des
+Dokumentes 
+
+Voraussetzung zum Speichern: Betreff, Datumskontrolle,
+Autorisierung, hochzuladende Datei, Dateityp (Mime Typ). 
+
+Printausgabe von Aktentexten bzw. Beraternotizen
+................................................
+
+.. figure:: figures/dokumentenindex_akte.png
+   :scale: 53
+
+   Dokumentenindex der Akte - Printausgabe
+
+Aufruf: Dokumentenkarte Printausgabe
+
+Hypertextreferenz: 
+
+    - Textformat: Sie fasst die einzelnen Texte einer Akte im
+      ASCII-Format mit Inhaltsverzeichnis zusammen. 
+    - PDF-Format: Sie fasst die Texte einer Akte im PDF-Format
+      mit Inhaltsverzeichnis zusammen. 
+
+Texteintrag auswählen
+.....................
+
+.. figure:: figures/text_auswaehlen.png
+   :scale: 53
+
+   Texteintrag der Akte zum Ändern auswählen
+
+Dieses Formular dient dazu, einen von den in einer Akte oder
+Gruppe enthaltenen Texte auszuwählen, um diesen in einem
+Bearbeitungsformular zu bearbeiten.  
+
+
+Text, Aktenvermerk, Beraternotizen ändern
+.........................................
+
+.. figure:: figures/text_aendern.png
+   :scale: 53
+
+   Texteintrag der Akte ändern
+
+Aufruf: Dokumentenkarte Text ändern
+
+Formularfelder: Betreffzeile, Datum, Textfeld, Mitarbeiter, Art
+des Textes 
+
+Voraussetzung zum Speichern: Betreff, Datumskontrolle,
+Autorisierung, Text 
+
+Dokument oder Text löschen
+..........................
+
+
+.. figure:: figures/text_loeschen.png
+   :scale: 53
+
+   Dokumente und Texteinträge der Akte löschen
+
+
+Aufruf: Dokumentenkarte Text löschen
+
+Formularfelder: Auswahlliste der Aktendokumente, -texte
+
+Voraussetzung zum Löschen: Autorisierung, Begrenzung der Auswahl
+auf den zuständigen Bearbeiter 
+
+.. Achtung! Das Löschen von Texten ist nicht wieder rückgängig zu machen! 
+
+.. caution:: Das Löschen von Texten ist nicht wieder rückgängig
+   zu machen!  
+
+Neuer Fachstatistik-Eintrag
+...........................
+
+.. figure:: figures/neue_fachstatistik.png
+   :scale: 53
+
+   Neue Fachstatistik erstellen
+
+Aufruf: Hauptmenü Neu Fachstatistik + Klient,
+Klientenkarte [Neu] Fachstatistik
+
+Formularfelder: Falldaten (Mitarbeiter, Fallnummer, Jahr),
+Klientendaten (Sozialraum, Geschlecht, Altersgruppe Kind,
+Familienstatus, Zugangsmodus, Qualifikation Jugendlicher,
+Qualifikation Mutter, Qualifikation Vater, Herkunft der Mutter,
+Herkunft des Vaters, Beruf der Mutter, Beruf des Vaters, Alter
+der Mutter, Alter des Vaters), Problem 1 bei der Anmeldung,
+Problem 2 bei der Anmeldung, Hauptproblematik der Eltern,
+Hauptproblematik des Kindes/Jugendlichen, Problemspektrum Eltern,
+Problemspektrum Kind/Jugendliche, erbrachte Leistung, Terminsumme
+Kontaktanzahl Mutter, Kontaktanzahl Vater, Kontaktanzahl Kind,
+Kontaktanzahl Paar, Kontaktanzahl Familie, Kontaktanzahl
+Sozialarbeiter, Kontaktanzahl Lehrer, Kontaktanzahl Erzieher,
+Kontaktanzahl Sonstige), Notiz 
+
+Voraussetzung zum Speichern: Dienststelle, Mitarbeiter,
+Beratungsfallnummer, Leistungen, Terminanzahl. Alle anderen
+Listenfelder enthalten ein Merkmal 'keine Angabe' oder können
+leer gelassen werden. 
+
+Übernahme bisheriger Eingaben: Bisherige Eingaben wie die
+Statistik des Vorjahres bzw. einige Angaben aus der Akte werden
+dem Anwender automatisch zur Auswahl und eventuellen Übernahme in
+den Statistikeintrag angeboten. 
+
+Zugehörige Akte: Ein Fachstatistikeintrag setzt voraus, dass
+genau eine zugehörige Akte in der Datenbank existiert. 
+
+Neuer Bundesjugendhilfestatistik-Eintrag
+........................................
+
+.. figure:: figures/neue_bundesstatistik.png
+   :scale: 53
+
+   Neue Bundesstatistik erstellen
+
+
+Aufruf: Hauptmenü Neu Bundesstatistik + Klient,
+Klientenkarte [Neu] Bundesstatistik
+
+Formularfelder: Falldaten: Mitarbeiter, Fallnummer, Beginndatum,
+Ende Monat, Ende Jahr, Geschwisterfall, Wohnbezirk, 
+Bearbeiter, Land (diese Felder sind vorbelegt), Kreis
+
+Beratungsdaten: Träger, Kontaktaufnahme, Beendigungsgrund,
+Beratungsanlässe, Beratungsschwerpunkt  
+
+Personendaten: lebt, Alter, Staatsangehörigkeit, Geschlecht,
+Geschwisteranzahl bekannt, Geschwisteranzahl unbekannt  
+
+Therapieansatz Jugendlicher: allein, in der Gruppe
+
+Therapieansatz Eltern: allein, in der Gruppe
+
+Therapieansatz Sonstiges: in der Familie, im sozialen Umfeld
+
+Voraussetzung zum Speichern: alle Felder
+
+Übernahme bisheriger Eingaben: Bisherige Eingaben wie einige
+Angaben aus der Akte werden dem Anwender automatisch zur Auswahl
+und eventuellen Übernahme in den Statistikeintrag angeboten. 
+
+Zugehörige Akte: Der Bundesjugendhilfestatistikeintrag setzt
+voraus, dass eine zugehörige Akte in der Datenbank
+existiert. 
+
+Änderung eines Akteneintrages
+.............................
+
+.. figure:: figures/akte_aktualisieren.png
+   :scale: 53
+
+   Akte aktualisieren
+
+Aufruf: Klientenkarte Klientendaten Schaltfläche "Bearbeiten"
+
+Die Formular- sowie die Pflichtfelder zum Speichern entsprechen
+den beschriebenen Formularen für Neueinträge. 
+
+Änderung eines Statistikeintrages
+.................................
+
+Aufruf: Hauptmenü Ändern  Fach- bzw. JGH-Statistik + Klient,
+Klientenkarte Schaltfläche |statistik_bearbeiten_symbol|
+
+Ohne Aktenbezug: Ist ein Statistikeintrag nicht mit einer Akte
+verbunden, erhält der Anwender ein Auswahlfenster mit Fallnummern
+zur Auswahl. 
+
+Die Formularfelder sowie die Voraussetzung zum Speichern
+entsprechen den beschriebenen Formularen für Neueinträge. 
+
+Aktenvorblatt
+.............
+
+.. figure:: figures/aktenvorblatt.png
+   :scale: 53
+
+   Aktenvorblatt
+
+Aufruf: Hauptmenü Ansicht Aktenvorblatt,
+Klientenkarte [Anzeige] Vorblatt
+
+Vorblatt für die Papierakte: Das Aktenvorblatt besteht aus den
+Einträgen in der Klientenkarte, ergänzt um leere Formularzeilen
+für zukünftige Einträge und ist gedacht als zusammenfassendes
+Formular für eine Papierakte. 
+
+Protokollansicht
+................
+
+.. figure:: figures/protokoll_ansicht.png
+   :scale: 53
+
+   Protokollansicht/-bearbeitung
+
+Benutzerberechtigung: Protokoll
+
+Aufruf erfolgt, nachdem sich ein Benutzer (mit Protokollrecht) bei
+EbkuS angemeldet hat. In dem aufgerufenen Formular müssen sich
+dieser Benutzer sowie ein weiterer Benutzer mit Protokollrecht
+mit Namen und Passwort anmelden. Die Eingaben werden
+verifiziert. Bei Falscheingabe oder fehlender Berechtigung
+erscheint das Anmeldeformular erneut.  
+
+Felder: 
+
+    - Anzeigeeinstellung - welche Protokolleinträge sollen
+      angezeigt werden 
+    - Protokollierungsoptionen
+    - Anzeige der aktuellen Protokolleinträge
+    - Archivierte Protokolle - Anzeige aller archivierten
+      Protokolle (Auswahlmöglichkeit zur Ansicht)
+
+
+Schaltflächen:
+
+    - Zeigen - Anzahl der anzuzeigenden Datensätze 
+    - Ausloggen - Abmelden vom Programm EBKuS
+    - Anzeigen - Anzeigen eines markierten Datensatzes oder eines
+      archivierten Protokolls 
+    - Zurücksetzen - Auswahl zur Anzeige eines archivierten
+      Protokolls zurücksetzen 
+
+Formulargestaltung
+..................
+
+Alle Formularseiten sind einem Styleguide entsprechend
+einheitlich gestaltet. Sie enthalten die Kopfzeile, die
+Eingabefelder, den Speichern- bzw. Zurücksetzen-Knopf, erweiterte
+Hilfsinformationen bzw. zugehörige Listen. 
+
+Die Formulare bestehen aus Text- und Zahleneingabefeldern,
+einfachen und mehrfachen Auswahlboxen und aus Check- sowie
+Radiobuttons. Die Anordnung der Bedienelemente erfolgt in
+Tabellen. 
+
+Formularbedienung: Maus- und Tastatur
+.....................................
+
+Mit der Maus wird zuerst das Eingabefeld des Formulars ausgewählt
+oder man bewegt den Cursor mit der Tabulatortaste von Feld zu
+Feld. Bei Listenboxen kann man, alternativ zur Markierung mit dem
+Mauszeiger, mit den Cursortasten das Listenfenster Aufklappen und
+anschließend mit den Pfeiltasten vertikal bzw. horizontal
+scrollen. Mit der Bestätigungstaste wird ein Eintrag markiert. 
+ 
+Bei Mehrfachauswahllistenboxen muss u. U. die Steuerungstaste in
+Verbindung mit der Maus betätigt werden, um mehrere Einträge zu
+selektieren oder Markierungen zu entfernen. Die Bedienung weicht
+je nach verwendetem Browser und Betriebssystem u. U. in wenigen
+Punkten von dieser Beschreibung ab. 
+
