@@ -1,0 +1,94 @@
+Einleitung
+==========
+
+Was ist EBKuS?
+--------------
+
+EBKuS steht für Klientenverwaltung, Aktendokumentation,
+Gruppenverwaltung und Statistik für Erziehungs- und
+Familienberatungsstellen. Die Anwendung orientiert sich an den
+bisher in den Beratungsstellen verwendeten Klientenkarteien und
+vereint alle in diesem Zusammenhang anfallenden Vorgänge unter
+einer komfortablen Benutzeroberfläche. Sämtliche Daten und
+Dokumente von Klientenkarteien können mit EBKuS verwaltet und
+bearbeitet werden.  
+
+Plattformneutrale Web-Architektur
+---------------------------------
+
+In der vorliegenden Version 3.2 ist EBKuS als
+plattformneutrale Webanwendung realisiert. Anders als
+herkömmliche Anwendungen, z.B. Textverarbeitungs- und
+Tabellenkalkulationsprogramme, die für ein spezifisches
+Betriebssystem geschrieben (z. B. Windows) und meist vollständig
+auf den Arbeitsplatzrechnern installiert werden, benötigt EBKuS
+zudem keine umfangreichen Installationen auf den
+Arbeitsplatzrechnern ("Clients") und setzt für diese auch nicht
+die neueste Hardware voraus, um performant zu arbeiten.  Vielmehr
+erfolgt die eigentliche Programm-Installation auf sogenannten
+Servern. Hierbei handelt es sich um Rechner mit großer
+Prozessor-, Arbeitsspeicher- und Festplattenkapazität, die
+Anfragen von Arbeitsplatzrechnern über ein Netzwerk (Intra-,
+Internet) empfangen, Daten aus einer Datenbank lesen oder in
+diese schreiben und die Ergebnisse zurück an die
+Arbeitsplatzrechner senden. Diese stellen die Ergebnisse in Form
+von Webseiten in einem Internet- oder Webbrowser dar. Für den
+Anwender erscheint EBKuS dabei wie eine normale Webseite,
+d. h. das Programm wird über eine Netzadresse in einem Webbrowser
+aufgerufen. 
+
+Der Vorteil dieser Webarchitektur ist die deutlich
+höhere Flexibilität gegenüber üblichen Programmen. Für die
+Funktionalität von EBKuS ist es unerheblich, ob ein
+Arbeitsplatzrechner mit Windows NT, Windows 2000, WindowsXP, Mac
+OSX oder Linux als Betriebssystem läuft oder ob der Microsoft
+Internet Explorer oder Netscape Navigator bzw. Mozilla oder
+Firefox als Webbrowser verwendet wird. Zudem besteht auf den
+Arbeitsplatzrechnern für die EBKuS-Anwendung kein
+Installationsbedarf, sofern sie bereits über einen Webbrowser
+verfügen. Diese werden meist standardmäßig zusammen mit dem
+Betriebssystem installiert.  
+
+
+Open-Source-Software
+--------------------
+
+
+EBKuS steht unter der `GNU General Public License`__ (deutsch_).
+Jeder darf das Programm kopieren, anwenden und modifizieren.
+Eine veränderte Version darf nur weitergegeben werden, wenn diese
+wiederum unter der GNU GPL steht. Damit ist gewährleistet, dass
+jeder Anwender das Recht hat (und die Möglichkeit aufgrund des
+mitgelieferten Quellcodes), unabhängig von den ursprünglichen
+Entwicklern das Programm zu pflegen und weiterzuentwickeln.
+
+__ gnu_
+.. _deutsch: http://www.gnu.de/gpl-ger.html
+.. _gnu: http://www.gnu.org/licenses/gpl.txt
+
+Allen Interessierten steht die Mailing-Liste
+ebkus-support@lists.berlios.de für Fragen, Anregungen und zum
+Erfahrungsaustausch offen. Anmeldung über
+https://lists.berlios.de/mailman/listinfo/ebkus-support.
+
+Es besteht keinerlei Gewährleistung für das Programm; jegliche
+Haftung ist ausgeschlossen.
+
+
+Über das Handbuch
+-----------------
+
+Dieses Benutzerhandbuch enthält sämtliche Informationen, die für
+EBKuS 3.2 benötigt werden. Im Kapitel `Anwendungsbeschreibung`_
+werden der Aufbau der EBKuS-Anwendung sowie die einzelnen
+Benutzeroberflächen dargestellt. Zusammen mit der
+`Bedienungsanleitung`_ sind diese Kapitel für die AnwenderInnen
+(Fallbearbeiter, Bearbeiter) sowie die SekretärInnen (Verwalter)
+der Erziehungs- und Beratungsstellen gedacht, die EBKuS bedienen
+sollen. Die Kapitel `Administration`_ und `Installation`_ richten
+sich an die Anwendungssystembetreuer (Administratoren, "Admins"),
+die die Installationen der EBKuS-Server und die Einrichtung der
+Benutzergruppen vornehmen, sowie die Protokollbenutzer, die für
+die Protokollierung der Zugriffe und die Sicherung der Datensätze
+zuständig sind.
+

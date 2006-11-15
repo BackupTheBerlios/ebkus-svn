@@ -1,0 +1,132 @@
+#!%(PYTHON_EXECUTABLE)s
+# Diese Datei wird generiert.
+
+## Dieses Skript wird vom Apache-Webserver als CGI-Skript
+## fuer jeden Request an EBKuS aufgerufen.
+## Es komuniziert ueber einen Socket mit dem EBKuS-Server
+## und schickt das Ergebnis ueber den Webserver zurueck
+## an den Klienten.
+
+import sys, socket, os
+
+port = %(PORT)s
+host = '%(HOST)s'
+admin_tel = '%(ADMIN_TEL)s'
+admin_email = '%(ADMIN_EMAIL)s'
+
+env = os.environ
+
+if not env.has_key('REMOTE_USER'):
+    env['REMOTE_USER'] = '%%'
+    
+if not env.has_key('HTTP_PRAGMA'):
+    env['HTTP_PRAGMA'] = 'no-cache'
+    
+if not env.has_key('Cache-Control'):
+    env['Cache-Control'] = 'no-cache'
+    
+if env.has_key('CONTENT_LENGTH'):
+    inl = int(env['CONTENT_LENGTH'])
+else:
+    inl = 0
+    
+envitems = os.environ.items()
+envl = []
+for name, value in envitems:
+    envl.append("%%s=%%s" %% (name,value))
+envstr = '\000'.join(envl)
+
+if inl: instr = sys.stdin.read(inl)
+else: instr = ''
+
+tosend = '%%9d%%s%%9d%%s' %% (len(envstr), envstr, inl, instr)
+
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((host, port))
+    s.send(tosend)
+    s.shutdown(1)
+    
+    sbuffer = []
+    while 1:
+        data = s.recv(1024)
+        if not data: break
+        sbuffer.append(data)
+    s.close()
+    
+    buffer = ''.join(sbuffer)
+    olen = int(buffer[:9])
+    out = buffer[9:(olen + 9)]
+    #err = buffer[(olen + 18):]
+    
+    print out
+    
+except:
+    print """Content-type: text/html\n\n
+    <html>
+    <head>
+    <title>Serverfehler</title>
+    <!-- <meta http-equiv="expires" content="0"> //-->
+    <meta name="robots" content="noindex">
+    <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+    <link rel="stylesheet" type="text/css" href="/ebkus/ebkus_styles/css_styles.css">
+    </head>
+    <body bgcolor="#CCCCCC" link="#CCCCCC" vlink="#CCCCCC" alink="#000000">
+    <table width="50%%" border="0" height="215" align="center">
+    <tr>
+      <td height="223" align="center"> <fieldset><b><legend class="legendtext">Serverfehler</legend></b>
+        <table width="89%%" border="0" height="120">
+          <tr>
+            <td>&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="normaltext" align="center"><b>EBKuS-%(INSTANCE_NAME)s 
+                ist nicht betriebsbereit.</b></td>
+          </tr>
+          <tr>
+            <td class="normaltext" align="center">&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="normaltext" align="center">Bitte wenden Sie sich an den
+              Systemadministrator:</td>
+          </tr>
+          <tr>
+            <td class="normaltext" align="center">&nbsp;</td>
+          </tr>
+          <tr align="center">
+            <td class="normaltext">Name:</td>
+          </tr>
+          <tr align="center">
+            <td class="normaltext">%(ADMIN_NAME)s</td>
+          </tr>
+          <tr>
+            <td class="normaltext" align="right">&nbsp;</td>
+          </tr>
+          <tr align="center">
+            <td class="normaltext">Telefon:</td>
+          </tr>
+          <tr align="center">
+            <td class="normaltext">%(ADMIN_TEL)s</td>
+          </tr>
+          <tr>
+            <td class="normaltext" align="right">&nbsp;</td>
+          </tr>
+          <tr align="center">
+            <td class="normaltext">E-Mail:</td>
+          </tr>
+          <tr>
+            <td class="normaltext" align="center">%(ADMIN_EMAIL)s</td>
+          </tr>
+          <tr>
+            <td class="normaltext" align="center">&nbsp;</td>
+          </tr>
+        </table>
+        </fieldset> </td>
+    </tr>
+    </table>
+    </body>
+    </html>
+    """
+    # TBD: Da kann noch die URL zum starten rein.
+    
+    

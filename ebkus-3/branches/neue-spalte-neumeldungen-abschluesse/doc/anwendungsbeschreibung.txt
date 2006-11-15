@@ -1,0 +1,480 @@
+Anwendungsbeschreibung
+======================
+
+Klientenakte
+------------
+
+.. figure:: figures/klientenkarte.png
+   :scale: 53
+
+   Klientenkarte
+
+Die EBKuS-Anwendung orientiert sich am Konzept der
+Klientenakte. Diese enthält die Stammdaten des Klienten und der
+Bezugspersonen, die Anmeldungsinformationen, die
+Einrichtungskontakte, die Beratungsleistungen, den zuständigen
+Bearbeiter, Beginn und Ende der Beratung, den Bearbeitungsstand
+(laufend, z. d. A.), Notizinformationen sowie die Dienststelle,
+wo die Akte angelegt wurde und sich aktuell befindet.
+
+Die Stammdaten werden für alle Personen jeweils einzeln geführt,
+zugeordnet zu einer Akte. Es sind alle in der Beratung
+befindlichen Personen und Adressen aufnehmbar.
+ 
+Das Geburtsdatum muss als gültiges Datum in der Form TT.MM.JJJJ
+eingegeben werden. EBKuS erwartet Eingaben für den Namen des
+Klienten, den zuständigen Bearbeiter, die Beratungsleistung und
+den Mitarbeiter, der die Beratung durchführt, und macht auf
+erkennbare Fehleingaben bei Datumsangaben und Pflichtfeldern
+aufmerksam.
+
+Die Straße kann in der Berliner Version aus dem Straßenkatalog des
+Statistischen Landesamtes ausgewählt (in Berlin) oder manuell eingegeben
+(für Straßen außerhalb Berlins) werden, da für diese Version der
+Berliner Straßenkatalog mitgeliefert wird. Bei Lage in Berlin wird die
+Richtigkeit der Angaben (Hausnummer, Postleitzahl) vor der Speicherung in die
+Datenbank überprüft und es wird gegebenenfalls auf Fehler hingewiesen. Des
+weiteren wird beim Speichern der Sozialraum automatisch zugewiesen. Die
+Prüfung der Straßendaten erfolgt auch beim Aufrufen der Klientenakte, sofern
+die Straße in Berlin liegt (es kann Änderungen im Straßenkatalog geben). In
+der Standardversion wird die Anschrift und der Planungsraum für die
+Statistik der Jugendhilfe manuell eingetragen.
+
+Alle zu Beginn erhobenen klientenbezogenen Merkmale wie
+Familienstatus und Zugangsmodus enthalten auch das Merkmal 'keine
+Angabe'. Diese Daten werden später beim Ausfüllen des
+Statistikformulars zur Übernahme in die Statistiktabellen
+angeboten.
+
+Die Akte kann geschlossen ('zu den Akten-Vermerk') und mehrfach
+wieder neu aufgenommen werden. Bei einer Wiederaufnahme legt
+EBKuS einen neuen 'Beratungsfall' in der Akte für den Klienten an
+(nach Ablauf von einem Monat zur vorherigen Beratung). Jeder
+'Beratungsfall' erhält neben der intern vergebenen Klienten-Id
+eine eindeutige Fallnummer, die sich aus dem Jahr, dem
+Stellenzeichen und der fortlaufenden Nummer pro Jahr (jedes Jahr
+beginnt bei 1) zusammensetzt und so als 'Beratungsfallzeichen'
+für die Akte verwendbar ist.
+
+Die Zuordnung von Leistungen und Beratern zum Klienten,
+unabhängig vom hauptverantwortlichen Bearbeiter, ermöglicht es,
+Beratungen/Therapien, bei denen mehr als ein Mitarbeiter pro
+Klient beteiligt ist, einzutragen. Dies wird bei einem
+aufgeteilten Therapiesetting - Elternberatung durch Mitarbeiter A
+und Kindertherapie durch Mitarbeiter B - in der Praxis gebraucht.
+
+Alle zentralen Informationen eines Beratungsfalles sind in einer
+übersichtlichen Klientenkarte am Bildschirm
+zusammengefasst. Durch die Schaltflächen |bearbeiten_symbol| und
+|ansicht_symbol| (Bearbeiten und Ansicht eines Eintrages) und
+Schaltflächen mit Beschriftung (Hinzufügen, Bearbeiten) gelangt
+der Anwender zu den entsprechenden Eingabeformularen. Die
+Schaltfläche |gruppenakte_symbol| ermöglicht die Anzeige der
+Gruppenakte, wenn der Klient Teilnehmer einer Gruppe ist.
+
+.. |bearbeiten_symbol| image:: figures/bearbeiten_symbol.png
+   :scale: 50
+
+.. |statistik_bearbeiten_symbol| image:: figures/statistik_bearbeiten_symbol.png
+   :scale: 50
+
+.. |ansicht_symbol| image:: figures/ansicht_symbol.png
+   :scale: 50
+
+.. |gruppenakte_symbol| image:: figures/gruppenakte_symbol.png
+   :scale: 50
+
+.. |neue_gruppe_symbol| image:: figures/neue_gruppe_symbol.png
+   :scale: 50
+
+.. |neuer_teilnehmer_symbol| image:: figures/neuer_teilnehmer_symbol.png
+   :scale: 50
+
+.. |teilnehmer_bearbeiten_symbol| image:: figures/teilnehmer_bearbeiten_symbol.png
+   :scale: 50
+
+.. |teilnehmer_liste_anzeigen_symbol| image:: figures/teilnehmer_liste_anzeigen_symbol.png
+   :scale: 50
+
+.. |neuer_vermerk_symbol| image:: figures/neuer_vermerk_symbol.png
+   :scale: 50
+
+.. |vermerk_bearbeiten_symbol| image:: figures/vermerk_bearbeiten_symbol.png
+   :scale: 50
+
+.. |vermerk_entfernen_symbol| image:: figures/vermerk_entfernen_symbol.png
+   :scale: 50
+
+.. |datei_hochladen_symbol| image:: figures/datei_hochladen_symbol.png
+   :scale: 50
+
+.. |strassenauswahl_symbol| image:: figures/strassenauswahl_symbol.png
+   :scale: 50
+
+Aktendokumente
+--------------
+
+.. figure:: figures/dokumentenindex_akte.png
+   :scale: 53
+
+   Dokumentenindex der Akte
+
+Beliebige Dokumente und Grafiken können als Dateien in eine Akte
+importiert werden. Damit können z. B. die Therapiebewilligung
+eines anderen Amtes, die Mail des Klienten, der Erst-
+bzw. Abschlussbericht, die Testunterlagen, Gutachten und
+Korrespondenz usw. der elektronischen Akte zugeordnet werden.
+
+Für den Anwender bedeutet das ein hohes Maß an Flexibilität, da
+Dokumente von Textverarbeitungs-, Tabellenkalkulations- und
+Grafikprogrammen oder eingescannte Originaldokumenten mit einer
+spezifischen Akte verknüpft werden.
+
+Zusätzlich zum Import von Dateien können Texte wie Aktenvermerke,
+Protokolle usw. geschrieben und in der Akte gespeichert
+werden. Sie werden wie die importierten Dateien im einheitlichen
+Inhaltsverzeichnis, dem Dokumentenindex, angezeigt. Das Modul
+entspricht einem in die Anwendung integrierten Dokumentenmanager
+(Content Manager) für die Zwecke der elektronischen Aktenführung
+der Erziehungsberatungsstelle. Eine Printausgabe fasst die
+einzelnen Texte wie Vermerke etc. zusammen und kann gemeinsam mit
+einem Inhaltsverzeichnis der Akte ausgedruckt werden.
+
+Die Dokumente sind ausschließlich für den gerade zuständigen
+Berater bzw. Therapeuten les- und schreibbar. Nach Abschluss der
+Beratung und dem Schließen der Akte bekommt die Dokumentenkarte
+den Lesemodus für ihn.
+ 
+Für den Anwender mit Verwaltungsrechten in der EFB sowie für
+andere Berater sind die Dokumente der Akte nicht aufrufbar. Bei
+einer eventuellen Wiederaufnahme durch einen anderen Berater zu
+einem späteren Zeitpunkt gehen die Zuständigkeitsrechte auf den
+neuen Bearbeiter über. Somit sind eine gröÂßere Vertraulichkeit
+und ein besserer Schutz gewährleistet als bei der Aufbewahrung
+von Dokumenten in herkömmlichen Papierakten.
+
+Beraternotizen
+--------------
+
+Ähnlich den Aktendokumenten ist es möglich, beliebige Dateien als
+Beraternotiz in eine Akte zu importieren. Der Berater erhält ein
+Inhaltsverzeichnis und die Möglichkeit, die Notizen einzeln oder
+in einer Aktenzusammenfassung aufzurufen bzw. auszudrucken
+(Printausgabe der Texte). Zusätzlich gibt es Eingabemöglichkeiten
+für beliebig lange Texte in eigenen Formularen der Anwendung.
+
+Gruppenakte
+-----------
+
+.. figure:: figures/dokumentenindex_gruppe.png
+   :scale: 53
+
+   Dokumentenindex der Gruppe
+
+EBKuS enthält ein einfaches und übersichtliches Modul zur
+Verwaltung von Gruppen und deren Teilnehmern. Man kann die
+Stammdaten einer Gruppe in Formularen aufnehmen und die Gruppen
+kategorisieren und nach Sachworten geordnet verwalten
+(z. B. Elterngruppe, Supervision, Therapiegruppe, Kindergruppe
+usw.). Zu jeder Gruppe gehört eine Gruppenakte, welche aus
+Dokumenten (importierten Dateien), Vermerken, Stammdaten der
+Teilnehmer und Beraternotizen besteht. Für die Leitung sind in
+den Formularen mehrere Berater sowie der Wechsel der
+Zuständigkeit vorgesehen. Für die Texte in der Gruppenakte und
+die Teilnehmerlisten gibt es Printausgaben und exportierbare
+Dateien (Verzeichnis Daten/Gruppen) zur Verwendung für
+Serienbriefe. Sind Klienten der Familienberatungsstelle
+Teilnehmer von Gruppen, verweist das Programm in der Gruppenakte
+auf die zugehörige Klientenkarte und -akte und umgekehrt.  
+
+Diese Gruppenakten können auch als Vertretung für Mitarbeiter
+verwendet werden. Hierzu legen Sie eine Gruppe "Vertretung
+Mitarbeiter Name" an und wählen die Mitarbeiter aus, die als
+Vertreter des Mitarbeiters zur Verfügung stehen. Falls der
+Mitarbeiter "Name" nun zum Beispiel abwesend ist, können alle in
+der Gruppe angelegten Vertreter dieses Fall zusätzlich
+bearbeiten.  
+
+
+Statistik 
+---------
+
+EBKuS enthält eine umfangreiche und flexibel konfigurierbare
+Fachstatistik und Bundesjugendhilfestatistik. Die Statistiken
+können für alle in der Datenbank gespeicherten Klienten geführt
+werden. Die Zuordnung der Statistiken zu den Klienten, z. B. zum
+Zweck einer Vollständigkeitskontrolle, wird durch die Fallnummer
+gewährleistet.
+
+Fachstatistik
+-------------
+
+.. figure:: figures/fachstatistikergebnisse.png
+   :scale: 53
+
+   Fachstatistikergebnisse
+
+Die Fachstatistik soll Auskünfte über die soziale und regionale
+Zusammensetzung der Klientenstruktur, die Anzahl der
+nachgefragten und behandelten Problembereiche, die Beratungs- und
+Therapiearten, die Termine, die Zusammenarbeit mit anderen Stellen
+usw. geben können.
+
+Das Konzept basiert darauf, dass für jeden 'Beratungsfall' eine
+Statistik erhoben wird. Das geschieht entweder bei Beratungsende
+oder bei fortdauernden Beratungen am Ende des Jahres.
+
+Die Statistiken erfüllen folgende Ziele:
+
+- die Bundesjugendhilfestatistik ergänzen
+- Bedarfsanfragen der Jugendhilfeplanung und Politik beantworten helfen
+- aktuelle Trends und Veränderungen in Zahlen abbilden und belegen
+- Informationen über die nachgefragten Angebote (Leistungen) geben
+- für alle Berufsgruppen in einer Erziehungsberatungsstelle verwendbar sein
+- verständliche und leicht zuzuordnende Merkmale verwenden
+
+In die EBKuS-Anwendung sind Kategorien und Merkmale der
+Fachstatistik integriert.
+
+Zusammengestellt sind ca. 250 Erhebungsmerkmale, die in der
+Praxis von der Jugendhilfeplanung häufig gebraucht werden. Neu
+eingetragene Merkmale werden in das Eingabeformular und in die
+Auswertung übernommen, deaktivierte Merkmale werden dem Benutzer
+in der Eingabe nicht mehr angezeigt, sie stehen jedoch für die
+Auswertung zur Verfügung. Problembereiche für Eltern und Kinder
+können z. B. getrennt erhoben werden. Es lassen sich alle
+Beratungsanlässe und alle Beratungen/Therapien usw. eintragen. Es
+gibt eine differenzierte Erfassungsmöglichkeit für die Anzahl der
+Kontakte und Termine. Grundsätzlich besteht die Möglichkeit, nach
+der Datenbankgenerierung fast alle Erhebungsmerkmale der
+Fachstatistik frei zu wählen.  Bei der Installation der
+Fachstatistik wird der mitgelieferte umfangreiche
+Statistikkatalog in die Datenbank eingefügt.
+
+Jugendhilfestatistik des Bundes
+-------------------------------
+
+.. figure:: figures/bundesstatistikauswertung.png
+   :scale: 53
+
+   Bundesstatistikauswertung
+
+Die Bundesjugendhilfestatistik ist insgesamt nach den Vorgaben des
+Statistischen Bundesamtes aufgebaut, die Eingabemaske entspricht im Inhalt dem
+Erhebungsbogen des Bundesamtes. Sollten Veränderungen bei der Bundesstatistik
+beschlossen werden, kann u. U. der Anwender diese selbst vornehmen, da analog
+zur Fachstatistik neue Erhebungsmerkmale aufnehmbar und alte deaktivierbar
+sind. Fehlerhafte und widersprüchliche Eingaben führen zu einer Rückmeldung an
+den Anwender und erfordern eine Korrektur, um die Eingaben zu speichern.
+
+Die Daten eines Jahres lassen sich in eine Datei exportieren, um
+sie z. B. per Diskette oder Mailanhang an das Statistische
+Landesamt zu senden.
+
+.. figure:: figures/jgh_export.png
+   :scale: 53
+
+   Bundesjugendhilfestatistik: Exportdatei erstellen
+
+Abfragen
+--------
+
+
+.. figure:: figures/hauptmenu.png
+   :scale: 53
+
+   Hauptmenü - Statistische Abfragen
+
+EBKuS stellt die am häufigsten gebrauchten Abfragen per Mausklick
+im Eingangsmenü unter 'Statistische Abfragen' zur Verfügung.
+
+*Beratungen*: Listen für laufende, abgeschlossene, alle Beratungen
+ab Datum oder ab Fallnummer 
+
+*Klientenzahl*: Neumeldungen und Abschlüsse, Klienten pro Mitarbeiter
+
+*Bundesstatistik*: Bundesstatistikabfrage
+
+*Fachstatistik*: Fachstatistik, Itemauswahl, Kategorieauswahl, Planungs- und
+Sozialraum, Konsultationszahl, Konsultationssumme, Beratungsdauer,
+Beratungsdauer-Leistung
+
+Mittels eines einfachen Abfrageassistenten lassen sich mehrere
+Items innerhalb einer Kategorie (oder jeweils eines Items aus
+mehreren Kategorien) für die Häufigkeitsauswertung zusammenfassen
+(wie z. B. mehrere Therapiearten, verwandte Problembereiche) und
+die Mengen aller anderen Items ausgeben, für welche die
+ausgewählten Kriterien zutreffen. Die Ausgabe erfolgt nach
+Kategorien geordnet in Tabellen. Zur Visualisierung der
+Statistiken besteht die Möglichkeit, sämtliche Ergebnistabellen
+zusätzlich in Diagrammen darzustellen.
+
+
+.. figure:: figures/diagramm.png
+   :scale: 53
+
+   Diagrammanzeige - Beispiel
+
+Der Aufruf dieser Diagramme erfolgt durch die Schaltfläche
+|diagramm_symbol|.  Des Weiteren hat der Benutzer die
+Möglichkeit, sich die Tabellen in einer Druckansicht anzeigen zu
+lassen.
+
+.. |diagramm_symbol| image:: figures/diagramm_symbol.png
+   :scale: 50
+
+.. figure:: figures/statistik_druckansicht.png
+   :scale: 53
+
+   Druckansicht
+
+Kategorien, Merkmale
+--------------------
+
+Die Merkmale sind erweiterbar, deaktivierbar und (außer dem
+eingetragenen und z. T. intern verwandten Merkmals-
+bzw. Kategoriencode) jederzeit in der Bezeichnung änderbar. Sie
+können dokumentiert und ausgedruckt werden. Die Übernahme neuer
+oder geänderter Merkmale in die Eingabeformulare geschieht
+unmittelbar nach dem Eintrag bei dem nächsten Aufruf des
+Formulars. Das Deaktivieren eines Merkmals unterbindet lediglich
+die Anzeige in den Eingabeformularen. Zur Auswertung der
+vergangenen Datenbestände bleibt das Merkmal jedoch erhalten. Mit
+dem Eintrag, ab wann ein Merkmal ungültig ist, wird eine
+Unterstützung zur Interpretation der früheren Ergebnisse
+angeboten.
+
+Der Anwender kann die Sortierung der Merkmale festlegen, damit in
+der Anzeige die am häufigsten gebrauchten Werte zuerst
+erscheinen.
+
+Alle Statistikeinträge, die auf Zahlen beruhen (z. B. Anzahl der
+Termine, Kinderzahl, Anzahl der Kontakte) werden für die
+Auswertung in Default-Gruppen zusammengefasst (z. B. Anzahl der
+Termine: 1-5 usw.), die über das Kategorienmenü frei änderbar
+sind.
+
+Da Änderungen bzw. Neueinfügen von Merkmalen die Auswertung und Erhebung der
+Daten beeinflussen, sind diese nur durch einen Administrator möglich. Die
+Änderungen werden pro eingerichteter Datenbank für alle Ein- und Ausgaben
+wirksam, in denen die Merkmalskategorie vorkommt. Jedem Merkmal ist ein Code
+zugeordnet. Dieser ist später nicht mehr änderbar und er muss einmalig
+sein. Der Code wird z.B. für den festgelegten Code der Statistiken
+(Jugendhilfestatistik) gebraucht oder für interne Systemzwecke.
+
+Mitarbeiter
+-----------
+
+Es ist ein eindeutiger Benutzername für jeden Mitarbeiter
+erforderlich. Mit diesem Benutzernamen erfolgt die Anmeldung bei
+jedem Programmstart. Der Passwort ist standardmäÂßig beim ersten
+Einloggen des Benutzers identisch mit dem Benutzernamen. Das
+Passwort sollte bei der ersten Anmeldung geändert
+werden. Geschieht dies nicht, wird der Benutzer bei jeder
+Anmeldung erneut zum Ändern des Passwortes aufgefordert. Ein
+Löschen von Benutzernamen ist nicht vorgesehen, solange diesem
+Benutzer Akten zugeordnet sind. Mit der Charakterisierung 'im
+Dienst' wird die Mitarbeiteranzeige auf die gegenwärtigen
+Benutzer eingestellt und die Anzeige ausgeschiedener
+bzw. beurlaubter Beschäftigter unterbleibt.
+
+Die Mitarbeiter sind einer Benutzergruppe und einer
+Hauptdienststelle zugeordnet.
+
+Es besteht im bereitgestellten Datenbankschema die Möglichkeit,
+zukünftig zusätzlich Nebendienststellen für den einzelnen
+Mitarbeiter zu unterstützen. Dies ist erforderlich, wenn er
+beispielsweise an zwei Dienststellen arbeitet.
+
+Benutzergruppen und -rechte
+---------------------------
+
+Folgende Benutzergruppen werden nach der Erstinstallation
+unterstützt: 
+
+- Verwaltung (entspricht SekretärInnen)
+- Berater (entspricht AnwenderInnen)
+- Administration (ein Administrator, entspricht
+  AnwendungssystembetreuerIn)
+
+- Protokoll (entspricht ProtokollbenutzerIn)
+
+*Berater*:
+Ein Mitglied der Gruppe 'Berater' besitzt Lese- und Schreibrecht
+allein für Klientenakten und Statistikeinträge seiner
+Zuständigkeit sowie ein Leserecht für die Abfragen bezüglich
+seiner Klientenakten.
+
+*Verwaltung*:
+Ein Mitglied der Gruppe Verwaltung hat, wenn diese die Akten neu
+einträgt und führt, in der Voreinstellung das Lese- und
+Schreibrecht für alle Klienteneinträge, für die Statistikeinträge
+und die Abfragen zur Klientenkartei und Statistik. Für die
+Aktendokumente und Beraternotizen ist in der Voreinstellung kein
+Lese- und Schreibrecht eingerichtet. Differenzierungen anhand
+einzelner Anwendungsteile sind möglich.
+
+*Administrator*: 
+Der Administrator besitzt Lese- und Schreibrecht für die im
+Datenbankschema verwandten Kategorien und Merkmale, die
+Mitarbeitereinträge, den Datenaustausch zwischen Datenbanken
+mehrerer Dienststellen und den Export der
+Bundesjugendhilfestatistik. In der Voreinstellung hat der
+Administrator kein Lese- und Schreibrecht auf die
+Klientenakten. Es können vom Administrator weitere
+Benutzergruppen eingerichtet werden. EBKuS verfügt über die
+Möglichkeit, dass der Zugriff auf einzelne Programmteile in
+Abhängigkeit von den Rechten der Benutzergruppe auf diese
+Programmteile gestattet oder verhindert werden kann.
+
+*Protokoll*: 
+Ein Mitglied der Gruppe 'Protokoll' hat das Lese- und
+Schreibrecht auf die Protokolldateien.  Der Zugriff kann nur mit
+einem zweiten Mitglied der Gruppe Protokoll erfolgen. Diese
+beiden Benutzer müssen sich über eine Maske gleichzeitig
+einloggen.
+
+*Bearbeitervertretung*: 
+Vertreterfunktionalitäten werden benötigt, wenn ein Bearbeiter
+für einen Zeitraum abwesend ist (z. B. Urlaub, Krankheit), der
+Fall während dieser Zeit aber weiter bearbeitet werden muss. Es
+ist in EBKuS 3.2 keine explizite Vertreterfunktionalität
+vorgesehen. Man kann jedoch über die Gruppenakte eine
+Vertretungsgruppe für diesen Fall oder diese Fälle anlegen. Legen
+Sie dazu einfach wie in Punkt "1.4 Gruppenakte" beschrieben eine
+neue Gruppe an und weisen Sie als Bearbeiter nun den
+Hauptbearbeiter und einen oder mehrere weitere Bearbeiter als
+Vertretung hinzu. Über dieses Verfahren haben auch die Vertreter
+Zugriff auf einen bestimmten Fall und können ihn bei Bedarf
+bearbeiten.
+
+Dienststellen
+-------------
+
+Man kann in der Datenbank im Administrationsmenü mehrere
+Dienststellen anlegen. Die Dienststellen sollten nach der
+Installation vom Administrator bzw. dem Anwendungsbetreuer im
+Administrationsmenü eingetragen werden. Die MitarbeiterInnen sind
+immer einer Dienststelle fest zugeordnet. Arbeitet eine
+Mitarbeiterin an mehreren Stellen, sollte bei jeder Dienststelle
+ein Benutzer für die Mitarbeiterin eingetragen werden.
+
+Bei der Klientenfallnummer wird für die jeweilige Dienststelle
+immer ein eindeutiger Buchstabe, beginnend mit A, an die
+Fallnummer angefügt.
+
+Die statistischen Abfragen beziehen die Dienststellen mit ein und
+der Anwender kann zwischen allen, einer oder mehreren Stellen
+wählen.
+
+Die Aufnahme mehrerer Dienststellen in eine gemeinsame Datenbank
+ist fachlich sinnvoll, wenn diese zu einer grösseren, gemeinsamen
+Organisation gehören und eine gemeinsame, einheitliche
+anonymisierte Datenauswertung für die Statistik wünschen sowie
+den Administrationsaufwand reduzieren wollen. Den in einer
+Datenbank eingetragenen Stellen werden für die Statistik jeweils
+die gleichen Merkmale zur Verfügung gestellt. Ansonsten kann für
+jede Dienststelle durch den Adminstrator separat eine eigene
+Datenbank auf dem Server installiert werden (vgl. dazu die
+Ausführungen bei der Installation).
+
