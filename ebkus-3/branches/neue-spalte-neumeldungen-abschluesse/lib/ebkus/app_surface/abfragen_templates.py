@@ -566,14 +566,17 @@ thabfr4_t = """
 <body bgcolor="#CCCCCC" link="#CCCCCC" vlink="#CCCCCC" alink="#000000">
 <table width="735" align="center">
  <tr>
-    <td align="center" class="legendtext"><fieldset><legend class="legendtext"><b>Neumelde- u. Abschlusszahlen</b></legend>
-    <table border=0 cellspacing=1 width="95%">
+    <td align="center" class="legendtext"><fieldset>
+    <legend class="legendtext"><b>Neumelde- u. Abschlusszahlen im Jahr %s</b></legend>
+    <table border=0 cellspacing=1 width="95%%">
+    <tr><td colspan="6" bgcolor="#CCCCCC">&nbsp;</td></tr>
     <tr>
-    <td align="right" width="33%" class="labeltext" bgcolor="#FFFFFF">Monat</td>
-    <td align="center" widht="33%" class="labeltext" bgcolor="#FFFFFF">Neu</td>
-    <td align="center" widht="34%" class="labeltext" bgcolor="#FFFFFF">Hauptfall</td>
-    <td align="center" widht="34%" class="labeltext" bgcolor="#FFFFFF">Geschwisterfall</td>
-    <td align="center" widht="34%" class="labeltext" bgcolor="#FFFFFF">z.d.A.</td>
+    <td align="right"   width="20%%" class="labeltext" bgcolor="#FFFFFF">Monat</td>
+    <td align="center"  width="16%%" class="labeltext" bgcolor="#FFFFFF">Laufende am Monatsende</td>
+    <td align="center"  width="16%%" class="labeltext" bgcolor="#FFFFFF">Neu</td>
+    <td align="center"  width="16%%" class="labeltext" bgcolor="#FFFFFF">Hauptfall</td>
+    <td align="center"  width="16%%" class="labeltext" bgcolor="#FFFFFF">Geschwisterfall</td>
+    <td align="center"  width="16%%" class="labeltext" bgcolor="#FFFFFF">z.d.A.</td>
     </tr> """
 
 abfr4_t = """
@@ -583,11 +586,13 @@ abfr4_t = """
     <td align="center" class="normaltext" bgcolor="#FFFFFF">%d  </td>
     <td align="center" class="normaltext" bgcolor="#FFFFFF">%d  </td>
     <td align="center" class="normaltext" bgcolor="#FFFFFF">%d  </td>
+    <td align="center" class="normaltext" bgcolor="#FFFFFF">%d  </td>
     </tr> """
 
 abfr4ges_t = """
     <tr>
     <td align="right" class="legendtext" bgcolor="#FFFFFF">Quartal 1</td>
+    <td align="center" class="legendtext" bgcolor="#FFFFFF"></td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
@@ -595,6 +600,7 @@ abfr4ges_t = """
     </tr>
     <tr>
     <td align="right" class="legendtext" bgcolor="#FFFFFF">Quartal 2</td>
+    <td align="center" class="legendtext" bgcolor="#FFFFFF"></td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
@@ -602,6 +608,7 @@ abfr4ges_t = """
     </tr>
     <tr>
     <td align="right" class="legendtext" bgcolor="#FFFFFF">Quartal 3</td>
+    <td align="center" class="legendtext" bgcolor="#FFFFFF"></td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
@@ -609,6 +616,7 @@ abfr4ges_t = """
     </tr>
     <tr>
     <td align="right" class="legendtext" bgcolor="#FFFFFF">Quartal 4</td>
+    <td align="center" class="legendtext" bgcolor="#FFFFFF"></td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
@@ -616,12 +624,13 @@ abfr4ges_t = """
     </tr>
     <tr>
     <td align="right" class="legendtext" bgcolor="#FFFFFF">Gesamt</td>
+    <td align="center" class="legendtext" bgcolor="#FFFFFF"></td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     </tr>
-    <tr><td colspan="3" bgcolor="#CCCCCC">&nbsp;</td></tr>
+    <tr><td colspan="6" bgcolor="#CCCCCC">&nbsp;</td></tr>
 </table>
 </fieldset>
 </td>

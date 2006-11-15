@@ -488,7 +488,9 @@ class formabfr4(Request.Request):
         res.append(formabfr_ende_t)
         return ''.join(res)
         
-        
+# TODO hier sind schon angefangene Änderungen drin, die noch nicht fertig
+# sind. Das ganze sollte aus dem branch neue-spalte-... übernommen werden.
+# TODO Die Jugendhilfestatistik-Listen müssen um die 07 ergänzt werden
 class abfr4(Request.Request):
     """Anzahl der Neumeldungen u. Abschlüsse pro Jahr und Quartal."""
     
@@ -532,15 +534,19 @@ class abfr4(Request.Request):
                                 + ' and gfall = %d' %  cc('gfall', '2')
                                 + ' and stz = %d' % stelle['id'],
                                 order = 'em' )
+
+        laufendliste = FallList(where = 'bgy <= %s' % jahr
+                                + ' and akte_id__stzak = %d' % stelle['id']
+                                + ' and (zday = 0 or zday >= %s)' % jahr,
+                                order = 'bgy, bgm' )
         
-        neul = map(lambda x, item = 'bgm': x[item], neumeldungen)
-        zdal = map(lambda x, item = 'em': x[item], zdaliste)
-        hauptf = map(lambda x, item = 'em': x[item], hauptfallliste)
-        geschw = map(lambda x, item = 'em': x[item], geschwliste)
-        
+        neul = [n['bgm'] for n in neumeldungen]
+        zdal = [z['em'] for z in zdaliste]
+        hauptf = [z['em'] for z in hauptfallliste]
+        geschw = [z['em'] for z in geschwliste]
         res = []
         res.append(head_normal_t % ("Neumelde- und Abschlusszahlen"))
-        res.append(thabfr4_t)
+        res.append(thabfr4_t % jahr)
         
         quartal1_neu = quartal1_zda = quartal1_hauptf = quartal1_geschw = 0
         quartal2_neu = quartal2_zda = quartal2_hauptf = quartal2_geschw = 0
@@ -548,10 +554,21 @@ class abfr4(Request.Request):
         quartal4_neu = quartal4_zda = quartal4_hauptf = quartal4_geschw = 0
         i = 1
         while i < 13:
+            # i steht für den Monat in jahr
             neumeldezahl = neul.count(i)
             zdazahl = zdal.count(i)
             hauptfzahl = hauptf.count(i)
             geschwzahl = geschw.count(i)
+            laufendzahl = 0
+            # immer der erste des Folgemonats
+            if i == 12:
+                laufend_stichtag = Date(jahr+1, 1, 1)
+            else:
+                laufend_stichtag = Date(jahr, i+1, 1)
+            for f in laufendliste:
+                if (f.getDate('bg') < laufend_stichtag and
+                    f.getDate('zda') >= laufend_stichtag):
+                    laufendzahl +=1
             if i < 4:
                 quartal1_neu = quartal1_neu + neumeldezahl
                 quartal1_zda = quartal1_zda + zdazahl
@@ -575,7 +592,8 @@ class abfr4(Request.Request):
                 quartal4_zda = quartal4_zda + zdazahl
                 quartal4_hauptf = quartal4_hauptf + hauptfzahl
                 quartal4_geschw = quartal4_geschw + geschwzahl
-            res.append(abfr4_t % (i, neumeldezahl, hauptfzahl, geschwzahl, zdazahl) )
+            res.append(abfr4_t % (i, laufendzahl, neumeldezahl,
+                                  hauptfzahl, geschwzahl, zdazahl) )
             i = i + 1
             
         res.append(abfr4ges_t % (quartal1_neu, quartal1_hauptf,
@@ -589,7 +607,7 @@ class abfr4(Request.Request):
                                  len(neul), len(hauptf), len(geschw), len(zdal) ))
         return ''.join(res)
         
-        
+
 class formabfr5(Request.Request):
     """Suchformular: Klientenzahl pro Mitarbeiter u. Jahr."""
     
