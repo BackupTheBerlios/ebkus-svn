@@ -46,7 +46,7 @@ menue3_t = """
 <option value="vermneu?akid=%(akte_id)d&fallid=%(id)d">- Vermerk
 <option value="upload?akid=%(akte_id)d&fallid=%(id)d">- Dateiimport
 <option value="fsneu?akid=%(akte_id)d&fallid=%(id)d">- Fachstatistik
-<option value="jghneu?akid=%(akte_id)d&fallid=%(id)d">- Bundesstatistik
+<option value="jgh07neu?akid=%(akte_id)d&fallid=%(id)d">- Bundesstatistik
 <option value="zda?akid=%(akte_id)d&fallid=%(id)d">- zu den Akten
 </select>
 </td>
@@ -936,9 +936,9 @@ jghstatistiken_kopf_leer = """
 jghstatistiken_t1 = """
 <tr>
 <td class="normaltext" align="left">
-<a href="updjgh?akid=%(fall_id__akte_id)d&fallid=%(fall_id)d&jghid=%(id)d">
+<a href="%(action)s?akid=%(fall_id__akte_id)d&fallid=%(fall_id)d&jghid=%(id)d">
 <img border="0" src="/ebkus/ebkus_icons/edit_stat_button.gif" onMouseOver="window.status='Bearbeiten der Bundesstatistik';return true;" onMouseOut="window.status='';return true;" title="Bearbeiten der Bundesstatistik"></a></td>
-<td class="normaltext" align="left" bgcolor="#FFFFFF"> %(ey)s </td>
+<td class="normaltext" align="left" bgcolor="#FFFFFF"> %(fall_fn)s&nbsp;&nbsp;&nbsp;%(em)s.%(ey)s </td>
 </tr>"""
 
 jghstatistiken_t1a = """
@@ -951,7 +951,7 @@ jghstatistiken_t1a = """
 jghstatistiken_ende_leer = """
 <tr>
 <td align="center" bgcolor="#CCCCCC"><input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('jghneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen">
+   onClick="go_to_url('jgh07neu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen">
 </td>
 </tr>
 </table>
@@ -963,7 +963,7 @@ jghstatistiken_ende_leer = """
 jghstatistiken_ende = """
 <tr>
 <td colspan="2" align="center" bgcolor="#CCCCCC"><input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('jghneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen">
+   onClick="go_to_url('jgh07neu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen">
 </td>
 </tr>
 </table>

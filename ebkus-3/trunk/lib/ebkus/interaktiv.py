@@ -42,6 +42,11 @@ try:
     # EBKuS Schnittstelle im Namesraum von e
     # vielleicht hat's hier ja was Gutes ...
     import ebkus.app.ebupd as e
+    from ebkus.Install import InstallFromInstance
+    from ebkus.config import config
+    installer = InstallFromInstance(config)
+    installer.init()
+    instance = installer.ebkus[config.INSTANCE_NAME]
 except Exception, msg:
    print '**********  Fehler:', msg
    print usage
@@ -60,6 +65,8 @@ Die EBKuS-API findet sich im Namensraum 'e', z.B.
 >>> e.xcountitem('stzei', l, 'stz')
 >>> dir(e) # gibt alles aus
 
+Die Name 'installer' und 'instance' verweisen auf die entsprechenden
+Objekte (siehe Install.py).
 """  % ebkus.Version
 
 

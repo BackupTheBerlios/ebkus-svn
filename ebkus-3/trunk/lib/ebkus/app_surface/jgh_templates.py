@@ -6,7 +6,7 @@ jghstatneu_t = """
 <table width="735" align="center">
   <tr>
     <td height="465" align="center" valign="top">
-      <form name="jghform" method="post" action="klkarte">
+      <form name="jghform" method="post" action="jgh_check">
         <input type="hidden" value="%(id)s" name="fallid">
         <table border="0" cellpadding="1" width="95%%">
           <tr>
@@ -290,7 +290,7 @@ jghstatedit_t = """
 <table width="735" align="center">
   <tr>
     <td height="465" align="center" valign="top">
-      <form name="jghform" method="post" action="klkarte">
+      <form name="jghform" method="post" action="jgh_check">
         <input type="hidden" value="%(id)s" name="fallid">
         <table border="0" cellpadding="1" width="95%%">
           <tr>

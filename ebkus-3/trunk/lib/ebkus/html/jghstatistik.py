@@ -20,14 +20,21 @@
 
 """Module für die Jugendhilfestatistik."""
 
+import logging
 import string
 from ebkus.config import config
 from ebkus.app import ebapi
 from ebkus.app import Request,date
-from ebkus.app.ebapi import Akte, Fall, Jugendhilfestatistik, Code, JugendhilfestatistikList, cc, today
+from ebkus.app.ebapi import Akte, Fall, Jugendhilfestatistik, Code, \
+     JugendhilfestatistikList, cc, today, check_date, Wrapper, \
+     Jugendhilfestatistik2007List, Jugendhilfestatistik2007
+from ebkus.app.ebupd import upgrade_jgh
 from ebkus.app.ebapih import get_codes, mksel, get_all_codes
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.jgh_templates import *
+from ebkus.app_surface.jgh07_templates import *
+
+
 
 # kann auch als updjghform angesprochen werden (siehe EBKuS.py)
 # wird in menu_templates.py verwendet
@@ -35,38 +42,39 @@ class jghneu(Request.Request):
     """Neue Jugendhilfestatistik eintragen. (Tabelle: Jugendhilfestatistik.)"""
     permissions = Request.STAT_PERM
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
         fallid = self.form.get('fallid')
+        jghiddel = self.form.get('jghiddel')
+        typ = self.form.get('typ')
+        logging.info('JGHNEU %s %s %s' % (fallid, jghiddel, typ))
+        if jghiddel and typ == 'jgh07' and fallid:
+            logging.info('JGHNEU upgrading %s %s %s' % (fallid, jghiddel, typ))
+            # neue Statistik auf alte 'upgraden'
+            upgrade_jgh(jghiddel, old2new=False)
+##             fall = Fall(fallid)
+##             # diese Fall ist noch unzureichend initialisiert
+##             jghstat = fall['jgh']
         
         if not fallid:
-            res = []
             meldung = {'titel':'Fehler',
                       'legende':'Fehlerbeschreibung',
                        'zeile1':'Sie d&uuml;rfen eine Bundesstatistik nur f&uuml;r einen g&uuml;ltigen Fall erstellen.',
                        'zeile2':''}
-            res.append(meldung_t % meldung)
-            return string.join(res, '')
-            
-        fall = Fall(int(fallid))
+            return meldung_t % meldung
+        fall = Fall(fallid)
         akte = fall['akte']
-        letzter_fall = akte['letzter_fall']
         fn = fall['fn']
         bgd = fall['bgd']
         bgm = fall['bgm']
         bgy = fall['bgy']
-        alter_klient = date.calc_age(akte['gb'],letzter_fall['bgd'],letzter_fall['bgm'],letzter_fall['bgy'])
-        
-        jahresl = ebapi.JugendhilfestatistikList(where = "fall_fn = '%s'" % letzter_fall['fn'])
-        if jahresl:
-            res = []
+        ex_jgh = fall['jgh']
+        if ex_jgh:
             meldung = {'titel':'Hinweis',
                      'legende':'Hinweis',
                      'zeile1':'Es ist bereits eine Jugendhilfestatistik f&uuml;r die Fallnummer vorhanden!',
                      'zeile2':''}
-            res.append(meldung_t % meldung)
-            return string.join(res, '')
-            
+            return meldung_t % meldung
+
+        alter_klient = date.calc_age(akte['gb'],fall['bgd'],fall['bgm'],fall['bgy'])
         geschwisterfaelle = get_codes('gfall')
         stellenzeichen = get_codes('stzei')
         bezirke = get_codes('rbz')
@@ -183,26 +191,28 @@ class updjgh(Request.Request):
     permissions = Request.STAT_PERM
     
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
+        # Pro Fall kann es nur 1 Jugendhilfestatistik geben.
+##         jghiddel = self.form.get('jghiddel')
         fallid = self.form.get('fallid')
         id = self.form.get('jghid')
-        
-        # Pro Fall kann es nur 1 Jugendhilfestatistik geben.
+##         typ = self.form.get('typ')
+##         if jghiddel and typ == 'jhg07' and fallid:
+##             # neue Statistik auf alte 'upgraden'
+##             upgrade_jgh(jghiddel, old2new=False)
+##             fall = Fall(fallid)
+##             # diese Fall ist noch unzureichend initialisiert
+##             jghstat = fall['jgh']
         if fallid:
-            fall = Fall(int(fallid))
-            akte = fall['akte']
-            jghstatl = fall['jgh_statistiken']
-            letzter_fall = akte['letzter_fall']
-            if not jghstatl:
+            fall = Fall(fallid)
+            jghstat = fall['jgh']
+            if not jghstat:
                 meldung = {'titel':'Hinweis',
                            'legende':'Hinweis',
                            'zeile1':'Es ist noch keine Bundesstatistik f&uuml;r den Fall vorhanden!',
                            'zeile2':''}
                 return meldung_t % meldung
-            jghstat = jghstatl[0]
         elif id:
-            jghstat = Jugendhilfestatistik(int(id))
+            jghstat = Jugendhilfestatistik(id)
             fallid = jghstat.get('fall_id')
             if fallid:
                 fall = Fall(int(fallid))
@@ -237,7 +247,7 @@ class updjgh(Request.Request):
         hiddenid2 ={'name': 'stz', 'value': self.stelle['id']}
         
         res = []
-        res.append(head_normal_t % 'Bundesstatistik bearbeiten')
+        res.append(head_normal_t % 'Alte Bundesstatistik bearbeiten (bis 2006)')
         res.append(jghstatedit_t % ({'id':fallid}))
         res.append(jghstateditfn_t  %({'fall_fn' : jghstat['fall_fn']}))
         res.append(jghstateditgemeinde_t %(Code(cc('gm','000'))['id']))
@@ -380,7 +390,182 @@ class updjgh(Request.Request):
             res.append(jghansaetzeumfeld_t % Code(cc('fbe3', '1')) )
         res.append(jghstatedit_t9)
         return string.join(res, '')
+
+def mkselstr(template, liste, field, value=None):
+    res = []
+    mksel(res, template, liste, field, value)
+    return ''.join(res)
+
+class _jgh07(Request.Request):
+    """Gemeinsame Klasse für die neue Bundesstatistik"""
+    def _formular(self, jgh):
+        """Bringt Templates und Daten zusammen sowohl für die Neueinführung
+        als auch für das Update.
+        """
+        jgh['gm'] = ''
+        jgh['gmt'] = ''
+        jgh['rbz_sel'] = ''#mkselstr(codeliste_t, get_codes('rbz'), 'id', jgh['rbz'])
+        jgh['kr_sel'] = ''#mkselstr(codeliste_t, get_codes('kr'), 'id', jgh['kr'])
+        jgh['gfall_sel'] = ''#mkselstr(codeliste_t, get_codes('gfall'), 'id', jgh['gfall'])
+        jgh['shf_sel'] = mkselstr(codeliste_t, get_codes('shf'), 'id', jgh['sit_fam'])
+        #jgh['jghid'] = 
+        #jgh['stz'] =         
+        #jgh['file'] =
+##         for k,v in jgh.items():
+##             print k, v
+##         print jgh.data
+##         print '_______________________________'
+##         print jgh.obj.data
+        res = []
+        res.append(head_normal_t % 'Bundesstatistik bearbeiten')
+        res.append(jghhead_t % jgh)
+        res.append(jghfalldaten_t % jgh)
+        res.append(jghpersonendaten_t % jgh)
+        res.append(jghbuttons_t) 
+        res.append(jghfoot_t) 
+        return ''.join(res)
+
+
+
+
+class updjgh07(_jgh07):
+    """Jugendhilfestatistik ändern. (Tabelle: Jugendhilfestatistik)"""
+    
+    permissions = Request.STAT_PERM
+    
+    def processForm(self, REQUEST, RESPONSE):
+        # Pro Fall kann es nur 1 Jugendhilfestatistik geben.
+##         jghiddel = self.form.get('jghiddel')
+        fallid = self.form.get('fallid')
+        id = self.form.get('jghid')
+##         typ = self.form.get('typ')
+##         if jghiddel and typ == 'jhg' and fallid:
+##             # alte Statistik auf neue upgraden
+##             upgrade_jgh(jghiddel, old2new=True)
+##             fall = Fall(fallid)
+##             jghstat = fall['jgh']
+        if fallid:
+            fall = Fall(fallid)
+            jghstat = fall['jgh']
+            if not jghstat:
+                meldung = {'titel':'Hinweis',
+                           'legende':'Hinweis',
+                           'zeile1':'Es ist noch keine Bundesstatistik f&uuml;r den Fall vorhanden!',
+                           'zeile2':''}
+                return meldung_t % meldung
+        elif id:
+            jghstat = Jugendhilfestatistik2007(id)
+            fallid = jghstat.get('fall_id')
+            if fallid:
+                fall = Fall(int(fallid))
+                akte = fall['akte']
+        else:
+            self.last_error_message = "Keine Bundesstatistik-ID erhalten"
+            return self.EBKuSError(REQUEST, RESPONSE)
+        jghstat['jghid'] = jghstat['id']
+        jghstat['file'] = 'updjgh07'
+        return self._formular(jghstat)
         
+class jgh07neu(_jgh07):
+    """Neue Jugendhilfestatistik eintragen. (Tabelle: Jugendhilfestatistik.)"""
+    permissions = Request.STAT_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        fallid = self.form.get('fallid')
+        jghiddel = self.form.get('jghiddel')
+        typ = self.form.get('typ')
+        if jghiddel and typ == 'jgh' and fallid:
+            # alte Statistik auf neue upgraden
+            upgrade_jgh(jghiddel, old2new=True)
+        if not fallid:
+            meldung = {'titel':'Fehler',
+                      'legende':'Fehlerbeschreibung',
+                       'zeile1':'Sie d&uuml;rfen eine Bundesstatistik nur f&uuml;r einen g&uuml;ltigen Fall erstellen.',
+                       'zeile2':''}
+            return meldung_t % meldung
+        fall = Fall(fallid)
+        ex_jgh = fall['jgh']
+        if ex_jgh:
+            meldung = {'titel':'Hinweis',
+                     'legende':'Hinweis',
+                     'zeile1':
+                       'Es ist bereits eine Jugendhilfestatistik f&uuml;r die Fallnummer vorhanden!',
+                     'zeile2':''}
+            return meldung_t % meldung
+        jgh = Jugendhilfestatistik2007()
+        jgh['jghid'] = Jugendhilfestatistik2007().getNewId()
+        jgh['stz'] = self.stelle['id']
+        jgh['file'] = 'jgh07einf'
+        jgh['mit_id'] = self.mitarbeiter['id']
+        jgh.setDate('bg', fall.getDate('bg'))
+        jgh['fall_fn'] = fall['fn']
+        jgh['fall_id'] = fall['id']
+        # defaults
+        jgh.setDate('e', today())
+        jgh['sit_fam'] = cc('shf', '5') # unbekannt
+        return self._formular(jgh)
+        
+
+class jgh_check(Request.Request):
+    """Ziel aller "Speichern"-Vorgänge für JGH-Statistiken.
+    """
+    permissions = Request.STAT_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        fallid = self.form.get('fallid')
+        fall = Fall(fallid)
+        file = self.form.get('file')
+        # diese Statistik wird evt. gelöscht falls das Endedatum
+        # nicht passt
+        jghiddel = ''
+        jgh = fall['jgh']
+        if jgh:
+            jghiddel = jgh['id']
+            
+        beginn = check_date(self.form, 'bg', "Fehler im Datum für den Beginn",
+                                nodayallowed=True)
+        ende = check_date(self.form, 'e', "Fehler im Datum für das Ende",
+                                nodayallowed=True)
+        # uns interessieren zwei Zustände:
+        # für beide gilt Beginn ist 2006 oder früher
+        # 1. alte Statistik und Ende 2007 oder später
+        # 2. neue Statistik und Ende 2006 oder früher
+        # In allen anderen Fällen wird direkt an die Klientenkarte weitergereicht.
+        if beginn.year <= 2006 and fall['aktuell']:
+            if ende.year <= 2006 and file in ('jgh07einf', 'updjgh07'):
+                assert (file == 'updjgh07' and jghiddel or
+                        file == 'jgh07einf' and not jghiddel)
+                return self._ask(fallid, 'jghneu', jghiddel, 'jgh07', ende.year)
+            if ende.year >= 2007 and file in ('jgheinf', 'updjgh'):
+                assert (file == 'updjgh' and jghiddel or
+                        file == 'jgheinf' and not jghiddel)
+                return self._ask(fallid, 'jgh07neu', jghiddel, 'jgh', ende.year)
+        # es handelt sich um einen POST-Request, mit redirect
+        # kommen wir hier nicht weiter
+        from ebkus.html.klientenkarte import klkarte
+        self.__class__ = klkarte
+        return klkarte.processForm(self, REQUEST, RESPONSE)
+
+    def _ask(self, fallid, welche, jghiddel, typ, jahr):
+        if typ == 'jgh07':
+            z1 = "Das Endedatum %s passt nicht zur neuen Bundesstatistik (ab 2007)." % jahr
+            z2 = "Wollen Sie die neue Bundesstatistik durch die alte ersetzen?"
+        else:
+            z1 = "Das Endedatum %s passt nicht zur alten Bundesstatistik (bis 2006)." % jahr
+            z2 = "Wollen Sie die alte Bundesstatistik durch die neue ersetzen?"
+            
+        # alte Statistik vorhanden
+        d = {
+            'titel': 'Bundesstatistik ersetzen',
+            'legende': 'Bundesstatistik ersetzen?',
+            'action': welche,
+            'zeile1': z1,
+            'zeile2': z2,
+            'n1': 'fallid', 'v1': fallid,
+            'n2': 'jghiddel', 'v2': jghiddel,
+            'n3': 'typ', 'v3': typ,
+            }
+        meldung = jgh_ueberschreiben_ja_nein_t % d
+        return meldung
+
 # Wird nicht mehr verwendet        
 class updjghausw(Request.Request):
     """Auswahl der Jugendhilfestatistik zum Ändern.
@@ -389,7 +574,6 @@ class updjghausw(Request.Request):
     permissions = Request.STAT_PERM
     
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
         user = self.user
         stelle = self.stelle
         stellenzeichen = get_all_codes('stzei')
@@ -405,7 +589,7 @@ class updjghausw(Request.Request):
                          'legende':'Fehlerbeschreibung',
                          'zeile1': "%s Jugendhilfestatistik(en) f&uuml; diesen Fall erhalten" % len(jgh),
                          'zeile2':'Versuchen Sie es bitte erneut.'}
-                return (meldung_t %meldung)
+                return (meldung_t % meldung)
             fall = Fall(int(fallid))
             akte = Akte(fall['akte_id'])
             letzter_fall = akte['letzter_fall']
@@ -446,7 +630,7 @@ class updjghausw(Request.Request):
                      'legende':'Fehlerbeschreibung',
                      'zeile1': 'Keine aktuelle Jghstatistik vorhanden',
                      'zeile2': 'Versuchen Sie es bitte erneut.'}
-            return (meldung_t %meldung)
+            return meldung_t % meldung
             
             #res = []
             #res.append(head_normal_t % 'Auswahl einer Bundesstatistik')

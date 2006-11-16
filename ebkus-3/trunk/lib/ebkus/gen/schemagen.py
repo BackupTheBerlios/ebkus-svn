@@ -56,11 +56,20 @@ class Table:
         
         
     def sql_create(self):
-        return "CREATE TABLE %s (\n  %s\n)\n" % (self.tablename,
-                string.join(
-                  map(lambda x: "%s %s" % (x.fieldname, x.dbtype),
-                      self.fields),
-                  ',\n  '))
+        if self.primarykey:
+            prim_def = ['PRIMARY KEY (%s)' % self.primarykey]
+        else:
+            prim_def = []
+        sql = "CREATE TABLE %s (\n  %s\n)\n" % (self.tablename,
+                                                 ',\n  '.join(
+            ["%s %s" % (x.fieldname, x.dbtype) for x in self.fields] +
+            prim_def))
+        #print sql
+        return sql
+##                 string.join(
+##                   map(lambda x: "%s %s" % (x.fieldname, x.dbtype),
+##                       self.fields),
+##                   ',\n  '))
         
     def sql_insert(self, id):
         self.id = id
@@ -71,7 +80,7 @@ class Table:
     def __str__(self):
         return "Tabelle: %s [%s %s %s]\n  %s" % \
                (self.tablename, self.keys, self.lname, self.classname,
-                string.join(map(str, self.fields), '\n  '))
+                '\n  '.join([f.fieldname for f in self.fields]))
         
     def __repr__(self):
         return self.tablename

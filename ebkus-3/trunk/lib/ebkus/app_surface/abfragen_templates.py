@@ -27,6 +27,27 @@ fsabfrjahr2_t = """
                           <input type="text" size="2" maxlength="4" value="%(year)s" name="year" class="textboxmid">
                         </td>
                         """
+# Veränderte Jahresabfrage
+fsabfrjahr2a_t = """
+<form action="%(file)s" method="post">
+                <tr>
+                  <td align="center" colspan="2" class="legendtext"> <fieldset><legend>Stellenauswahl</legend>
+                    <table border="0" cellpadding="1" width="71%%" height="30">
+                      <tr>
+                        <td align="right" class="legendtext" width="18%%"><B>Jahr(e):
+                          </B></td>
+                        <td align="left" class="legendtext" width="82%%">
+                          <select name="von_jahr">
+                            <option>Jahr"""
+fsabfrjahr2b_t = """
+                          </select>
+                          <B> bis </B>
+                          <select name="bis_jahr">
+                            <option>Jahr"""
+
+fsabfrjahr2c_t = """
+                          </select>
+                        </td>"""
 fsabfrstelle_t = """ </tr>
                       <tr>
                         <td align="right" class="legendtext" width="18%" height="118"><B>Stelle(n):</B></td>

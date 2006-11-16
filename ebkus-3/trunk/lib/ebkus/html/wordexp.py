@@ -180,6 +180,9 @@ class wordexport(Request.Request):
             for js in f['jgh_statistiken']:
                 if js['ey']:
                     jgh_list.append(js)
+            for js in f['jgh07_statistiken']:
+                if js['ey']:
+                    jgh_list.append(js)
         if jgh_list:
             n = 0
             for jghstat in jgh_list:

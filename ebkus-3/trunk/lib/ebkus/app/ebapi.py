@@ -347,6 +347,18 @@ def _str_ausser(self, key):
         return self['str']
     else:
         return ''
+
+def _get_jgh(self, key):
+    where_cl = "fall_id=%s" % self['id']
+    jghs = []
+    jghs += JugendhilfestatistikList(where=where_cl)
+    jghs += Jugendhilfestatistik2007List(where=where_cl)
+    assert len(jghs) <= 1, "Mehr als eine Bundesstatistik für Fall %s" % fall['fn']
+    if jghs:
+        return jghs[0]
+    else:
+        return None
+
         
 Akte.attributemethods['wiederaufnehmbar'] = _wiederaufnehmbar
 Akte.attributemethods['letzter_fall'] = _letzter_fall
@@ -354,6 +366,8 @@ Akte.attributemethods['aktueller_fall'] = _aktueller_fall
 Akte.attributemethods['aktuell'] = _aktuell_akte
 Akte.attributemethods['str_inner'] = _str_inner
 Akte.attributemethods['str_ausser'] = _str_ausser
+
+Fall.attributemethods['jgh'] = _get_jgh
 
 Bezugsperson.attributemethods['str_inner'] = _str_inner
 Bezugsperson.attributemethods['str_ausser'] = _str_ausser
@@ -412,6 +426,9 @@ Fachstatistik.pathdefinitions = {
 Jugendhilfestatistik.pathdefinitions = {
   'akte': 'fall_id__akte'
 }
+Jugendhilfestatistik2007.pathdefinitions = {
+  'akte': 'fall_id__akte'
+}
 
 Dokument.pathdefinitions = {
   'akte': 'fall_id__akte'
@@ -448,6 +465,7 @@ def akte_undo_cached_fields(self):
         for a in f['anmeldung']: a.undo_cached_fields()
         for fs in f['fachstatistiken']: fs.undo_cached_fields()
         for jgh in f['jgh_statistiken']: jgh.undo_cached_fields()
+        for jgh07 in f['jgh07_statistiken']: jgh07.undo_cached_fields()
         for d in f['dokumente']: d.undo_cached_fields()
         for g in f['gruppen']: g.undo_cached_fields()
         f.undo_cached_fields()
@@ -972,4 +990,26 @@ def convert_pstoascii():
     sql.closedb()
     
     
+class Wrapper(object):
+    """Eine Art dictionary.
+    Sucht erst bei sich selbst, dann im übergebenen Objekt nach
+    einem Wert für einen Key.
+    Nützlich für dbapp-Objekt und Templates.
+    Wird zunächst nur von jghstatistik.py verwendet.
+    """
+    def __init__(self, obj):
+        self.obj = obj
+        self.data = {}
+    def __getitem__(self, key):
+        try:
+            return self.data[key]
+        except KeyError:
+            return self.obj[key]
+    def __setitem__(self, key, value):
+        self.data[key] = value
+    def get(self, key):
+        try:
+            return self[key]
+        except KeyError:
+            return None
     

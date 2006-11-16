@@ -4,25 +4,37 @@ import sys, os, time, sha
 from ebkus.app.ebapi import cc, getNewFallnummer, Date, today, getDate, setDate, \
      Kategorie, Code, Mitarbeiter, MitarbeiterList, Akte, Fall, FallList, Leistung, \
      Zustaendigkeit, Bezugsperson, Einrichtungskontakt, CodeList, \
-     StrassenkatalogList, Fachstatistik, Jugendhilfestatistik
+     StrassenkatalogList, Fachstatistik, Jugendhilfestatistik, Jugendhilfestatistik2007
 from ebkus.app.ebapih import  get_codes
-from ebkus.app.ebupd import akteeinf, fseinf, jgheinf, miteinf, codeeinf, \
+from ebkus.app.ebupd import akteeinf, fseinf, jgheinf, jgh07einf, miteinf, codeeinf, \
      leisteinf, zdaeinf, waufneinf, perseinf, einreinf
 from ebkus.config import config
-from random import choice, randrange, sample, random
+from random import choice, randrange, sample, random, seed
 
+import logging
 def log(s):
+    logging.info(s)
     print s
+
+seed(100)
+
+N_AKTEN = 50
+N_BEARBEITER = 1
+N_STELLEN = 2
+VON_JAHR = Date(2004)
+BIS_JAHR = None
+TODAY = (2007,7,1)   # gefaked today, sollte im laufenden Demosystem auch gefaked werden
     
 def create_demo_daten(logf=None,
-                      n_akten=35,         # Anzahl von Akten in der demo
-                      n_bearbeiter=None,  # Anzahl der Mitarbeiter in der Bearbeiterrolle
-                                          # ohne explizite Angabe wachsend mit n_akten
-                      n_stellen=None,     # Anzahl der Stellen, default wachsend mit n_akten
-                      von_jahr=None,      # Jahr in dem die ersten Akten angelegt werden
-                                          # default ist heute vor zwei Jahren
-                      bis_jahr=None):     # Jahr in dem die letzten Akten angelegt werden,
-                                          # default ist dieses Jahr
+                      n_akten=N_AKTEN,            # Anzahl von Akten in der demo
+                      n_bearbeiter=N_BEARBEITER,  # Anzahl der Mitarbeiter in der Bearbeiterrolle
+                                                  # ohne explizite Angabe wachsend mit n_akten
+                      n_stellen=N_STELLEN,        # Anzahl der Stellen, default wachsend mit n_akten
+                      von_jahr=VON_JAHR,          # Jahr in dem die ersten Akten angelegt werden
+                                                  # default ist heute vor zwei Jahren
+                      bis_jahr=BIS_JAHR,          # Jahr in dem die letzten Akten angelegt werden,
+                                                  # default ist dieses Jahr
+                      fake_today=TODAY):          # gefaktes heute: (2009,6,6), default das reale heute 
     from ebkus.app import protocol
     #protocol.on()
     if logf:
@@ -38,6 +50,16 @@ def create_demo_daten(logf=None,
         
     # umbenennen des vordefinierten Stellenzeichens
     Code(kat_code='stzei', code='A').update({'name': 'Stelle A', 'code': 'A'})
+##     if fake_today:
+##         today_date = Date(*fake_today)
+##         global today
+##         def today():
+##             return today_date
+##         import ebkus
+##         ebkus.app.ebapi.today = today
+    if TODAY:
+        log("Gefaked: heutiges Datum: %s" % today())
+    log("Heutiges Datum: %s" % today())
     DemoDaten.n_akten = n_akten
     if not n_stellen:
         n_stellen = int(n_akten**.2)
@@ -141,9 +163,12 @@ class DemoDaten(object):
             selection = selection[:n] + selection_2[n:]
         return [c['id'] for c in selection]
     
-    def choose_date(self, min=None, max=today()):
+    def choose_date(self, min=None, max=None):
+        if not max:
+            max = today()
         if not min:
             min = Date(today().year - 2)
+        #log("CHOOSE_DATE min/max: %s/%s" % (min,max))
         assert max >= min
         assert min != Date(0,0,0)
         assert max != Date(0,0,0)
@@ -200,11 +225,14 @@ class DemoDaten(object):
             return True
         return False
 
-    def fake_zda(self):
+    def fake_zda(self, datum=None):
         """schliesst einen Fall mit einer bestimmten
         Wahrscheinlichkeit ab, je älter desto
         wahscheinlicher.
-        Fügt vor dem Schliessen noch ein paar Leistungen ein."""
+        Fügt vor dem Schliessen noch ein paar Leistungen ein.
+        Erledigt vor dem Schliessen auch die Statistiken,
+        sonst wird die Schliessung nicht akzeptiert.
+        """
         fall = Akte(self.akte_id)['letzter_fall']
         fn = fall['fn']
         beginn = fall.getDate('bg')
@@ -215,7 +243,19 @@ class DemoDaten(object):
         form['fallid'] = fall['id']
         form['aktuellzustid'] = fall['zustaendig__id']
         # Dauer des Falles
-        zda = self.choose_date(beginn.add_month(1), min(beginn.add_month(alter), today()))
+        if datum:
+            zda = datum
+        else:
+            zda = self.choose_date(beginn.add_month(1), min(beginn.add_month(24), today()))
+##             if random() < .2:
+##                 zda = self.choose_date(beginn.add_month(12), min(beginn.add_month(24), today()))
+##             else:
+##                 # die meisten Fälle bis ein Jahr
+##                 zda = self.choose_date(beginn.add_month(1), min(beginn.add_month(12), today()))
+##             zda = self.choose_date(beginn.add_month(1), min(beginn.add_month(alter), today()))
+        # eine Statistik pro abgeschlossenem Fall
+        self.fake_fachstatistik(fall, zda)
+        self.fake_jghstatistik(fall, zda)
         setDate(form, 'zda', zda)
         # 0 bis 5 Leistungen hinzufügen
         for i in range(randrange(6)):
@@ -224,7 +264,7 @@ class DemoDaten(object):
         log("Zda %s am %s" % (fn, zda))
 
 
-    def fake_waufn(self):
+    def fake_waufn(self, datum=None):
         letzter_fall = Akte(self.akte_id)['letzter_fall']
         zdadatum = letzter_fall.getDate('zda')
         if zdadatum == Date(0,0,0):
@@ -240,7 +280,9 @@ class DemoDaten(object):
         form = {}
         form['akid'] = self.akte_id
         form['fallid'] = Fall().getNewId()
-        setDate(form, 'zubg', self.choose_date(min=zdadatum.add_month(1)))
+        if not datum:
+            datum = self.choose_date(min=zdadatum.add_month(1))
+        setDate(form, 'zubg', datum)
         mitarbeiter = choice(self.mitarbeiter)
         form['zumitid'] = mitarbeiter['id']
         form['stzbg'] = mitarbeiter['stz'] # TODO ist das richtig? akte.stzbg wird dadrauf gesetzt
@@ -300,17 +342,33 @@ class DemoDaten(object):
             self.fake_bezugsperson()
         for i in range(randrange(3)):   # 0 - 2
             self.fake_einrichtung()
+        self.repeat_zda_waufn()
         #print "WOHNBEZIRK: ", self.akte['wohnbez']
-        self.fake_fachstatistik(fall)
-        self.fake_jghstatistik(fall)
         # den Fall mit einer gewissen Wahrscheinlichkeit schließen;
         # je älter, desto wahrscheinlicher
-        alter = fall.getDate('bg').diff(today()) 
-        if self.p_ja_nein(alter, z1=1, p1=.1, z2=36, p2=.9):
-            self.fake_zda()
-            # 30% wiederaufnehmen
-            if random() < .3:
-                self.fake_waufn()
+##         alter = fall.getDate('bg').diff(today()) 
+##         if self.p_ja_nein(alter, z1=1, p1=.1, z2=18, p2=.9):
+##             self.fake_zda()
+##             # 20% wiederaufnehmen
+##             if random() < .2:
+##                 self.fake_waufn()
+
+    def repeat_zda_waufn(self):
+        """Hier soll alles rein, was die Wahrscheinlichkeit eines ZDA
+        und WAUFN betrifft."""
+        for i in range(5):
+            af = Akte(self.akte_id)['aktueller_fall']
+            if af:
+                bg = af.getDate('bg')
+                zda = self.choose_date(bg.add_month(1), bg.add_month(30))
+                if zda < today():
+                    self.fake_zda(zda)
+            lf = Akte(self.akte_id)['letzter_fall']
+            zda = lf.getDate('zda')
+            if not zda.is_zero() and random() < .4:
+                waufn = self.choose_date(zda.add_month(1), zda.add_month(30))
+                if waufn < today():
+                    self.fake_waufn(waufn)
         
     def fake_bezugsperson(self):
         form = {}
@@ -348,7 +406,7 @@ class DemoDaten(object):
         log("Einrichtung %s" % einr_id)
 
 
-    def fake_fachstatistik(self, fall):
+    def fake_fachstatistik(self, fall, ende_datum):
         akte = Akte(self.akte_id)
         form = {}
         fs_id = Fachstatistik().getNewId()
@@ -356,7 +414,7 @@ class DemoDaten(object):
         form['fallid'] = fall['id']
         form['fall_fn'] = fall['fn']
         form['mitid'] = fall['zustaendig__mit_id']
-        form['jahr'] = fall['bgy'] # TODO: OK?
+        form['jahr'] = ende_datum.year
         form['stz'] = akte['stzak']
         form['plr'] = akte['planungsr']
         form['gs'] = self.choose_code_id('gs')
@@ -389,7 +447,11 @@ class DemoDaten(object):
         fseinf(form)
         log("Fachstatistik für %s (akte_id=%s)" % (fall['fn'], self.akte_id))
             
-    def fake_jghstatistik(self, fall):
+    def fake_jghstatistik(self, fall, ende_datum):
+        log("fake_jghstatistik %s (akte_id=%s)" % (fall['fn'], self.akte_id))
+        if ende_datum.year >= 2007:
+            self.fake_jgh07statistik(fall, ende_datum)
+            return
         akte = Akte(self.akte_id)
         form = {}
         jgh_id = Jugendhilfestatistik().getNewId()
@@ -397,12 +459,11 @@ class DemoDaten(object):
         form['fallid'] = fall['id']
         form['fall_fn'] = fall['fn']
         form['mitid'] = fall['zustaendig__mit_id']
-        form['jahr'] = fall['bgy'] # TODO: OK?
         form['stz'] = akte['stzak']
         form['gfall'] = self.choose_code_id('gfall')
         setDate(form, 'bg', fall.getDate('bg'))
-        #setDate(form, 'e', fall.getDate('zda')) # TODO: OK?
-        setDate(form, 'e', today()) # TODO: OK?
+        setDate(form, 'e', ende_datum)
+        #setDate(form, 'e', today()) # 
         form['rbz'] = self.choose_code_id('rbz')
         form['kr'] = Code(kat_code='kr', sort=1)['id'] # zuständige Stelle!
         form['gm'] = self.choose_code_id('gm')
@@ -435,3 +496,20 @@ class DemoDaten(object):
         form['ba'] = [cc(f, '1') for f in angekreuzt]
         jgheinf(form)
         log("Jugendhilfestatistik für %s (akte_id=%s)" % (fall['fn'], self.akte_id))
+
+    def fake_jgh07statistik(self, fall, ende_datum):
+        log("fake_jgh07statistik %s (akte_id=%s)" % (fall['fn'], self.akte_id))
+        assert ende_datum.year >= 2007
+        akte = Akte(self.akte_id)
+        form = {}
+        jgh_id = Jugendhilfestatistik2007().getNewId()
+        form['jghid'] = jgh_id
+        form['fallid'] = fall['id']
+        form['fall_fn'] = fall['fn']
+        form['mitid'] = fall['zustaendig__mit_id']
+        form['stz'] = akte['stzak']
+        setDate(form, 'bg', fall.getDate('bg'))
+        setDate(form, 'e', ende_datum)
+        form['sit_fam'] = self.choose_code_id('shf')
+        jgh07einf(form)
+        log("Jugendhilfestatistik 2007 für %s (akte_id=%s)" % (fall['fn'], self.akte_id))

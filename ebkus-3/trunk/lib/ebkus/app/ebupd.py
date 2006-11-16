@@ -675,12 +675,15 @@ def zdaeinf(form):
     else:
         raise EE("Keine Fachstatistik für Fallnummer '%s', " % fallold['fn'])
         
-    jghstatl = JugendhilfestatistikList(where = 'fall_id = % d' % fallold['id'] )
-    if len(jghstatl) == 1:
-        pass
-    elif len(jghstatl) > 1:
-        raise EE("Mehr als eine Jugendhilfestatistik für Fallnummer '%(fn)s' vorhanden." % fallold )
-    else:
+##     jghstatl = JugendhilfestatistikList(where = 'fall_id = % d' % fallold['id'] )
+##     if len(jghstatl) == 1:
+##         pass
+##     elif len(jghstatl) > 1:
+##         raise EE("Mehr als eine Jugendhilfestatistik für Fallnummer '%(fn)s' vorhanden." % fallold )
+##     else:
+##         raise EE("Keine Jugendhilfestatistik für Fallnummer '%(fn)s' vorhanden" % fallold )
+    jgh = fallold['jgh']
+    if not jgh:
         raise EE("Keine Jugendhilfestatistik für Fallnummer '%(fn)s' vorhanden" % fallold )
         
     akteold = fallold['akte']
@@ -1144,6 +1147,8 @@ def jgheinf(form):
                             "Fehler im Datum für das Ende", nodayallowed = 1 ) )
     if jghstat.getDate('e') < jghstat.getDate('bg'):
         raise EE("Fallende in der Jugendhilfestatistik liegt vor Fallbeginn")
+    if jghstat.getDate('e').year > 2006:
+        raise EE("Alte Bundesstatistik für Fallende nach 2006 nicht erlaubt")
     del jghstat['bgd']
     del jghstat['ed']
     jghstat['rbz'] = check_code(form, 'rbz', 'rbz',
@@ -1267,9 +1272,65 @@ def jgheinf(form):
         except: pass
         raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
         
+def jgh07einf(form):
+    """Jugendhilfestatistik 2007."""
+    
+    jghid = check_int_not_empty(form, 'jghid', "JugendhilfestatistikID fehlt")
+    check_not_exists(jghid, Jugendhilfestatistik2007,
+        "Jugendhilfestatistik (id: %(id)s, Fallnummer: %(fall_fn)s, Mitarbeiter: %(mit_id__na)s, Fall: %(fall_id)s ) existiert bereits")
+    
+    jgh07stat = Jugendhilfestatistik2007()
+    fallid = form.get('fallid')
+    if fallid == None or fallid == '' or fallid == 'None':
+        jgh07stat['fall_id'] = None
+    else:
+        jgh07stat['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
+        check_unique(jgh07stat['fall_id'], Jugendhilfestatistik2007List,
+                     'fall_id',"Fallid gibt es bereits")
+
+    jgh07stat['mit_id'] = check_fk(form, 'mitid', Mitarbeiter,
+                                 "Kein Mitarbeiter")
+    jgh07stat['fall_fn'] = check_str_not_empty(form, 'fall_fn',
+                                             "Fallnummer fehlt")
+    check_unique(jgh07stat['fall_fn'], Jugendhilfestatistik2007List,
+                 'fall_fn',"Fallnummer gibt es bereits")
+    jghl = Jugendhilfestatistik2007List(where =
+                                    "fall_fn = '%s'" % jgh07stat['fall_fn'])
+    if len(jghl) >= 1:
+        raise EE("Jugendhilfestatistik2007 für Fallnummer: '%s'" % jgh07stat['fall_fn']
+                  + " existiert bereits.")
+    jgh07stat['stz'] = check_code(form, 'stz', 'stzei',
+                              "Kein Stellenzeichen für die Jugendhilfestatistik")
+    jgh07stat.setDate('bg',
+                 check_date(form, 'bg',
+                            "Fehler im Datum für den Beginn", nodayallowed = 1 ) )
+    if form['fallid'] != None and form['fallid'] != '':
+        fall = Fall(jgh07stat['fall_id'])
+        if fall['bgm'] != jgh07stat['bgm'] or fall['bgy'] != jgh07stat['bgy']:
+            raise EE("Beginndatum in der Jugendhilfestatistik stimmt mit dem Fallbeginn nicht überein")
+    jgh07stat.setDate('e',
+                 check_date(form, 'e',
+                            "Fehler im Datum für das Ende", nodayallowed = 1 ) )
+    if jgh07stat.getDate('e') < jgh07stat.getDate('bg'):
+        raise EE("Fallende in der Jugendhilfestatistik liegt vor Fallbeginn")
+    if jgh07stat.getDate('e') < Date(2007):
+        raise EE("Neue Bundesstatistik für Fallende vor 2007 nicht erlaubt")
+    del jgh07stat['bgd']
+    del jgh07stat['ed']
+    jgh07stat['sit_fam'] = check_code(form, 'sit_fam', 'shf',
+                                      "Situation Herkunftsfamilie fehlt" )
+    jgh07stat['zeit'] = int(time.time())
+    
+    try:
+        jgh07stat.insert(jghid)
+    except Exception, args:
+        try: jgh07stat.delete()
+        except: pass
+        raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
+        
 
 def jgh_laufende_nummer_setzen():
-    """Erteilt jeder Jugenhilfestatistik eine laufende Nummer"""
+    """Erteilt jeder Jugendhilfestatistik eine laufende Nummer"""
     # höchste vorhandene laufende Nummer ermitteln
     jghstatliste = JugendhilfestatistikList(where = 'lnr > 0', order = 'lnr')
     if jghstatliste:
@@ -1281,8 +1342,109 @@ def jgh_laufende_nummer_setzen():
     for j in jghstatliste:
         letzte += 1
         j.update({'lnr': letzte})
+    jghstatliste = Jugendhilfestatistik2007List(where = 'lnr IS NULL', order = 'id')
+    for j in jghstatliste:
+        letzte += 1
+        j.update({'lnr': letzte})
 
 
+def upgrade_jgh(id, old2new):
+    """Alte Jugendhilfestatistik durch neue ersetzen.
+    Eine vorhandene alte Jugendstatistik wird durch eine neue
+    ersetzt, die vom Anwender ausgefüllt werden muss. Es werden lediglich
+    folgende Felder übernommen:
+    beginn, stz, mit_id, fall_id, fall_fn, lnr
+    Falls old2new True ist, wird eine alte Bundesstatistik (bis 2006) durch
+    eine neue (ab 2007) ersetzt, sonst umgekehrt.
+    """
+    import logging
+    logging.info("upgrade_jgh: id=%s old2new=%s" % (id,old2new))
+    try:
+        if old2new:
+            jgh = Jugendhilfestatistik(id)
+        else:
+            jgh = Jugendhilfestatistik2007(id)
+    except:
+        # nichts zu upgraden
+        return
+    fall_id = jgh['fall_id']
+    if fall_id:
+        fall = Fall(fall_id)
+        if not fall['aktuell']:
+            adj = old2new and 'neue' or 'alte'
+            raise EE(
+                "Ersatz duch %s Bundesstatistik nur möglich für offene Fälle." %
+                adj)
+        fall_beginn = fall.getDate('bg')
+        if not fall_beginn.year <= 2006:
+            raise EE("Ersatz duch %s Bundesstatistik nur möglich \
+für Fälle von 2006 oder früher." % adj)
+    else:
+        raise EE(
+            "Kein Fall vorhanden. Ersatz durch %s  Bundesstatistik nicht möglich." %
+            adj)
+##     if old2new:
+##         jghnew = Jugendhilfestatistik2007()
+##     else:
+##         jghnew = Jugendhilfestatistik()
+##     jghnew.setDate('bg', jgh.getDate('bg'))
+##     jghnew['stz'] = jgh['stz']
+##     jghnew['mit_id'] = jgh['mit_id']
+##     jghnew['fall_id'] = jgh['fall_id']
+##     jghnew['fall_fn'] = jgh['fall_fn']
+##     jghnew['lnr'] = jgh['lnr']
+##     jghnew.new()
+##     jghnew['zeit'] = int(time.time())
+##     jghnew.insert()
+    jgh.delete()
+    logging.info("upgrade_jgh: deleted")
+
+def updjgh07(form):
+    """Update der Jugendhilfestatistik."""
+    
+    jgh07statold = check_exists(form, 'jghid', Jugendhilfestatistik2007,
+                              "JugendhilfestatistikID fehlt")
+    jgh07stat = Jugendhilfestatistik2007()
+    fallid = check_fk(form, 'fallid', Fall, "Kein Fall")
+    fall = Fall(fallid)
+    jgh07stat['fall_id'] = fallid
+    jgh07stat['fall_fn'] = check_str_not_empty(form, 'fall_fn',
+                                               "Fallnummer fehlt")
+    jgh07stat['stz'] = check_code(form, 'stz', 'stzei',
+                              "Kein Stellenzeichen für die Jugendhilfestatistik")
+##     jgh07stat['gfall'] = check_code(form, 'gfall', 'gfall',
+##                                   "Angabe, ob der Fall ein Geschwisterfall ist, fehlt")
+##     if config.BERLINER_VERSION:
+##         jgh07stat['bezirksnr'] = check_code(form, 'wohnbez', 'wohnbez',
+##                                           "Kein Wohnbezirk")
+    
+    beginn = check_date(form, 'bg', "Fehler im Datum für den Beginn", nodayallowed=1)
+    jgh07stat.setDate('bg', beginn)
+    if fall['bgm'] != beginn.month or fall['bgy'] != jgh07stat['bgy']:
+        raise EE("Beginndatum in der Jugendhilfestatistik stimmt mit dem Fallbeginn nicht überein")
+    ende = check_date(form, 'e', "Fehler im Datum für das Ende", nodayallowed=1)
+    jgh07stat.setDate('e', ende)
+    if ende < beginn:
+        raise EE("Fallende in der Jugendhilfestatistik liegt vor Fallbeginn")
+    if ende < Date(2007):
+        raise EE("Neue Bundesstatistik für Fallende vor 2007 nicht erlaubt")
+    del jgh07stat['bgd']
+    del jgh07stat['ed']
+    jgh07stat['sit_fam'] = check_code(form, 'sit_fam', 'shf',
+                                      "Situation in Herkunftsfamilie fehlt", jgh07statold)
+    jgh07stat['zeit'] = int(time.time())
+    jgh07statold.update(jgh07stat)
+    
+    ## akte_undo_cached_fields() fuehrt zu einem Error, wenn
+    ## jgh07stat['fall_id'] = None ist.
+    ##
+    
+    akteold = Akte(jgh07statold['fall_id__akte_id'])
+    akte = Akte()
+    akte['zeit'] = int(time.time())
+    akteold.update(akte)
+    jgh07statold['akte'].akte_undo_cached_fields()
+        
 def updjgh(form):
     """Update der Jugendhilfestatistik."""
     
@@ -1317,6 +1479,8 @@ def updjgh(form):
                             "Fehler im Datum für das Ende", nodayallowed = 1 ) )
     if jghstat.getDate('e') < jghstat.getDate('bg'):
         raise EE("Fallende in der Jugendhilfestatistik liegt vor Fallbeginn")
+    if jghstat.getDate('e').year > 2006:
+        raise EE("Alte Bundesstatistik für Fallende nach 2006 nicht erlaubt")
     del jghstat['bgd']
     del jghstat['ed']
     jghstat['rbz'] = check_code(form, 'rbz', 'rbz',

@@ -392,6 +392,20 @@ fbe2, INT, Beratung Familie, k, fbe2
 fbe3, INT, Beratung Umfeld, k, fbe3
 zeit, INT, Änderungszeit, p,
 
+table, jghstat07, , Jugendhilfestatistik ab 2007, Jugendhilfestatistik2007
+id, INT, id, s,
+fall_id, INT, Fallid, f, fall, jgh07_statistiken
+mit_id, INT, Mitarbeiterid, f, mitarbeiter, jgh07_statistiken
+fall_fn, CHAR(20), Fallnummer, p,
+stz, INT, Dienststelle, k, stzei, default ist aktuelle Dst. des Falles
+sit_fam, INT, Situation in der Herkunftsfamilie, k, shf
+bgm, INT, Beginn Monat, p,
+bgy, INT, Beginn Jahr, p,
+em, INT, Ende Monat, p,
+ey, INT, Ende Jahr, p,
+lnr, INT, laufendeNummer, p,
+zeit, INT, Änderungszeit, p,
+
 table, code, code.kat_id/code.kat_code/name.kat_id/name.kat_code, Code, Code
 id, INT, id, s,
 kat_id, INT, Kategorienid, f, kategorie, codes

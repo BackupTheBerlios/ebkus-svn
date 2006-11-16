@@ -8,6 +8,7 @@ from ebkus.db import sql
 from ebkus.db import dbapp
 from ebkus.config import config
 import logging
+import sys
 
 class EBKuS:
     """Eine Instanz dieser Klasse bildet den Ausgangspunkt für Bobos
@@ -18,6 +19,7 @@ class EBKuS:
     - ein Funktionsobjekt über __getitem__
     """
     def __init__(self):
+        self.try_updates()
         self.functions = getFunctionsToBePublished()
         self.classes = getClassesToBePublished()
         logging.info("EBKuS Version %s", Version)
@@ -34,7 +36,6 @@ class EBKuS:
             # nicht scheitern, die Datenbank könnt ja
             # später wieder hochkommen.
             pass
-        
         
     def __getitem__(self, name):
         """Das hier aufgrund des Names gefundene Funktions-Objekt
@@ -73,6 +74,29 @@ class EBKuS:
         
     def index_html(self, REQUEST, RESPONSE):
         return "Die Default Seite"
+
+    def try_updates(self):
+        try:
+            sql.opendb()
+        except:
+            # Zum Update muss die Datenbank verfügbar sein.
+            # Daher:
+            logging.critical("Für das Update muss die Datenbank verfügbar sein!",
+                             exc_info=True)
+            logging.shutdown()
+            sys.exit(1)
+        from ebkus.update import needs_update, do_update
+        if needs_update():
+            logging.info("Update von EBKuS 3.2 auf 3.3 (neue gesetzliche Statistik) beginnt")
+            if do_update():
+                logging.info("Update von EBKuS 3.2 auf 3.3 erfolgreich")
+            else:
+                logging.critical("Fehler: Update von EBKuS 3.2 auf 3.3 misslungen")
+                logging.shutdown()
+                sys.exit(1)
+        else:
+            logging.info("Kein Update erforderlich")
+            
         
 def makeObject(dict):
     class p: pass
@@ -94,7 +118,8 @@ def getClassesToBePublished():
     # updfs wird auch als updfsform importiert weil es einen Nameclash zwischen
     # der Funktion ebupd.updfs und der Klasse updfs gibt. klkarte.py ist verzockt.
     from ebkus.html.fachstatistik import fsneu, updfs, updfsausw, updfs as updfsform
-    from ebkus.html.jghstatistik import jghneu, updjgh, updjghausw, updjgh as updjghform
+    from ebkus.html.jghstatistik import jghneu, updjgh, jgh07neu, updjgh07, jgh_check, \
+         updjghausw, updjgh as updjghform
     from ebkus.html.aktenvorblatt import vorblatt
     from ebkus.html.dokumentenkarte import dokkarte
     from ebkus.html.dokument import vermneu, updverm, updvermausw, upload, updgrverm, rmdok

@@ -28,8 +28,8 @@ TODO:
   Das wäre viel übersichtlicher und einfacher.
 
 """
-import string
 import sys
+import logging
 from ebkus.db.sql import opendb, closedb, getDBHandle
 from ebkus.gen import schemagen
 
@@ -42,27 +42,27 @@ template = \
 
 
 class %(lname)s(DBObjekt):
-  table = '%(table)s'
-  fields =  %(dbfields)s
-  fieldtypes = {}
-  foreignfieldtypes = {}
-  inversefieldtypes = {}
-  attributemethods = {}
-  conditionalfields = {}
-  pathdefinitions = {}
-  attributehandler = None
-  primarykey = %(primarykey)s
-  otherkeys = %(keys)s
-  querySQL  = SimpleSQL(table = table, fields = fields)
-  updateSQL = querySQL
+    table = '%(table)s'
+    fields =  %(dbfields)s
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = %(primarykey)s
+    otherkeys = %(keys)s
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
 
 class %(lname)sList(Container):
-  resultClass = %(lname)s
-  querySQL = resultClass.querySQL
+    resultClass = %(lname)s
+    querySQL = resultClass.querySQL
 """    
 
 header = \
-"""#!/usr/local/bin/python
+"""# coding: latin-1
 \"\"\"
 AUTOMATISCH GENERIERTE DATEI! NICHT EDITIEREN!
 
@@ -86,7 +86,7 @@ def formatFields(str, maxlen, indent):
         return str
     result = ''
     while 1:
-        index = string.rfind(str, ', ', 0, maxlen)
+        index = str.rfind(', ', 0, maxlen)
         index = index + 2
         result = result + str[0:index] + '\\\n' + ' '*indent
         str = str[index:]
@@ -162,28 +162,26 @@ def gen_api(schema_str):
         file.write(template % { 'dbfields' : dbfields, 'dbfields_prefix' : dbfields_prefix, 
                            'lname' : lname, 'table' : table,
                            'keys' : keys, 'primarykey' : primarykey})
-        print 'Klassendefinition generiert: %s' % lname
+        logging.info('Klassendefinition generiert: %s' % lname)
         
     fkeys, ifkeys = generateForeignKeyInfo(schemadata_tables)
-    file.write(
-    """
+    file.write("""
     
-    # Die folgenden Einträge ermöglichen die automatische Navigation über
-    # Fremdschlüssel. Wird insbesondere von DBObjekt.__getitem__ verwendet.
-    #   fall['akte_id__vn'] kann damit automatisch evaluiert werden.
+# Die folgenden Einträge ermöglichen die automatische Navigation über
+# Fremdschlüssel. Wird insbesondere von DBObjekt.__getitem__ verwendet.
+#   fall['akte_id__vn'] kann damit automatisch evaluiert werden.
     
-    """)
+""")
     for f in fkeys:
         file.write("%s.foreignfieldtypes['%s'] = (%s, %s)\n" % f)
-    file.write(
-    """
+    file.write("""
     
-    # Die folgenden Einträge ermöglichen die automatische Navigation über
-    # inverse Fremdschlüssel. Wird insbesondere von DBObjekt.__getitem__ 
-    # verwendet.
-    #   fall['leistungen'] kann damit automatisch evaluiert werden.
+# Die folgenden Einträge ermöglichen die automatische Navigation über
+# inverse Fremdschlüssel. Wird insbesondere von DBObjekt.__getitem__ 
+# verwendet.
+#   fall['leistungen'] kann damit automatisch evaluiert werden.
     
-    """)
+""")
     for f in ifkeys:
         file.write("%s.inversefieldtypes['%s'] = (%sList, '%s')\n" % f)
     return file

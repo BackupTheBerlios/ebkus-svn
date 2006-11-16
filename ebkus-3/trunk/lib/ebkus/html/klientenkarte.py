@@ -95,14 +95,20 @@ class klkarte(Request.Request):
       'zdareinf': ('fallid', ebapi.Fall),
       'fseinf': ('fsid', ebapi.Fachstatistik),
       'updfs': ('fsid', ebapi.Fachstatistik),
-      'jgheinf': ('jghid', ebapi.Jugendhilfestatistik),
-      'updjgh': ('jghid', ebapi.Jugendhilfestatistik),
+      #'jgheinf': ('jghid', ebapi.Jugendhilfestatistik), # wg. jgh07
+      'jgheinf': ('fallid', ebapi.Fall),
+      'jgh07einf': ('fallid', ebapi.Fall),
+      #'updjgh': ('jghid', ebapi.Jugendhilfestatistik),  # wg. jgh07
+      'updjgh': ('fallid', ebapi.Fall),
+      'updjgh07': ('fallid', ebapi.Fall),
       'fseinf': ('fsid', ebapi.Fachstatistik)
       }
     
     def einfuegen_oder_update(self, file):
+        # API Funktion aufrufen
         function = getattr(ebupd, file)
         function(self.form)
+        # Akte id ermitteln um klkarte anzeigen zu können
         id_name, klass = self.einfuege_oder_update_operationen.get(file)
         akid = klass(int(self.form[id_name]))['akte__id']
         return akid
@@ -345,6 +351,11 @@ class klkarte(Request.Request):
         for f in faelle:
             for js in f['jgh_statistiken']:
                 if js['ey']:
+                    js['action'] = 'updjgh'
+                    jgh_list.append(js)
+            for js in f['jgh07_statistiken']:
+                if js['ey']:
+                    js['action'] = 'updjgh07'
                     jgh_list.append(js)
         if aktueller_fall:
             if jgh_list:

@@ -7,7 +7,8 @@ from ebkus.config import config
 from ebkus.db.sql import SQL
 CLIKE = 'like' # gibts andere DBs wo das nicht geht?
 from ebkus.app import Request
-from ebkus.app.ebapi import nfc, Fachstatistik, FachstatistikList, JugendhilfestatistikList, \
+from ebkus.app.ebapi import nfc, Fachstatistik, FachstatistikList, \
+     JugendhilfestatistikList, Jugendhilfestatistik2007List, \
      ZustaendigkeitList, AkteList, BezugspersonList, FallList, GruppeList, \
      Tabelle, Code, Feld, Mitarbeiter, MitarbeiterGruppeList, \
      today, cc, check_int_not_empty, \
@@ -488,7 +489,11 @@ class formabfr4(Request.Request):
         res.append(formabfr_ende_t)
         return ''.join(res)
         
-        
+
+
+# TODO hier sind schon angefangene Änderungen drin, die noch nicht fertig
+# sind. Das ganze sollte aus dem branch neue-spalte-... übernommen werden.
+# TODO Die Jugendhilfestatistik-Listen müssen um die 07 ergänzt werden
 class abfr4(Request.Request):
     """Anzahl der Neumeldungen u. Abschlüsse pro Jahr und Quartal."""
     
@@ -532,11 +537,23 @@ class abfr4(Request.Request):
                                 + ' and gfall = %d' %  cc('gfall', '2')
                                 + ' and stz = %d' % stelle['id'],
                                 order = 'em' )
+
+        offenerfallliste = FallList(where = 'bgy <= %s' % jahr
+                                    + ' and akte_id__stzak = %d' % stelle['id'],
+                                    order = 'bgy, bgm' )
         
-        neul = map(lambda x, item = 'bgm': x[item], neumeldungen)
-        zdal = map(lambda x, item = 'em': x[item], zdaliste)
-        hauptf = map(lambda x, item = 'em': x[item], hauptfallliste)
-        geschw = map(lambda x, item = 'em': x[item], geschwliste)
+        neul1 = map(lambda x, item = 'bgm': x[item], neumeldungen)
+        neul = [n['bgm'] for n in neumeldungen]
+        assert neul == neul1
+        zdal1 = map(lambda x, item = 'em': x[item], zdaliste)
+        zdal = [z['em'] for z in zdaliste]
+        hauptf1 = map(lambda x, item = 'em': x[item], hauptfallliste)
+        hauptf = [z['em'] for z in hauptfallliste]
+        geschw1 = map(lambda x, item = 'em': x[item], geschwliste)
+        geschw = [z['em'] for z in geschwliste]
+        assert geschw1 == geschw
+        assert hauptf1 == hauptf
+        assert zdal == zdal1
         
         res = []
         res.append(head_normal_t % ("Neumelde- und Abschlusszahlen"))
@@ -659,14 +676,36 @@ class jghabfr(Request.Request):
     
     permissions = Request.ABFR_PERM
     
+##     def processForm(self, REQUEST, RESPONSE):
+##         stellen = get_all_codes('stzei')
+##         res = []
+##         res.append(head_normal_t % 'Bundesstatistikabfrage')
+##         res.append(fsabfrjahr_t)
+##         res.append(menuefs_t)
+##         res.append(fsabfrjahr2_t % ({'file' : 'jghergebnis',
+##                                      'year' : '%(year)s' % today()}))
+##         res.append(fsabfrstelle_t)
+##         mksel(res, codeliste_t, stellen, 'id', self.stelle['id'])
+##         res.append(fsabfrtabende_t)
+##         return ''.join(res)
+
     def processForm(self, REQUEST, RESPONSE):
         stellen = get_all_codes('stzei')
+        jahre = SQL("select distinct ey from jghstat order by ey").execute()
+        jahre += SQL("select distinct ey from jghstat07 order by ey").execute()
+        #jahre += (2007,)
+        #jahre.sort()
         res = []
         res.append(head_normal_t % 'Bundesstatistikabfrage')
         res.append(fsabfrjahr_t)
         res.append(menuefs_t)
-        res.append(fsabfrjahr2_t % ({'file' : 'jghergebnis',
-                                     'year' : '%(year)s' % today()}))
+        res.append(fsabfrjahr2a_t % ({'file' : 'jghergebnis',}))
+        for j in jahre:
+            res.append("<option>%s\n" % j)
+        res.append(fsabfrjahr2b_t)
+        for j in jahre:
+            res.append("<option>%s\n" % j)
+        res.append(fsabfrjahr2c_t)
         res.append(fsabfrstelle_t)
         mksel(res, codeliste_t, stellen, 'id', self.stelle['id'])
         res.append(fsabfrtabende_t)
@@ -716,33 +755,71 @@ class jghergebnis(Request.Request):
                                 'na', title="Mitarbeiter", file=file))
         return auszaehlungen
 
+    def get_auszaehlungen07(self, liste, file):
+        """Liefert eine Liste von Auszählungsobjekten"""
+        from ebkus.app.statistik import \
+             CodeAuszaehlung as CA, \
+             MehrfachCodeAuszaehlung as MA, \
+             ObjektAuszaehlung as OA
+        auszaehlungen = [
+            CA(liste, 'stz', title='Dienststelle', file=file),  
+            CA(liste, 'sit_fam', title='Situation in der Herkunftsfamilie', file=file),  
+            ]
+##             CA(liste, 'bgr', title="Beendigungsgrund", file=file),
+##             CA(liste, 'gs',  title="Geschlecht", file=file),
+##             CA(liste, 'ag',  title="Altersgruppe", file=file),
+##             CA(liste, 'fs',  title="Junger Mensch lebt", file=file),
+##             CA(liste, 'hke', title="Staatsangehörigkeit", file=file),
+##             CA(liste, 'gsa', title="Geschwisterzahl", file=file),
+##             CA(liste, 'gsu', title="Geschwisterzahl unbekannt", file=file),
+##             CA(liste, 'zm',  title="1. Kontaktaufnahme durch", file=file),
+##             MA(liste, ['ba0', 'ba1', 'ba2', 'ba3', 'ba4',
+##                        'ba5', 'ba6', 'ba7', 'ba8', 'ba9'],
+##                title='Beratungsanlass', file=file),
+##             CA(liste, 'schw', title="Beratungsschwerpunkt", file=file),
+##             CA(liste, 'fbe0', title="Beratung setzt ein bei dem jungen Menschen",
+##                file=file),
+##             CA(liste, 'fbe1', title="Beratung setzt ein bei den Eltern",
+##                file=file),
+##             CA(liste, 'fbe2', title="Beratung setzt ein in der Familie",
+##                file=file),
+##             CA(liste, 'fbe3', title="Beratung setzt ein im sozialen Umfeld",
+##                                file=file)
+##         if config.BERLINER_VERSION:
+##             auszaehlungen.append(
+##                 CA(liste, 'bezirksnr', title="Wohnbezirk", file=file))
+        auszaehlungen.append(OA(liste, 'mit_id', self.getMitarbeiterliste(),
+                                'na', title="Mitarbeiter", file=file))
+        return auszaehlungen
 
-    def processForm(self, REQUEST, RESPONSE):
-        self.year = check_int_not_empty(self.form, 'year', "Fehler beim Jahr",)
-        self.op = check_str_not_empty(self.form, 'op', "Fehler beim Operator",)
+    def _jgh_beide(self):
         stz = self.form.get('stz')
         if type(stz) is type(''):
             stz = [stz]
         self.stz = stz
         self.stz_url_params = '&'.join(["stz=%s" % i for i in stz])
-
         query_stelle = ' or '.join(['stz = %s' % i for i in self.stz])
-        self.jghl = JugendhilfestatistikList(where = 'ey  %s %s and ( %s )'
-                                             % (self.op, self.year, query_stelle) )
-        self.jghl_gesamt = JugendhilfestatistikList(where = 'ey  %s %s'
-                                                    % (self.op, self.year))
+        List = self.jgh07 and Jugendhilfestatistik2007List or JugendhilfestatistikList
+        self.jghl = List(
+            where = 'ey  >= %s and ey  <= %s and ( %s )'
+            % (self.von_jahr, self.bis_jahr, query_stelle) )
+        self.jghl_gesamt = List(
+            where = 'ey  >= %s and ey  <= %s'
+            % (self.von_jahr, self.bis_jahr) )
         if not self.jghl:
             meldung = {'titel':'Fehler',
                        'legende':'Fehlerbeschreibung',
                        'zeile1': 'Keine Datens&auml;tze gefunden',
                        'zeile2':'Versuchen Sie es bitte erneut.'}
             return (meldung_t %meldung)
-
+        jahr_str = 'Jahr(e): %s%s' % \
+                   (self.von_jahr,
+                    self.bis_jahr!=self.von_jahr and ('-%s' % self.bis_jahr) or '')
         stellen_str = ' '.join([ Code(i)['name']  for i in self.stz ])
-        query_anzeige = 'Jahr %s %s und Stelle(n): %s' % (self.op, self.year,
-                                                          stellen_str)
+        query_anzeige = '%s und Stelle(n): %s' % (jahr_str, stellen_str)
         self.res = res = []
-        res.append(head_normal_t % ("Bundesstatistikauswertung"))
+        welche_str = self.jgh07 and "ab 2007" or "bis 2006"
+        res.append(head_normal_t % ("Bundesstatistikauswertung (%s)" % welche_str))
         res.append(fsergebnis1_t)
         res.append(menuefs_t)
         res.append(gesamtzahl_t % (len(self.jghl), len(self.jghl_gesamt), query_anzeige))
@@ -751,7 +828,10 @@ class jghergebnis(Request.Request):
 
         # Auszaehlungsobjekte anlegen und in Session ablegen
         file = self.__class__.__name__
-        auszaehlungen = self.get_auszaehlungen(self.jghl, file)
+        if self.jgh07:
+            auszaehlungen = self.get_auszaehlungen07(self.jghl, file)
+        else:
+            auszaehlungen = self.get_auszaehlungen(self.jghl, file)
         self.session.data[file] = {} # alle früheren löschen
         for a in auszaehlungen:
             self.session.data[file][a.id] = a
@@ -770,6 +850,40 @@ class jghergebnis(Request.Request):
         
         return ''.join(res)
 
+    def processForm(self, REQUEST, RESPONSE):
+        jahre = self.form.get('von_jahr'), self.form.get('bis_jahr')
+        # select liefert 'Jahr' wenn nicht ausgewählt wurde
+        jahre = [int(j) for j in jahre if j != 'Jahr']
+        if not jahre:
+            meldung = {'titel':'Fehler',
+                       'legende':'Fehlerbeschreibung',
+                       'zeile1': 'Keine Jahr angegeben.',
+                       'zeile2':'Versuchen Sie es bitte erneut.'}
+            return (meldung_t %meldung)
+        self.von_jahr = jahre[0]
+        self.bis_jahr = (len(jahre) == 2 and jahre[1] or
+                         self.von_jahr)
+
+        if self.von_jahr > self.bis_jahr:
+            meldung = {'titel':'Fehler',
+                       'legende':'Fehlerbeschreibung',
+                       'zeile1': 'Ende der Zeitspanne kleiner als der Beginn.',
+                       'zeile2':'Versuchen Sie es bitte erneut.'}
+            return (meldung_t %meldung)
+            
+        if self.von_jahr <= 2006 and self.bis_jahr >= 2007:
+            meldung = {'titel':'Fehler',
+                       'legende':'Fehlerbeschreibung',
+                       'zeile1': 'Bitte entweder nur Jahre bis 2006 (alte Bundesstatistik)' +
+                                 ' oder nur Jahre ab 2007 (neue Bundesstatistik) angeben!',
+                       'zeile2':'Versuchen Sie es bitte erneut.'
+                       }
+            return (meldung_t %meldung)
+        if self.bis_jahr <= 2006:
+            self.jgh07 = False
+        else:
+            self.jgh07 = True
+        return self._jgh_beide()
         
         
 class fsabfr(Request.Request):

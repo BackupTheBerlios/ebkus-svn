@@ -391,6 +391,17 @@ A;DBSite A;dbsite;1;1000000000
 protocol;off;config
 """
 
+# Ergänzungen für die neue Bundesstatistik 2007
+code_list_str += \
+"""1;Eltern leben zusammen;shf
+2;Elternteil lebt alleine ohne (Ehe-)Partner (mit/ohne weitere/n Kinder/n);shf
+3;Elternteil lebt mit neuer Partnerin/neuem Partner (mit/ohne weitere/n Kinder/n)(z.B. Stiefelternkonstellation);shf
+4;beide Eltern sind verstorben;shf
+5;unbekannt;shf
+"""
+
+
+
 #
 # Welche Kategorien sind Bereichskategorien?
 #
@@ -464,6 +475,11 @@ wohnbez;Wohnbezirksnr des Klienten
 dbsite;Datenbank-Site
 lage;Lage innerhalb oder außerhalb des Geltungsbereichs des Straßenkatalogs
 config;Konfigurationseinstellungen """
+
+# Ergänzungen für die neue Bundesstatistik 2007
+kategorie_list_str += """
+shf;Situation in der Herkunftsfamilie
+"""
 
 #
 # Mitarbeiterliste für Ersteintrag
