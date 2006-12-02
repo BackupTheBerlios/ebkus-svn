@@ -27,6 +27,8 @@ tuple2dict          Macht aus einem Tuple und einer gleichlangen Namenliste eine
 
 ## import log
 import string
+import time
+import logging
 from ebkus.db.dbadapter import connect
 from ebkus.config import config
 
@@ -47,6 +49,14 @@ def debug_off():
     # globale Variablen, die von opendb(), closedb() und getDBHandle()
     # verwendet wird.
 dbHandle = None
+# Nach einer Stunde wird die connection zwangsweise geschlossen
+# und eine neue geholt. Damit wird vermieden, dass alte
+# connections erhalten bleiben, die vom MySQL-Server schon ein
+# timeout erfahren haben ("MySQL server has gone away")
+_dbHandle_creation_time = None
+#_dbHandle_timeout = 15 # zum testen
+_dbHandle_timeout = 3600
+
 
 class SQLError(Exception):
     pass
@@ -54,11 +64,18 @@ class SQLError(Exception):
 def opendb(host=config.DATABASE_HOST, user=config.DATABASE_USER,
            passwd=config.DATABASE_PASSWORD, db=config.DATABASE_NAME):
     global dbHandle
-    if not dbHandle is None:
-        # already open
-        return
+    global _dbHandle_creation_time
+    if dbHandle:
+        if (time.time() - _dbHandle_timeout) > _dbHandle_creation_time:
+            dbHandle.close()
+            dbHandle = None
+            logging.debug("Database connection timeout")
+        else:
+            return
     dbHandle = connect(host=host, user=user,
                        passwd=passwd, db=db)
+    _dbHandle_creation_time = time.time()
+    logging.debug("Neue database connection erzeugt")
 
 def closedb():
     # TBD: was sollte hier passieren?
