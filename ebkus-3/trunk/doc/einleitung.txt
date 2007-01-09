@@ -16,7 +16,7 @@ bearbeitet werden.
 Plattformneutrale Web-Architektur
 ---------------------------------
 
-In der vorliegenden Version 3.2 ist EBKuS als
+In der vorliegenden Version 3.3 ist EBKuS als
 plattformneutrale Webanwendung realisiert. Anders als
 herkömmliche Anwendungen, z.B. Textverarbeitungs- und
 Tabellenkalkulationsprogramme, die für ein spezifisches
@@ -79,7 +79,7 @@ Haftung ist ausgeschlossen.
 -----------------
 
 Dieses Benutzerhandbuch enthält sämtliche Informationen, die für
-EBKuS 3.2 benötigt werden. Im Kapitel `Anwendungsbeschreibung`_
+EBKuS 3.3 benötigt werden. Im Kapitel `Anwendungsbeschreibung`_
 werden der Aufbau der EBKuS-Anwendung sowie die einzelnen
 Benutzeroberflächen dargestellt. Zusammen mit der
 `Bedienungsanleitung`_ sind diese Kapitel für die AnwenderInnen

@@ -220,10 +220,6 @@ nachgefragten und behandelten Problembereiche, die Beratungs- und
 Therapiearten, die Termine, die Zusammenarbeit mit anderen Stellen
 usw. geben können.
 
-Das Konzept basiert darauf, dass für jeden 'Beratungsfall' eine
-Statistik erhoben wird. Das geschieht entweder bei Beratungsende
-oder bei fortdauernden Beratungen am Ende des Jahres.
-
 Die Statistiken erfüllen folgende Ziele:
 
 - die Bundesjugendhilfestatistik ergänzen
@@ -251,13 +247,9 @@ Fachstatistik frei zu wählen.  Bei der Installation der
 Fachstatistik wird der mitgelieferte umfangreiche
 Statistikkatalog in die Datenbank eingefügt.
 
+
 Jugendhilfestatistik des Bundes
 -------------------------------
-
-.. figure:: figures/bundesstatistikauswertung.png
-   :scale: 53
-
-   Bundesstatistikauswertung
 
 Die Bundesjugendhilfestatistik ist insgesamt nach den Vorgaben des
 Statistischen Bundesamtes aufgebaut, die Eingabemaske entspricht im Inhalt dem
@@ -267,14 +259,11 @@ zur Fachstatistik neue Erhebungsmerkmale aufnehmbar und alte deaktivierbar
 sind. Fehlerhafte und widersprüchliche Eingaben führen zu einer Rückmeldung an
 den Anwender und erfordern eine Korrektur, um die Eingaben zu speichern.
 
-Die Daten eines Jahres lassen sich in eine Datei exportieren, um
-sie z. B. per Diskette oder Mailanhang an das Statistische
+Die Daten eines Jahres lassen sich in zwei Dateien (Datei der abgeschlossene
+Beratungen, Datei der am Ende des Jahres noch andauernden Beratungen)
+exportieren, um sie z. B. per Diskette oder Mailanhang an das Statistische
 Landesamt zu senden.
 
-.. figure:: figures/jgh_export.png
-   :scale: 53
-
-   Bundesjugendhilfestatistik: Exportdatei erstellen
 
 Abfragen
 --------
@@ -438,7 +427,7 @@ einloggen.
 Vertreterfunktionalitäten werden benötigt, wenn ein Bearbeiter
 für einen Zeitraum abwesend ist (z. B. Urlaub, Krankheit), der
 Fall während dieser Zeit aber weiter bearbeitet werden muss. Es
-ist in EBKuS 3.2 keine explizite Vertreterfunktionalität
+ist in EBKuS 3.3 keine explizite Vertreterfunktionalität
 vorgesehen. Man kann jedoch über die Gruppenakte eine
 Vertretungsgruppe für diesen Fall oder diese Fälle anlegen. Legen
 Sie dazu einfach wie in Punkt "1.4 Gruppenakte" beschrieben eine

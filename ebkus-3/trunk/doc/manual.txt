@@ -1,5 +1,5 @@
 ==================
-EBKuS 3.2 Handbuch
+EBKuS 3.3 Handbuch
 ==================
 
 --------------------------------------------------------------------------------------------------------------------
@@ -8,14 +8,14 @@ Klientenverwaltung, Aktendokumentation, Gruppenverwaltung und Statistik für Erzi
 
 :Autor: Jürg Huber (juerg@pantau.in-berlin.de)
 :Autor: Albrecht Schmiedel (atms@alibi.in-berlin.de)
-:Homepage: http://ebkus.berlios.de/index.html
+:Homepage: http://www.ebkus.org
 :Mailing-Liste: ebkus-support@lists.berlios.de
 :Revision: $Revision: 1.3 $
 :Date: $Date: 2004/10/17 11:44:21 $
 
-.. |dist_url| replace:: ftp://ftp.bke.de/pub/ebkus/ebkus-3.2/ebkus-3.2-dist.zip
-.. |src_url_berlios| replace:: http://ebkus.berlios.de/ebkus/ebkus-3.2-src.zip
-.. |src_url_bke| replace:: ftp://ftp.bke.de/pub/ebkus/ebkus-3.2/ebkus-3.2-src.zip
+.. |dist_url| replace:: ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.3-dist.zip
+.. |src_url_berlios| replace:: http://ebkus.berlios.de/ebkus/ebkus-3.3-src.zip
+.. |src_url_bke| replace:: ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.3-src.zip
 
 
 .. make.py fügt hier den Navigationstipp und die Anweisung für

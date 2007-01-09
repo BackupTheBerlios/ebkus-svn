@@ -1196,30 +1196,11 @@ genau eine zugehörige Akte in der Datenbank existiert.
 Neuer Bundesjugendhilfestatistik-Eintrag
 ........................................
 
-.. figure:: figures/neue_bundesstatistik.png
-   :scale: 53
-
-   Neue Bundesstatistik erstellen
-
-
 Aufruf: Hauptmenü Neu Bundesstatistik + Klient,
 Klientenkarte [Neu] Bundesstatistik
 
-Formularfelder: Falldaten: Mitarbeiter, Fallnummer, Beginndatum,
-Ende Monat, Ende Jahr, Geschwisterfall, Wohnbezirk, 
-Bearbeiter, Land (diese Felder sind vorbelegt), Kreis
-
-Beratungsdaten: Träger, Kontaktaufnahme, Beendigungsgrund,
-Beratungsanlässe, Beratungsschwerpunkt  
-
-Personendaten: lebt, Alter, Staatsangehörigkeit, Geschlecht,
-Geschwisteranzahl bekannt, Geschwisteranzahl unbekannt  
-
-Therapieansatz Jugendlicher: allein, in der Gruppe
-
-Therapieansatz Eltern: allein, in der Gruppe
-
-Therapieansatz Sonstiges: in der Familie, im sozialen Umfeld
+Formularfelder: Das Fragebogenformular ist identisch mit demjenigen der
+gesetzlichen Bundesjugendhilfestatistik.
 
 Voraussetzung zum Speichern: alle Felder
 

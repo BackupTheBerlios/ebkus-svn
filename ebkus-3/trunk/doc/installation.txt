@@ -51,7 +51,7 @@ MySQL-Datenbank auf dem Server installiert werden. Da der
 EBKuS-Server in der Programmiersprache Python geschrieben ist,
 muss diese ebenfalls vorhanden sein.
 
-EBKuS 3.2 wurde unter Linux und Windows NT/2000/XP
+EBKuS 3.3 wurde unter Linux und Windows NT/2000/XP
 getestet. Bei Windows NT muss zumindest das Service-Pack 6
 installiert sein.
 
@@ -158,7 +158,7 @@ einer Linux-Konsole aus)::
 
 .. _`BerliOS`: http://www.berlios.de/
 
-Die Quellen der Version 3.2 können auch als ZIP-Datei
+Die Quellen der Version 3.3 können auch als ZIP-Datei
 (|src_url_berlios|, |src_url_bke|) oder als
 Tarball (http://ebkus.berlios.de/ebkus/ebkus-3.2-src.tar.gz)
 heruntergeladen werden. 

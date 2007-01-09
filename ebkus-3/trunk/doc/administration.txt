@@ -84,26 +84,27 @@ EBKuS-Login-Maske und Aufrufen des Administrationsmenüs. Als
 erstes sollte der Administrator sein Passwort ändern.
 
 
-Regierungsbezirk und Kreis
-..........................
+Land, Kreis und Einrichtungsnummer
+..................................
 
-Eintragen der Code-Zahlen des statistischen Landesamtes für den
-Regierungsbezirk und den Kreis, zu denen Ihre Beratungsstelle
-gehört. Sie klicken im Administrationsmenü im Untermenü
-Kategorien auf "Alle", suchen in der linken Spalte "Kategorie"
-nach Regierungsbezirk und Kreis und klicken nacheinander diese
-Links an, um auf derselben Seite die Tabellen für
-Regierungsbezirk und Kreis zu erhalten. Sie wählen dann jeweils
-bei diesen Tabellen den Button "Neu" und tragen im Formular
-"Neuen Code für Regierungsbezirk bzw. Kreis anlegen" als Code die
-Ziffern (Feld: Code) und als Namen den Namen für Ihren
-Regierungsbezirk sowie den Kreis (Feld: Namen) ein und setzen die
-Sortierziffer (Feld: sort) auf 1, damit diese Eintragungen später
-als Default-Werte dem Anwender als erste angezeigt werden. Zum
-Abspeichern klicken Sie auf den Button "hinzufügen". Sofern
-Dienststellen aus verschiedenen Kreisen diese EBKuS-Anwendung
-(URL) nutzen, tragen sie alle benötigten Kreis-Ziffern des
-Statistischen Landesamtes nacheinander ein
+Eintragen der Code-Zahlen des statistischen Landesamtes für das Land und den
+Kreis, zu denen Ihre Beratungsstelle gehört. Sie klicken im
+Administrationsmenü im Untermenü Kategorien auf "Alle", suchen in der linken
+Spalte "Kategorie" nach Land und Kreis und klicken nacheinander diese Links
+an, um auf derselben Seite die Tabellen für Land und Kreis zu erhalten. Sie
+wählen dann jeweils bei diesen Tabellen den Button "Neu" und tragen im
+Formular "Neuen Code für Land bzw. Kreis anlegen" als Code die Ziffern (Feld:
+Code) und als Namen den Namen für Ihr Land sowie den Kreis (Feld: Namen) ein
+und setzen die Sortierziffer (Feld: sort) auf 1, damit diese Eintragungen
+später als Default-Werte dem Anwender als erste angezeigt werden. Zum
+Abspeichern klicken Sie auf den Button "hinzufügen". Sofern Dienststellen aus
+verschiedenen Kreisen diese EBKuS-Anwendung (URL) nutzen, tragen sie alle
+benötigten Kreis-Ziffern des Statistischen Landesamtes nacheinander ein.
+Analog verfahren Sie beim Eintragen Ihrer Einrichtungs-Nr (Feld 10-15) der
+Bundesstatistik, indem sie die Einrichtungsnummer(n) der EFB(en) als Code
+eintragen und die Sortierziffer auf 1 setzen, damit diese Eintragung dem
+Anwender als Default-Wert angezeigt wird. Die Einrichtungs-Nummer wird vom
+Statistischen Landesamt vergeben.
 
 Dienststelle
 ............
@@ -198,7 +199,7 @@ sehr viel Output sehen will, starte mit ``./start.py --console
 Konfiguration des Internetbrowsers
 ----------------------------------
 
-Die Anwendung EBKuS 3.2 haben wir geprüft mit den Open Source Browsern
+Die Anwendung EBKuS 3.3 haben wir geprüft mit den Open Source Browsern
 Mozilla, Netscape, Firefox und mit dem Internet-Explorer von Microsoft. Der
 Interbrowser sollte folgende Einstellungen aufweisen, um mit EBKuS problemlos
 zu arbeiten:
