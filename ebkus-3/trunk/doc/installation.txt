@@ -160,7 +160,7 @@ einer Linux-Konsole aus)::
 
 Die Quellen der Version 3.3 können auch als ZIP-Datei
 (|src_url_berlios|, |src_url_bke|) oder als
-Tarball (http://ebkus.berlios.de/ebkus/ebkus-3.2-src.tar.gz)
+Tarball (http://ebkus.berlios.de/ebkus/ebkus-3.3-src.tar.gz)
 heruntergeladen werden. 
 
 Wenn man die Quellen aus dem CVS bezieht oder wenn man die
@@ -191,13 +191,13 @@ fertige Distribution von |dist_url| heruntergeladen werden
 In einer Distribution bzw. auf der Installations-CD finden sich
 drei Verzeichnisse:
 
-- ``ebkus-3.2``, das eigentliche EBKuS-Distributions-Verzeichnis
+- ``ebkus-3.3``, das eigentliche EBKuS-Distributions-Verzeichnis
   mit der EBKuS-Software
 - ``linux``, enthält die für Linux zusätzlich benötigte Software
 - ``win32``, enthält die für Windows NT/2000/XP zusätzlich
   benötigte Software 
 
-Im Distributions-Verzeichnis ``ebkus-3.2`` befindet sich
+Im Distributions-Verzeichnis ``ebkus-3.3`` befindet sich
 insbesondere das `install.py`_-Skript, mit dem eine
 EBKuS-Installation vorgenommen werden kann.
 
@@ -663,7 +663,7 @@ Parameter                    Standardwert               Bedeutung
 Installation - Schritt für Schritt
 ----------------------------------
 
-EBKuS 3.2 hat keine graphische Installationsoberfläche wie bei
+EBKuS 3.3 hat keine graphische Installationsoberfläche wie bei
 vielen Windows-Programmen üblich. Stattdessen gibt es eine Reihe
 von Installationsskripten (`create_cd.py`_, `install.py`_,
 `configure.py`_, `uninstall.py`_), die die Installation und
@@ -719,12 +719,12 @@ Schritte:
 
 5. In das EBKuS-Distributions-Verzeichnis gehen::
 
-     E:\win32>cd \ebkus-3.2
-     E:\ebkus-3.2>
+     E:\win32>cd \ebkus-3.3
+     E:\ebkus-3.3>
 
 6. EBKuS-Konfiguration erzeugen::
 
-     E:\ebkus-3.2>install.py --config C:\ebkus_installation
+     E:\ebkus-3.3>install.py --config C:\ebkus_installation
 
 7. Erzeugte Konfigurationsdatei
    ``C:\ebkus_installation\ebkus\ebkus.conf`` anpassen (siehe
@@ -733,7 +733,7 @@ Schritte:
 8. Apache, MySQL, EBKuS und alle in der Konfigurationsdatei
    definierten EBKuS-Instanzen installieren und konfigurieren::
 
-     E:\ebkus-3.2>install.py C:\ebkus_installation
+     E:\ebkus-3.3>install.py C:\ebkus_installation
 
    Für jede in der Konfiguration definierten Instanz gibt es dann
    ein `Instanz-Verzeichnis`_:
@@ -825,10 +825,10 @@ Schritte:
      mkdir /home/user/ebinst
 
 2. In das `Distributions-Verzeichnis`_ gehen
-   (z.B. ``/home/user/ebkus-cd/ebkus-3.2``; man könnte hier auch direkt von
+   (z.B. ``/home/user/ebkus-cd/ebkus-3.3``; man könnte hier auch direkt von
    der CD arbeiten)::
 
-     cd /home/user/ebkus-cd/ebkus-3.2 
+     cd /home/user/ebkus-cd/ebkus-3.3 
 
 3. EBKuS-Konfiguration erzeugen::
 
@@ -959,7 +959,7 @@ Es gibt folgende Varianten beim Aufruf der Skripte (am Beispiel
 
 1. Ohne explizite Angabe des Interpreters::
 
-     E:\ebkus-3.2>create_cd.py C:\ebkus_cd
+     E:\ebkus-3.3>create_cd.py C:\ebkus_cd
 
    Voraussetzung ist, dass es einen registrierten Dateityp ``PY``
    gibt, so dass solche Dateien mit dem Python-Interpreter
@@ -971,7 +971,7 @@ Es gibt folgende Varianten beim Aufruf der Skripte (am Beispiel
 
 2. Angabe des Interpreters ohne vollständigen Pfad::
   
-     E:\ebkus-3.2>python create_cd.py C:\ebkus_cd
+     E:\ebkus-3.3>python create_cd.py C:\ebkus_cd
 
    Diese Variante ist nicht auf die Verknüpfung mit dem Dateityp
    angewiesen, erfordert jedoch, dass Python im Pfad steht.Bei
@@ -984,7 +984,7 @@ Es gibt folgende Varianten beim Aufruf der Skripte (am Beispiel
 
 3. Angabe des Interpreters mit vollständigen Pfad::
 
-     E:\ebkus-3.2>C:\Programme\Python23\python.exe create_cd.py C:\ebkus_cd
+     E:\ebkus-3.3>C:\Programme\Python23\python.exe create_cd.py C:\ebkus_cd
 
    Diese Variante ist umständlicher, funktioniert dafür aber
    immer.
@@ -1004,7 +1004,7 @@ Es gibt folgende Varianten beim Aufruf der Skripte (am Beispiel
 
 1. Ohne explizite Angabe des Interpreters::
 
-     user@host:~/ebkus-3.2> ./create_cd.py ~/ebkus_cd
+     user@host:~/ebkus-3.3> ./create_cd.py ~/ebkus_cd
 
    Voraussetzung ist für ``cd_create.py`` und ``install.py``,
    dass der Python-Interpreter im Pfad steht. Bei den übrigen
@@ -1013,13 +1013,13 @@ Es gibt folgende Varianten beim Aufruf der Skripte (am Beispiel
 
 2. Angabe des Interpreters ohne vollständigen Pfad::
   
-     user@host:~/ebkus-3.2> python create_cd.py ~/ebkus_cd
+     user@host:~/ebkus-3.3> python create_cd.py ~/ebkus_cd
 
    Diese Variante erfordert, dass Python im Pfad steht.
 
 3. Angabe des Interpreters mit vollständigen Pfad::
 
-     user@host:~/ebkus-3.2> /usr/local/bin/python create_cd.py ~/ebkus_cd
+     user@host:~/ebkus-3.3> /usr/local/bin/python create_cd.py ~/ebkus_cd
 
    Diese Variante ist umständlicher, funktioniert dafür aber
    immer.
@@ -1040,9 +1040,9 @@ Wenn man selber mit diesem Skript eine Distribution erstellen
 will, muss man
 
 - Python 2.3 oder höher installieren (http://www.python.org/)
-- EBKuS 3.2 Quellcode herunterladen und auspacken, so dass ein
+- EBKuS 3.3 Quellcode herunterladen und auspacken, so dass ein
   `CVS-Verzeichnis`_ vorhanden ist 
-  (http://ebkus.berlios.de/ebkus/ebkus-3.2-src.tar.gz)
+  (http://ebkus.berlios.de/ebkus/ebkus-3.3-src.tar.gz)
 
 Anmerkung: Die Dokumentation im HTML bzw. PDF-Fomat kann nur
 erstellt werden, wenn docutils_ installiert ist. Ist dies nicht
@@ -1079,7 +1079,7 @@ dauert ca. ein halbe Stunde, wenn eine DSL-Anbindung vorhanden ist
 
 In *verzeichnis* legt das Skript folgende Unterverzeichnisse an::
 
- ebkus-3.2  -  EBKuS-Distributions-Vezeichnis
+ ebkus-3.3  -  EBKuS-Distributions-Vezeichnis
  linux      -  die für Linux zusätzlich benötigte Software
  win32      -  die für Windows NT/2000/XP zusätzlich benötigte Software
 
@@ -1521,7 +1521,7 @@ geschrieben. Der Name der erzeugten SQL-Datei ist wie folgt
 aufgebaut::
 
   <Instanzname>_dump_<EBKuS-Version>_<Datum>_<Zeit>.sql
-  demo_dump_v3.2_004-09-22_14-49-11.sql
+  demo_dump_v3.3_004-09-22_14-49-11.sql
 
 Die Datenbank kann mit
 
@@ -1541,7 +1541,7 @@ geschrieben.  Der Name des erzeugten ZIP-Archivs ist wie folgt
 aufgebaut::
 
   <Instanzname>_backup_<EBKuS-Version>_<Datum>_<Zeit>.zip
-  demo_backup_v3.2_004-09-22_14-49-11.zip
+  demo_backup_v3.3_004-09-22_14-49-11.zip
 
 Das ZIP-Archiv enthält sowohl die Datenbank-Kopie
 als SQL-Datei als auch alle Dateien, die unter ``daten/akten``

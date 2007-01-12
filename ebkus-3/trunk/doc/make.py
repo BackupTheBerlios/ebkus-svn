@@ -114,6 +114,10 @@ make.py [-h, --help] [html|latex|pdf]
    (rst2html.py, rst2latex.py).
    Quelle: http://docutils.sourceforge.net/
 
+   Setzt ferner voraus, dass das Kommando pdflatex installiert ist.
+   In Suse 10.0 erreicht man das, indem man die Pakete
+   tetex und te_latex installiert.
+   
    Falls ``docutils`` nicht installiert ist, wird das Handbuch im HTML- und im
    PDF-Format von http://ebkus.berlios.de/ebkus-3.2/ heruntergeladen.
 """
