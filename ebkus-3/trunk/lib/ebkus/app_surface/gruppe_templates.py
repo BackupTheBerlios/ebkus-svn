@@ -645,7 +645,7 @@ teilnupdb_t = """
           <table width="95%%" border="0" height="84">
         <tr>
           <td align="center" height="72">
-            <table width="95%">
+            <table width="95%%">
               <tr>
                 <td bgcolor="#CCCCCC" class="labeltext" align="right" width="81">Vorname:</td>
                 <td bgcolor="#FFFFFF" class="normaltext" align="left" width="183">%(bezugsp_id__vn)s</td>

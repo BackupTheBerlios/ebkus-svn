@@ -403,20 +403,18 @@ suchwort2a_t = """
   <tr>
     <td align="center" colspan="2" class="legendtext"><fieldset><legend class="legendtext"><b>Suche</b></legend>
       <table border=0 cellspacing=1 cellpadding="8" width="95%">
-        <tr align="center">
-          <td height="36" width="50%" align="right">
-            <select name="stz">"""
+        <tr align="center" class="labeltext">
+          <td height="36" width="50%" align="right">Nach:"""
 
 
 suchwort2b_t = """
- </select>
           </td>
           <td height="36" width="50%" align="left">
             <select name="table">
                 <option value="akte" selected> Vor- oder Nachname, Klient
                             <option value="bezugsperson"> Vor- oder Nachname, Bezugsperson
-                            <option value="fall"> Beratungsfallnummer
-                            <option value="gruppe"> Gruppe
+                            <option value="fall"> Beratungsfallnummer, Fall
+                            <option value="gruppe"> Name oder Thema, Gruppe
             </select>
           </td>
         </tr>
@@ -587,14 +585,17 @@ thabfr4_t = """
 <body bgcolor="#CCCCCC" link="#CCCCCC" vlink="#CCCCCC" alink="#000000">
 <table width="735" align="center">
  <tr>
-    <td align="center" class="legendtext"><fieldset><legend class="legendtext"><b>Neumelde- u. Abschlusszahlen</b></legend>
-    <table border=0 cellspacing=1 width="95%">
+    <td align="center" class="legendtext"><fieldset>
+    <legend class="legendtext"><b>Neumelde- u. Abschlusszahlen im Jahr %s</b></legend>
+    <table border=0 cellspacing=1 width="95%%">
+    <tr><td colspan="6" bgcolor="#CCCCCC">&nbsp;</td></tr>
     <tr>
-    <td align="right" width="33%" class="labeltext" bgcolor="#FFFFFF">Monat</td>
-    <td align="center" widht="33%" class="labeltext" bgcolor="#FFFFFF">Neu</td>
-    <td align="center" widht="34%" class="labeltext" bgcolor="#FFFFFF">Hauptfall</td>
-    <td align="center" widht="34%" class="labeltext" bgcolor="#FFFFFF">Geschwisterfall</td>
-    <td align="center" widht="34%" class="labeltext" bgcolor="#FFFFFF">z.d.A.</td>
+    <td align="right"   width="20%%" class="labeltext" bgcolor="#FFFFFF">Monat</td>
+    <td align="center"  width="16%%" class="labeltext" bgcolor="#FFFFFF">Laufende am Monatsende</td>
+    <td align="center"  width="16%%" class="labeltext" bgcolor="#FFFFFF">Neu</td>
+    <td align="center"  width="16%%" class="labeltext" bgcolor="#FFFFFF">Hauptfall</td>
+    <td align="center"  width="16%%" class="labeltext" bgcolor="#FFFFFF">Geschwisterfall</td>
+    <td align="center"  width="16%%" class="labeltext" bgcolor="#FFFFFF">z.d.A.</td>
     </tr> """
 
 abfr4_t = """
@@ -604,11 +605,13 @@ abfr4_t = """
     <td align="center" class="normaltext" bgcolor="#FFFFFF">%d  </td>
     <td align="center" class="normaltext" bgcolor="#FFFFFF">%d  </td>
     <td align="center" class="normaltext" bgcolor="#FFFFFF">%d  </td>
+    <td align="center" class="normaltext" bgcolor="#FFFFFF">%d  </td>
     </tr> """
 
 abfr4ges_t = """
     <tr>
     <td align="right" class="legendtext" bgcolor="#FFFFFF">Quartal 1</td>
+    <td align="center" class="legendtext" bgcolor="#FFFFFF"></td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
@@ -616,6 +619,7 @@ abfr4ges_t = """
     </tr>
     <tr>
     <td align="right" class="legendtext" bgcolor="#FFFFFF">Quartal 2</td>
+    <td align="center" class="legendtext" bgcolor="#FFFFFF"></td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
@@ -623,6 +627,7 @@ abfr4ges_t = """
     </tr>
     <tr>
     <td align="right" class="legendtext" bgcolor="#FFFFFF">Quartal 3</td>
+    <td align="center" class="legendtext" bgcolor="#FFFFFF"></td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
@@ -630,6 +635,7 @@ abfr4ges_t = """
     </tr>
     <tr>
     <td align="right" class="legendtext" bgcolor="#FFFFFF">Quartal 4</td>
+    <td align="center" class="legendtext" bgcolor="#FFFFFF"></td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
@@ -637,12 +643,13 @@ abfr4ges_t = """
     </tr>
     <tr>
     <td align="right" class="legendtext" bgcolor="#FFFFFF">Gesamt</td>
+    <td align="center" class="legendtext" bgcolor="#FFFFFF"></td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     <td align="center" class="legendtext" bgcolor="#FFFFFF">%d</td>
     </tr>
-    <tr><td colspan="3" bgcolor="#CCCCCC">&nbsp;</td></tr>
+    <tr><td colspan="6" bgcolor="#CCCCCC">&nbsp;</td></tr>
 </table>
 </fieldset>
 </td>
@@ -1448,7 +1455,6 @@ abfr12ages_t ="""
               <select name="leistung" class="listbox">"""
 
 abfr12ages2_t = """
-                <select>
               </select>
             </td>
           </tr>

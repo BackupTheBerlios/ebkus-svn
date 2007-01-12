@@ -29,36 +29,36 @@ menuedok_t = """
     <table border="0" cellpadding="1" height="30">
       <tr>
         <td align="center" height="30">
-         <A HREF="vermneu?akid=%(akte_id)d&fallid=%(id)d"" onMouseOver="window.status='Neuen Vermerk erstellen';return true;"    onMouseOut="window.status='';return true;">
+         <A HREF="vermneu?akid=%(akte_id)d&fallid=%(id)d" onMouseOver="window.status='Neuen Vermerk erstellen';return true;"    onMouseOut="window.status='';return true;" title="Neuen Vermerk erstellen">
           <img border="0" src="/ebkus/ebkus_icons/new_text_button.gif" width="21" height="19" alt="Neuen Vermerk erstellen"></A> </td>
         <td align="center" height="30">
-        <A HREF="updvermausw?akid=%(akte_id)d&fallid=%(id)d" onMouseOver="window.status='Vermerk zum Bearbeiten ausw&auml;hlen';return true;"    onMouseOut="window.status='';return true;">
+        <A HREF="updvermausw?akid=%(akte_id)d&fallid=%(id)d" onMouseOver="window.status='Vermerk zum Bearbeiten ausw&auml;hlen';return true;"    onMouseOut="window.status='';return true;" title="Vermerk zum Bearbeiten ausw&auml;hlen">
           <img border="0" src="/ebkus/ebkus_icons/edit_text_button.gif" width="21" height="19" alt="Vermerk zum Bearbeiten ausw&auml;hlen.">
           </A> </td>
           <td align="center" height="30">
-          <A HREF="rmdok?akid=%(akte_id)d&fallid=%(id)d" onMouseOver="window.status='Vermerk entfernen';return true;"    onMouseOut="window.status='';return true;">
+          <A HREF="rmdok?akid=%(akte_id)d&fallid=%(id)d" onMouseOver="window.status='Vermerk entfernen';return true;"    onMouseOut="window.status='';return true;" title="Vermerk entfernen">
          <img border="0" src="/ebkus/ebkus_icons/del_text_button.gif" width="21" height="19" alt="Vermerk entfernen.">
          </A>
          </td>
         <td align="center" height="30">
-        <A HREF="upload?akid=%(akte_id)d&fallid=%(id)d" onMouseOver="window.status='Datei hochladen';return true;"    onMouseOut="window.status='';return true;">
+        <A HREF="upload?akid=%(akte_id)d&fallid=%(id)d" onMouseOver="window.status='Datei hochladen';return true;"    onMouseOut="window.status='';return true;" title="Datei hochladen">
            <img border="0" src="/ebkus/ebkus_icons/upload_button.gif" width="21" height="19" alt="Datei hochladen.">
           </A>
         </td>
          <td align="center" class="smalltext" height="30">
-         <A HREF="klkarte?akid=%(akte_id)d&fallid=%(id)d" onMouseOver="window.status='Klientenkarte anzeigen';return true;"    onMouseOut="window.status='';return true;">
+         <A HREF="klkarte?akid=%(akte_id)d&fallid=%(id)d" onMouseOver="window.status='Klientenkarte anzeigen';return true;"    onMouseOut="window.status='';return true;" title="Klientenkarte anzeigen">
          <img border="0" src="/ebkus/ebkus_icons/klientenkarte_button.gif" alt="Klientenkarte anzeigen"></A> </td>
           <td align="center" class="smalltext" height="30"> <A HREF="vorblatt?akid=%(akte_id)d&fallid=%(id)d"
           target="_new" 
-         onMouseOver="window.status='Aktenvorblatt der Akte anzeigen';return true;"                                               onMouseOut="window.status='';return true;">
+         onMouseOver="window.status='Aktenvorblatt der Akte anzeigen';return true;"                                               onMouseOut="window.status='';return true;" title="Aktenvorblatt der Akte anzeigen">
          <img border="0" src="/ebkus/ebkus_icons/aktenvorblatt_button.gif" alt="Aktenvorblatt der Akte anzeigen"></A> </td>
           <td align="center" class="smalltext" height="30">
             <A HREF="dokkarte?akid=%(akte_id)d&fallid=%(id)d"
-            onMouseOver="window.status='Dokumentenindex der Akte anzeigen';return true;"                                             onMouseOut="window.status='';return true;">
+            onMouseOver="window.status='Dokumentenindex der Akte anzeigen';return true;"                                             onMouseOut="window.status='';return true;" title="Dokumentenindex der Akte anzeigen">
          <img border="0" src="/ebkus/ebkus_icons/dokumenten_index.gif" alt="Dokumentenindex der Akte anzeigen"></A> </td>
           <td align="center" class="smalltext" height="30">
           <A HREF="formabfr3"
-          onMouseOver="window.status='Suchen in der Kartei nach Vorname / Nachname - Fallnr. oder Grupe';return true;"             onMouseOut="window.status='';return true;">
+          onMouseOver="window.status='Suchen in der Kartei nach Vorname / Nachname - Fallnr. oder Grupe';return true;"             onMouseOut="window.status='';return true;" title="Suchen in der Kartei">
          <img border="0" src="/ebkus/ebkus_icons/suche_button.gif"
          alt="Suchen in der Kartei nach Vorname / Nachname - Fallnr. oder Gruppe"></A> </td>
       </tr>

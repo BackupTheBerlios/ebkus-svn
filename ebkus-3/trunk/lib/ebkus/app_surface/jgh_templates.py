@@ -350,8 +350,9 @@ jghstateditwbz_t = """
                     </select>
                   </td>
                 </tr>
-                <tr height="66" width="100%">
-                  <td colspan="3" width="50%" height="66" >&nbsp;</td>"""
+                <tr height="66" width="100%%">
+                  <td colspan="3" width="50%%" height="66" >&nbsp;
+                  <input type="hidden" value="%d" name="wohnbez"></td>"""
 
 jghstateditgfall_t = """
                   <td width="16%" align="right" class="labeltext" height="33">Geschwisterfall:</td>

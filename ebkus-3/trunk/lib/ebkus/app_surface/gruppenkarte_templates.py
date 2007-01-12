@@ -23,7 +23,7 @@ dokausgabe2b_ohne_edit_t = """
   <tr>
     <td width="5%%" align="center"><img border="0" src="/ebkus/ebkus_icons/edit_button_inaktiv.gif"></td>
     <td width="5%%" align="center"><A HREF="dokview?gruppeid=%(gruppe_id)d&dokid=%(id)d" target="_new">
-    <img border="0" src="/ebkus/ebkus_icons/view_details.gif"></A></td>
+    <img border="0" src="/ebkus/ebkus_icons/view_details.gif" title="Ansehen"></A></td>
     <td  width="20%%" class="normaltext" bgcolor="#FFFFFF" align="center">%(vd)d.%(vm)d.%(vy)d</td>
     <td width="40%%" class="normaltext" bgcolor="#FFFFFF" align="center">%(art__name)s: %(betr)s</td>
     <td width="30%%" class="normaltext" bgcolor="#FFFFFF" align="center">%(mit_id__na)s</td>
@@ -36,9 +36,9 @@ dokausgabe2b_mit_edit_t = """
   <tr>
     <td width="5%%" align="center">
     <A HREF="gruppenkarte?gruppeid=%(gruppe_id)d&dokid=%(id)d&file=updgrverm">
-    <img border="0" src="/ebkus/ebkus_icons/edit_button.gif"></A></td>
+    <img border="0" src="/ebkus/ebkus_icons/edit_button.gif" title="Bearbeiten"></A></td>
     <td width="5%%" align="center"><A HREF="dokview?gruppeid=%(gruppe_id)d&dokid=%(id)d" target="_new">
-    <img border="0" src="/ebkus/ebkus_icons/view_details.gif"></A></td>
+    <img border="0" src="/ebkus/ebkus_icons/view_details.gif" title="Ansehen"></A></td>
     <td  width="20%%" class="normaltext" bgcolor="#FFFFFF" align="center">%(vd)d.%(vm)d.%(vy)d</td>
     <td width="40%%" class="normaltext" bgcolor="#FFFFFF" align="center">%(art__name)s: %(betr)s</td>
     <td width="30%%" class="normaltext" bgcolor="#FFFFFF" align="center">%(mit_id__na)s</td>
@@ -136,7 +136,7 @@ teiln2_t = """
 %(ed)s.%(em)s.%(ey)s</td>
 <td width="20">
 <A HREF="updteiln?id=%(id)d&fallid=%(fall_id)d&gruppeid=%(gruppe_id)d">
-<img border="0" src="/ebkus/ebkus_icons/teilnehmer_edit_button.gif"></A></td>
+<img border="0" src="/ebkus/ebkus_icons/teilnehmer_edit_button.gif" title="Bearbeiten"></A></td>
 </tr>
 </table>"""
 
@@ -153,7 +153,7 @@ teiln2b_t = """
 </td>
 <td width="20">
 <A HREF="updteiln?id=%(id)d&bezugspid=%(bezugsp_id)d&gruppeid=%(gruppe_id)d">
-<img border="0" src="/ebkus/ebkus_icons/teilnehmer_edit_button.gif"></A></td>
+<img border="0" src="/ebkus/ebkus_icons/teilnehmer_edit_button.gif" title="Bearbeiten"></A></td>
 </tr>
 </table>"""
 

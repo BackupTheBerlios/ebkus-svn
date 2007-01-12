@@ -5,7 +5,7 @@ main_menu_t = """
 </HEAD>
 <BODY bgcolor=#CCCCCC link="#CCCCCC" vlink="#CCCCCC" alink="#000000" onLoad="window.setTimeout('ZeitAnzeigen()',0)">
 <FORM ACTION="klkarte" METHOD="post">
-<table width="735" align="center">
+<table width="760" align="center">
 <tr>
 <td>
   <table width="95%%" border="0" align="center" height="374">
@@ -42,7 +42,7 @@ main_menu_t = """
                 </tr>
                 <tr>
                   <td align="left" class="labeltext">
-                    <input type="radio" value="jghneu" name="file"  title="Neue Bundesstatistik anlegen." onMouseOver="window.status='Bitte w&auml;hlen Sie diesen Men&uuml;punkt zum Anlegen einer neuen Bundesstatistik. Bitte ebenfalls einen Klienten ausw&auml;hlen';return true;" onMouseOut="window.status='';return true;">
+                    <input type="radio" value="jgh07neu" name="file"  title="Neue Bundesstatistik anlegen." onMouseOver="window.status='Bitte w&auml;hlen Sie diesen Men&uuml;punkt zum Anlegen einer neuen Bundesstatistik. Bitte ebenfalls einen Klienten ausw&auml;hlen';return true;" onMouseOut="window.status='';return true;">
                     Bundesstatistik </td>
                 </tr>
                 <tr>
@@ -154,10 +154,10 @@ main_menu_t = """
         <table width="100%%" border="0" height="311">
           <tr>
             <td height="291" valign="top" align="center" legend class="legendtext"><fieldset><legend class="legendtext"><b>Klient</b></legend>
-              <table cellpadding=5 width="333" border="0" height="259" align="center">
+              <table cellpadding=5 border="0" height="259" align="center">
                 <tr>
                   <td align="center" valign="top">
-                    <select style="width:330" size="10" name="fallid" class="listbox" onMouseOver="window.status='In diesem Auswahlfeld werden alle Klienten aufgelistet, auf die Sie die entsprechenden Zugriffsrechte haben';return true;" onMouseOut="window.status='';return true;">"""
+                    <select style="width:360" size="10" name="fallid" class="listbox" onMouseOver="window.status='In diesem Auswahlfeld werden alle Klienten aufgelistet, auf die Sie die entsprechenden Zugriffsrechte haben';return true;" onMouseOut="window.status='';return true;">"""
 
 klientauswahl_t = """
 <option value="%(fall_id)s" >%(mit_id__na)s | %(fall_id__akte_id__vn)s %(fall_id__akte_id__na)s, %(fall_id__akte_id__gb)s | %(fall_id__fn)s """

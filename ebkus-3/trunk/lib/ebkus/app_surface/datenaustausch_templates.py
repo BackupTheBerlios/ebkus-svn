@@ -45,6 +45,30 @@ jghexportfeedback_t = """
 </table>
 """
 
+thkeinestatistik_t = """
+</HEAD>
+<body bgcolor="#CCCCCC" link="#CCCCCC" vlink="#CCCCCC" alink="#000000">
+<table width="735" align="center">
+  <tr>
+    <td align="center" valign="top">
+      <table border="0" cellpadding="1" width="95%">
+        <tr>
+          <td width="45%" align="center" class="legendtext" valign="top">
+          <fieldset><legend class="legendtext">Fälle ohne Statistik</legend>
+            <table width="90%" border="0" cellpadding="1" height="50">
+              <tr>
+                <td align="left" class="normaltext">Fallnummer</td>
+                <td align="left" class="normaltext">Beginn</td>
+                <td align="left" class="normaltext">Mitarbeiter</td>
+              </tr>"""
+               
+keinestatistikliste_t = """
+              <tr>
+                <td align="left" class="normaltext" bgcolor="#FFFFFF">%(fn)s</td>
+                <td align="left" class="normaltext" bgcolor="#FFFFFF">%(bgm)02d.%(bgy)s</td>
+                <td align="left" class="normaltext" bgcolor="#FFFFFF">
+                %(zustaendig__mit__na)s (%(zustaendig__mit__ben)s)</td>
+              </tr>"""
 
 thjghexportliste_t = """
 </HEAD>
@@ -52,15 +76,24 @@ thjghexportliste_t = """
 <table width="735" align="center">
   <tr>
     <td align="center" valign="top">
-      <table border="0" cellpadding="1" width="95%%">
+      <table border="0" cellpadding="1" width="95%">
         <tr>
-          <td width="45%%" align="center" class="legendtext" valign="top"> <fieldset><legend class="legendtext">Liste aller Exportdateien</legend>
-            <table width="90%%" border="0" cellpadding="1" height="50">"""
-
+          <td width="45%" align="center" class="legendtext" valign="top">
+          <fieldset><legend class="legendtext">Liste aller Exportdateien</legend>
+            <table width="90%" border="0" cellpadding="1" height="50">
+              <tr>
+                <td align="left" class="normaltext">Daten</td>
+                <td align="left" class="normaltext">Log-Datei</td>
+              </tr>"""
+               
 jghexportliste_t = """
               <tr>
-                <td align="center" width="95%%" class="normaltext" bgcolor="#FFFFFF"><A HREF="%s">%s</A></td>
+                <td align="left" class="normaltext" bgcolor="#FFFFFF"><A HREF="%s">%s</A></td>
+                <td align="left" class="normaltext" bgcolor="#FFFFFF"><A HREF="%s">%s</A></td>
               </tr>"""
+
+jghexportliste_trenner_t = """
+              <tr><td>&nbsp;</td></tr>"""
 
 jghexportliste_ende_t = """
             <tr><td>&nbsp;</td></tr>
@@ -190,3 +223,76 @@ thexport_ende_t = """
 </body>
 </html>
 """
+
+
+bestaetigung_t = """
+<html>
+<head>
+<TITLE>%(titel)s</TITLE>
+<meta name="robots" content="noindex">
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+<script src="/ebkus/ebkus_javascripte/ebkus_sonstige.js" type="text/javascript"></script>
+<!--<script src="/ebkus/ebkus_javascripte/ebkus_help.js" type="text/javascript"></script>-->
+<link rel="stylesheet" type="text/css" href="/ebkus/ebkus_styles/css_styles.css">
+</head>
+<body bgcolor="#CCCCCC" link="#CCCCCC" vlink="#CCCCCC" alink="#000000">
+  <table width="50%%" border="0" height="215" align="center">
+    <tr>
+      <td height="223" align="center" class="legendtext">
+      <form name="form1" method="post" action="jghexportfeedback">
+      <fieldset><b><legend class="legendtext">%(legende)s</legend></b>
+        <table width="89%%" border="0" height="120">
+          <tr>
+            <td height="67" class="normaltext" align="center" colspan="4">%(zeile)s</td>
+          </tr>
+        <tr>
+        <td class="labeltext" align="right" rowspan="3" width="25%%">Exportjahr:
+        </td>
+        <td rowspan="3" width="25%%">
+            <input type="text" class="textboxmid" size="4" maxlength="4" value="%(jahr)s" name="jahr">
+        </td align="left">
+        <td class="labeltext" align="right" width="36%%">Abgeschlossene Fälle:
+        </td>
+        <td align="left" width="14%%">
+          <input type="radio" value="abgeschlossen" name="welche" checked><br>
+        </td>
+        </tr>        
+        <tr>
+        <td class="labeltext" align="right">Andauernde Fälle:
+        </td>
+        <td align="left">
+          <input type="radio" value="andauernd" name="welche">
+        </td>
+        </tr>        
+        <tr>
+        <td class="labeltext" align="right">Keine Statistik:
+        </td>
+        <td align="left">
+          <input type="radio" value="keine" name="welche">
+        </td>
+        </tr>        
+        <tr>
+        <td align="center" colspan="4">
+        &nbsp;
+        </td>
+        </tr>
+        <tr>
+         <td align="center" colspan="2">
+           <input type="submit" class="button"  value="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ok&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">
+       </td>
+        <td align="center" colspan="2">
+           <input type="button" class="button" name="zurueck" value="Abbrechen" onClick="javascript:history.back()">
+       </td>
+        </tr>
+        </table>
+       </fieldset>
+        </form>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+## from BeautifulSoup import BeautifulSoup as BS
+## s = BS(bestaetigung_t)
+## print s.prettify()

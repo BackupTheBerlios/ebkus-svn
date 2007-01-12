@@ -17,15 +17,15 @@ menue_t = """
 <tr>
 <td width="95%">
 <fieldset>
-<table width="95%" height="40" align="center"">
+<table width="95%" height="40" align="center">
 <tr>
-<td align"center" valign="center" width="25%">
+<td align="center" valign="center" width="25%">
 <input type="button" name="Schaltfl&auml;che"
-            onClick="go_to_url('menu')" value="Hauptmen&uuml;" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um zum Hauptmen&uuml; zu gelangen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um zum Hauptmen&uuml; zu gelangen">
+            onClick="go_to_url('menu')" value="Hauptmen&uuml;" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um zum Hauptmen&uuml; zu gelangen';return true;" onMouseOut="window.status='';return true;" title="Zum Hauptmen&uuml;">
 </td>
-<td align"center" valign="center" width="25%">
+<td align="center" valign="center" width="25%">
 <input type="button" name="Schaltfl&auml;che"
-            onClick="go_to_url('menugruppe')" value="Gruppenmen&uuml;" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um zum Gruppenmen&uuml; zu gelangen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um zum Gruppenmen&uuml; zu gelangen">
+            onClick="go_to_url('menugruppe')" value="Gruppenmen&uuml;" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um zum Gruppenmen&uuml; zu gelangen';return true;" onMouseOut="window.status='';return true;" title="Zum Gruppenmen&uuml;">
 </td>
 <td align="center" valign="center" width="25%">
 <select size=1 name="Auswahl" onChange="go_to_url(this.form.Auswahl.options[this.form.Auswahl.options.selectedIndex].value)" class="listbox130">
@@ -169,7 +169,7 @@ klientenkarte_t="""
 klientenkarte_t2 = """
             <tr>
             <td align="center" colspan="6"><input type="button" name="Schaltfl&auml;che"
-            onClick="go_to_url('updakte?akid=%(id)s')" value="Bearbeiten" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um die Klientenstammdaten zu Bearbeiten';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um die Klientenstammdaten zu Bearbeiten"></td>
+            onClick="go_to_url('updakte?akid=%(id)s')" value="Bearbeiten" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um die Klientenstammdaten zu Bearbeiten';return true;" onMouseOut="window.status='';return true;" title="Klientenstammdaten bearbeiten"></td>
             <tr>
           </tr>
       </table>
@@ -285,9 +285,10 @@ keine_bezugsperson_kopf = """
 bezugsperson_t =  """
 <tr>
   <td class="normaltext" align="left">
-  <a href="updpers?akid=%(akte_id)d&bpid=%(id)d"><img border="0" src="/ebkus/ebkus_icons/edit_button.gif"></a></td>
+  <a href="updpers?akid=%(akte_id)d&bpid=%(id)d"><img border="0" src="/ebkus/ebkus_icons/edit_button.gif"
+  title="Daten der Bezugsperson bearbeiten"></a></td>
   <td class="normaltext" align="left"><a href="#" onClick="view_details('viewpers?akid=%(akte_id)d&bpid=%(id)d')">
-  <img border="0" src="/ebkus/ebkus_icons/view_details.gif" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um sich die Daten der Bezugsperson anzusehen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um sich die Daten der Bezugsperson anzusehen"></a></td>
+  <img border="0" src="/ebkus/ebkus_icons/view_details.gif" onMouseOver="window.status='Daten der Bezugsperson ansehen';return true;" onMouseOut="window.status='';return true;" title="Daten der Bezugsperson ansehen"></a></td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(verw__name)s </td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(vn)s</td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(na)s </td>
@@ -313,7 +314,7 @@ bezugsperson_ende = """
 <tr>
 <td colspan="7" class="normaltext" height="13" align="center">
 <input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('persneu?akid=%(id)d&fallid=%(aktueller_fall__id)d&klerv=1')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Bezugsperson hinzuzuf&uuml;gen.';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Bezugsperson hinzuzuf&uuml;gen.">
+   onClick="go_to_url('persneu?akid=%(id)d&fallid=%(aktueller_fall__id)d&klerv=1')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Bezugsperson hinzuzuf&uuml;gen.';return true;" onMouseOut="window.status='';return true;" title="Neue Bezugsperson hinzuf&uuml;gen.">
 </td>
 </tr>
 </table>
@@ -333,7 +334,7 @@ keine_bezugsperson_ende = """
 <tr>
 <td colspan="7" class="normaltext" height="13" align="center">
 <input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('persneu?akid=%(id)d&fallid=%(aktueller_fall__id)d&klerv=1')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Bezugsperson hinzuzuf&uuml;gen.';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Bezugsperson hinzuzuf&uuml;gen.">
+   onClick="go_to_url('persneu?akid=%(id)d&fallid=%(aktueller_fall__id)d&klerv=1')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Bezugsperson hinzuzuf&uuml;gen.';return true;" onMouseOut="window.status='';return true;" title="Neue Bezugsperson hinzuf&uuml;gen.">
 </td>
 </tr>
 </table>
@@ -357,7 +358,7 @@ leistung_kopf = """
 leistungs_t1 =  """
 <tr>
 <td align="left" class="labeltext" valign="middle">
-<a href="updleist?fallid=%(fall_id)d&leistid=%(id)d"><img border="0" src="/ebkus/ebkus_icons/edit_button.gif" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um die Leistung zu bearbeiten';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um die Leistung zu bearbeiten"></a>
+<a href="updleist?fallid=%(fall_id)d&leistid=%(id)d"><img border="0" src="/ebkus/ebkus_icons/edit_button.gif" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um die Leistung zu bearbeiten';return true;" onMouseOut="window.status='';return true;" title="Leistung bearbeiten"></a>
 </td>
 <td align="left" class="labeltext" valign="middle" bgcolor="#FFFFFF">%(mit_id__na)s </td>
 <td align="left" class="labeltext" valign="middle" bgcolor="#FFFFFF">%(le__name)s </td>
@@ -392,7 +393,7 @@ leistung_ende = """
 <tr>
 <td colspan="5" class="normaltext" height="13" align="center">
 <input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('leistneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Leistung hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Leistung hinzuzuf&uuml;gen">
+   onClick="go_to_url('leistneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Leistung hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Neue Leistung hinzuf&uuml;gen">
 </td>
 </tr>
 </table>
@@ -469,7 +470,7 @@ fallende_t_aktfall="""
 <tr>
 <td align="center" class="normaltext" colspan="4" height="13">
 <input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('zda?akid=%(id)s&fallid=%(aktueller_fall__id)d')" value="Zu den Akten" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um den Fall zu den Akten zu legen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um den Fall zu den Akten zu legen">
+   onClick="go_to_url('zda?akid=%(id)s&fallid=%(aktueller_fall__id)d')" value="Zu den Akten" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um den Fall zu den Akten zu legen';return true;" onMouseOut="window.status='';return true;" title="Fall zu den Akten legen">
 </td>
 </tr>
 </table>
@@ -481,7 +482,7 @@ fallende_t_waufn="""
 <tr>
 <td align="center" class="normaltext" colspan="4" height="13">
 <input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('waufnneu?akid=%(id)d&fallid=%(letzter_fall__id)d')" value="Wiederaufnahme" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um den Fall wiederaufzunehmen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um den Fall wiederaufzunehmen">
+   onClick="go_to_url('waufnneu?akid=%(id)d&fallid=%(letzter_fall__id)d')" value="Wiederaufnahme" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um den Fall wiederaufzunehmen';return true;" onMouseOut="window.status='';return true;" title="Fall wiederaufzunehmen">
 </td>
 </tr>
 </table>
@@ -493,7 +494,7 @@ fallende_t_zdarueck="""
 <tr>
 <td align="center" class="normaltext" colspan="4" height="13">
 <input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('zdar?akid=%(id)d&fallid=%(letzter_fall__id)d')" value="ZdA r&uuml;ckg&auml;ngig" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um den Fall wieder zu aktivieren';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um den Fall wieder zu aktivieren">
+   onClick="go_to_url('zdar?akid=%(id)d&fallid=%(letzter_fall__id)d')" value="ZdA r&uuml;ckg&auml;ngig" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um den Fall wieder zu aktivieren';return true;" onMouseOut="window.status='';return true;" title="Fall wieder aktivieren">
 </td>
 </tr>
 </table>
@@ -558,7 +559,7 @@ bearbeiter_ende_t1="""
 <tr>
 <td align="center" class="normaltext" colspan="4" height="13">
   <input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('zustneu?akid=%(id)s&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Zust&auml;ndigkeit einzutragen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Zust&auml;ndigkeit einzutragen">
+   onClick="go_to_url('zustneu?akid=%(id)s&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine neue Zust&auml;ndigkeit einzutragen';return true;" onMouseOut="window.status='';return true;" title="Neue Zust&auml;ndigkeit eintragen">
 </td>
 <tr>
 </table>
@@ -605,7 +606,7 @@ alt_anmeldung_t =  """
   <td class="normaltext" align="left"><img border="0" src="/ebkus/ebkus_icons/edit_button_locked.gif" onMouseOver="window.status='Geh&ouml;hrt zu einem abgeschlossenem Fall.';return true;" onMouseOut="window.status='';return true;" title="Geh&ouml;hrt zu einem abgeschlossenem Fall."></td>
   <td class="normaltext" align="left">
   <a href="#" onClick="view_details('viewanm?fallid=%(fall_id)d&anmid=%(id)d')" >
-  <img border="0" src="/ebkus/ebkus_icons/view_details.gif" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um sich die Daten des Anmeldekontaktes anzusehen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um sich die Daten des Anmeldekontaktes anzusehen"></a></td>
+  <img border="0" src="/ebkus/ebkus_icons/view_details.gif" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um sich die Daten des Anmeldekontaktes anzusehen';return true;" onMouseOut="window.status='';return true;" title="Daten des Anmeldekontaktes ansehen"></a></td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(von)s </td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(ad)d.%(am)d.%(ay)d</td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(mg)s </td>
@@ -619,7 +620,7 @@ akt_anmeldung_t =  """
   <img border="0" src="/ebkus/ebkus_icons/edit_button.gif" onMouseOver="window.status='Bearbeiten des Anmeldekontaktes.';return true;" onMouseOut="window.status='';return true;" title="Bearbeiten des Anmeldekontaktes"></a></td>
   <td class="normaltext" align="left">
   <a href="#" onClick="view_details('viewanm?fallid=%(fall_id)d&anmid=%(id)d')">
-  <img border="0" src="/ebkus/ebkus_icons/view_details.gif" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um sich die Daten des Anmeldekontaktes anzusehen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um sich die Daten des Anmeldekontaktes anzusehen"></a></td>
+  <img border="0" src="/ebkus/ebkus_icons/view_details.gif" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um sich die Daten des Anmeldekontaktes anzusehen';return true;" onMouseOut="window.status='';return true;" title="Daten des Anmeldekontaktes ansehen"></a></td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(von)s </td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(ad)d.%(am)d.%(ay)d</td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(mg)s </td>
@@ -641,7 +642,7 @@ anmeldung_ende_keineanm = """
 <tr>
 <td colspan="5" class="normaltext" height="13" align="center">
 <input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('anmneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen neuen Anmeldekontakt hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen neuen Anmeldekontakt hinzuzuf&uuml;gen">
+   onClick="go_to_url('anmneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Anmeldekontakt hinzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Anmeldekontakt hinzuf&uuml;gen">
 </td>
 </tr>
 </table>
@@ -670,7 +671,7 @@ keine_anmeldung_ende_keineanm = """
 <tr>
 <td colspan="5" class="normaltext" height="13" align="center">
 <input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('anmneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen neuen Anmeldekontakt hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen neuen Anmeldekontakt hinzuzuf&uuml;gen">
+   onClick="go_to_url('anmneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen neuen Anmeldekontakt hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Neuen Anmeldekontakt hinzuf&uuml;gen">
 </td>
 </tr>
 </table>
@@ -751,7 +752,7 @@ einrichtungskontakt_t =  """
 <tr>
   <td class="normaltext" align="left">
   <a href="updeinr?akid=%(akte_id)d&einrid=%(id)d">
-  <img border="0" src="/ebkus/ebkus_icons/edit_button.gif" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um die Daten des Einrichtungskontaktes zu bearbeiten';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um die Daten des Einrichtungskontaktes zu bearbeiten"></a></td>
+  <img border="0" src="/ebkus/ebkus_icons/edit_button.gif" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um die Daten des Einrichtungskontaktes zu bearbeiten';return true;" onMouseOut="window.status='';return true;" title="Daten des Einrichtungskontaktes bearbeiten"></a></td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(insta__name)s </td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(na)s</td>
   <td align="left" class="normaltext" bgcolor="#FFFFFF">&#160; %(tl1)s </td>
@@ -776,7 +777,7 @@ einrichtungskontakt_ende = """
 <tr>
 <td colspan="6" class="normaltext" height="13" align="center">
 <input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('einrneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen Einrichtungskontakt hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen Einrichtungskontakt hinzuzuf&uuml;gen">
+   onClick="go_to_url('einrneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen Einrichtungskontakt hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Einrichtungskontakt hinzuf&uuml;gen">
 </td>
 </tr>
 </table>
@@ -796,7 +797,7 @@ kein_einrichtungskontakt_ende = """
 <tr>
 <td colspan="6" class="normaltext" height="13" align="center">
 <input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('einrneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen Einrichtungskontakt hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen Einrichtungskontakt hinzuzuf&uuml;gen">
+   onClick="go_to_url('einrneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen Einrichtungskontakt hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Einrichtungskontakt hinzuf&uuml;gen">
 </td>
 </tr>
 </table>
@@ -849,7 +850,7 @@ fachstatistik_t2 = """
 fachstatistik_ende_leer = """
 <tr>
 <td align="center" bgcolor="#CCCCCC"><input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('fsneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Fackstatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Fackstatistik hinzuzuf&uuml;gen">
+   onClick="go_to_url('fsneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Fackstatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Fachstatistik hinzuf&uuml;gen">
 </td>
 </tr>
 </table>
@@ -861,7 +862,7 @@ fachstatistik_ende_leer = """
 fachstatistik_ende = """
 <tr>
 <td colspan="2" align="center" bgcolor="#CCCCCC"><input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('fsneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Fachstatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Fachstatistik hinzuzuf&uuml;gen">
+   onClick="go_to_url('fsneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Fachstatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Fachstatistik hinzuf&uuml;gen">
 </td>
 </tr>
 </table>
@@ -922,7 +923,8 @@ jghstatistiken_kopf_t = """
 <table border=0 cellspacing=1 width="90%">
 <tr>
 <td class="labeltext" align="left" width="10%">&nbsp;</td>
-<td class="labeltext" align="left" width="90%">Jahr:</td>
+<td class="labeltext" align="left" width="50%">Fallnummer:</td>
+<td class="labeltext" align="left">Ende:</td>
 </tr>
 """
 
@@ -938,7 +940,8 @@ jghstatistiken_t1 = """
 <td class="normaltext" align="left">
 <a href="%(action)s?akid=%(fall_id__akte_id)d&fallid=%(fall_id)d&jghid=%(id)d">
 <img border="0" src="/ebkus/ebkus_icons/edit_stat_button.gif" onMouseOver="window.status='Bearbeiten der Bundesstatistik';return true;" onMouseOut="window.status='';return true;" title="Bearbeiten der Bundesstatistik"></a></td>
-<td class="normaltext" align="left" bgcolor="#FFFFFF"> %(fall_fn)s&nbsp;&nbsp;&nbsp;%(em)s.%(ey)s </td>
+<td class="normaltext" align="left" bgcolor="#FFFFFF"> %(fall_fn)s</td>
+<td class="normaltext" align="left" bgcolor="#FFFFFF"> %(ende)s</td>
 </tr>"""
 
 jghstatistiken_t1a = """
@@ -951,7 +954,7 @@ jghstatistiken_t1a = """
 jghstatistiken_ende_leer = """
 <tr>
 <td align="center" bgcolor="#CCCCCC"><input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('jgh07neu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen">
+   onClick="go_to_url('jgh07neu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bundesjugendhilfestatistik hinzuf&uuml;gen">
 </td>
 </tr>
 </table>
@@ -963,7 +966,7 @@ jghstatistiken_ende_leer = """
 jghstatistiken_ende = """
 <tr>
 <td colspan="2" align="center" bgcolor="#CCCCCC"><input type="button" name="Schaltfl&auml;che2"
-   onClick="go_to_url('jgh07neu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen">
+   onClick="go_to_url('jgh07neu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um eine Bundesjugendhilfestatistik hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Bundesjugendhilfestatistik hinzuf&uuml;gen">
 </td>
 </tr>
 </table>
@@ -1096,7 +1099,7 @@ fallgruppen_t1 = """
 <tr>
 <td class="normaltext" align="left">
 <a href="gruppenkarte?gruppeid=%(gruppe_id)s">
-<img border="0" src="/ebkus/ebkus_icons/edit_grp_button.gif"></a></td>
+<img border="0" src="/ebkus/ebkus_icons/edit_grp_button.gif" title="Gruppenkarte bearbeiten"></a></td>
 <td class="normaltext" align="left" bgcolor="#FFFFFF">%(gruppe_id__gn)s</td>
 """
 fallgruppen_t2 = """
@@ -1136,7 +1139,7 @@ bzpersgruppen_t1 = """
 <tr>
 <td class="normaltext" align="left">
 <a href="gruppenkarte?gruppeid=%(gruppe_id)s">
-<img border="0" src="/ebkus/ebkus_icons/edit_grp_button.gif"></a></td>
+<img border="0" src="/ebkus/ebkus_icons/edit_grp_button.gif" title="Gruppenkarte bearbeiten"></a></td>
 <td class="normaltext" align="left" bgcolor="#FFFFFF">%(gruppe_id__gn)s</td>"""
 
 bzpersgruppen_t2 = """

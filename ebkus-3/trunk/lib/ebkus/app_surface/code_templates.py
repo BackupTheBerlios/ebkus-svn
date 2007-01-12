@@ -45,8 +45,9 @@ katuebersichtgesamtende_t = """
 """
 
 thkat_t = """
-  <tr><a name="%(id)s">
+  <tr>
     <td align="center" class="legendtext">
+    <a name="%(id)s">
     <fieldset><legend class="legendtext">%(name)s</legend>
     <table width="95%%">
     <tr align="left" bgcolor="#CCCCCC">

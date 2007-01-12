@@ -783,7 +783,7 @@ fsupd_zahlkontakte_t = """
         </td>
         <td align="left" width="6%%" class="labeltext">Hilfebespr.</td>
         <td align="left" width="6%%">
-          <input type="text" size="3" value="%(kleh)d" class="textboxmid" name="kkonf" onBlur="set_term_sum_fachstat('kkonf')">
+          <input type="text" size="3" value="%(kkonf)d" class="textboxmid" name="kkonf" onBlur="set_term_sum_fachstat('kkonf')">
         </td>
         <td align="left" height="40" class="legendtext" width="6%%">&nbsp;</td>
         <td align="left" height="40" class="legendtext" width="6%%">&nbsp; </td>

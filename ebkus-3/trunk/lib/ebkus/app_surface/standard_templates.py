@@ -6,7 +6,6 @@ head_normal_t = """
 <HTML>
 <HEAD>
 <TITLE> %s </TITLE>
-<meta http-equiv="expires" content="0">
 <meta name="robots" content="noindex">
 <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
 <script src="/ebkus/ebkus_javascripte/ebkus_sonstige.js" type="text/javascript"></script>
@@ -17,7 +16,6 @@ head_normal_ohne_help_t = """
 <HTML>
 <HEAD>
 <TITLE> %s </TITLE>
-<meta http-equiv="expires" content="0">
 <meta name="robots" content="noindex">
 <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
 <script src="/ebkus/ebkus_javascripte/ebkus_sonstige.js" type="text/javascript"></script>
@@ -28,7 +26,6 @@ head_weiterleitung_t = """
 <HTML>
 <HEAD>
 <TITLE> %s </TITLE>
-<meta http-equiv="expires" content="0">
 <meta name="robots" content="noindex">
 <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="refresh" content="%s; URL=%s">
@@ -40,7 +37,6 @@ meldung_t = """
 <HTML>
 <HEAD>
 <TITLE> %(titel)s </TITLE>
-<!-- <meta http-equiv="expires" content="0"> //-->
 <meta name="robots" content="noindex">
 <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
 <script src="/ebkus/ebkus_javascripte/ebkus_sonstige.js" type="text/javascript"></script>
@@ -74,7 +70,6 @@ meldung_weiterleitung_t = """
 <HTML>
 <HEAD>
 <TITLE> %(titel)s </TITLE>
-<!-- <meta http-equiv="expires" content="0"> //-->
 <meta name="robots" content="noindex">
 <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
 <script src="/ebkus/ebkus_javascripte/ebkus_sonstige.js" type="text/javascript"></script>
@@ -104,12 +99,10 @@ meldung_weiterleitung_t = """
 </body>
 </html>"""
 
-
-bestaetigung_t = """
+submit_or_back_t = """
 <html>
 <head>
 <TITLE>%(titel)s</TITLE>
-<!-- <meta http-equiv="expires" content="0"> //-->
 <meta name="robots" content="noindex">
 <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
 <script src="/ebkus/ebkus_javascripte/ebkus_sonstige.js" type="text/javascript"></script>
@@ -121,23 +114,31 @@ bestaetigung_t = """
     <tr>
       <td height="223" align="center" class="legendtext">
       <fieldset><b><legend class="legendtext">%(legende)s</legend></b>
+        <form name="form1" method="post" action="%(action)s">
         <table width="89%%" border="0" height="120">
           <tr>
-            <td height="67" class="normaltext" align="center">%(zeile)s</td>
+            <td height="67" colspan="2" class="normaltext">%(zeile1)s</td>
           </tr>
-        </td>        
-        <form name="form1" method="post" action="jghexportfeedback">
-        <tr>
-        <td class="labeltext" align="center">Exportjahr: <input type="text" class="textboxmid" size="4" maxlength="4" value="%(jahr)s" name="jahr"></td>
-        </tr>        
+          <tr>
+            <td height="65" colspan="2" class="normaltext">%(zeile2)s</td>
+          </tr>
         <tr>
         <td align="center">
         &nbsp;
         </td>
         </tr>
-        </table>
+                <tr height="40">
+                  <td width="50%%" align="center" valign="middle">
           <input type="submit" class="button"  value="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ok&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">
+                  </td>
+                  <td align="center" valign="middle">
           <input type="button" class="button" name="zurueck" value="Abbrechen" onClick="javascript:history.back()">
+                  </td>
+                </tr>
+        </table>
+          <input type="hidden" value="%(v1)s" name="%(n1)s">
+          <input type="hidden" value="%(v2)s" name="%(n2)s">
+          <input type="hidden" value="%(v3)s" name="%(n3)s">
         </form>
         </fieldset>
       </td>
@@ -145,6 +146,7 @@ bestaetigung_t = """
   </table>
 </body>
 </html>"""
+
 
 formhiddenvalues_t = """
 <input type="hidden" value="%(file)s" name="file">
@@ -210,30 +212,30 @@ gruppe_menu_t = """
   <td align="center" height="30" class="legendtext"> <fieldset><legend class="legendtext">Gruppe</legend>
     <table border="0" cellpadding="1" height="30">
       <tr>
-        <td align="center" class="smalltext" height="30"> <A HREF="gruppeneu" onMouseOver="window.status='Neue Gruppe anlegen';return true;" onMouseOut="window.status='';return true;">
+        <td align="center" class="smalltext" height="30"> <A HREF="gruppeneu" onMouseOver="window.status='Neue Gruppe anlegen';return true;" onMouseOut="window.status='';return true;" title="Neue Gruppe anlegen">
           <img border="0" src="/ebkus/ebkus_icons/grp_button.gif" width="21" height="19" alt="Neue Gruppe anlegen">
           </A> </td>
-        <td align="center" height="30"> <A HREF="updgruppe?gruppeid=%(id)d" onMouseOver="window.status='Gruppe bearbeiten';return true;" onMouseOut="window.status='';return true;">
+        <td align="center" height="30"> <A HREF="updgruppe?gruppeid=%(id)d" onMouseOver="window.status='Gruppe bearbeiten';return true;" onMouseOut="window.status='';return true;" title="Gruppe bearbeiten">
         <img border="0" src="/ebkus/ebkus_icons/edit_grp_button.gif" width="21" height="19" alt="Gruppe bearbeiten.">
           </A> </td>
-        <td align="center" height="30"> <A HREF="gruppeteilnausw?gruppeid=%(id)d" onMouseOver="window.status='Neuen Teilnehmer hinzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;">
+        <td align="center" height="30"> <A HREF="gruppeteilnausw?gruppeid=%(id)d" onMouseOver="window.status='Neuen Teilnehmer hinzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Neuen Teilnehmer hinzuf&uuml;gen">
           <img border="0" src="/ebkus/ebkus_icons/teilnehmer_neu_button.gif" width="21" height="19" alt="Neuen Teilnehmer hinzuf&uuml;gen">
           </A> </td>
-        <td align="center" height="30"> <A HREF="rmteiln?gruppeid=%(id)d" onMouseOver="window.status='Teilnehmer entfernen';return true;" onMouseOut="window.status='';return true;">
+        <td align="center" height="30"> <A HREF="rmteiln?gruppeid=%(id)d" onMouseOver="window.status='Teilnehmer entfernen';return true;" onMouseOut="window.status='';return true;" title="Teilnehmer entfernen">
          <img border="0" src="/ebkus/ebkus_icons/teilnehmer_del_button.gif" width="21" height="19" alt="Teilnehmer entfernen." title="Teilnehmer entfernen">
           </A> </td>
         <td align="center" height="30">
-        <A HREF="gruppeteiln?gruppeid=%(id)d" onMouseOver="window.status='Teilnehmerliste anzeigen';return true;" onMouseOut="window.status='';return true;">
+        <A HREF="gruppeteiln?gruppeid=%(id)d" onMouseOver="window.status='Teilnehmerliste anzeigen';return true;" onMouseOut="window.status='';return true;" title="Teilnehmerliste anzeigen">
           <img border="0" src="/ebkus/ebkus_icons/teilnehmer_view_button.gif" width="21" height="19" alt="Teilnehmerliste anzeigen.">
           </A> </td>
-        <td align="center" height="30"> <A HREF="vermneu?gruppeid=%(id)d" onMouseOver="window.status='Neuen Vermerk anf&uuml;gen';return true;" onMouseOut="window.status='';return true;"> <img border="0" src="/ebkus/ebkus_icons/new_text_button.gif" width="21" height="19" alt="Neuen Vermerk anf&uuml;gen.">
+        <td align="center" height="30"> <A HREF="vermneu?gruppeid=%(id)d" onMouseOver="window.status='Neuen Vermerk anf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Neuen Vermerk anf&uuml;gen"> <img border="0" src="/ebkus/ebkus_icons/new_text_button.gif" width="21" height="19" alt="Neuen Vermerk anf&uuml;gen.">
           </A> </td>
-        <td align="center" height="30"> <A HREF="updvermausw?gruppeid=%(id)d" onMouseOver="window.status='Vermerk zum Bearbeiten ausw&auml;hlen';return true;" onMouseOut="window.status='';return true;">
+        <td align="center" height="30"> <A HREF="updvermausw?gruppeid=%(id)d" onMouseOver="window.status='Vermerk zum Bearbeiten ausw&auml;hlen';return true;" onMouseOut="window.status='';return true;" title="Vermerk zum Bearbeiten ausw&auml;hlen">
           <img border="0" src="/ebkus/ebkus_icons/edit_text_button.gif" width="21" height="19" alt="Vermerk zum Bearbeiten ausw&auml;hlen.">
           </A> </td>
-        <td align="center" height="30"> <A HREF="rmdok?gruppeid=%(id)d" onMouseOver="window.status='Vermerk entfernen';return true;" onMouseOut="window.status='';return true;"> <img border="0" src="/ebkus/ebkus_icons/del_text_button.gif" width="21" height="19" alt="Vermerk entfernen.">
+        <td align="center" height="30"> <A HREF="rmdok?gruppeid=%(id)d" onMouseOver="window.status='Vermerk entfernen';return true;" onMouseOut="window.status='';return true;" title="Vermerk entfernen"> <img border="0" src="/ebkus/ebkus_icons/del_text_button.gif" width="21" height="19" alt="Vermerk entfernen.">
           </A> </td>
-        <td align="center" height="30"> <A HREF="upload?gruppeid=%(id)d" onMouseOver="window.status='Datei hochladen';return true;" onMouseOut="window.status='';return true;">
+        <td align="center" height="30"> <A HREF="upload?gruppeid=%(id)d" onMouseOver="window.status='Datei hochladen';return true;" onMouseOut="window.status='';return true;" title="Datei hochladen">
         <img border="0" src="/ebkus/ebkus_icons/upload_button.gif" width="21" height="19" alt="Datei hochladen.">
           </A> </td>
       </tr>
@@ -261,16 +263,16 @@ menuefs_t = """
     <td align="center" width="359" class="legendtext"><fieldset><legend class="legendtext">Statistik</legend>
       <table width="95%" border="0">
         <tr valign="top" height="40">
-          <td align="center" height="30"><A HREF="fsabfr" onMouseOver="window.status='Fachstatistik Abfrage';return                true;" onMouseOut="window.status='';return true;">
+          <td align="center" height="30" title="Fachstatistik"><A HREF="fsabfr" onMouseOver="window.status='Fachstatistik Abfrage';return                true;" onMouseOut="window.status='';return true;">
           <img border="0" src="/ebkus/ebkus_icons/abfr_stat_fs_button.gif" alt="Fachstatistik Abfrage"></A></td>
-          <td align="center" height="30"><A HREF="formabfr6?file=abfritem" onMouseOver="window.status='Abfrage nach Kategorieauswahl';return true;" onMouseOut="window.status='';return true;">
+          <td align="center" height="30" title="Fachstatistik Itemauswahl"><A HREF="formabfr6?file=abfritem" onMouseOver="window.status='Abfrage nach Kategorieauswahl';return true;" onMouseOut="window.status='';return true;">
           <img border="0" src="/ebkus/ebkus_icons/abfr_stat_i_button.gif" alt="Abfrage nach Kategorieauswahl"></A></td>
-          <td align="center" height="30"><A HREF="formabfr6?file=abfrkat" onMouseOver="window.status='Abfrage nach Kategorienauswahl';return true;" onMouseOut="window.status='';return true;">
+          <td align="center" height="30" title="Fachstatistik Kategorienauswahl"><A HREF="formabfr6?file=abfrkat" onMouseOver="window.status='Abfrage nach Kategorienauswahl';return true;" onMouseOut="window.status='';return true;">
           <img border="0" src="/ebkus/ebkus_icons/abfr_stat_k_button.gif" alt="Abfrage nach Kategorienauswahl"></A>
           </td>
-          <td align="center" height="30"><A HREF="jghabfr" onMouseOver="window.status='Jugendhilfestatistik Abfrage';return true;" onMouseOut="window.status='';return true;">
+          <td align="center" height="30" title="Jugendhilfestatistik"><A HREF="jghabfr" onMouseOver="window.status='Jugendhilfestatistik Abfrage';return true;" onMouseOut="window.status='';return true;">
           <img border="0" src="/ebkus/ebkus_icons/abfr_stat_jgh_button.gif" alt="Jugendhilfestatistik Abfrage"></A></td>
-          <td align="center" height="30"><A HREF="formabfr3" onMouseOver="window.status='Suche in der Kartei';return                true;" onMouseOut="window.status='';return true;">
+          <td align="center" height="30" title="Suche in der Kartei"><A HREF="formabfr3" onMouseOver="window.status='Suche in der Kartei';return                true;" onMouseOut="window.status='';return true;">
           <img border="0" src="/ebkus/ebkus_icons/abfr_stat_suche_button.gif" alt="Suche in der Kartei"></A></td>
         </tr>
       </table>
