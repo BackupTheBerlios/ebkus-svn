@@ -348,13 +348,22 @@ class klkarte(Request.Request):
                 ## Jugendhilfestatistiken des Falles
                 ##*************************************************************************
         jgh_list=[]
+        from ebkus.app.ebapi import Jugendhilfestatistik, Jugendhilfestatistik2007
         for f in faelle:
             for js in f['jgh_statistiken']:
+                assert isinstance(js, Jugendhilfestatistik)
                 if js['ey']:
+                    js['ende'] = "%(em)s . %(ey)s" % js
                     js['action'] = 'updjgh'
                     jgh_list.append(js)
             for js in f['jgh07_statistiken']:
-                if js['ey']:
+                assert isinstance(js, Jugendhilfestatistik2007)
+                #if js['ey']: # Warum hier das Ende Jahr geprüft???
+                if js.get('ey'):
+                    js['ende'] = "%(em)s . %(ey)s" % js
+                else:
+                    js['ende'] = ""
+                if js['bgy']:
                     js['action'] = 'updjgh07'
                     jgh_list.append(js)
         if aktueller_fall:

@@ -65,8 +65,9 @@ class auszergebnis(Request.Request):
             title=self.auszaehlung.title,
             xtitle=self.auszaehlung.xtitle,
             ytitle=self.auszaehlung.ytitle,
-            names=[i[0] for i in counts],
-            frequencies=[i[1] for i in counts],
+            names=[i[0][:65] for i in counts],
+            #frequencies=[i[1] for i in counts],
+            frequencies=[i[2] for i in counts],
             )
         self.RESPONSE.setHeader('content-type', 'image/gif')
         self.RESPONSE.setBody(chart.draw())

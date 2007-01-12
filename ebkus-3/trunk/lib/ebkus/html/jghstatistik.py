@@ -36,8 +36,6 @@ from ebkus.app_surface.jgh07_templates import *
 
 
 
-# kann auch als updjghform angesprochen werden (siehe EBKuS.py)
-# wird in menu_templates.py verwendet
 class jghneu(Request.Request):
     """Neue Jugendhilfestatistik eintragen. (Tabelle: Jugendhilfestatistik.)"""
     permissions = Request.STAT_PERM
@@ -185,6 +183,8 @@ class jghneu(Request.Request):
         return string.join(res, '')
         
         
+# kann auch als updjghform angesprochen werden (siehe EBKuS.py)
+# wird in menu_templates.py verwendet
 class updjgh(Request.Request):
     """Jugendhilfestatistik ändern. (Tabelle: Jugendhilfestatistik)"""
     
@@ -205,7 +205,13 @@ class updjgh(Request.Request):
         if fallid:
             fall = Fall(fallid)
             jghstat = fall['jgh']
-            if not jghstat:
+            if jghstat:
+                # Von menu aus kann ein update der Bundesstatistik angefordert
+                # werden, ohne zu spezifizieren ob alte oder neue.
+                # Das wird hier abgefangen.
+                if isinstance(jghstat, Jugendhilfestatistik2007):
+                    return self.ebkus.dispatch('updjgh07', REQUEST, RESPONSE)
+            else:
                 meldung = {'titel':'Hinweis',
                            'legende':'Hinweis',
                            'zeile1':'Es ist noch keine Bundesstatistik f&uuml;r den Fall vorhanden!',
@@ -266,7 +272,7 @@ class updjgh(Request.Request):
             mksel(res,codeliste_t,wohnbezirk,'id',jghstat['bezirksnr'])
             res.append(jghstateditgfall_berlin_t)
         else:
-            res.append(jghstateditwbz_t)
+            res.append(jghstateditwbz_t % jghstat['bezirksnr'])
             res.append(jghstateditgfall_t)
         mksel(res,codeliste_t, geschwisterfaelle, 'id', jghstat['gfall'])
         res.append(jghstatedittraeger_t)
@@ -392,9 +398,310 @@ class updjgh(Request.Request):
         return string.join(res, '')
 
 def mkselstr(template, liste, field, value=None):
+    """value entscheidet, welcher Wert selected ist.
+    Falls value nicht None ist und in liste vorkommt, ist er selected.
+    Falls value None ist, ist kein Wert selected.
+    Falls value ' ' ist, wird eine leere Option als erstes in die Optionliste
+    eingefügt.
+    """
+    if value not in (None, ' ', ''):
+        #print value, [code['code'] for code in liste]
+        assert value in [code['id'] for code in liste]
     res = []
+    if value in (' ', ''):
+        res.append('<option value=" " selected> </option>')
     mksel(res, template, liste, field, value)
     return ''.join(res)
+
+def split_option_name(name, size):
+    """Return list of strings smaller than size.
+
+    Alle Strings außer dem ersten sind mit &nbsp; eingerückt.
+    """
+    assert size > 10 # sonst nicht sinnvoll
+    if len(name) <= size:
+        return [name]
+    words = name.split()
+    res = []
+    curr_size = 0
+    curr_el = []
+    first = True
+    for w in words:
+        new_size = curr_size + len(w)
+        if new_size <= size:
+            curr_el.append(w)
+            curr_size = new_size
+        else:
+            res.append(' '.join(curr_el))
+            curr_size = len(w)
+            curr_el = [('&nbsp;'*4) + w] # einrücken
+            if first:
+                # damit eingerückt werden kann
+                size -= 4
+                first = False
+    res.append(' '.join(curr_el))
+    return res
+                
+    
+def make_option_list(code_list, selected=None, no_empty_option=False):
+    """Liefert eine Liste von Option-Elementen (Liste von Strings).
+    
+    selected entscheidet, welcher Wert selected ist.
+    Falls selected die id eines Wertes in code_list ist, ist der selected.
+    Falls selected None ist, ist kein Wert selected.
+    Falls selected ' ' ist, ist die leere Option selected.
+    Falls selected 'first' ist, ist der erste code selected.
+    Falls add_empty False ist, wird keine leere Option eingefügt.
+    """
+    max_size = 60
+    option = '\n<option value="%(id)s" %(sel)s >%(name)s</option>'
+    res = []
+    selected_values = ()
+
+    if not no_empty_option:
+        if selected in ('', ' '):
+            res.append('<option value=" " selected> </option>')
+        else:
+            res.append('<option value=" "> </option>')
+    if selected:
+        if selected == 'first' and code_list:
+            selected = code_list[0]['id']
+        if not isinstance(selected, (tuple, list)):
+            selected_values = (selected,)
+    for c in code_list:
+        sel = c['id'] in selected_values and 'selected' or ''
+        if len(c['name']) > max_size:
+            name_list = split_option_name(c['name'], max_size)
+            for n in name_list:
+                res.append(option % {'name': n, 'id': c['id'], 'sel': sel})
+                # nur erste option selektieren
+                if sel:
+                    sel = ''
+        else:
+            c['sel'] = sel
+            res.append(option % c)
+            del c['sel']
+    return res
+
+_fb_data = (
+    {'abschnitt': 'A',
+     'title': 'Beginn der Hilfegewährung',
+     'items_data': ({'frage': 'Monat (der Einleitung der Hilfe)',
+                     'typ': ('int', 1, 12,),
+                     'name': 'bgm',
+                     'readonly': True,
+                     },
+                    {'frage': 'Jahr',
+                     'typ': ('int', 1970, 2030,),
+                     'name': 'bgy',
+                     'readonly': True,
+                     },
+                    {'frage': 'Übernahme von einem anderen Jugendamt wegen Zuständigkeitswechsels',
+                     'typ': ('checkbox','1', ' '),
+                     'name': 'zustw',
+                     },
+                    ),
+     }, 
+    {'abschnitt': 'B',
+     'title': 'Art der Hilfe',
+     'items_data': ({'frage': 'Art der Hilfe',
+                'typ': ('kat', 'hilf_art',),
+                'name': 'hilf_art',
+                'default': ' '
+                },
+               ),
+     }, 
+    {'abschnitt': 'C',
+     'title': 'Ort der Durchführung',
+     'items_data': ({'frage': '(Hauptsächlicher) Ort der Durchführung',
+                'typ': ('kat', 'hilf_ort',),
+                'name': 'hilf_ort',
+                'default': '06',
+                'no_empty_option': True,     
+                },
+               ),
+     },
+    {'abschnitt': 'D',
+     'title': 'Träger',
+     'items_data': ({'frage': 'Träger der Einrichtung oder des Dienstes, die/der die Hilfe/Beratung durchführt',
+                'typ': ('kat', 'traeger',),
+                'name': 'traeger',
+                'default': '10',
+                'no_empty_option': True,     
+                },
+               ),
+     }, 
+    {'abschnitt': 'E',
+     'title': 'Geschlecht und Alter',
+     'items_data': ({'frage': 'Geschlecht',
+                'typ': ('kat', 'gs',),
+                'name': 'gs',
+                'default': ' '
+                },
+               {'frage': 'Geburtsmonat',
+                'typ': ('int', 1, 12,),
+                'name': 'gem',
+                'default': ' '
+                },
+               {'frage': 'Geburtsjahr',
+                'typ': ('int', 1970, 2030,),
+                'name': 'gey',
+                'default': ' '
+                },
+               ),
+     }, 
+    {'abschnitt': 'F',
+     'title': 'Lebenssituation bei Beginn der Hilfe',
+     'items_data': ({'frage': 'Aufenthaltsort vor der Hilfe',
+                'typ': ('kat', 'auf_ort',),
+                'name': 'aort_vor',
+                'default': ' '
+                },
+               {'frage': 'Situation in der Herkunftsfamilie',
+                'typ': ('kat', 'shf',),
+                'name': 'sit_fam',
+                'default': ' '
+                },
+               'Migrationshintergrund',
+               {'frage': 'Ausländische Herkunft mindestens eines Elternteils (nicht: Staatsangehörigkeit)',
+                'typ': ('kat', 'ja_ne_un',),
+                'name': 'ausl_her',
+                'default': ' '
+                },
+               {'frage': 'In der Familie wird vorrangig deutsch gesprochen',
+                'typ': ('kat', 'ja_ne_un',),
+                'name': 'vor_dt',
+                'default': ' '
+                },
+               'Wirtschaftliche Situation',
+               {'frage': 'Die Herkunftsfamilie bzw. der/die junge Volljährige \
+lebt teilweise oder ganz von Arbeitslosengeld II (SGB II), bedarfsorientierter \
+Grundsicherung im Alter und bei Erwerbsminderung oder Sozialhilfe (SGB XII)',
+                'typ': ('kat', 'ja_ne_un',),
+                'name': 'wirt_sit',
+                'default': ' '
+                },
+               ),
+     }, 
+    {'abschnitt': 'G',
+     'title': 'Anregende Institution oder Person',
+     'items_data': ({'frage': 'Diese aktuelle Hilfe/Beratung anregende(n) Institution(en) oder Person(en)',
+                     'typ': ('kat', 'aip',),
+                     'name': 'aip',
+                     'default': ' '
+                     },
+                    ),
+     }, 
+    {'abschnitt': 'H',
+     'title': 'Familien- und vormundschafts-richterliche Entscheidungen',
+     'items_data': ({'frage': 'Teilweiser oder vollständiger Entzug der elterlichen Sorge (nach §1666 BGB)',
+                     'typ': ('kat', 'ja_nein',),
+                     'name': 'ees',
+                     'default': ' ',
+                     },
+                    {'frage': 'Verfahrensaussetzung nach §52 FGG',
+                     'typ': ('kat', 'ja_nein',),
+                     'name': 'va52',
+                     'default': ' '
+                     },
+                    {'frage': 'Richterliche Genehmigung für eine Unterbringung, die mit einem Freiheitsentzug verbunden ist (nach §1631b BGB)',
+                     'typ': ('kat', 'ja_nein',),
+                     'name': 'rgu',
+                     'default': ' '
+                     },
+                    ),
+     },
+    {'abschnitt': 'I',
+     'title': 'Hilfe dauert an',
+     'items_data': ({'frage': 'Hilfe/Beratung dauert am Jahresende an',
+                     'typ': ('kat', 'ja_nein',),
+                     'name': 'hda',
+                     'default': ' '
+                     },
+                    ),
+     }, 
+    {'abschnitt': 'J',
+     'title': 'Intensität der andauernden Hilfe',
+     'items_data': ('(Nur ausfüllen, falls die Hilfe/Beratung am Jahresende andauert)',
+                    {'frage': 'Zahl der Beratungskontakte im abgelaufenen Kalenderjahr',
+                     'typ': ('int', 1, 999,),
+                     'name': 'nbkakt',
+                     'default': ' '
+                     },
+                    ),
+     }, 
+    {'abschnitt': 'K',
+     'title': 'Gründe für die Hilfegewährung',
+     # Die Beispiele für die Gründe stehen hier, weil im Datenbankschema für die Tabelle code,
+     # wo sie eigentlich stehen sollen, für das Feld name nur 160 Zeichen vorgesehen sind.
+     'gruende_bsp': {'10':"(z.B. Ausfall der Bezugspersonen wegen Krankheit, stationärer Unterbringung, Inhaftierung, Tod; unbegleitet eingereiste Minderjährige)",
+                 '11':"(z.B. soziale, gesundheitliche, wirtschaftliche Probleme)",
+                 '12':"(z.B. Vernachlässigung, körperliche, psychische, sexuelle Gewalt in der Familie)",
+                 '13':"(z.B. Erziehungsunsicherheit, pädagogische Überforderung, unangemessene Verwöhnung)",
+                 '14':"(z.B. psychische Erkrankung, Suchtverhalten, geistige oder seelische Behinderung)",
+                 '15':"(z.B. Partnerkonflikte, Trennung und Scheidung, Umgangs-/Sorgerechtsstreitigkeiten, Eltern-/Stiefeltern-Kind-Konflikte, migrationsbedingte Konfliktlagen)",
+                 '16':"(z.B. Gehemmtheit, Isolation, Geschwisterrivalität, Weglaufen, Aggressivität, Drogen-/Alkoholkonsum, Delinquenz/Straftat)",
+                 '17':"(z.B. Entwicklungsrückstand, Ängste, Zwänge, selbst verletzendes Verhalten, suizidale Tendenzen)",
+                 '18':"(z.B. Schwierigkeiten mit Leistungsanforderungen, Konzentrationsprobleme (ADS, Hyperaktivität), schulvermeidendes Verhalten (Schwänzen), Hochbegabung)",
+                 '19':"",
+                 },
+
+     },
+    'Ab hier bitte nur dann ausfüllen, falls die Hilfe/Beratung beendet ist.',
+    {'abschnitt': 'L',
+     'title': 'Ende der Hilfe/Beratung',
+     'items_data': ({'frage': 'Monat',
+                     'typ': ('int', 1, 12,),
+                     'name': 'em',
+                     },
+                    {'frage': 'Jahr',
+                     'typ': ('int', 1970, 2030,),
+                     'name': 'ey',
+                     },
+                    ),
+     }, 
+    {'abschnitt': 'M',
+     'title': 'Betreuungsintensität der beendeten Hilfe/Beratung',
+     'items_data': ({'frage': 'Zahl der Beratungskontakte während der gesamten Beratungsdauer',
+                     'typ': ('int', 1, 999,),
+                     'name': 'nbkges',
+                     'default': ' '
+                     },
+                    {'frage': 'Letzter Beratungskontakt liegt mehr als sechs Monate zurück',
+                     'typ': ('kat', 'ja_nein',),
+                     'name': 'lbk6m',
+                     'default': ' '
+                     },
+                    ),
+     },
+    {'abschnitt': 'N',
+     'title': 'Grund für die Beendigung der Hilfe/Beratung',
+     'items_data': ({'frage': 'Grund für die Beendigung der Hilfe/Beratung',
+                     'typ': ('kat', 'grende',),
+                     'name': 'grende',
+                     'default': ' '
+                     },
+                    ),
+     }, 
+    {'abschnitt': 'O',
+     'title': 'Anschließender Aufenthalt',
+     'items_data': ({'frage': 'Anschließender Aufenthalt',
+                     'typ': ('kat', 'auf_ort',),
+                     'name': 'aort_nac',
+                     'default': ' '
+                     },
+                    ),
+     }, 
+    {'abschnitt': 'P',
+     'title': 'Unmittelbar nachfolgende Hilfe',
+     'items_data': ({'frage': 'Unmittelbar nachfolgende Hilfe',
+                     'typ': ('kat', 'unh',),
+                     'name': 'unh',
+                     'default': ' '
+                     },
+                    ),
+     }, 
+    )
 
 class _jgh07(Request.Request):
     """Gemeinsame Klasse für die neue Bundesstatistik"""
@@ -402,31 +709,115 @@ class _jgh07(Request.Request):
         """Bringt Templates und Daten zusammen sowohl für die Neueinführung
         als auch für das Update.
         """
-        jgh['gm'] = ''
-        jgh['gmt'] = ''
-        jgh['rbz_sel'] = ''#mkselstr(codeliste_t, get_codes('rbz'), 'id', jgh['rbz'])
-        jgh['kr_sel'] = ''#mkselstr(codeliste_t, get_codes('kr'), 'id', jgh['kr'])
-        jgh['gfall_sel'] = ''#mkselstr(codeliste_t, get_codes('gfall'), 'id', jgh['gfall'])
-        jgh['shf_sel'] = mkselstr(codeliste_t, get_codes('shf'), 'id', jgh['sit_fam'])
-        #jgh['jghid'] = 
-        #jgh['stz'] =         
-        #jgh['file'] =
-##         for k,v in jgh.items():
-##             print k, v
-##         print jgh.data
-##         print '_______________________________'
-##         print jgh.obj.data
+        jgh['land_sel'] = ''.join(make_option_list(get_codes('land'), 'first', True))
+        jgh['kr_sel'] = ''.join(make_option_list(get_codes('kr'), 'first', True))
+        jgh['gfall_sel'] = ''.join(make_option_list(get_codes('gfall'), 'first', True))
+        jgh['einrnr_sel'] = ''.join(make_option_list(get_codes('einrnr'), 'first', True))
+        wohnbez_sel = ''.join(make_option_list(get_codes('wohnbez'), jgh['bezirksnr'], True))
+        if jgh.get('lnr'):
+            jgh['laufendenr'] = jgh['lnr']
+        else:
+            jgh['laufendenr'] = 'noch nicht vergeben'
+        if config.BERLINER_VERSION:
+            jgh['wohnbez_kl'] = jghwohnbez_klient_berlin_t % wohnbez_sel
+        else:
+            jgh['wohnbez_kl'] = jghwohnbez_klient_t % jgh['bezirksnr']
         res = []
         res.append(head_normal_t % 'Bundesstatistik bearbeiten')
         res.append(jghhead_t % jgh)
         res.append(jghfalldaten_t % jgh)
-        res.append(jghpersonendaten_t % jgh)
+        res.append(fb_abschnitt_trenner_t)
+        res.append(fb_abschnitt_trenner_t.join(
+            [self._abschnitt(a, jgh) for a in _fb_data]))
+        res.append(fb_abschnitt_trenner_t)
         res.append(jghbuttons_t) 
         res.append(jghfoot_t) 
         return ''.join(res)
 
+    def _abschnitt(self, data, jgh):
+        if isinstance(data, basestring):
+            return fb_zwischenueberschrift_t % data
+        abschnitt = data.copy()
+        if abschnitt['abschnitt'] == 'K':
+            # besondere Behandlung
+            items = self._items_fuer_K(jgh, abschnitt['gruende_bsp'])
+        else:
+            items = [self._item(i, jgh) for i in data['items_data']]
+        abschnitt['items'] = fb_item_trenner_t.join(items)
+        return fb_abschnitt_t % abschnitt
 
-
+    def _items_fuer_K(self, jgh, gruende_bsp):
+        res = []
+        res.append(fb_k_header_t)
+        codes = get_codes('gruende')
+        for c in codes:
+            id = c['id']
+            code = c['code']
+            bsp = gruende_bsp[code]
+            name = c['name']
+            if bsp:
+                frage = "%s<br>%s" % (name, bsp)
+            else:
+                frage = name
+            item = {'frage': frage,
+                    'id': id,
+                    'ch1': jgh.get('gr1') == id and 'checked' or '',
+                    'ch2': jgh.get('gr2') == id and 'checked' or '',
+                    'ch3': jgh.get('gr3') == id and 'checked' or '',
+                    }
+            if code == '19':
+                res.append(fb_k_last_item_t % item)
+            else:
+                res.append(fb_k_item_t % item)
+        return res
+    def _item(self, data, jgh):
+        if isinstance(data, basestring):
+            return fb_zwischenueberschrift_t % data
+        assert isinstance(data, dict)
+        item = data.copy()
+        label = item['typ'][0]
+        if label == 'kat':
+            kat_code = item['typ'][1]
+            name = item['name']
+            default = jgh.get(name)
+            if not default:
+                default = item.get('default')
+                if default and default != ' ':
+                    default = cc(kat_code, default)
+            codes = get_codes(kat_code)
+            #item['options'] = mkselstr(fb_option_t, codes, 'id', default)
+            no_empty_option = item.get('no_empty_option')
+            item['options'] = ''.join(make_option_list(codes, default, no_empty_option))
+            maxl = max([len(c['name']) for c in codes])
+            if maxl < 60:
+                w = "%sem" % max(maxl, 3)
+            else:
+                w = "100%"
+            item['width'] = w
+            return fb_select_one_item_t % item
+        elif label == 'int':
+            minl, maxl = item['typ'][1:3]
+            item['size'] = len(str(maxl))
+            name = item['name']
+            default = jgh.get(name)
+            if not default:
+                default = item.get('default')
+                if default == None:
+                    default = ''
+            item['value'] = default
+            if item.get('readonly'):
+                item['ro'] = 'readonly'
+            else:
+                item['ro'] = ''
+            return fb_int_item_t % item
+        elif label == 'checkbox':
+            name = item['name']
+            value = jgh.get(name)
+            item['value'] = '1'
+            item['checked'] = (value == '1' and 'checked' or '')
+            return fb_checkbox_item_t % item
+        else:
+            return ''
 
 class updjgh07(_jgh07):
     """Jugendhilfestatistik ändern. (Tabelle: Jugendhilfestatistik)"""
@@ -435,36 +826,25 @@ class updjgh07(_jgh07):
     
     def processForm(self, REQUEST, RESPONSE):
         # Pro Fall kann es nur 1 Jugendhilfestatistik geben.
-##         jghiddel = self.form.get('jghiddel')
         fallid = self.form.get('fallid')
         id = self.form.get('jghid')
-##         typ = self.form.get('typ')
-##         if jghiddel and typ == 'jhg' and fallid:
-##             # alte Statistik auf neue upgraden
-##             upgrade_jgh(jghiddel, old2new=True)
-##             fall = Fall(fallid)
-##             jghstat = fall['jgh']
-        if fallid:
+        if id:
+            jgh = Jugendhilfestatistik2007(id)
+        elif fallid:
             fall = Fall(fallid)
-            jghstat = fall['jgh']
-            if not jghstat:
+            jgh = fall['jgh']
+            if not jgh:
                 meldung = {'titel':'Hinweis',
                            'legende':'Hinweis',
                            'zeile1':'Es ist noch keine Bundesstatistik f&uuml;r den Fall vorhanden!',
                            'zeile2':''}
                 return meldung_t % meldung
-        elif id:
-            jghstat = Jugendhilfestatistik2007(id)
-            fallid = jghstat.get('fall_id')
-            if fallid:
-                fall = Fall(int(fallid))
-                akte = fall['akte']
         else:
             self.last_error_message = "Keine Bundesstatistik-ID erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-        jghstat['jghid'] = jghstat['id']
-        jghstat['file'] = 'updjgh07'
-        return self._formular(jghstat)
+        jgh['jghid'] = jgh['id']
+        jgh['file'] = 'updjgh07'
+        return self._formular(jgh)
         
 class jgh07neu(_jgh07):
     """Neue Jugendhilfestatistik eintragen. (Tabelle: Jugendhilfestatistik.)"""
@@ -499,9 +879,12 @@ class jgh07neu(_jgh07):
         jgh.setDate('bg', fall.getDate('bg'))
         jgh['fall_fn'] = fall['fn']
         jgh['fall_id'] = fall['id']
-        # defaults
-        jgh.setDate('e', today())
-        jgh['sit_fam'] = cc('shf', '5') # unbekannt
+        dmy = [int(e) for e in fall['akte__gb'].split('.')]
+        dmy.reverse()
+        geburtsdatum = ebapi.Date(*dmy)
+        jgh['gey'] = geburtsdatum.year
+        jgh['gem'] = geburtsdatum.month
+        jgh['bezirksnr'] = fall['akte__wohnbez']
         return self._formular(jgh)
         
 
@@ -522,22 +905,31 @@ class jgh_check(Request.Request):
             
         beginn = check_date(self.form, 'bg', "Fehler im Datum für den Beginn",
                                 nodayallowed=True)
+
+##         em, ey = self.form.get('em'), self.form.get('ey')
+        
         ende = check_date(self.form, 'e', "Fehler im Datum für das Ende",
-                                nodayallowed=True)
+                                nodayallowed=True, maybezero=True, default=(0,0,0))
+        if ende.is_zero():
+            # kein Ende ausgefüllt, es ist mindestens 2007
+            ende_jahr = max(2007, today().year)
+        else:
+            ende_jahr = ende.year
+            
         # uns interessieren zwei Zustände:
         # für beide gilt Beginn ist 2006 oder früher
         # 1. alte Statistik und Ende 2007 oder später
         # 2. neue Statistik und Ende 2006 oder früher
         # In allen anderen Fällen wird direkt an die Klientenkarte weitergereicht.
         if beginn.year <= 2006 and fall['aktuell']:
-            if ende.year <= 2006 and file in ('jgh07einf', 'updjgh07'):
+            if ende_jahr <= 2006 and file in ('jgh07einf', 'updjgh07'):
                 assert (file == 'updjgh07' and jghiddel or
                         file == 'jgh07einf' and not jghiddel)
-                return self._ask(fallid, 'jghneu', jghiddel, 'jgh07', ende.year)
-            if ende.year >= 2007 and file in ('jgheinf', 'updjgh'):
+                return self._ask(fallid, 'jghneu', jghiddel, 'jgh07', ende_jahr)
+            if ende_jahr >= 2007 and file in ('jgheinf', 'updjgh'):
                 assert (file == 'updjgh' and jghiddel or
                         file == 'jgheinf' and not jghiddel)
-                return self._ask(fallid, 'jgh07neu', jghiddel, 'jgh', ende.year)
+                return self._ask(fallid, 'jgh07neu', jghiddel, 'jgh', ende_jahr)
         # es handelt sich um einen POST-Request, mit redirect
         # kommen wir hier nicht weiter
         from ebkus.html.klientenkarte import klkarte
@@ -563,7 +955,7 @@ class jgh_check(Request.Request):
             'n2': 'jghiddel', 'v2': jghiddel,
             'n3': 'typ', 'v3': typ,
             }
-        meldung = jgh_ueberschreiben_ja_nein_t % d
+        meldung = submit_or_back_t % d
         return meldung
 
 # Wird nicht mehr verwendet        

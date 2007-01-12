@@ -10,7 +10,7 @@ from ebkus.app import Request
 from ebkus.app.ebapi import nfc, Fachstatistik, FachstatistikList, \
      JugendhilfestatistikList, Jugendhilfestatistik2007List, \
      ZustaendigkeitList, AkteList, BezugspersonList, FallList, GruppeList, \
-     Tabelle, Code, Feld, Mitarbeiter, MitarbeiterGruppeList, \
+     Tabelle, Code, Feld, Mitarbeiter, MitarbeiterList, MitarbeiterGruppeList, \
      today, cc, check_int_not_empty, \
      check_str_not_empty, EBUpdateDataError, getQuartal, get_rm_datum, Date
 from ebkus.app.ebapih import get_codes, mksel, get_all_codes
@@ -342,7 +342,8 @@ class formabfr3(Request.Request):
         res.append(suchwort_t)
         res.append(menuefs_t)
         res.append(suchwort2a_t)
-        mksel(res, codeliste_t, stellen, 'id', stelle['id'])
+        # nicht mehr nach der Stelle fragen
+        #mksel(res, codeliste_t, stellen, 'id', stelle['id'])
         res.append(suchwort2b_t)
         return ''.join(res)
         
@@ -360,7 +361,6 @@ class abfr3(Request.Request):
         
         try:
             expr = check_str_not_empty(self.form, 'expr', "Kein Suchausdruck")
-            stzid = check_int_not_empty(self.form, 'stz', "Kein Stellenzeichen")
             table = check_str_not_empty(self.form, 'table', "Keine Suchklasse")
         except EBUpdateDataError, e:
             meldung = {'titel':'Fehler',
@@ -489,11 +489,6 @@ class formabfr4(Request.Request):
         res.append(formabfr_ende_t)
         return ''.join(res)
         
-
-
-# TODO hier sind schon angefangene Änderungen drin, die noch nicht fertig
-# sind. Das ganze sollte aus dem branch neue-spalte-... übernommen werden.
-# TODO Die Jugendhilfestatistik-Listen müssen um die 07 ergänzt werden
 class abfr4(Request.Request):
     """Anzahl der Neumeldungen u. Abschlüsse pro Jahr und Quartal."""
     
@@ -520,44 +515,35 @@ class abfr4(Request.Request):
         else:
             self.last_error_message = "Die Jahreszahl ist kleiner als das eingestellte Löschdatum (Jahr) oder grösser als das laufende Jahr"
             return self.EBKuSError(REQUEST, RESPONSE)
-            
+
+        JGHList = (jahr >= 2007 and Jugendhilfestatistik2007List or JugendhilfestatistikList)
         neumeldungen = FallList(where = 'bgy = %s' % jahr
                                 + ' and akte_id__stzak = %d' % stelle['id'],
                                 order = 'bgm' )
-        zdaliste = JugendhilfestatistikList(where = 'ey = %s' % jahr
+        zdaliste = JGHList(where = 'ey = %s' % jahr
                                 + ' and stz = %d' % stelle['id'],
                                 order = 'em' )
         
-        hauptfallliste = JugendhilfestatistikList(where = 'ey = %s' % jahr
+        hauptfallliste = JGHList(where = 'ey = %s' % jahr
                                 + ' and gfall = %d'   % cc('gfall', '1')
                                 + ' and stz = %d' % stelle['id'],
                                 order = 'em' )
         
-        geschwliste = JugendhilfestatistikList(where = 'ey = %s' % jahr
+        geschwliste = JGHList(where = 'ey = %s' % jahr
                                 + ' and gfall = %d' %  cc('gfall', '2')
                                 + ' and stz = %d' % stelle['id'],
                                 order = 'em' )
-
-        offenerfallliste = FallList(where = 'bgy <= %s' % jahr
-                                    + ' and akte_id__stzak = %d' % stelle['id'],
-                                    order = 'bgy, bgm' )
-        
-        neul1 = map(lambda x, item = 'bgm': x[item], neumeldungen)
+        laufendliste = FallList(where = 'bgy <= %s' % jahr
+                                + ' and akte_id__stzak = %d' % stelle['id']
+                                + ' and (zday = 0 or zday >= %s)' % jahr,
+                                order = 'bgy, bgm' )
         neul = [n['bgm'] for n in neumeldungen]
-        assert neul == neul1
-        zdal1 = map(lambda x, item = 'em': x[item], zdaliste)
         zdal = [z['em'] for z in zdaliste]
-        hauptf1 = map(lambda x, item = 'em': x[item], hauptfallliste)
         hauptf = [z['em'] for z in hauptfallliste]
-        geschw1 = map(lambda x, item = 'em': x[item], geschwliste)
         geschw = [z['em'] for z in geschwliste]
-        assert geschw1 == geschw
-        assert hauptf1 == hauptf
-        assert zdal == zdal1
-        
         res = []
         res.append(head_normal_t % ("Neumelde- und Abschlusszahlen"))
-        res.append(thabfr4_t)
+        res.append(thabfr4_t % jahr)
         
         quartal1_neu = quartal1_zda = quartal1_hauptf = quartal1_geschw = 0
         quartal2_neu = quartal2_zda = quartal2_hauptf = quartal2_geschw = 0
@@ -565,10 +551,21 @@ class abfr4(Request.Request):
         quartal4_neu = quartal4_zda = quartal4_hauptf = quartal4_geschw = 0
         i = 1
         while i < 13:
+            # i steht für den Monat in jahr
             neumeldezahl = neul.count(i)
             zdazahl = zdal.count(i)
             hauptfzahl = hauptf.count(i)
             geschwzahl = geschw.count(i)
+            laufendzahl = 0
+            # immer der erste des Folgemonats
+            if i == 12:
+                laufend_stichtag = Date(jahr+1, 1, 1)
+            else:
+                laufend_stichtag = Date(jahr, i+1, 1)
+            for f in laufendliste:
+                if (f.getDate('bg') < laufend_stichtag and
+                    f.getDate('zda') >= laufend_stichtag):
+                    laufendzahl +=1
             if i < 4:
                 quartal1_neu = quartal1_neu + neumeldezahl
                 quartal1_zda = quartal1_zda + zdazahl
@@ -592,9 +589,9 @@ class abfr4(Request.Request):
                 quartal4_zda = quartal4_zda + zdazahl
                 quartal4_hauptf = quartal4_hauptf + hauptfzahl
                 quartal4_geschw = quartal4_geschw + geschwzahl
-            res.append(abfr4_t % (i, neumeldezahl, hauptfzahl, geschwzahl, zdazahl) )
+            res.append(abfr4_t % (i, laufendzahl, neumeldezahl,
+                                  hauptfzahl, geschwzahl, zdazahl) )
             i = i + 1
-            
         res.append(abfr4ges_t % (quartal1_neu, quartal1_hauptf,
                                  quartal1_geschw, quartal1_zda,
                                  quartal2_neu, quartal2_hauptf,
@@ -606,7 +603,7 @@ class abfr4(Request.Request):
                                  len(neul), len(hauptf), len(geschw), len(zdal) ))
         return ''.join(res)
         
-        
+
 class formabfr5(Request.Request):
     """Suchformular: Klientenzahl pro Mitarbeiter u. Jahr."""
     
@@ -676,23 +673,10 @@ class jghabfr(Request.Request):
     
     permissions = Request.ABFR_PERM
     
-##     def processForm(self, REQUEST, RESPONSE):
-##         stellen = get_all_codes('stzei')
-##         res = []
-##         res.append(head_normal_t % 'Bundesstatistikabfrage')
-##         res.append(fsabfrjahr_t)
-##         res.append(menuefs_t)
-##         res.append(fsabfrjahr2_t % ({'file' : 'jghergebnis',
-##                                      'year' : '%(year)s' % today()}))
-##         res.append(fsabfrstelle_t)
-##         mksel(res, codeliste_t, stellen, 'id', self.stelle['id'])
-##         res.append(fsabfrtabende_t)
-##         return ''.join(res)
-
     def processForm(self, REQUEST, RESPONSE):
         stellen = get_all_codes('stzei')
         jahre = SQL("select distinct ey from jghstat order by ey").execute()
-        jahre += SQL("select distinct ey from jghstat07 order by ey").execute()
+        jahre += SQL("select distinct ey from jghstat07 where ey is not NULL order by ey").execute()
         #jahre += (2007,)
         #jahre.sort()
         res = []
@@ -751,8 +735,9 @@ class jghergebnis(Request.Request):
         if config.BERLINER_VERSION:
             auszaehlungen.append(
                 CA(liste, 'bezirksnr', title="Wohnbezirk", file=file))
-        auszaehlungen.append(OA(liste, 'mit_id', self.getMitarbeiterliste(),
-                                'na', title="Mitarbeiter", file=file))
+##         mitarbeiter = MitarbeiterList(where="benr = %s" % cc('benr', 'bearb'))
+##         auszaehlungen.append(OA(liste, 'mit_id', mitarbeiter,
+##                                 'na', title="Mitarbeiter", file=file))
         return auszaehlungen
 
     def get_auszaehlungen07(self, liste, file):
@@ -760,36 +745,70 @@ class jghergebnis(Request.Request):
         from ebkus.app.statistik import \
              CodeAuszaehlung as CA, \
              MehrfachCodeAuszaehlung as MA, \
-             ObjektAuszaehlung as OA
+             MehrfachCodeAuszaehlung2 as MA2, \
+             ObjektAuszaehlung as OA, \
+             BereichsKategorieAuszaehlung as BKA, \
+             EinzelWertAuszaehlung as EWA
         auszaehlungen = [
-            CA(liste, 'stz', title='Dienststelle', file=file),  
-            CA(liste, 'sit_fam', title='Situation in der Herkunftsfamilie', file=file),  
+            CA(liste, 'stz', title='Dienststelle', file=file),
+            EWA(liste, 'zustw', ('1',),
+                title='Übernahme wegen Zuständigkeitswechsel', file=file),
+            CA(liste, 'hilf_art', title='Art der Hilfe', file=file),
+            CA(liste, 'hilf_ort', title='Ort der Durchführung', file=file),
+##             CA(liste, 'traeger', title='Traeger', file=file),
+            CA(liste, 'gs', title='Geschlecht', file=file),
+            BKA(liste, 'alter', 'jghag', title='Altersgruppen', file=file),
+            CA(liste, 'aort_vor', title='Aufenthaltsort vor der Hilfe',
+               file=file),
+            CA(liste, 'sit_fam', title='Situation in der Herkunftsfamilie',
+               file=file),
+            CA(liste, 'ausl_her',
+               title='Ausländische Herkunft mindestens eines Elternteils',
+               file=file),
+            CA(liste, 'vor_dt',
+               title='In der Familie wird vorrangig deutsch gesprochen',
+               file=file),
+            CA(liste, 'wirt_sit',
+               title='Lebt von ALGII, Grundsicherung oder Sozialhilfe',
+               file=file),
+            CA(liste, 'aip',
+               title='Anregende Institution oder Person',
+               file=file),
+            CA(liste, 'ees',
+               title='Teilweiser oder vollständiger Entzug der elterlichen Sorge',
+               file=file),
+            CA(liste, 'va52',
+               title='Verfahrensaussetzung nach §52 FGG',
+               file=file),
+            CA(liste, 'rgu',
+               title='Unterbringung mit Freiheitsentzug',
+               file=file),
+            MA2(liste, ['gr1', 'gr2', 'gr3'],
+               title='Gründe für die Hilfegewährung',
+               file=file),
+            BKA(liste, 'nbkges', 'fskat',
+                title='Zahl der Beratungskontakte',
+                file=file),
+            CA(liste, 'lbk6m',
+               title='Letzter Beratungskontakt liegt mehr als sechs Monate zurück',
+               file=file),
+            CA(liste, 'grende',
+               title='Grund für die Beendigung',
+               file=file),
+            CA(liste, 'aort_nac',
+               title='Anschließender Aufenthalt',
+               file=file),
+            CA(liste, 'unh',
+               title='Unmittelbar nachfolgende Hilfe',
+               file=file),
+            
             ]
-##             CA(liste, 'bgr', title="Beendigungsgrund", file=file),
-##             CA(liste, 'gs',  title="Geschlecht", file=file),
-##             CA(liste, 'ag',  title="Altersgruppe", file=file),
-##             CA(liste, 'fs',  title="Junger Mensch lebt", file=file),
-##             CA(liste, 'hke', title="Staatsangehörigkeit", file=file),
-##             CA(liste, 'gsa', title="Geschwisterzahl", file=file),
-##             CA(liste, 'gsu', title="Geschwisterzahl unbekannt", file=file),
-##             CA(liste, 'zm',  title="1. Kontaktaufnahme durch", file=file),
-##             MA(liste, ['ba0', 'ba1', 'ba2', 'ba3', 'ba4',
-##                        'ba5', 'ba6', 'ba7', 'ba8', 'ba9'],
-##                title='Beratungsanlass', file=file),
-##             CA(liste, 'schw', title="Beratungsschwerpunkt", file=file),
-##             CA(liste, 'fbe0', title="Beratung setzt ein bei dem jungen Menschen",
-##                file=file),
-##             CA(liste, 'fbe1', title="Beratung setzt ein bei den Eltern",
-##                file=file),
-##             CA(liste, 'fbe2', title="Beratung setzt ein in der Familie",
-##                file=file),
-##             CA(liste, 'fbe3', title="Beratung setzt ein im sozialen Umfeld",
-##                                file=file)
-##         if config.BERLINER_VERSION:
-##             auszaehlungen.append(
-##                 CA(liste, 'bezirksnr', title="Wohnbezirk", file=file))
-        auszaehlungen.append(OA(liste, 'mit_id', self.getMitarbeiterliste(),
-                                'na', title="Mitarbeiter", file=file))
+        if config.BERLINER_VERSION:
+            auszaehlungen.append(
+                CA(liste, 'bezirksnr', title="Wohnbezirk", file=file))
+##         mitarbeiter = MitarbeiterList(where="benr = %s" % cc('benr', 'bearb'))
+##         auszaehlungen.append(OA(liste, 'mit_id', mitarbeiter,
+##                                 'na', title="Mitarbeiter", file=file))
         return auszaehlungen
 
     def _jgh_beide(self):
@@ -801,10 +820,10 @@ class jghergebnis(Request.Request):
         query_stelle = ' or '.join(['stz = %s' % i for i in self.stz])
         List = self.jgh07 and Jugendhilfestatistik2007List or JugendhilfestatistikList
         self.jghl = List(
-            where = 'ey  >= %s and ey  <= %s and ( %s )'
+            where = 'ey is not NULL and ey  >= %s and ey  <= %s and ( %s )'
             % (self.von_jahr, self.bis_jahr, query_stelle) )
         self.jghl_gesamt = List(
-            where = 'ey  >= %s and ey  <= %s'
+            where = 'ey is not NULL and ey  >= %s and ey  <= %s'
             % (self.von_jahr, self.bis_jahr) )
         if not self.jghl:
             meldung = {'titel':'Fehler',
@@ -853,7 +872,8 @@ class jghergebnis(Request.Request):
     def processForm(self, REQUEST, RESPONSE):
         jahre = self.form.get('von_jahr'), self.form.get('bis_jahr')
         # select liefert 'Jahr' wenn nicht ausgewählt wurde
-        jahre = [int(j) for j in jahre if j != 'Jahr']
+        jahre = [int(j) for j in jahre
+                 if isinstance(j, basestring) and j.isdigit()]
         if not jahre:
             meldung = {'titel':'Fehler',
                        'legende':'Fehlerbeschreibung',
@@ -1200,7 +1220,7 @@ class fsabfr_plraum(Request.Request):
             # alle Planungsräume, die in Akte vorkommen außer 0 und 9999, die
             # keine gültigen Planungsräume sind
             t = SQL("SELECT distinct planungsr FROM akte \
-                     WHERE planungsr != '0' and planungsr != '9999' ORDER BY planungsr")
+                     WHERE planungsr != '0' ORDER BY planungsr")
             plraumliste = t.execute({})
 
             
@@ -1217,7 +1237,30 @@ class fsabfr_plraum(Request.Request):
             res.append('<option value="%s" > %s ' %(p[0],p[0]))
         res.append(fsabfrtabende_t)
         return ''.join(res)
-        
+
+def create_temp_table_for_jgh_bezirksnr():
+    """Da für alte MySQL keine Union/Subqueries möglich sind,
+    diese gemeinsame temporäre Tabelle. Sonst erscheint das join auf
+    die bezirksnr nicht realisierbar.
+    """
+    from random import random
+    from math import modf
+    temp_table = 't' + ("%.10f" % modf(random())[0])[4:]
+    SQL("""CREATE TEMPORARY TABLE %s
+SELECT fall.id as fall_id,
+       fall.fn as fall_fn,
+       IFNULL(jghstat.bezirksnr, jghstat07.bezirksnr) as bezirksnr
+FROM fall
+LEFT JOIN jghstat07 ON fall.id=jghstat07.fall_id
+LEFT JOIN jghstat ON fall.id=jghstat.fall_id
+WHERE jghstat.bezirksnr IS NOT NULL OR
+      jghstat07.bezirksnr IS NOT NULL
+                """ % temp_table).execute()
+    return temp_table
+                
+def drop_temp_table_for_jgh_bezirksnr(temp_table):
+    if temp_table:
+        SQL("DROP TABLE %s" % temp_table).execute()
 
 class fsergebnis_plraum(fachstatistik_ergebnis):
     """Ergebnis der Fachstatistikabfrage (Tabellen: Fachstatistik,
@@ -1233,8 +1276,8 @@ class fsergebnis_plraum(fachstatistik_ergebnis):
             # Es sollen in diese Auswertung nur die Klienten genommen werden,
             # die in dem zuständigen Kreis (in Berlin Bezirk) wohnen.
             wohnbezirk = Code(kat_code='wohnbez',
-                           code=Code(kat_code='kr', sort=1)['code']
-                           )
+                              code=Code(kat_code='kr', sort=1)['code']
+                              )
         else:
             pass
             # jgh.bezirksnr sollte in der nicht Berliner Version nicht
@@ -1252,8 +1295,9 @@ class fsergebnis_plraum(fachstatistik_ergebnis):
             stz = [stz]
         stellen_anzeige = ', '.join([Code(s)['name'] for s in stz])
         query_stelle = ' or '.join([('fachstat.stz = %s' % s) for s in stz])
-
+        
         # Planungsraeume des Bezirks
+        temp_table = None
         if self.form.has_key('bz'):
             bz = self.form.get('bz')
             if type(bz) is type(''):
@@ -1261,7 +1305,8 @@ class fsergebnis_plraum(fachstatistik_ergebnis):
             query_plraum = ' or '.join([('fachstat.bz = %s ' % b) for b in bz])
             plraum_anzeige = "und Planungsräume: " + ', '.join([str(b) for b in bz])
             if config.BERLINER_VERSION:
-                query_wohnbezirk = " jghstat.bezirksnr = '%(id)s' " % wohnbezirk
+                temp_table = create_temp_table_for_jgh_bezirksnr()
+                query_wohnbezirk = (" %s.bezirksnr = " % temp_table) + "'%(id)s' " % wohnbezirk
                 wohnbezirk_anzeige = "im Bezirk: '%(name)s.' " % wohnbezirk
             else:
                 query_wohnbezirk = ''
@@ -1294,7 +1339,7 @@ class fsergebnis_plraum(fachstatistik_ergebnis):
             query = "( fachstat.jahr %s %s ) and ( %s ) and ( %s )" % (op,
                      year, query_stelle, query_plraum)
             if config.BERLINER_VERSION:
-                join=[('jghstat', 'fachstat.fall_fn = jghstat.fall_fn')]
+                join=[(temp_table, 'fachstat.fall_fn = %s.fall_fn' % temp_table)]
                 query += " and ( %s )" % query_wohnbezirk
             else:
                 # keine Abfrage von jghstat.bezirksnr
@@ -1310,7 +1355,7 @@ class fsergebnis_plraum(fachstatistik_ergebnis):
             fsl = fsl_gesamt
             gesamt1 = len(fsl_gesamt)
             gesamt2 = gesamt1
-            
+        drop_temp_table_for_jgh_bezirksnr(temp_table)
         # Headerblock, Menue u. Uberschrift fuer das HTML-Template
         res = []
         res.append(head_normal_t % ("Fachstatistikergebnisse"))
@@ -1690,6 +1735,9 @@ class formabfr11(Request.Request):
             
         gleichDauer = JugendhilfestatistikList(where = 'ey >= %s' % jahr_von
                               + ' and ey <= %s ' % jahr_bis )
+        # gemischte Listen gehen, also dasselbe noch mal hintendran für 07
+        gleichDauer += Jugendhilfestatistik2007List(where = 'ey IS NOT NULL and ey >= %s' % jahr_von
+                              + ' and ey <= %s ' % jahr_bis )
         
         if len(gleichDauer) > 0:
             pass
@@ -1816,6 +1864,14 @@ class formabfr12(Request.Request):
         join = [('fachstat', 'fachstat.fall_fn = jghstat.fall_fn'),
                 ('fachstatlei', 'fachstat.id = fachstatlei.fstat_id')]
         jghl = JugendhilfestatistikList(where=query, join=join)
+        # dasselbe nochmal hintendranhängen für 07
+        query = 'fachstatlei.le = %s and jghstat07.ey IS NOT NULL and \
+                 jghstat07.ey >= %s and jghstat07.ey <= %s' % \
+                (leistung, jahr_von, jahr_bis)
+        join = [('fachstat', 'fachstat.fall_fn = jghstat07.fall_fn'),
+                ('fachstatlei', 'fachstat.id = fachstatlei.fstat_id')]
+        jghl += Jugendhilfestatistik2007List(where=query, join=join)
+
         if not jghl:
             meldung = {'titel':'Keine Datens&auml;tze gefunden!',
                      'legende':'Hinweis!',
