@@ -49,12 +49,32 @@
 <VirtualHost %(SERVER_NAME)s:443>
 
 # Beispiel:
+
+#<Directory "c:/ebkus/demo/htdocs/">
+#    AllowOverride None
+#    Options None
+#    Order allow,deny
+#    Allow from all
+#</Directory>
 # ScriptAlias /ebkus/demo/cgi/ c:/ebkus/demo/htdocs/cgi/
 # Alias /ebkus/demo/ c:/ebkus/demo/htdocs/
 
+#INSTANCE_DIRECTORY
 #INSTANCE_SCRIPT_ALIAS
 #INSTANCE_ALIAS
 
+<Directory "%(EBKUS_HOME)s/doc/">
+    AllowOverride None
+    Options None
+    Order allow,deny
+    Allow from all
+</Directory>
+<Directory "%(EBKUS_DOCUMENT_ROOT)s/">
+    AllowOverride None
+    Options None
+    Order allow,deny
+    Allow from all
+</Directory>
 Alias /ebkus/doc/ %(EBKUS_HOME)s/doc/
 Alias /ebkus/ %(EBKUS_DOCUMENT_ROOT)s/
 Alias / %(EBKUS_DOCUMENT_ROOT)s/
