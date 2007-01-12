@@ -7,6 +7,11 @@ Vollständiger Berliner Straßenkatalog bzw. Auschnitt für Demo::
   strassen_katalog_berlin.txt.gz
   strassen_katalog_berlin_ausschnitt.txt.gz
 
+Neuer Berliner Straßenkatalog ab EBKuS 3.3, nicht mehr als
+Textdatei, sonder als SQL:
+
+  strassenkat_berlin.sql.gz
+  strassenkat_berlin_ausschnitt.sql.gz
 
 Merkmalsdefinitionen zur Initialisierung der Datenbank
 mit Berliner Merkmalen bzw. ohne Berliner Merkmalen::

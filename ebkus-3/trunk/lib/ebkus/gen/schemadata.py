@@ -96,7 +96,7 @@ str_name, CHAR(60), Str_name, p,
 hausnr, CHAR(4), Hausnr, p,
 bezirk, INT, Bezirk, p,
 plz, INT, Plz, p,
-Plraum, CHAR(4), Planungsraum, p
+Plraum, CHAR(8), Planungsraum, p
 
 table, sessions, ,Session
 session_id, CHAR(50), SessionID, s,
@@ -116,8 +116,8 @@ ber, CHAR(30), Ausbildung, p,
 str, CHAR(35), Strasse, p,
 hsnr, CHAR(5), Hausnummer, p,
 plz, CHAR(9), Postleitzahl, p,
-planungsr, CHAR(4), Planungsraum, p, wird in das fachstat.bz Feld übernommen
-wohnbez, INT, Wohnbezirk, p,
+planungsr, CHAR(8), Planungsraum, p, wird in das fachstat.bz Feld übernommen
+wohnbez, INT, Wohnbezirk, k, wohnbez, berlinspezifisch
 lage, INT, inBerlin, p,
 ort, CHAR(35), Ort, p,
 tl1, CHAR(25), Telefon, p,
@@ -300,7 +300,7 @@ fall_id, INT, Fallid, f, fall, fachstatistiken
 fall_fn, CHAR(20), Fallnummer, p,
 jahr, INT, Jahr, p,
 stz, INT, Dienststelle, k, stzei, default ist aktuelle Dst. des Falles, wird benötigt wegen standalone Funktion der Fachstatistik
-bz, CHAR(4), Region, p, berlinspezifisch - das ist der Planungsraum
+bz, CHAR(8), Region, p, berlinspezifisch - das ist der Planungsraum
 gs, INT, Geschlecht, k, gs
 ag, INT, Altersgruppe Kind, k, fsag
 fs, INT, Familienstatus (lebt bei), k, fsfs
@@ -395,16 +395,49 @@ zeit, INT, Änderungszeit, p,
 table, jghstat07, , Jugendhilfestatistik ab 2007, Jugendhilfestatistik2007
 id, INT, id, s,
 fall_id, INT, Fallid, f, fall, jgh07_statistiken
-mit_id, INT, Mitarbeiterid, f, mitarbeiter, jgh07_statistiken
 fall_fn, CHAR(20), Fallnummer, p,
+mit_id, INT, Mitarbeiterid, f, mitarbeiter, jgh07_statistiken
 stz, INT, Dienststelle, k, stzei, default ist aktuelle Dst. des Falles
+gfall, INT, Geschwisterfall, k, gfall
+bezirksnr, INT, Wohnbezirksnummer des Klienten, k, wohnbez, berlinspezifisch
+land, INT, Land, k, land
+kr, INT, Kreis, k, kr, bundesweite Statistik - stellen- nicht klientenbezogen
+einrnr, INT, Einrichtungsnummer, k, einrnr
+lnr, INT, laufende Nummer, p,
+bgm, INT, Beginn der Hilfe Monat, p,
+bgy, INT, Beginn der Hilfe Jahr, p,
+zustw, CHAR(1), Übernahme wegen Zuständigkeitswechsels, p,
+hilf_art, INT, Art der Hilfe, k, hilf_art
+hilf_ort, INT, Ort der Hilfe, k, hilf_ort
+traeger, INT, Träger der Einrichtung oder des Dienstes, k, traeger
+gs, INT, Geschlecht, k, gs
+gem, INT, Geburtsmonat, p,
+gey, INT, Geburtsjahr, p,
+aort_vor, INT, Aufenthaltsort vor der Hilfe, k, auf_ort
 sit_fam, INT, Situation in der Herkunftsfamilie, k, shf
-bgm, INT, Beginn Monat, p,
-bgy, INT, Beginn Jahr, p,
-em, INT, Ende Monat, p,
-ey, INT, Ende Jahr, p,
-lnr, INT, laufendeNummer, p,
+ausl_her, INT, Ausländische Herkunft mindestens eines Elternteils, k, ja_ne_un
+vor_dt, INT, Vorrangig deutsch gesprochen, k, ja_ne_un
+wirt_sit, INT, Lebt von ALGII oder Grundsicherung oder Sozialhilfe, k, ja_ne_un
+aip, INT, Anregende Institution oder Person, k, aip
+ees, INT, Entzug der elterlichen Sorge nach §1666 BGB, k, ja_nein
+va52, INT, Verfahrensaussetzung nach §52 FGG, k, ja_nein
+rgu, INT, Unterbringung nach §1631b BGB, k, ja_nein
+hda, INT, Hilfe dauert am Jahresende an, k, ja_nein
+nbkakt, INT, Zahl der Beratungskontakte bei andauernder Hilfe, p,
+gr1, INT, Hauptgrund für die Hilfegewährung, k, gruende
+gr2, INT, 2. Grund für die Hilfegewährung, k, gruende
+gr3, INT, 3. Grund für die Hilfegewährung, k, gruende
+em, INT, Ende der Hilfe Monat, p,
+ey, INT, Ende der Hilfe Jahr, p,
+nbkges, INT, Zahl der Beratungskontakte insgesamt, p,
+lbk6m, INT, Letzter Kontakt vor mehr als 6 Monaten, k, ja_nein
+grende, INT, Gründe für Beendigung, k, grende
+aort_nac, INT, Anschließender Aufenthalt, k, auf_ort
+unh, INT, Unmittelbar nachfolgende Hilfe, k, unh
 zeit, INT, Änderungszeit, p,
+
+
+
 
 table, code, code.kat_id/code.kat_code/name.kat_id/name.kat_code, Code, Code
 id, INT, id, s,

@@ -31,7 +31,6 @@ Klassen 'Table' und 'Field' erzeugt, die dann zu Generierung des Schemas
 
 import string
 import re
-from ebkus.db.sql import opendb, closedb, getDBHandle
 
 
 class Table:
@@ -157,6 +156,7 @@ def get_schema_info(str):
     
 def delete_tables_in_db(test = 0):
     """Löscht alle Tabellen."""
+    from ebkus.db.sql import getDBHandle
     db = getDBHandle()
     #print db
     alltables = db.listtables()
@@ -173,6 +173,7 @@ def delete_tables_in_db(test = 0):
         
         
 def create_schema_in_db(newtables, test = 0):
+    from ebkus.db.sql import getDBHandle
     db = getDBHandle()
     #print db
     for t in newtables:
@@ -184,6 +185,7 @@ def create_schema_in_db(newtables, test = 0):
             print t.sql_create()
         
 def insert_tables_fields_in_db(newtables, test = 0):
+    from ebkus.db.sql import getDBHandle
     db = getDBHandle()
     tid = 1
     fid = 1
@@ -220,6 +222,7 @@ def init_new_db(schema_str, test):
     
     
 def generate_schema(schema_str, test):
+    from ebkus.db.sql import opendb, closedb
     opendb()
     init_new_db(schema_str, test)
     closedb()

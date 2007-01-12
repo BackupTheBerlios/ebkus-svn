@@ -414,17 +414,103 @@ protocol;off;config
 
 # Ergänzungen für die neue Bundesstatistik 2007
 code_list_str += \
-"""1;Eltern leben zusammen;shf
+"""11;Brandenburg/Berlin;land
+11;11;einrnr
+1;Eltern leben zusammen;shf
 2;Elternteil lebt alleine ohne (Ehe-)Partner (mit/ohne weitere/n Kinder/n);shf
-3;Elternteil lebt mit neuer Partnerin/neuem Partner (mit/ohne weitere/n Kinder/n)(z.B. Stiefelternkonstellation;shf
+3;Elternteil lebt mit neuer Partnerin/neuem Partner (mit/ohne weitere/n Kinder/n)(z.B. Stiefelternkonstellation);shf
 4;beide Eltern sind verstorben;shf
 5;unbekannt;shf
+1;ja;ja_nein
+2;nein;ja_nein
+0;unbekannt;ja_ne_un
+1;ja;ja_ne_un
+2;nein;ja_ne_un
+01;Erziehungsberatung vorrangig mit der Familie (Eltern und Kind);hilf_art
+02;Erziehungsberatung vorrangig mit den Eltern (zusammen oder einzeln);hilf_art
+03;Erziehungsberatung vorrangig mit dem jungen Menschen;hilf_art
+01;In der Wohnung der Herkunftsfamilie/Adoptivfamilie;hilf_ort
+02;In (der Wohnung) einer Verwandtenfamilie;hilf_ort
+03;In einer nicht-verwandten Familie (privater Haushalt);hilf_ort
+04;In einer Einrichtung der Kindertagesbetreuung;hilf_ort
+05;In der Schule;hilf_ort
+06;In den Räumen eines ambulaten Dienstes/einer Beratungsstelle;hilf_ort
+07;In einer Einrichtung über Tag;hilf_ort
+08;In einer Mehrgruppen-Einrichtung über Tag und Nacht;hilf_ort
+09;In einer Eingruppen-Einrichtung (auch Außenwohngruppe) über Tag und Nacht;hilf_ort
+10;In der Wohnung des Jugendlichen/jungen Volljährigen;hilf_ort
+11;Außerhalb von Deutschland;hilf_ort
+12;Sonstiger Ort (z.B. JVA, Klinik, Frauenhaus);hilf_ort
+01;Im Haushalt der Eltern/eines Elternteils/des Sorgeberechtigten;auf_ort
+02;In einer Verwandtenfamilie;auf_ort
+03;In einer nicht.verwandten Familie (z.B. Pflegestelle);auf_ort
+04;In der eigenen Wohnung;auf_ort
+05;In einer Pflegefamilie;auf_ort
+06;In einem Heim oder einer betreuten Wohnform;auf_ort
+07;In der Psychiatrie;auf_ort
+08;In einer sozialpädagogisch betreuten Einrichtung (z.B. Internat, Mutter-/Vater-Kind Einrichtung);auf_ort
+09;Sonstiger Aufenthalt (z.B. JVA, Frauenhaus);auf_ort
+10;Ohne festen Aufenthalt;auf_ort
+11;An unbekanntem Ort;auf_ort
+10;Träger der öffentlichen Jugendhilfe;traeger
+21;Arbeiterwohlfahrt oder deren Mitgliedsorganisation;traeger
+22;Deutscher Paritätischer Wohlfahrtsverband oder dessen Mitgliedsorganisation;traeger
+23;Deutsches Rotes Kreuz oder dessen Mitgliedsorganisation;traeger
+24;Diakonisches Werk oder sonstiger der EKD angeschlossener Träger;traeger
+25;Deutscher Caritasverband oder sonstiger katholischer Traeger;traeger
+26;Zentralwohlfahrtsinstitut der Juden in Deutschland oder jüdische Kultusgemeinde;traeger
+27;Sonstige Religionsgemeinschaft des öffentlichen Rechts;traeger
+28;Sonstiger anerkannter Träger der Jugendhilfe;traeger
+29;Sonstige juristische Person, andere Vereinigung;traeger
+30;Wirtschaftsunternehmen (privat-gewerblich);traeger
+40;Pflegefamilie, die Vollzeitpflege gemäß §33 SGB VIII durchführt;traeger
+1;Junger Mensch selbst;aip
+2;Eltern bzw. Personensorgeberechtigte/r;aip
+3;Schule/Kindertageseinrichtung;aip
+4;Soziale/r Dienst/e und andere Institution/en (z.B. Jugendamt);aip
+5;Gericht/Staatsanwaltschaft/Polizei;aip
+6;Arzt/Klinik/Gesundheitsamt;aip
+7;Ehemalige Klienten/Bekannte;aip
+8;Sonstige;aip
+10;Unversorgtheit des jungen Menschen;gruende
+11;Unzureichende Förderung/Betreuung/Versorgung des jungen Menschen in der Familie;gruende
+12;Gefährdung des Kindeswohls;gruende
+13;Eingeschränkte Erziehungskompetenz der Eltern/Personensorgeberechtigten;gruende
+14;Belastungen des jungen Menschen durch Problemlagen der Eltern;gruende
+15;Belastungen des jungen Menschen durch familiäre Konflikte;gruende
+16;Auffälligkeiten im sozialen Verhalten (dissoziales Verhalten) des jungen Menschen;gruende
+17;Entwicklungsauffälligkeiten/seelische Probleme des jungen Menschen;gruende
+18;Schulische/beruflische Probleme des jungen Menschen;gruende
+19;Übernahme von einem anderen Jugendamt wegen Zuständigkeitswechsels;gruende
+10;Beendigung gemäß Hilfeplan/Beratungszielen;grende
+20;Beendigung abweichend von Hilfeplan/Beratungszielen durch den Sorgeberechtigten/den jungen Volljährigen (auch durch unzureichende Mitwirkung);grende
+21;Beendigung abweichend von Hilfeplan/Beratungszielen durch die bisher betreuende Einrichtung, die Pflegefamilie, den Dienst;grende
+22;Beendigung abweichend von Hilfeplan/Beratungszielen durch den Minderjährigen;grende
+30;Adoptionspflege/Adoption;grende
+40;Abgabe an ein anderes Jugendamt wegen Zuständigkeitswechsels;grende
+50;Sonstige Gründe;grende
+1;Zuständigkeitswechsel:Fortführung in derselben Pflegefamilie bzw. Einrichtung;unh
+2;Weiterverweisung an Eheberatung, Schuldnerberatung, Kinder- und Jugendlichenpsychotherapeuten, andere Einrichtungen;unh
+3;Beratung in allgemeinen Fragen der Erziehung durch den Allgemeinen Sozialdienst (ASD) (§16 Abs.2 Nr.2 SGB VIII);unh
+4;Hilfe zur Erziehung gemäß §§27-35, 41 SGB VIII;unh
+5;Eingliederungshilfe gemäß §35a SGB VIII;unh
+6;Keine nachfolgende Hilfe gemäß §§27-35, 41 SGB VIII bekannt;unh
+1;0-2;jghag;0;2
+2;3-5;jghag;3;5
+3;6-9;jghag;6;9
+4;10-13;jghag;10;13
+5;14-17;jghag;14;17
+6;18-20;jghag;18;20
+7;21-26;jghag;21;26
+8;ab 27;jghag;27;99
 """
+
+
 
 #
 # Welche Kategorien sind Bereichskategorien?
 #
-bereichs_kategorien_str = "fskat gsa dbsite"
+bereichs_kategorien_str = "fskat gsa dbsite jghag"
 
 
 #
@@ -500,6 +586,19 @@ config;Konfigurationseinstellungen
 # Ergänzungen für die neue Bundesstatistik 2007
 kategorie_list_str += """
 shf;Situation in der Herkunftsfamilie
+ja_nein;Ja oder Nein
+ja_ne_un;Ja/Nein oder unbekannt
+hilf_art;Art der Hilfe
+hilf_ort;Ort der Hilfe
+auf_ort;Aufenthaltsort vor bzw. nach der Hilfe
+traeger;Traeger der Einrichtung oder des Dienstes
+aip;Die Hilfe/Beratung anregende Institution oder Person
+gruende;Gründe für die Hilfegewährung
+grende;Gründe für die Beendigung der Hilfe/Beratung
+unh;Unmittelbar nachfolgende Hilfe
+land;Land (Feld 2-3)
+einrnr;Einrichtungs-Nr (Feld 10-15)
+jghag;Altersgruppe
 """
 
 #

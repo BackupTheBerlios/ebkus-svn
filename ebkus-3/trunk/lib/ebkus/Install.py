@@ -67,11 +67,11 @@ def create_cd(dist_dir, cd_dir, for_linux, for_win32):
         myrmtree(install_dir, logf=installer.log)
 
     # EBKuS Dateien kopieren
-    ebkus_dir = join(cd_dir, 'ebkus-3.2')
+    ebkus_dir = join(cd_dir, 'ebkus-3.3')
     create_directory(ebkus_dir)
     for f in os.listdir(dist_dir):
         src = join(dist_dir, f)
-        mycopytree(src, ebkus_dir, exclude_dirs=['CVS'],
+        mycopytree(src, ebkus_dir, exclude_dirs=['CVS', '.svn'],
                    overwrite=True, logf=installer.log)
     os.chmod(join(ebkus_dir, 'install.py'), 0700)
     os.chmod(join(ebkus_dir, 'create_cd.py'), 0700)
@@ -1168,10 +1168,12 @@ class ComponentEbkusInstance(Component):
                     if self.config.BERLINER_VERSION:
                         merkmale_file_in = 'merkmale_berlin.py'
                         if self.config.INSTANCE_NAME.startswith('demo'):
-                            str_kat = 'strassen_katalog_berlin_ausschnitt.txt.gz'
+                            #str_kat = 'strassen_katalog_berlin_ausschnitt.txt.gz'
+                            str_kat = 'strassenkat_berlin_ausschnitt.sql.gz'
 ##                             demo_daten = 'demo_daten.py'
                         else:
-                            str_kat = 'strassen_katalog_berlin.txt.gz'
+                            #str_kat = 'strassen_katalog_berlin.txt.gz'
+                            str_kat = 'strassenkat_berlin.sql.gz'
                         str_kat = join(self.config.EBKUS_HOME, 'sql', str_kat)
                     else:
                         merkmale_file_in = 'merkmale_standard.py'
@@ -1369,7 +1371,7 @@ class ComponentEbkusInstance(Component):
         from ebkus.gen.schemagen import init_new_db
         from ebkus.gen.schemadata import schemainfo
         from ebkus.gen.migrate import migrate
-        from ebkus.gen.migrate_strkat import read_strkat
+        #from ebkus.gen.migrate_strkat import read_strkat
         from ebkus.db.sql import opendb, closedb, getDBHandle
         opendb(host=self.config.DATABASE_ADMIN_HOST, user=self.config.DATABASE_ADMIN_USER,
            passwd=self._get_database_admin_passwort())
@@ -1387,12 +1389,26 @@ class ComponentEbkusInstance(Component):
             self.log("Kategorien/Codes anlegen ...")
             migrate(merkmale_file_in)
             if str_kat:
-                self.log("Strassenkatalog einlesen (kann lange dauern!) ...")
-                read_strkat(str_kat)
+                self.log("Strassenkatalog %s einlesen (kann lange dauern!) ..." % str_kat)
+##                 read_strkat(str_kat)
+##                 for c in sql_split(str_kat):
+##                     cursor.execute(c)
+                cursor.execute("DROP TABLE strassenkat")
+                if sys.platform == 'win32':
+                    for c in sql_split(str_kat):
+                        cursor.execute(c)
+                else:
+                    # viel schneller
+                    user = self.config.DATABASE_ADMIN_USER
+                    pw = self._get_database_admin_passwort()
+                    pw_arg = pw and "-p%s" % pw or ''
+                    db = database_name
+                    cat = str_kat.endswith('.gz') and 'zcat' or 'cat'
+                    os.system("%s %s | mysql -u%s %s %s" % (cat, str_kat, user, pw_arg, db))
             if demo_daten:
                 self.log("Demo-Daten einfuegen")
                 from ebkus.gen.demo_daten import create_demo_daten
-                create_demo_daten()
+                create_demo_daten(self.config)
 ##                 globals = {}
 ##                 execfile(demo_daten, globals)
 ##                 globals['create_demo_daten']()
@@ -1412,6 +1428,14 @@ class ComponentEbkusInstance(Component):
         self.log("erfolgreich erzeugt", pop=True)
 
     def _add_instance_to_ebkus_httpd_config(self):
+        directory = \
+"""<Directory "%(DOCUMENT_ROOT)s/">
+    AllowOverride None
+    Options None
+    Order allow,deny
+    Allow from all
+</Directory>
+""" % vars(self.config)
         script_alias = "ScriptAlias /ebkus/%(INSTANCE_NAME)s/cgi/ %(DOCUMENT_ROOT)s/cgi/" \
                        % vars(self.config)
         alias = "Alias /ebkus/%(INSTANCE_NAME)s/ %(DOCUMENT_ROOT)s/" \
@@ -1428,10 +1452,11 @@ class ComponentEbkusInstance(Component):
                 raise InstallException("Fehler in %s ; bitte manuell reparieren" % ebkus_httpd_conf)
             else:
                 return
+        text = text.replace('#INSTANCE_DIRECTORY', directory)
         text = text.replace('#INSTANCE_SCRIPT_ALIAS', script_alias)
         text = text.replace('#INSTANCE_ALIAS', alias +
-                            # Platzhalter fuer weitere Instanzenx
-                            '\n\n#INSTANCE_SCRIPT_ALIAS\n#INSTANCE_ALIAS')
+                            # Platzhalter fuer weitere Instanzen
+                            '\n\n#INSTANCE_DIRECTORY\n#INSTANCE_SCRIPT_ALIAS\n#INSTANCE_ALIAS')
         f = open(ebkus_httpd_conf, 'w')
         f.write(text)
         f.close()

@@ -1,14 +1,13 @@
 # coding: latin-1
 
 import sys, os, time, sha
-from ebkus.app.ebapi import cc, getNewFallnummer, Date, today, getDate, setDate, \
+from ebkus.app.ebapi import cc, cn, getNewFallnummer, Date, today, getDate, setDate, \
      Kategorie, Code, Mitarbeiter, MitarbeiterList, Akte, Fall, FallList, Leistung, \
      Zustaendigkeit, Bezugsperson, Einrichtungskontakt, CodeList, \
      StrassenkatalogList, Fachstatistik, Jugendhilfestatistik, Jugendhilfestatistik2007
 from ebkus.app.ebapih import  get_codes
 from ebkus.app.ebupd import akteeinf, fseinf, jgheinf, jgh07einf, miteinf, codeeinf, \
      leisteinf, zdaeinf, waufneinf, perseinf, einreinf
-from ebkus.config import config
 from random import choice, randrange, sample, random, seed
 
 import logging
@@ -16,7 +15,7 @@ def log(s):
     logging.info(s)
     print s
 
-seed(100)
+seed(100) # zum Testen besser immer neu, da fallen mehr Fehler auf
 
 N_AKTEN = 50
 N_BEARBEITER = 1
@@ -25,7 +24,8 @@ VON_JAHR = Date(2004)
 BIS_JAHR = None
 TODAY = (2007,7,1)   # gefaked today, sollte im laufenden Demosystem auch gefaked werden
     
-def create_demo_daten(logf=None,
+def create_demo_daten(iconfig,                    # config Objekt für die entsprechende Instanz
+                      logf=None,
                       n_akten=N_AKTEN,            # Anzahl von Akten in der demo
                       n_bearbeiter=N_BEARBEITER,  # Anzahl der Mitarbeiter in der Bearbeiterrolle
                                                   # ohne explizite Angabe wachsend mit n_akten
@@ -35,6 +35,8 @@ def create_demo_daten(logf=None,
                       bis_jahr=BIS_JAHR,          # Jahr in dem die letzten Akten angelegt werden,
                                                   # default ist dieses Jahr
                       fake_today=TODAY):          # gefaktes heute: (2009,6,6), default das reale heute 
+    global config
+    config = iconfig
     from ebkus.app import protocol
     #protocol.on()
     if logf:
@@ -60,6 +62,11 @@ def create_demo_daten(logf=None,
     if TODAY:
         log("Gefaked: heutiges Datum: %s" % today())
     log("Heutiges Datum: %s" % today())
+    if config.BERLINER_VERSION:
+        log("Demodaten für Berliner Version")
+    else:
+        log("Demodaten für Standard Version")
+    log("Instanz: %s" % config.INSTANCE_NAME)
     DemoDaten.n_akten = n_akten
     if not n_stellen:
         n_stellen = int(n_akten**.2)
@@ -186,8 +193,9 @@ class DemoDaten(object):
             obj['strkat'] = st['str_name']
             obj['hsnr'] = st['hausnr']
             obj['plz'] = str(st['plz'])
-            ## diese kommen aus dem Strassenkatalog
-            ## obj['planungsr'] =  st['Plraum']
+            log('FAKE ADRESSE: str: %(strkat)s hsnr: %(hsnr)s plz: %(plz)s' % obj)
+            ## planungsr kommt aus dem Strassenkatalog
+            # automatisch zugewiesen
             ## obj['wohnbez'] = cc('wohnbez', "%02d" % st['bezirk'])
             ## obj['lage'] = cc('lage', '0') # innerhalb der Geltung des Straßenkatalogs
             obj['ort'] = 'Berlin'
@@ -195,7 +203,7 @@ class DemoDaten(object):
         obj['str'] = choice(self.strassen)
         obj['hsnr'] = str(randrange(1, 300))
         obj['plz'] = "%05d" % randrange(16000, 99999)
-        obj['planungsr'] = "%04d" % randrange(60, 61+int(self.n_akten**.35))
+        obj['planungsr'] = "%08d" % randrange(60, 61+int(self.n_akten**.35))
         ## wird automatisch von setAdresse zugewiesen
         ## obj['wohnbez'] = cc('wohnbez', "13") # sollte egal sein
         ## obj['lage'] = cc('lage', '1') # außerhalb der Geltung des Straßenkatalogs
@@ -285,15 +293,22 @@ class DemoDaten(object):
         setDate(form, 'zubg', datum)
         mitarbeiter = choice(self.mitarbeiter)
         form['zumitid'] = mitarbeiter['id']
-        form['stzbg'] = mitarbeiter['stz'] # TODO ist das richtig? akte.stzbg wird dadrauf gesetzt
+        form['stzbg'] = mitarbeiter['stz'] # ist das richtig? akte.stzbg wird dadrauf gesetzt
         form['lemitid'] = mitarbeiter['id']
         form['le'] = self.choose_code_id('fsle')
         setDate(form, 'lebg', getDate(form, 'zubg')) # erste Leistung zu Fallbeginn
         form['lestz'] = mitarbeiter['stz']
+        # form benötigt die Adressdaten, sonst wird in ebupd.waufneinf die Adresse gelöscht
+        akte = Akte(self.akte_id)
+        for k in ('str', 'plz', 'hsnr'):
+            v = akte.get(k)
+            if v:
+                form[k] = v
+        if config.BERLINER_VERSION and akte.get('lage') == cc('lage', '0') and akte.get('str'):
+            form['strkat'] = akte['str']
         waufneinf(form)
         log("Wiederaufnahme als %s am %s" % (Akte(self.akte_id)['letzter_fall']['fn'],
                                              getDate(form, 'zubg')))
-
 
     def fake_leistung(self, fall, beginn_vor):
         form = {}
@@ -343,15 +358,6 @@ class DemoDaten(object):
         for i in range(randrange(3)):   # 0 - 2
             self.fake_einrichtung()
         self.repeat_zda_waufn()
-        #print "WOHNBEZIRK: ", self.akte['wohnbez']
-        # den Fall mit einer gewissen Wahrscheinlichkeit schließen;
-        # je älter, desto wahrscheinlicher
-##         alter = fall.getDate('bg').diff(today()) 
-##         if self.p_ja_nein(alter, z1=1, p1=.1, z2=18, p2=.9):
-##             self.fake_zda()
-##             # 20% wiederaufnehmen
-##             if random() < .2:
-##                 self.fake_waufn()
 
     def repeat_zda_waufn(self):
         """Hier soll alles rein, was die Wahrscheinlichkeit eines ZDA
@@ -469,9 +475,7 @@ class DemoDaten(object):
         form['gm'] = self.choose_code_id('gm')
         form['gmt'] = self.choose_code_id('gmt')
         form['wohnbez'] = akte['wohnbez']
-        #form['bezirksnr'] = Code(kat_code='kr', sort=1)['id'] # zuständige Stelle!
         form['traeg'] = self.choose_code_id('traeg')
-
         form['bgr'] = self.choose_code_id('bgr')
         form['gs'] = self.choose_code_id('gs')
         form['ag'] = self.choose_code_id('ag')
@@ -508,8 +512,44 @@ class DemoDaten(object):
         form['fall_fn'] = fall['fn']
         form['mitid'] = fall['zustaendig__mit_id']
         form['stz'] = akte['stzak']
+        form['gfall'] = self.choose_code_id('gfall')
+        form['wohnbez'] = akte['wohnbez']
+        form['land'] = Code(kat_code='land', sort=1)['id']
+        form['kr'] = Code(kat_code='kr', sort=1)['id'] # zuständige Stelle!
+        form['einrnr'] = Code(kat_code='einrnr', sort=1)['id'] # zuständige Stelle!
         setDate(form, 'bg', fall.getDate('bg'))
-        setDate(form, 'e', ende_datum)
+        if random() < .3:
+            form['zustw'] = '1'
+        form['hilf_art'] = self.choose_code_id('hilf_art')
+        form['hilf_ort'] = self.choose_code_id('hilf_ort')
+        form['traeger'] = self.choose_code_id('traeger')
+        form['gs'] = self.choose_code_id('gs')
+        setDate(form, 'ge', self.choose_date(Date(1990), today().add_month(-20)))
+        form['aort_vor'] = self.choose_code_id('auf_ort')
         form['sit_fam'] = self.choose_code_id('shf')
+        form['ausl_her'] = self.choose_code_id('ja_ne_un')
+        form['vor_dt'] = self.choose_code_id('ja_ne_un')
+        form['wirt_sit'] = self.choose_code_id('ja_ne_un')
+        form['aip'] = self.choose_code_id('aip')
+        form['ees'] = self.choose_code_id('ja_nein')
+        form['va52'] = self.choose_code_id('ja_nein')
+        form['rgu'] = self.choose_code_id('ja_nein')
+        form['hda'] = self.choose_code_id('ja_nein')
+        gruende = self.choose_code_id_several('gruende', 1, 3, unique=True)
+        form['gr1'] = gruende[0]
+        if len(gruende) > 1:
+            form['gr2'] = gruende[1]
+            if len(gruende) > 2:
+                form['gr3'] = gruende[2]
+        if form['hda'] == cc('ja_nein', '1'):
+            form['nbkakt'] = randrange(1, 30)
+        else:
+            form['lbk6m'] = self.choose_code_id('ja_nein')
+            form['grende'] = self.choose_code_id('grende')
+            form['aort_nac'] = self.choose_code_id('auf_ort')
+            form['unh'] = self.choose_code_id('unh')
+            form['nbkges'] = randrange(1, 50)
+            setDate(form, 'e', ende_datum)
+        #print 'Fake jgh07: ', form
         jgh07einf(form)
         log("Jugendhilfestatistik 2007 für %s (akte_id=%s)" % (fall['fn'], self.akte_id))

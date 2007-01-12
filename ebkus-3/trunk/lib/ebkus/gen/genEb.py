@@ -30,8 +30,6 @@ TODO:
 """
 import sys
 import logging
-from ebkus.db.sql import opendb, closedb, getDBHandle
-from ebkus.gen import schemagen
 
 
 template = \
@@ -94,30 +92,6 @@ def formatFields(str, maxlen, indent):
             return result  + str
             
             
-def getFields(table):
-    fs = getDBHandle().listfields(table)
-    dbfields = []
-    dbfields_prefix = []
-    for f in fs:
-      # print f
-        if f[0] == 'idx1':
-            continue
-            ## Nicht kompatibel fuer MySQLdb [('feld', 'int(11)',),(..)] und 
-            ## MySQL [['feld','tabelle', 'int', 11, ],[..]]
-            ##
-            ##    if   f[2] in ['int', 'char', 'long', 'string', 'blob', 'mediumblob', 'longblob','varchar']:
-        dbfields.append(f[0])
-        dbfields_prefix.append("%s.%s" % (table, f[0]))
-        #    else:
-        #      raise "Unknown database datatype: %s" % f[2]
-    return dbfields, dbfields_prefix
-    
-def getNewTablesPairs():
-    """Aus der Datenbank generiert."""
-    res = getDBHandle().query("SELECT tabelle, klasse FROM tabelle")
-    # print res
-    return res
-    
     
 def generateForeignKeyInfo(schemadata_tables):
     ifkeys = []
@@ -133,33 +107,20 @@ def generateForeignKeyInfo(schemadata_tables):
                 fkeys.append((t.classname, f.fieldname, klass, None))
     return fkeys, ifkeys
     
-def gen_api(schema_str):
-    import StringIO
-    file = StringIO.StringIO()
-    newtables = getNewTablesPairs()
-    tables = newtables
+def generate_ebapi(filename):
+    from ebkus.gen.schemagen import get_schema_info
+    from ebkus.gen.schemadata import schemainfo
+    file = open(filename, 'wb')
     #  print tables
     file.write(header)
-    # hier geht es durcheinander, weil noch nicht einheitlich von schemadata
-    # generiert wird.
-    schemadata_tables = schemagen.get_schema_info(schema_str)
-    tabledict = schemadata_tables[0].Tables
-    for elem in tables:
-        table, lname = elem
-        dbfieldsl, dbfields_prefixl = getFields(table)
+    schemadata_tables = get_schema_info(schemainfo)
+    for t in schemadata_tables:
+        table, lname = t.tablename, t.classname
+        dbfieldsl = [f.fieldname for f in t.fields]
         dbfields = formatFields(repr(dbfieldsl), MAXL, IND)
-        dbfields_prefix = formatFields(repr(dbfields_prefixl), MAXL, IND)
-        if tabledict.has_key(table):
-            primarykey = repr(tabledict[table].primarykey)
-            keys =  tabledict[table].keys
-        else: # alte Tabelle, Heuristik
-            primarykey = 'None'
-            keys = []
-            ##       if 'id' in dbfieldsl:
-            ##      primarykey = "'id'"
-            ##       else:
-            ##      primarykey = 'None'
-        file.write(template % { 'dbfields' : dbfields, 'dbfields_prefix' : dbfields_prefix, 
+        primarykey = repr(t.primarykey)
+        keys =  t.keys
+        file.write(template % { 'dbfields' : dbfields,
                            'lname' : lname, 'table' : table,
                            'keys' : keys, 'primarykey' : primarykey})
         logging.info('Klassendefinition generiert: %s' % lname)
@@ -184,27 +145,15 @@ def gen_api(schema_str):
 """)
     for f in ifkeys:
         file.write("%s.inversefieldtypes['%s'] = (%sList, '%s')\n" % f)
-    return file
-    
-    
-def generate_ebapi(schema_str):
-    opendb()
-    f = gen_api(schema_str)
-    closedb()
-    # f ist StringIO Objekt
-    return f
-    
-    
-# funktioniert so nicht
+    file.close()
 
-## if __name__ == '__main__':
-##     filename = 'ebapigen.py'
-##     f = generate_ebapi(schemadata.schemainfo)
-##     file = open('../app/%s' % filename, 'w')
-##     file.write(f.getvalue())
-##     f.close()
-##     file.close()
-##     print '----> ', filename, 'generiert'  
+
+if __name__ == '__main__':
+    import sys
+    sys.path.insert(0, "/home/atms/dev/ebkus/install/ebkus/lib")
+    filename = 'ebapigen.py'
+    generate_ebapi(filename)
+    print '----> ', filename, 'generiert'  
     
     
     
