@@ -8,8 +8,14 @@
 # Alle downloads kommen jetzt vom ftp-Server der BKE.
 # Da sind wir sicher, dass sie auch dort bleiben.
 
-ftp_bke_linux = "ftp://ftp.bke.de/pub/ebkus/ebkus-3.2/linux/"
-ftp_bke_win32 = "ftp://ftp.bke.de/pub/ebkus/ebkus-3.2/win32/"
+## ftp_bke_linux = "ftp://ftp.bke.de/pub/ebkus/ebkus-3.2/linux/"
+## ftp_bke_win32 = "ftp://ftp.bke.de/pub/ebkus/ebkus-3.2/win32/"
+
+# Tue Jan  2 14:10:25 2007
+# Nun hat sichs doch geändert, Umzug von bke nach efb-berlin:
+
+ftp_bke_linux = "ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.2/linux/"
+ftp_bke_win32 = "ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.2/win32/"
 
 python_win32 = ftp_bke_win32 + 'Python-2.3.4.exe'
 python_linux = ftp_bke_linux + 'Python-2.3.4.tgz'
