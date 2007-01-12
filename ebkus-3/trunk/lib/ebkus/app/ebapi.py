@@ -348,17 +348,6 @@ def _str_ausser(self, key):
     else:
         return ''
 
-def _get_jgh(self, key):
-    where_cl = "fall_id=%s" % self['id']
-    jghs = []
-    jghs += JugendhilfestatistikList(where=where_cl)
-    jghs += Jugendhilfestatistik2007List(where=where_cl)
-    assert len(jghs) <= 1, "Mehr als eine Bundesstatistik für Fall %s" % fall['fn']
-    if jghs:
-        return jghs[0]
-    else:
-        return None
-
         
 Akte.attributemethods['wiederaufnehmbar'] = _wiederaufnehmbar
 Akte.attributemethods['letzter_fall'] = _letzter_fall
@@ -366,8 +355,6 @@ Akte.attributemethods['aktueller_fall'] = _aktueller_fall
 Akte.attributemethods['aktuell'] = _aktuell_akte
 Akte.attributemethods['str_inner'] = _str_inner
 Akte.attributemethods['str_ausser'] = _str_ausser
-
-Fall.attributemethods['jgh'] = _get_jgh
 
 Bezugsperson.attributemethods['str_inner'] = _str_inner
 Bezugsperson.attributemethods['str_ausser'] = _str_ausser
@@ -397,10 +384,34 @@ def _zuletzt_zustaendig_fall(self, key):
     self._cache_field('zuletzt_zustaendig', res)
     return res
     
+def _get_jgh(self, key):
+    where_cl = "fall_id=%s" % self['id']
+    jghs = []
+    jghs += JugendhilfestatistikList(where=where_cl)
+    jghs += Jugendhilfestatistik2007List(where=where_cl)
+    assert len(jghs) <= 1, "Mehr als eine Bundesstatistik für Fall %s" % fall['fn']
+    if jghs:
+        return jghs[0]
+    else:
+        return None
+
 Fall.attributemethods['aktuell'] = _aktuell_fall
 Fall.attributemethods['zustaendig'] = _zustaendig_fall
 Fall.attributemethods['zuletzt_zustaendig'] = _zuletzt_zustaendig_fall
+Fall.attributemethods['jgh'] = _get_jgh
 
+
+def _alter(self, key):
+    # Alter berechnen:
+    # mindestens 0, höchstens 27
+    # berechnet aus der Differenz zwischen Hilfebeginnjahr und -monat und
+    # Geburtsjahr und -monat
+    alter = min(27,
+                max(0, ((self['bgm'] + 12*self['bgy']) -
+                        (self['gem'] + 12*self['gey'])) / 12))
+    return alter
+        
+Jugendhilfestatistik2007.attributemethods['alter'] = _alter
 
 ############################
 # Pfaddefinitionen
@@ -723,7 +734,8 @@ def check_date(dict, key, errorstring, default = None,
     else:
         d, m, y = key + 'd', key + 'm', key + 'y'
     d, m, y = dict.get(d), dict.get(m), dict.get(y)
-    if d is m is y is None or d == m == y == '':
+    empty = (None, '', ' ')
+    if d in empty and m in empty and y in empty:
         if not default is None:
             if isinstance(default, Date): return default
             if isinstance(default, DBObjekt): return default.getDate(key)

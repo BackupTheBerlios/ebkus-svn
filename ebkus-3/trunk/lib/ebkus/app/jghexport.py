@@ -25,41 +25,99 @@ python jghexport.py <jahr>
 python sollte zum Aufruf desselben Interpreters führen, mit dem EBKuS
 installiert wurde.
 """
-    
 
-def jghexport(jahr):
+
+if __name__ == '__main__':
+    import sys
+    try:
+        import init
+    except ImportError:
+        print "Dieses Skript zuerst in das Verzeichnis der Instanz kopieren,"
+        print "fuer die der JGH-Export durchgefuehrt werden soll."
+        sys.exit(1)
+        
+from ebkus.app.ebapi import JugendhilfestatistikList, Jugendhilfestatistik2007List, today
+from ebkus.app.ebupd import jgh_laufende_nummer_setzen
+
+## def jghexport(jahr):
+##     """Erzeugt den Datensatz für die Jugendhilfestatistik.
+
+##     Es werden zwei Strings zurückgegeben, der eigentliche Datensatz
+##     und ein Kontrolldatensatz mit Zeilenumbrüchen und vorangesteller
+##     Fallnummer und Mitarbeiterkennung.
+##     """
+##     import time
+##     from ebkus.app.ebapi import JugendhilfestatistikList
+##     from ebkus.app.ebupd import jgh_laufende_nummer_setzen
+##     jgh_laufende_nummer_setzen()
+##     jghl = JugendhilfestatistikList (where = 'ey =  %s' % jahr, order = 'id')
+##     daten_saetze = []
+##     log_daten_saetze = []
+##     log_header = """Erzeugen der Datei mit den Datensätzen für die Jugendhilfestatistik für %s
+
+## Datum: %s
+## Datei: jgh_%s.txt
+## Anzahl der Datensätze: %s
+
+## Datensätze (vorangestellt zusätzlich Fallnummer und Mitarbeiterkennung):
+
+## """ % (jahr, time.strftime("%c", time.localtime(time.time())),
+##        jahr, len(jghl))
+##     for record in jghl:
+##         daten_satz, log_daten_satz = get_datensatz(record)
+##         daten_saetze.append(daten_satz)
+##         log_daten_saetze.append(log_daten_satz)
+##     return ''.join(daten_saetze), log_header + ''.join(log_daten_saetze)
+
+def jghexport(jahr, andauernd):
     """Erzeugt den Datensatz für die Jugendhilfestatistik.
 
     Es werden zwei Strings zurückgegeben, der eigentliche Datensatz
     und ein Kontrolldatensatz mit Zeilenumbrüchen und vorangesteller
     Fallnummer und Mitarbeiterkennung.
     """
-    import time
-    import ebkus.ebs # Warnings abstellen
-    from ebkus.app.ebapi import JugendhilfestatistikList
-    from ebkus.app.ebupd import jgh_laufende_nummer_setzen
     jgh_laufende_nummer_setzen()
-    jghl = JugendhilfestatistikList (where = 'ey =  %s' % jahr, order = 'id')
+    if jahr >= 2007:
+        get_datensatz = get_datensatz_ab_2007
+        if andauernd:
+            jghl = Jugendhilfestatistik2007List(where = 'ey is NULL and bgy <= %s' % jahr, order = 'lnr')
+        else:
+            jghl = Jugendhilfestatistik2007List(where = 'ey=%s' % jahr, order = 'lnr')
+    else:
+        jghl = JugendhilfestatistikList (where = 'ey =  %s' % jahr, order = 'lnr')
+        get_datensatz = get_datensatz_bis_2006
     daten_saetze = []
     log_daten_saetze = []
     log_header = """Erzeugen der Datei mit den Datensätzen für die Jugendhilfestatistik für %s
-
-Datum: %s
-Datei: jgh_%s.txt
+%s
+Erstellt am: %s
+Datei: %s
 Anzahl der Datensätze: %s
 
 Datensätze (vorangestellt zusätzlich Fallnummer und Mitarbeiterkennung):
 
-""" % (jahr, time.strftime("%c", time.localtime(time.time())),
-       jahr, len(jghl))
+""" % (jahr,
+       andauernd and "(andauernde Fälle)" or '',
+       #time.strftime("%c", time.localtime(time.time())),
+       today(),
+       get_export_datei_name(jahr, False, andauernd),
+       len(jghl))
     for record in jghl:
         daten_satz, log_daten_satz = get_datensatz(record)
         daten_saetze.append(daten_satz)
         log_daten_saetze.append(log_daten_satz)
     return ''.join(daten_saetze), log_header + ''.join(log_daten_saetze)
 
+def get_export_datei_name(jahr, log, andauernd):
+    log = log and '_log' or ''
+    t = today()
+    andauernd = andauernd and (
+        "_am_%04d-%02d-%02d_andauernd" % (t.year, t.month, t.day)
+        ) or ''
+    name = "jgh_%s%s%s.txt" % (jahr, andauernd, log)
+    return name
 
-def get_datensatz(r):
+def get_datensatz_bis_2006(r):
     """Erzeugt einen Jugendhilfestatistikdatensatz für einen Fall
 
     Zurückgegeben wird der eigentliche Datensatz sowie ein Kontrolldatensatz.
@@ -101,12 +159,81 @@ def get_datensatz(r):
     ]
     daten_satz = ''.join(l)
     assert len(daten_satz) == 80
-    log_daten_satz = "%-10s%-10s%s\n" % (r['fall_fn'], r['mit_id__ben'], daten_satz[:54])
+    log_daten_satz = "%-10s%-10s%s\r\n" % (r['fall_fn'], r['mit_id__ben'], daten_satz[:54])
     return daten_satz, log_daten_satz
     
+def get_datensatz_ab_2007(r):
+    """Erzeugt einen Jugendhilfestatistikdatensatz für einen Fall
+
+    Zurückgegeben wird der eigentliche Datensatz sowie ein Kontrolldatensatz.
+    """
+    d = [' ']*155      # Datensatz
+    _set(d, 1, 1, 'A')
+    _set(d, 2, 3, int(r['land__code']), "%02d")
+    _set(d, 4, 4, '0') # Regierungsbezirk bleibt leer
+    _set(d, 5, 6, int(r['kr__code']), "%02d")
+    _set(d, 7, 9, '0'*3) # Gemeinde bleibt leer
+    _set(d, 10, 15, int(r['einrnr__code']), "%06d")
+    _set(d, 16, 20, r['lnr'], '%05d')
+    _set(d, 21, 22, r['bgm'], '%02d')
+    _set(d, 23, 26, r['bgy'], '%04d')
+    _set(d, 27, 27, '%1s' % r['zustw'])
+    _set(d, 28, 29, r['hilf_art__code'])
+    _set(d, 30, 31, r['hilf_ort__code'])
+    _set(d, 32, 33, r['traeger__code'])
+    _set(d, 34, 34, r['gs__code'])
+    _set(d, 35, 36, r['gem'], '%02d')
+    _set(d, 37, 40, r['gey'], '%04d')
+    _set(d, 41, 112, ' '*(112-41+1)) # keine andere Kinder
+    _set(d, 113, 114, r['aort_vor__code'])
+    _set(d, 115, 115, r['sit_fam__code'])
+    _set(d, 116, 116, r['ausl_her__code'], None, {'0': ' '})
+    _set(d, 117, 117, r['vor_dt__code'], None, {'0': ' '})
+    _set(d, 118, 118, r['wirt_sit__code'], None, {'0': ' '})
+    _set(d, 119, 119, r['aip__code'])
+    _set(d, 120, 120, r['ees__code'])
+    _set(d, 121, 121, r['va52__code'])
+    _set(d, 122, 122, r['rgu__code'])
+    _set(d, 123, 123, r['hda__code'])
+    _set(d, 124, 126, r['nbkakt'], '%03d', {None: ' '*3})
+    _set(d, 127, 130, ' '*4) # irrelevant für Erziehungsberatung
+    _set(d, 131, 132, r['gr1__code'])
+    _set(d, 133, 134, r['gr2__code'], None, {None: ' '*2})
+    _set(d, 135, 136, r['gr3__code'], None, {None: ' '*2})
+    _set(d, 137, 138, r['em'], '%02d', {None: ' '*2})
+    _set(d, 139, 142, r['ey'], '%04d', {None: ' '*4})
+    _set(d, 143, 145, r['nbkges'], '%03d', {None: ' '*3})
+    _set(d, 146, 146, r['lbk6m__code'], None, {None: ' '})
+    _set(d, 147, 150, ' '*4) # irrelevant für Erziehungsberatung
+    _set(d, 151, 152, r['grende__code'], None, {None: ' '*2})
+    _set(d, 153, 154, r['aort_nac__code'], None, {None: ' '*2})
+    _set(d, 155, 155, r['unh__code'], None, {None: ' '})
+    datensatz = ''.join(d)
+    assert len(datensatz) == 155
+    if datensatz[122] == '1': # Hilfe dauert an
+        assert datensatz[137:155] == ' '*18
+    else:
+        assert datensatz[123:126] == ' '*3
+    log_datensatz = "%-10s%-10s%s\r\n" % (r['fall_fn'], r['mit_id__ben'], datensatz)
+    return datensatz, log_datensatz
+
+def _set(vector, von, bis, val, template=None, substitutions=None):
+    res = None
+    if substitutions:
+        s = substitutions.get(val)
+        if s != None:
+            res = s
+    if res == None:
+        if template:
+            res = template % val
+        else:
+            res = val
+    #print 'VAL', val
+    assert len(res) == (bis + 1 - von)
+    vector[von-1:bis] = list(res)
 
 def check_code(str, length, leer_code = None):
-    assert len(str) == length
+##     assert len(str) == length
     if not leer_code is None and str == leer_code:
         str = ' '*length
     return str
@@ -122,38 +249,46 @@ def check_gsa(gsa, gsu):
         
 
 if __name__ == '__main__':
-    import sys
-    try:
-        import init
-        print "Export der Jugendhilfestatistik für Instanz '%s'" % init.INSTANCE_NAME
-        print "   (Pfad %s)" % init.INSTANCE_HOME
-        print
-    except ImportError:
-        print "Dieses Skript zuerst in das Verzeichnis der Instanz kopieren,"
-        print "fuer die der JGH-Export durchgefuehrt werden soll."
-    if len(sys.argv) < 2:
-        print "***Fehler: Bitte Jahr angeben"
+    if len(sys.argv) < 2 or sys.argv[1] in ('-h', '-help', '--help'):
+        print "Aufruf: python jghexport.py <jahr> [andauernd]"
         sys.exit(1)
-    jahr = sys.argv[1]
     try:
+        jahr = sys.argv[1]
         jahr = int(jahr)
         assert jahr > 1995 and jahr < 2500
     except:
         print "***Fehler: Kein gültiges Jahr: '%s'" % jahr
         sys.exit(1)
+    try:
+        andauernd = sys.argv[2]
+        if andauernd.startswith('a'):
+            andauernd = True
+        else:
+            print "***Fehler: Zweiter Parameter muss mit 'a' (fuer andauernd) beginnen"
+            sys.exit(1)
+    except IndexError:
+        andauernd = False
+    print
+    print "Export der Jugendhilfestatistik fuer Instanz '%s'" % init.INSTANCE_NAME
+    print "   (Pfad %s)" % init.INSTANCE_HOME
+    print
+    print "Jahr: %s  (%s)" % (jahr, andauernd and "andauernde Faelle" or "abgeschlossene Faelle" )
+    print
     from ebkus.db.sql import opendb
     opendb()
-    daten_saetze, log_daten_saetze = jghexport(jahr)
+    daten_saetze, log_daten_saetze = jghexport(jahr, andauernd)
 
-    f = open("jgh_%s.txt" % jahr, "w")
+    datei_name = get_export_datei_name(jahr, False, andauernd)
+    f = open(datei_name, "w")
     f.write(daten_saetze)
     f.close()
+    print "ausgegeben: %s" % datei_name 
 
-    f = open("jgh_log_%s.txt" % jahr, "w")
+    log_datei_name = get_export_datei_name(jahr, True, andauernd)
+    f = open(log_datei_name, "w")
     f.write(log_daten_saetze)
     f.close()
-
-    sys.stdout.write(log_daten_saetze)
+    print "ausgegeben: %s" % log_datei_name
     print
     
     

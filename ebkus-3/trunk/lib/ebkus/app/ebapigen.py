@@ -1,4 +1,3 @@
-#!/usr/local/bin/python
 # coding: latin-1
 """
 AUTOMATISCH GENERIERTE DATEI! NICHT EDITIEREN!
@@ -21,7 +20,7 @@ from ebkus.db.sql import SQLError, SQL, SimpleSQL, \
 class Mitarbeiter(DBObjekt):
     table = 'mitarbeiter'
     fields =  ['id', 'vn', 'na', 'ben', 'anr', 'tl1', 'fax', 'mail', \
-                         'stat', 'benr', 'stz', 'zeit', 'pass']
+                       'stat', 'benr', 'stz', 'zeit', 'pass']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -33,20 +32,20 @@ class Mitarbeiter(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class MitarbeiterList(Container):
     resultClass = Mitarbeiter
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Protokoll  (Tabelle 'protokoll')
-    #####################################
-    
-    
+
+#####################################
+# Protokoll  (Tabelle 'protokoll')
+#####################################
+
+
 class Protokoll(DBObjekt):
     table = 'protokoll'
     fields =  ['nr', 'zeit', 'artdeszugriffs', 'benutzerkennung', \
-                         'ipadresse']
+                       'ipadresse']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -58,20 +57,20 @@ class Protokoll(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class ProtokollList(Container):
     resultClass = Protokoll
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Strassenkatalog  (Tabelle 'strassenkat')
-    #####################################
-    
-    
+
+#####################################
+# Strassenkatalog  (Tabelle 'strassenkat')
+#####################################
+
+
 class Strassenkatalog(DBObjekt):
     table = 'strassenkat'
     fields =  ['str_nummer', 'str_name', 'hausnr', 'bezirk', 'plz', \
-                         'Plraum']
+                       'Plraum']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -83,16 +82,16 @@ class Strassenkatalog(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class StrassenkatalogList(Container):
     resultClass = Strassenkatalog
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Session  (Tabelle 'sessions')
-    #####################################
-    
-    
+
+#####################################
+# Session  (Tabelle 'sessions')
+#####################################
+
+
 class Session(DBObjekt):
     table = 'sessions'
     fields =  ['session_id', 'time', 'user_name']
@@ -107,16 +106,16 @@ class Session(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class SessionList(Container):
     resultClass = Session
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # MitarbeiterDienststelle  (Tabelle 'mitstelle')
-    #####################################
-    
-    
+
+#####################################
+# MitarbeiterDienststelle  (Tabelle 'mitstelle')
+#####################################
+
+
 class MitarbeiterDienststelle(DBObjekt):
     table = 'mitstelle'
     fields =  ['mit_id', 'stz']
@@ -131,21 +130,21 @@ class MitarbeiterDienststelle(DBObjekt):
     otherkeys = [('mit_id', 'stz')]
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class MitarbeiterDienststelleList(Container):
     resultClass = MitarbeiterDienststelle
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Akte  (Tabelle 'akte')
-    #####################################
-    
-    
+
+#####################################
+# Akte  (Tabelle 'akte')
+#####################################
+
+
 class Akte(DBObjekt):
     table = 'akte'
     fields =  ['id', 'vn', 'na', 'gb', 'ber', 'str', 'hsnr', 'plz', \
-                         'planungsr', 'wohnbez', 'lage', 'ort', 'tl1', 'tl2', \
-                         'fs', 'no', 'stzbg', 'stzak', 'zeit']
+                       'planungsr', 'wohnbez', 'lage', 'ort', 'tl1', 'tl2', \
+                       'fs', 'no', 'stzbg', 'stzak', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -157,20 +156,20 @@ class Akte(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class AkteList(Container):
     resultClass = Akte
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Fall  (Tabelle 'fall')
-    #####################################
-    
-    
+
+#####################################
+# Fall  (Tabelle 'fall')
+#####################################
+
+
 class Fall(DBObjekt):
     table = 'fall'
     fields =  ['id', 'akte_id', 'fn', 'bgd', 'bgm', 'bgy', 'zdad', \
-                         'zdam', 'zday', 'status']
+                       'zdam', 'zday', 'status']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -182,20 +181,20 @@ class Fall(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class FallList(Container):
     resultClass = Fall
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Anmeldung  (Tabelle 'anmeldung')
-    #####################################
-    
-    
+
+#####################################
+# Anmeldung  (Tabelle 'anmeldung')
+#####################################
+
+
 class Anmeldung(DBObjekt):
     table = 'anmeldung'
     fields =  ['id', 'fall_id', 'von', 'ad', 'am', 'ay', 'mtl', 'me', \
-                         'zm', 'mg', 'no']
+                       'zm', 'mg', 'no']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -207,21 +206,21 @@ class Anmeldung(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class AnmeldungList(Container):
     resultClass = Anmeldung
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Bezugsperson  (Tabelle 'bezugsperson')
-    #####################################
-    
-    
+
+#####################################
+# Bezugsperson  (Tabelle 'bezugsperson')
+#####################################
+
+
 class Bezugsperson(DBObjekt):
     table = 'bezugsperson'
     fields =  ['id', 'akte_id', 'vn', 'na', 'gb', 'ber', 'str', \
-                         'hsnr', 'lage', 'plz', 'ort', 'tl1', 'tl2', 'fs', \
-                         'verw', 'no', 'nobed', 'vrt']
+                       'hsnr', 'lage', 'plz', 'ort', 'tl1', 'tl2', 'fs', \
+                       'verw', 'no', 'nobed', 'vrt']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -233,20 +232,20 @@ class Bezugsperson(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class BezugspersonList(Container):
     resultClass = Bezugsperson
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Einrichtungskontakt  (Tabelle 'einrichtung')
-    #####################################
-    
-    
+
+#####################################
+# Einrichtungskontakt  (Tabelle 'einrichtung')
+#####################################
+
+
 class Einrichtungskontakt(DBObjekt):
     table = 'einrichtung'
     fields =  ['id', 'akte_id', 'na', 'tl1', 'tl2', 'insta', 'no', \
-                         'nobed', 'status']
+                       'nobed', 'status']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -258,20 +257,20 @@ class Einrichtungskontakt(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class EinrichtungskontaktList(Container):
     resultClass = Einrichtungskontakt
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Leistung  (Tabelle 'leistung')
-    #####################################
-    
-    
+
+#####################################
+# Leistung  (Tabelle 'leistung')
+#####################################
+
+
 class Leistung(DBObjekt):
     table = 'leistung'
     fields =  ['id', 'fall_id', 'mit_id', 'le', 'bgd', 'bgm', 'bgy', \
-                         'ed', 'em', 'ey', 'stz']
+                       'ed', 'em', 'ey', 'stz']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -283,20 +282,20 @@ class Leistung(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class LeistungList(Container):
     resultClass = Leistung
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Zustaendigkeit  (Tabelle 'zustaendigkeit')
-    #####################################
-    
-    
+
+#####################################
+# Zustaendigkeit  (Tabelle 'zustaendigkeit')
+#####################################
+
+
 class Zustaendigkeit(DBObjekt):
     table = 'zustaendigkeit'
     fields =  ['id', 'fall_id', 'mit_id', 'bgd', 'bgm', 'bgy', 'ed', \
-                         'em', 'ey']
+                       'em', 'ey']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -308,20 +307,20 @@ class Zustaendigkeit(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class ZustaendigkeitList(Container):
     resultClass = Zustaendigkeit
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Dokument  (Tabelle 'dokument')
-    #####################################
-    
-    
+
+#####################################
+# Dokument  (Tabelle 'dokument')
+#####################################
+
+
 class Dokument(DBObjekt):
     table = 'dokument'
     fields =  ['id', 'fall_id', 'mit_id', 'betr', 'fname', 'art', \
-                         'vd', 'vm', 'vy', 'mtyp', 'dok', 'zeit']
+                       'vd', 'vm', 'vy', 'mtyp', 'dok', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -333,20 +332,20 @@ class Dokument(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class DokumentList(Container):
     resultClass = Dokument
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Gruppendokument  (Tabelle 'gruppendokument')
-    #####################################
-    
-    
+
+#####################################
+# Gruppendokument  (Tabelle 'gruppendokument')
+#####################################
+
+
 class Gruppendokument(DBObjekt):
     table = 'gruppendokument'
     fields =  ['id', 'gruppe_id', 'mit_id', 'betr', 'fname', 'art', \
-                         'vd', 'vm', 'vy', 'mtyp', 'dok', 'zeit']
+                       'vd', 'vm', 'vy', 'mtyp', 'dok', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -358,21 +357,21 @@ class Gruppendokument(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class GruppendokumentList(Container):
     resultClass = Gruppendokument
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Gruppe  (Tabelle 'gruppe')
-    #####################################
-    
-    
+
+#####################################
+# Gruppe  (Tabelle 'gruppe')
+#####################################
+
+
 class Gruppe(DBObjekt):
     table = 'gruppe'
     fields =  ['id', 'gn', 'name', 'thema', 'tzahl', 'stzahl', 'bgd', \
-                         'bgm', 'bgy', 'ed', 'em', 'ey', 'teiln', 'grtyp', 'stz', \
-                         'zeit']
+                       'bgm', 'bgy', 'ed', 'em', 'ey', 'teiln', 'grtyp', 'stz', \
+                       'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -384,20 +383,20 @@ class Gruppe(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class GruppeList(Container):
     resultClass = Gruppe
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # FallGruppe  (Tabelle 'fallgruppe')
-    #####################################
-    
-    
+
+#####################################
+# FallGruppe  (Tabelle 'fallgruppe')
+#####################################
+
+
 class FallGruppe(DBObjekt):
     table = 'fallgruppe'
     fields =  ['id', 'fall_id', 'gruppe_id', 'bgd', 'bgm', 'bgy', \
-                         'ed', 'em', 'ey', 'zeit']
+                       'ed', 'em', 'ey', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -409,20 +408,20 @@ class FallGruppe(DBObjekt):
     otherkeys = [('',), ('fall_id', 'gruppe_id'), ('gruppe_id', 'fall_id')]
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class FallGruppeList(Container):
     resultClass = FallGruppe
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # BezugspersonGruppe  (Tabelle 'bezugspersongruppe')
-    #####################################
-    
-    
+
+#####################################
+# BezugspersonGruppe  (Tabelle 'bezugspersongruppe')
+#####################################
+
+
 class BezugspersonGruppe(DBObjekt):
     table = 'bezugspersongruppe'
     fields =  ['id', 'bezugsp_id', 'gruppe_id', 'bgd', 'bgm', 'bgy', \
-                         'ed', 'em', 'ey', 'zeit']
+                       'ed', 'em', 'ey', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -434,20 +433,20 @@ class BezugspersonGruppe(DBObjekt):
     otherkeys = [('',), ('bezugsp_id', 'gruppe_id'), ('gruppe_id', 'bezugsp_id')]
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class BezugspersonGruppeList(Container):
     resultClass = BezugspersonGruppe
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # MitarbeiterGruppe  (Tabelle 'mitarbeitergruppe')
-    #####################################
-    
-    
+
+#####################################
+# MitarbeiterGruppe  (Tabelle 'mitarbeitergruppe')
+#####################################
+
+
 class MitarbeiterGruppe(DBObjekt):
     table = 'mitarbeitergruppe'
     fields =  ['id', 'mit_id', 'gruppe_id', 'bgd', 'bgm', 'bgy', 'ed', \
-                         'em', 'ey', 'zeit']
+                       'em', 'ey', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -459,24 +458,24 @@ class MitarbeiterGruppe(DBObjekt):
     otherkeys = [('mit_id', 'gruppe_id'), ('gruppe_id', 'mit_id')]
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class MitarbeiterGruppeList(Container):
     resultClass = MitarbeiterGruppe
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Fachstatistik  (Tabelle 'fachstat')
-    #####################################
-    
-    
+
+#####################################
+# Fachstatistik  (Tabelle 'fachstat')
+#####################################
+
+
 class Fachstatistik(DBObjekt):
     table = 'fachstat'
     fields =  ['id', 'mit_id', 'fall_id', 'fall_fn', 'jahr', 'stz', \
-                         'bz', 'gs', 'ag', 'fs', 'zm', 'qualij', 'hkm', 'hkv', \
-                         'bkm', 'bkv', 'qualikm', 'qualikv', 'agkm', 'agkv', \
-                         'ba1', 'ba2', 'pbe', 'pbk', 'kat', 'kkm', 'kkv', 'kki', \
-                         'kpa', 'kfa', 'ksoz', 'kleh', 'kerz', 'kkonf', 'kson', \
-                         'no', 'no2', 'no3', 'zeit']
+                       'bz', 'gs', 'ag', 'fs', 'zm', 'qualij', 'hkm', 'hkv', \
+                       'bkm', 'bkv', 'qualikm', 'qualikv', 'agkm', 'agkv', \
+                       'ba1', 'ba2', 'pbe', 'pbk', 'kat', 'kkm', 'kkv', 'kki', \
+                       'kpa', 'kfa', 'ksoz', 'kleh', 'kerz', 'kkonf', 'kson', \
+                       'no', 'no2', 'no3', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -488,16 +487,16 @@ class Fachstatistik(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class FachstatistikList(Container):
     resultClass = Fachstatistik
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Fachstatistikleistung  (Tabelle 'fachstatlei')
-    #####################################
-    
-    
+
+#####################################
+# Fachstatistikleistung  (Tabelle 'fachstatlei')
+#####################################
+
+
 class Fachstatistikleistung(DBObjekt):
     table = 'fachstatlei'
     fields =  ['id', 'fstat_id', 'le']
@@ -512,16 +511,16 @@ class Fachstatistikleistung(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class FachstatistikleistungList(Container):
     resultClass = Fachstatistikleistung
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Fachstatistikkindproblem  (Tabelle 'fachstatkindproblem')
-    #####################################
-    
-    
+
+#####################################
+# Fachstatistikkindproblem  (Tabelle 'fachstatkindproblem')
+#####################################
+
+
 class Fachstatistikkindproblem(DBObjekt):
     table = 'fachstatkindproblem'
     fields =  ['id', 'fstat_id', 'pbk']
@@ -536,16 +535,16 @@ class Fachstatistikkindproblem(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class FachstatistikkindproblemList(Container):
     resultClass = Fachstatistikkindproblem
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Fachstatistikelternproblem  (Tabelle 'fachstatelternproblem')
-    #####################################
-    
-    
+
+#####################################
+# Fachstatistikelternproblem  (Tabelle 'fachstatelternproblem')
+#####################################
+
+
 class Fachstatistikelternproblem(DBObjekt):
     table = 'fachstatelternproblem'
     fields =  ['id', 'fstat_id', 'pbe']
@@ -560,24 +559,24 @@ class Fachstatistikelternproblem(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class FachstatistikelternproblemList(Container):
     resultClass = Fachstatistikelternproblem
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Jugendhilfestatistik  (Tabelle 'jghstat')
-    #####################################
-    
-    
+
+#####################################
+# Jugendhilfestatistik  (Tabelle 'jghstat')
+#####################################
+
+
 class Jugendhilfestatistik(DBObjekt):
     table = 'jghstat'
     fields =  ['id', 'fall_id', 'mit_id', 'fall_fn', 'gfall', \
-                         'bezirksnr', 'stz', 'rbz', 'kr', 'gm', 'gmt', 'lnr', \
-                         'traeg', 'bgm', 'bgy', 'em', 'ey', 'bgr', 'gs', 'ag', \
-                         'fs', 'hke', 'gsa', 'gsu', 'zm', 'ba0', 'ba1', 'ba2', \
-                         'ba3', 'ba4', 'ba5', 'ba6', 'ba7', 'ba8', 'ba9', 'schw', \
-                         'fbe0', 'fbe1', 'fbe2', 'fbe3', 'zeit']
+                       'bezirksnr', 'stz', 'rbz', 'kr', 'gm', 'gmt', 'lnr', \
+                       'traeg', 'bgm', 'bgy', 'em', 'ey', 'bgr', 'gs', 'ag', \
+                       'fs', 'hke', 'gsa', 'gsu', 'zm', 'ba0', 'ba1', 'ba2', \
+                       'ba3', 'ba4', 'ba5', 'ba6', 'ba7', 'ba8', 'ba9', 'schw', \
+                       'fbe0', 'fbe1', 'fbe2', 'fbe3', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -589,20 +588,50 @@ class Jugendhilfestatistik(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class JugendhilfestatistikList(Container):
     resultClass = Jugendhilfestatistik
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Code  (Tabelle 'code')
-    #####################################
-    
-    
+
+#####################################
+# Jugendhilfestatistik2007  (Tabelle 'jghstat07')
+#####################################
+
+
+class Jugendhilfestatistik2007(DBObjekt):
+    table = 'jghstat07'
+    fields =  ['id', 'fall_id', 'fall_fn', 'mit_id', 'stz', 'gfall', \
+                       'bezirksnr', 'land', 'kr', 'einrnr', 'lnr', 'bgm', \
+                       'bgy', 'zustw', 'hilf_art', 'hilf_ort', 'traeger', 'gs', \
+                       'gem', 'gey', 'aort_vor', 'sit_fam', 'ausl_her', \
+                       'vor_dt', 'wirt_sit', 'aip', 'ees', 'va52', 'rgu', \
+                       'hda', 'nbkakt', 'gr1', 'gr2', 'gr3', 'em', 'ey', \
+                       'nbkges', 'lbk6m', 'grende', 'aort_nac', 'unh', 'zeit']
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = 'id'
+    otherkeys = []
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
+
+class Jugendhilfestatistik2007List(Container):
+    resultClass = Jugendhilfestatistik2007
+    querySQL = resultClass.querySQL
+
+#####################################
+# Code  (Tabelle 'code')
+#####################################
+
+
 class Code(DBObjekt):
     table = 'code'
     fields =  ['id', 'kat_id', 'kat_code', 'code', 'name', 'sort', \
-                         'mini', 'maxi', 'off', 'dm', 'dy', 'dok', 'zeit']
+                       'mini', 'maxi', 'off', 'dm', 'dy', 'dok', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -614,16 +643,16 @@ class Code(DBObjekt):
     otherkeys = [('code', 'kat_id'), ('code', 'kat_code'), ('name', 'kat_id'), ('name', 'kat_code')]
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class CodeList(Container):
     resultClass = Code
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Kategorie  (Tabelle 'kategorie')
-    #####################################
-    
-    
+
+#####################################
+# Kategorie  (Tabelle 'kategorie')
+#####################################
+
+
 class Kategorie(DBObjekt):
     table = 'kategorie'
     fields =  ['id', 'code', 'name', 'kat_id', 'dok', 'zeit']
@@ -638,16 +667,16 @@ class Kategorie(DBObjekt):
     otherkeys = [('code',), ('name',)]
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class KategorieList(Container):
     resultClass = Kategorie
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Exportprotokoll  (Tabelle 'exportprotokoll')
-    #####################################
-    
-    
+
+#####################################
+# Exportprotokoll  (Tabelle 'exportprotokoll')
+#####################################
+
+
 class Exportprotokoll(DBObjekt):
     table = 'exportprotokoll'
     fields =  ['id', 'mit_id', 'zeit', 'dbsite']
@@ -662,16 +691,16 @@ class Exportprotokoll(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class ExportprotokollList(Container):
     resultClass = Exportprotokoll
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Importprotokoll  (Tabelle 'importprotokoll')
-    #####################################
-    
-    
+
+#####################################
+# Importprotokoll  (Tabelle 'importprotokoll')
+#####################################
+
+
 class Importprotokoll(DBObjekt):
     table = 'importprotokoll'
     fields =  ['id', 'exp_id', 'mit_id', 'zeit', 'dbsite']
@@ -686,21 +715,21 @@ class Importprotokoll(DBObjekt):
     otherkeys = []
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class ImportprotokollList(Container):
     resultClass = Importprotokoll
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Feld  (Tabelle 'feld')
-    #####################################
-    
-    
+
+#####################################
+# Feld  (Tabelle 'feld')
+#####################################
+
+
 class Feld(DBObjekt):
     table = 'feld'
     fields =  ['id', 'tab_id', 'feld', 'name', 'inverse', 'typ', \
-                         'laenge', 'notnull', 'verwtyp', 'ftab_id', 'kat_id', \
-                         'kat_code', 'flag', 'dok']
+                       'laenge', 'notnull', 'verwtyp', 'ftab_id', 'kat_id', \
+                       'kat_code', 'flag', 'dok']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -712,16 +741,16 @@ class Feld(DBObjekt):
     otherkeys = [('tab_id', 'feld')]
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class FeldList(Container):
     resultClass = Feld
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Tabelle  (Tabelle 'tabelle')
-    #####################################
-    
-    
+
+#####################################
+# Tabelle  (Tabelle 'tabelle')
+#####################################
+
+
 class Tabelle(DBObjekt):
     table = 'tabelle'
     fields =  ['id', 'tabelle', 'name', 'klasse', 'flag', 'dok']
@@ -736,20 +765,20 @@ class Tabelle(DBObjekt):
     otherkeys = [('tabelle',), ('name',), ('klasse',)]
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class TabelleList(Container):
     resultClass = Tabelle
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # TabellenID  (Tabelle 'tabid')
-    #####################################
-    
-    
+
+#####################################
+# TabellenID  (Tabelle 'tabid')
+#####################################
+
+
 class TabellenID(DBObjekt):
     table = 'tabid'
     fields =  ['table_id', 'table_name', 'dbsite', 'minid', 'maxid', \
-                         'maxist']
+                       'maxist']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -761,16 +790,16 @@ class TabellenID(DBObjekt):
     otherkeys = [('table_id', 'dbsite'), ('table_name', 'dbsite')]
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class TabellenIDList(Container):
     resultClass = TabellenID
     querySQL = resultClass.querySQL
-    
-    #####################################
-    # Schluessel  (Tabelle 'schluessel')
-    #####################################
-    
-    
+
+#####################################
+# Schluessel  (Tabelle 'schluessel')
+#####################################
+
+
 class Schluessel(DBObjekt):
     table = 'schluessel'
     fields =  ['tab_id', 'feld_id', 'seq']
@@ -785,21 +814,22 @@ class Schluessel(DBObjekt):
     otherkeys = [('tab_id', 'feld_id', 'seq')]
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
-    
+
 class SchluesselList(Container):
     resultClass = Schluessel
     querySQL = resultClass.querySQL
+
     
-    
-    # Die folgenden Einträge ermöglichen die automatische Navigation über
-    # Fremdschlüssel. Wird insbesondere von DBObjekt.__getitem__ verwendet.
-    #   fall['akte_id__vn'] kann damit automatisch evaluiert werden.
+# Die folgenden Einträge ermöglichen die automatische Navigation über
+# Fremdschlüssel. Wird insbesondere von DBObjekt.__getitem__ verwendet.
+#   fall['akte_id__vn'] kann damit automatisch evaluiert werden.
     
 Mitarbeiter.foreignfieldtypes['stat'] = (Code, None)
 Mitarbeiter.foreignfieldtypes['benr'] = (Code, None)
 Mitarbeiter.foreignfieldtypes['stz'] = (Code, None)
 MitarbeiterDienststelle.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'neben_stz')
 MitarbeiterDienststelle.foreignfieldtypes['stz'] = (Code, None)
+Akte.foreignfieldtypes['wohnbez'] = (Code, None)
 Akte.foreignfieldtypes['fs'] = (Code, None)
 Akte.foreignfieldtypes['stzbg'] = (Code, None)
 Akte.foreignfieldtypes['stzak'] = (Code, None)
@@ -897,6 +927,35 @@ Jugendhilfestatistik.foreignfieldtypes['fbe0'] = (Code, None)
 Jugendhilfestatistik.foreignfieldtypes['fbe1'] = (Code, None)
 Jugendhilfestatistik.foreignfieldtypes['fbe2'] = (Code, None)
 Jugendhilfestatistik.foreignfieldtypes['fbe3'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['fall_id'] = (Fall, 'jgh07_statistiken')
+Jugendhilfestatistik2007.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'jgh07_statistiken')
+Jugendhilfestatistik2007.foreignfieldtypes['stz'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['gfall'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['bezirksnr'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['land'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['kr'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['einrnr'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['hilf_art'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['hilf_ort'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['traeger'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['gs'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['aort_vor'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['sit_fam'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['ausl_her'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['vor_dt'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['wirt_sit'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['aip'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['ees'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['va52'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['rgu'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['hda'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['gr1'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['gr2'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['gr3'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['lbk6m'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['grende'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['aort_nac'] = (Code, None)
+Jugendhilfestatistik2007.foreignfieldtypes['unh'] = (Code, None)
 Code.foreignfieldtypes['kat_id'] = (Kategorie, 'codes')
 Kategorie.foreignfieldtypes['kat_id'] = (Kategorie, 'kategorien')
 Exportprotokoll.foreignfieldtypes['mit_id'] = (Mitarbeiter, '')
@@ -913,12 +972,12 @@ TabellenID.foreignfieldtypes['dbsite'] = (Code, None)
 Schluessel.foreignfieldtypes['tab_id'] = (Tabelle, 'schluessel')
 Schluessel.foreignfieldtypes['feld_id'] = (Feld, 'schluessel')
 
-
+    
 # Die folgenden Einträge ermöglichen die automatische Navigation über
 # inverse Fremdschlüssel. Wird insbesondere von DBObjekt.__getitem__ 
 # verwendet.
 #   fall['leistungen'] kann damit automatisch evaluiert werden.
-
+    
 Mitarbeiter.inversefieldtypes['neben_stz'] = (MitarbeiterDienststelleList, 'mit_id')
 Akte.inversefieldtypes['faelle'] = (FallList, 'akte_id')
 Fall.inversefieldtypes['anmeldung'] = (AnmeldungList, 'fall_id')
@@ -945,6 +1004,8 @@ Fachstatistik.inversefieldtypes['fachstatkindprobleme'] = (Fachstatistikkindprob
 Fachstatistik.inversefieldtypes['fachstatelternprobleme'] = (FachstatistikelternproblemList, 'fstat_id')
 Fall.inversefieldtypes['jgh_statistiken'] = (JugendhilfestatistikList, 'fall_id')
 Mitarbeiter.inversefieldtypes['jgh_statistiken'] = (JugendhilfestatistikList, 'mit_id')
+Fall.inversefieldtypes['jgh07_statistiken'] = (Jugendhilfestatistik2007List, 'fall_id')
+Mitarbeiter.inversefieldtypes['jgh07_statistiken'] = (Jugendhilfestatistik2007List, 'mit_id')
 Kategorie.inversefieldtypes['codes'] = (CodeList, 'kat_id')
 Kategorie.inversefieldtypes['kategorien'] = (KategorieList, 'kat_id')
 Mitarbeiter.inversefieldtypes[''] = (ExportprotokollList, 'mit_id')

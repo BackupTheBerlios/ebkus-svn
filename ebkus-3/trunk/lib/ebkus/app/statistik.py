@@ -38,7 +38,8 @@ class _Auszaehlung(object):
                                 or None)
         self.title = kw.get('title', self.feld and self.feld['name'] or 'Kein Titel')
         self.xtitle = kw.get('xtitle', self.title)
-        self.ytitle = kw.get('ytitle', 'S')
+        #self.ytitle = kw.get('ytitle', 'S')
+        self.ytitle = kw.get('ytitle', '%')
         self.identname = self.title.lower().replace('/','_').replace(' ', '_')
         self.result = None
 
@@ -78,6 +79,20 @@ class MehrfachCodeAuszaehlung(_Auszaehlung):
         for f in self.felder:
             res.append(xcountitem_jgh_ba(f['kat']['code'], self.liste, f['feld'])[0])
         return res
+
+class MehrfachCodeAuszaehlung2(_Auszaehlung):
+    """Zur Zeit nur für die gr*- Felder in der Jugendhilfestatistik2007
+    Achtung: diese Item funktioniert anders als die ba* Felder in der alten JGH.
+    """
+    def __init__(self, liste, felder, title, **kw):
+        self.liste = liste
+        self.felder = [self._get_feld_objekt(f) for f in felder]
+        kw['title'] = title
+        self._set_attributes(kw)
+        
+    def _compute_result(self):
+        # TODO: generische Funktion schreiben
+        return xcountitem_jgh07_gr(self.felder, self.liste)
             
 class WertAuszaehlung(_Auszaehlung):
     def __init__(self, liste, feld, **kw):
@@ -105,6 +120,32 @@ class ObjektAuszaehlung(_Auszaehlung):
                            count_feld='id', name_feld=self.name_feld)
 
 
+class BereichsKategorieAuszaehlung(_Auszaehlung):
+    def __init__(self, liste, attr, kat_code, **kw):
+        self.liste = liste
+        self.kat_code = kat_code
+        self.attr = attr
+        self._set_attributes(kw)
+    def _compute_result(self):
+        return xcountbereich(self.kat_code, self.liste, self.attr)
+
+class EinzelWertAuszaehlung(_Auszaehlung):
+    """Für das Attribut attr werden die Häufigkeiten und Prozentsätze
+    der werte berechnet und mit dem entsprechenden Element in namen
+    beschriftet.
+    """
+    def __init__(self, liste, attr, werte, namen=None, **kw):
+        self.liste = liste
+        self.werte = werte
+        if namen == None:
+            self.namen = ['']*len(werte)
+        self.attr = attr
+        self._set_attributes(kw)
+        print werte, namen
+        assert len(self.werte) == len(self.namen)
+    def _compute_result(self):
+        return xcountwerte(self.liste, self.werte, self.namen, self.attr)
+
 # TODO: direkt in _compute_result einarbeiten
 
 def xcountitem(kat_code, d_list, d_item):
@@ -127,6 +168,15 @@ def xcountitem(kat_code, d_list, d_item):
         res.append(a)
     return res
 
+def xcountwerte(d_list, werte, namen, attr):
+    res = []
+    values = [x[attr] for x in d_list]
+    for w, n in zip(werte, namen):
+        freq = values.count(w)
+        a = (n, freq, ((float(freq)*100)/float(len(d_list))))
+        res.append(a)
+    return res
+        
 def xcountitem_jgh_ba(kat_code, d_list, d_item):
     """Liste mit Namen, Anzahl, Prozent fuer die Tabelle Beratungsanlass
     der Jugendhilfestatistik. Es werden nur die Ankreuzungen (Code 1) gezählt; die
@@ -142,8 +192,22 @@ def xcountitem_jgh_ba(kat_code, d_list, d_item):
     a = [c1['name'], freq, ((float(freq)*100)/float(len(d_list)))]
     res.append(a)
     return res
-    
-    
+
+def xcountitem_jgh07_gr(felder, d_list):
+    feldnamen = [f['feld'] for f in felder]
+    values_for_each = [[x[f] for x in d_list] for f in feldnamen]
+    values = []
+    for v in values_for_each:
+        values += v
+    # Annahme: alle Felder haben denselben kat_code
+    codelist = get_all_codes(felder[0]['kat_code'])
+    res = []
+    for c in codelist:
+        freq = values.count(c['id'])
+        a = (c['name'], freq, ((float(freq)*100)/float(len(d_list))))
+        res.append(a)
+    return res
+                        
 def xcountbereich(kat_code, d_list, d_item):
     """Liste mit Namen, Anzahl, Prozent fuer die Codebereiche
     in der Fach- oder Jugendhilfestatistik.
@@ -189,8 +253,9 @@ def xcountnlist(nlist, d_list, d_item, count_feld='id', name_feld='na'):
         x.append(d[d_item])
     for n in nlist:
         freq = x.count(n[count_feld])
-        a = [n[name_feld], freq, ((float(freq)*100)/float(len(d_list)))]
-        res.append(a)
+        if freq > 0:
+            a = [n[name_feld], freq, ((float(freq)*100)/float(len(d_list)))]
+            res.append(a)
     return res
     
 def xcountkontakte(d_list, d_item):
@@ -208,3 +273,41 @@ def xcountkontakte(d_list, d_item):
           [values[i], freq, float(freq)*100/float(n)])
         i += freq
     return res
+
+## _alter_to_group = (1,1,1,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,7,7,7,7,7,7,8)
+## _group_to_name = ('0-2','3-5','6-9','10-13','14-17','18-20','21-26','ab 27')
+## def _altersgruppe(jgh):
+##     # Alter berechnen:
+##     # mindestens 0, höchstens 27
+##     # berechnet aus der Differenz zwischen Hilfebeginnjahr und -monat und
+##     # Geburtsjahr und -monat
+##     alter = min(max(0, ((jgh['bgm'] + 12*jgh['bgy']) - (jgh['gem'] + 12*jgh['gey'])) / 12), 27)
+##     # Altersgruppe ist ein Index in _group_to_name
+##     return _alter_to_group[alter]
+
+## def xcountaltersgruppe(d_list):
+##     """Zählt Altersgruppen aus für die Jugendhilfestatistik2007.
+##     Dazu wird die Differenz zwischen Hilfebeginn und Geburtsmonat/jahr
+##     herangezogen, die beide Teil der Jugendhilfestatistik2007 sind.
+##     Die Altersgruppen werden an die Fachstatistik angelehnt (fsag):
+## 1;0-2;fsag
+## 2;3-5;fsag
+## 3;6-9;fsag
+## 4;10-13;fsag
+## 5;14-17;fsag
+## 6;18-20;fsag
+## 7;21-26;fsag
+## 8;27-;fsag
+##     """
+        
+##     values = [_altersgruppe(jgh) for jgh in d_list]
+##     res = []
+##     for i, n in enumerate(_group_to_name):
+##         freq = values.count(i+1)
+##         a = (n, freq, ((float(freq)*100)/float(len(d_list))))
+##         res.append(a)
+##     return res
+
+## def xcountaltersgruppe(d_list):
+##     return xcountbereich('jghag', self.liste, 'alter')
+    

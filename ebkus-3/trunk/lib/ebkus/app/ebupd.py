@@ -58,7 +58,6 @@ def akteeinf(form):
     leist['stz'] = check_code(form, 'lestz', 'stzei',
                               "Kein Stellenzeichen für die Leistung",
                               akte['stzbg'])
-    
     try:
         akte.insert(akid)
         fall['akte_id'] = akte['id']
@@ -80,7 +79,6 @@ def akteeinf(form):
         try: leist.delete()
         except: pass
         raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
-        
         
 def updakte(form):
 
@@ -1272,72 +1270,200 @@ def jgheinf(form):
         except: pass
         raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
         
+
+def raise_if_int(form, keys, error_message):
+    for k in keys:
+        v = form.get(k)
+        found = False
+        try:
+            vi = int(v)
+            found = True
+        except (ValueError, TypeError):
+            pass
+        if found:
+            raise EE(error_message)
+
+def _jgh07_check(form, jgh):
+    """Jugendhilfestatistik prüfen sowohl für Einführung als auch für Update."""
+    from ebkus.html.jghstatistik import _fb_data
+    try:
+        fall_id = check_fk(form, 'fallid', Fall, "Kein Fall")
+        fall = Fall(fall_id)
+    except:
+        # es muss keinen Fall geben, z.B. falls dieser schon gelöscht wurde
+        fall = None
+    jgh['stz'] = check_code(form, 'stz', 'stzei',
+                            "Kein Stellenzeichen für die Jugendhilfestatistik")
+    jgh['mit_id'] = check_fk(form, 'mitid', Mitarbeiter,
+                                 "Kein Mitarbeiter")
+    jgh['land'] = check_code(form, 'land', 'land',
+                            "Kein Land")
+    jgh['kr'] = check_code(form, 'kr', 'kr',
+                            "Kein Kreis")
+    jgh['einrnr'] = check_code(form, 'einrnr', 'einrnr',
+                            "Keine Einrichtungsnummer")
+    jgh['gfall'] = check_code(form, 'gfall', 'gfall',
+                                  "Angabe, ob der Fall ein Geschwisterfall ist, fehlt")
+    jgh['bezirksnr'] = check_code(form, 'wohnbez', 'wohnbez',
+                                          "Kein Wohnbezirk")
+    # wird auf True gesetzt, wenn das entsprechende item mit ja beantwortet wurde    
+    hilfe_dauert_an = False 
+    # Kategorienitems werden über die Daten in jghstatistik._fb_data abgehandelt
+    for a in _fb_data:
+        if isinstance(a, basestring):
+            continue
+        lfb = a['abschnitt']
+        title = a['title']
+        if lfb == 'K':
+            _jgh07_check_abschnitt_K(form, jgh)
+        else:
+            for i in a['items_data']:
+                if isinstance(i, basestring):
+                    continue
+                typ = i['typ'][0]
+                name = i['name']
+                frage = i['frage']
+                if typ == 'kat':
+                    kat_code = i['typ'][1]
+                    item_kennzeichung = "%s / %s / %s" % (lfb, title, frage)
+                    if name == 'hda' and str(form.get('hda')) == str(cn('ja_nein', 'ja')):
+                        hilfe_dauert_an = True
+                    if hilfe_dauert_an and name in ('lbk6m', 'grende', 'aort_nac', 'unh'):
+                        raise_if_int(form, (name,),
+                                     "Nur bei beendeter Hilfe ausfüllen: %s" %
+                                     item_kennzeichung)
+                        jgh[name] = None
+                    else:
+                        jgh[name] = check_code(form, name, kat_code,
+                                   "Fehlt: %s" % item_kennzeichung)
+    jgh['zustw'] = form.get('zustw') or ' '
+    # Datumsangaben direkt abhandeln
+    jgh.setDate('ge',
+                check_date(form, 'ge',
+                           "Fehler in E / Geburtsdatum", nodayallowed = 1 ) )
+    del jgh['ged']
+    jgh.setDate('bg',
+                check_date(form, 'bg',
+                           "Fehler im Datum für den Beginn", nodayallowed = 1 ) )
+    if fall and fall['bgy'] != jgh['bgy'] or fall['bgm'] != jgh['bgm']:
+        raise EE("Beginndatum in der Jugendhilfestatistik stimmt mit dem Fallbeginn nicht überein")
+    if hilfe_dauert_an:
+        raise_if_int(form, ('ey', 'em'),
+                     "Nur bei beendeter Hilfe ausfüllen: L / Ende der Hilfe / Datum")
+        jgh['ey'] = jgh['em'] = None
+    else:
+        jgh.setDate('e',
+                    check_date(form, 'e',
+                               "Fehler in L / Ende der Hilfe / Datum", nodayallowed = 1 ) )
+        if jgh.getDate('e') < jgh.getDate('bg'):
+            raise EE("Fallende in der Jugendhilfestatistik liegt vor Fallbeginn")
+        if jgh.getDate('e') < Date(2007):
+            raise EE("Neue Bundesstatistik für Fallende vor 2007 nicht erlaubt")
+        del jgh['ed']
+    del jgh['bgd']
+    # Beratungskontakte direkt abhandeln
+    item_J = "J / Intensität / Zahl der Beratungskontakte"
+    item_M = "M / Betreuungsintensität / Zahl der Beratungskontakte"
+    if hilfe_dauert_an:
+        jgh['nbkakt'] = check_int_not_empty(form, 'nbkakt',
+                            "Fehlt: %s" % item_J)
+        raise_if_int(form, ('nbkges',),
+                     "Nur bei beendeter Hilfe ausfüllen: %s" % item_M)
+        jgh['nbkges'] = None
+    else:
+        jgh['nbkges'] = check_int_not_empty(form, 'nbkges',
+                            "Fehlt: %s" % item_M)
+        raise_if_int(form, ('nbkakt',),
+                     "Nur bei andauernder Hilfe ausfüllen: %s" % item_J)
+        jgh['nbkakt'] = None
+    
+def _jgh07_check_abschnitt_K(form, jgh):
+    item_K = "K / Gründe für die Hilfegewährung"
+    m1 = "Mehr als ein Hauptgrund"
+    m2 = "Mehr als ein 2. Grund"
+    m3 = "Mehr als ein 3. Grund"
+    k1 = "Kein Hauptgrund"
+    k2 = "Kein 2. Grund"
+    v = "Hauptgrund, 2. Grund und 3. Grund müssen unterschiedlich sein"
+    found = True # falls das auf False gesetzt wird und danach wieder auf True --> Fehler
+    for g, m in zip(('gr1', 'gr2', 'gr3'), (m1, m2, m3)):
+        g_val = form.get(g)
+        if isinstance(g_val, list):
+            if len(g_val) > 1:
+                raise EE("%s in %s" % (m, item_K))
+            if g_val:
+                g_val = g_val[0]
+        if g_val:
+            if not found:
+                raise EE("%s in %s" % (k2, item_K))
+            jgh[g] = check_code(form, g, 'gruende', "Fehler in %s" % item_K)
+            found = jgh[g]
+        else:
+            if g == 'gr1':
+                raise EE("%s in %s" % (k1, item_K))
+            found = False
+    v1, v2, v3 = jgh.get('gr1'), jgh.get('gr2'), jgh.get('gr3')
+    if (v1 and (v1 == v2 or v1 == v3)) or (v2 and v2 == v3):
+        raise EE("%s in %s" % (v, item_K))
+    
+
 def jgh07einf(form):
     """Jugendhilfestatistik 2007."""
     
     jghid = check_int_not_empty(form, 'jghid', "JugendhilfestatistikID fehlt")
     check_not_exists(jghid, Jugendhilfestatistik2007,
         "Jugendhilfestatistik (id: %(id)s, Fallnummer: %(fall_fn)s, Mitarbeiter: %(mit_id__na)s, Fall: %(fall_id)s ) existiert bereits")
-    
-    jgh07stat = Jugendhilfestatistik2007()
-    fallid = form.get('fallid')
-    if fallid == None or fallid == '' or fallid == 'None':
-        jgh07stat['fall_id'] = None
-    else:
-        jgh07stat['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
-        check_unique(jgh07stat['fall_id'], Jugendhilfestatistik2007List,
-                     'fall_id',"Fallid gibt es bereits")
-
-    jgh07stat['mit_id'] = check_fk(form, 'mitid', Mitarbeiter,
-                                 "Kein Mitarbeiter")
-    jgh07stat['fall_fn'] = check_str_not_empty(form, 'fall_fn',
-                                             "Fallnummer fehlt")
-    check_unique(jgh07stat['fall_fn'], Jugendhilfestatistik2007List,
-                 'fall_fn',"Fallnummer gibt es bereits")
-    jghl = Jugendhilfestatistik2007List(where =
-                                    "fall_fn = '%s'" % jgh07stat['fall_fn'])
-    if len(jghl) >= 1:
-        raise EE("Jugendhilfestatistik2007 für Fallnummer: '%s'" % jgh07stat['fall_fn']
+    jgh = Jugendhilfestatistik2007()
+    # Zur Einführung muss ein Fall vorhanden sein.
+    # Evt. kann dieser später gelöscht werden, ohne dass die Statistik
+    # selbst gelöscht wird.
+    # Der Fall (fall_id und fall_fn) kann später nicht mehr verändert werden.
+    jgh['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
+    jgh['fall_fn'] = check_str_not_empty(form, 'fall_fn',
+                                         "Fallnummer fehlt")
+    check_unique(jgh['fall_fn'], Jugendhilfestatistik2007List,
+                 'fall_fn',
+                 "Jugendhilfestatistik für Fallnummer '%s'" % jgh['fall_fn']
                   + " existiert bereits.")
-    jgh07stat['stz'] = check_code(form, 'stz', 'stzei',
-                              "Kein Stellenzeichen für die Jugendhilfestatistik")
-    jgh07stat.setDate('bg',
-                 check_date(form, 'bg',
-                            "Fehler im Datum für den Beginn", nodayallowed = 1 ) )
-    if form['fallid'] != None and form['fallid'] != '':
-        fall = Fall(jgh07stat['fall_id'])
-        if fall['bgm'] != jgh07stat['bgm'] or fall['bgy'] != jgh07stat['bgy']:
-            raise EE("Beginndatum in der Jugendhilfestatistik stimmt mit dem Fallbeginn nicht überein")
-    jgh07stat.setDate('e',
-                 check_date(form, 'e',
-                            "Fehler im Datum für das Ende", nodayallowed = 1 ) )
-    if jgh07stat.getDate('e') < jgh07stat.getDate('bg'):
-        raise EE("Fallende in der Jugendhilfestatistik liegt vor Fallbeginn")
-    if jgh07stat.getDate('e') < Date(2007):
-        raise EE("Neue Bundesstatistik für Fallende vor 2007 nicht erlaubt")
-    del jgh07stat['bgd']
-    del jgh07stat['ed']
-    jgh07stat['sit_fam'] = check_code(form, 'sit_fam', 'shf',
-                                      "Situation Herkunftsfamilie fehlt" )
-    jgh07stat['zeit'] = int(time.time())
-    
+    check_unique(jgh['fall_id'], Jugendhilfestatistik2007List,
+                 'fall_id',
+                 "Jugendhilfestatistik für Fall-ID '%s'" % jgh['fall_id']
+                 + " existiert bereits.")
+##     print 'EBUPD VOR _jgh07_check form', form
+##     print 'EBUPD VOR _jgh07_check jgh', jgh
+    _jgh07_check(form, jgh)
+##     print 'EBUPD NACH _jgh07_check form', form
+##     print 'EBUPD NACH _jgh07_check jgh', jgh
+    jgh['zeit'] = int(time.time())
     try:
-        jgh07stat.insert(jghid)
+        jgh.insert(jghid)
+        #print 'EBUPD INSERT erfolgreich'
+        from ebkus.db.sql import SQL
+        #print SQL("select * from jghstat07 order by ey").execute()
     except Exception, args:
-        try: jgh07stat.delete()
+        try: jgh.delete()
         except: pass
         raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
         
 
-def jgh_laufende_nummer_setzen():
-    """Erteilt jeder Jugendhilfestatistik eine laufende Nummer"""
-    # höchste vorhandene laufende Nummer ermitteln
+
+def _jgh_get_letzte_laufende_nummer():
+    letzte = letzte2007 = 0
+    jghstatliste2007 = Jugendhilfestatistik2007List(where = 'lnr > 0', order = 'lnr')
     jghstatliste = JugendhilfestatistikList(where = 'lnr > 0', order = 'lnr')
     if jghstatliste:
         letzte = jghstatliste[-1]['lnr']
-    else:
-        letzte = 0
-    # laufende Nummer setzen wo noch keine vorhanden ist
+    if jghstatliste2007:
+        letzte2007 = jghstatliste2007[-1]['lnr']
+    return max(letzte, letzte2007)
+
+def jgh_laufende_nummer_setzen():
+    """Erteilt jeder Jugendhilfestatistik eine laufende Nummer.
+    Im Prinzip kann in einer alten Statistik eine höhere Nummer stehen
+    als in einer neuen, was aber selten vorkommen dürfte.
+    """
+
+    letzte = _jgh_get_letzte_laufende_nummer()
     jghstatliste = JugendhilfestatistikList(where = 'lnr IS NULL', order = 'id')
     for j in jghstatliste:
         letzte += 1
@@ -1346,19 +1472,21 @@ def jgh_laufende_nummer_setzen():
     for j in jghstatliste:
         letzte += 1
         j.update({'lnr': letzte})
-
+    return letzte
 
 def upgrade_jgh(id, old2new):
-    """Alte Jugendhilfestatistik durch neue ersetzen.
-    Eine vorhandene alte Jugendstatistik wird durch eine neue
-    ersetzt, die vom Anwender ausgefüllt werden muss. Es werden lediglich
-    folgende Felder übernommen:
-    beginn, stz, mit_id, fall_id, fall_fn, lnr
+    """Alte/neue Jugendhilfestatistik durch neue/alte ersetzen.
+    Eine vorhandene Jugendstatistik wird durch die alte bzw. neue
+    ersetzt, die vom Anwender ausgefüllt werden muss.
+    Die neue wird mit jgheinf bzw. jgh07einf angelegt.
     Falls old2new True ist, wird eine alte Bundesstatistik (bis 2006) durch
     eine neue (ab 2007) ersetzt, sonst umgekehrt.
+
+    Das ganze kann ab 2008 auf jeden Fall gestrichen werden, da dann solche
+    Fälle nicht vorkommen dürften.
     """
     import logging
-    logging.info("upgrade_jgh: id=%s old2new=%s" % (id,old2new))
+    logging.debug("upgrade_jgh: id=%s old2new=%s" % (id,old2new))
     try:
         if old2new:
             jgh = Jugendhilfestatistik(id)
@@ -1367,7 +1495,8 @@ def upgrade_jgh(id, old2new):
     except:
         # nichts zu upgraden
         return
-    fall_id = jgh['fall_id']
+    fall_id = jgh.get('fall_id')
+    fall = None
     if fall_id:
         fall = Fall(fall_id)
         if not fall['aktuell']:
@@ -1383,67 +1512,29 @@ für Fälle von 2006 oder früher." % adj)
         raise EE(
             "Kein Fall vorhanden. Ersatz durch %s  Bundesstatistik nicht möglich." %
             adj)
-##     if old2new:
-##         jghnew = Jugendhilfestatistik2007()
-##     else:
-##         jghnew = Jugendhilfestatistik()
-##     jghnew.setDate('bg', jgh.getDate('bg'))
-##     jghnew['stz'] = jgh['stz']
-##     jghnew['mit_id'] = jgh['mit_id']
-##     jghnew['fall_id'] = jgh['fall_id']
-##     jghnew['fall_fn'] = jgh['fall_fn']
-##     jghnew['lnr'] = jgh['lnr']
-##     jghnew.new()
-##     jghnew['zeit'] = int(time.time())
-##     jghnew.insert()
     jgh.delete()
-    logging.info("upgrade_jgh: deleted")
+    logging.info("upgrade_jgh: %s Jugendhilfestatistik für Fall-Nr. %s gelöscht" %
+                 (old2new, fall['fn']))
 
 def updjgh07(form):
     """Update der Jugendhilfestatistik."""
-    
-    jgh07statold = check_exists(form, 'jghid', Jugendhilfestatistik2007,
+    jghold = check_exists(form, 'jghid', Jugendhilfestatistik2007,
                               "JugendhilfestatistikID fehlt")
-    jgh07stat = Jugendhilfestatistik2007()
-    fallid = check_fk(form, 'fallid', Fall, "Kein Fall")
-    fall = Fall(fallid)
-    jgh07stat['fall_id'] = fallid
-    jgh07stat['fall_fn'] = check_str_not_empty(form, 'fall_fn',
-                                               "Fallnummer fehlt")
-    jgh07stat['stz'] = check_code(form, 'stz', 'stzei',
-                              "Kein Stellenzeichen für die Jugendhilfestatistik")
-##     jgh07stat['gfall'] = check_code(form, 'gfall', 'gfall',
-##                                   "Angabe, ob der Fall ein Geschwisterfall ist, fehlt")
-##     if config.BERLINER_VERSION:
-##         jgh07stat['bezirksnr'] = check_code(form, 'wohnbez', 'wohnbez',
-##                                           "Kein Wohnbezirk")
-    
-    beginn = check_date(form, 'bg', "Fehler im Datum für den Beginn", nodayallowed=1)
-    jgh07stat.setDate('bg', beginn)
-    if fall['bgm'] != beginn.month or fall['bgy'] != jgh07stat['bgy']:
-        raise EE("Beginndatum in der Jugendhilfestatistik stimmt mit dem Fallbeginn nicht überein")
-    ende = check_date(form, 'e', "Fehler im Datum für das Ende", nodayallowed=1)
-    jgh07stat.setDate('e', ende)
-    if ende < beginn:
-        raise EE("Fallende in der Jugendhilfestatistik liegt vor Fallbeginn")
-    if ende < Date(2007):
-        raise EE("Neue Bundesstatistik für Fallende vor 2007 nicht erlaubt")
-    del jgh07stat['bgd']
-    del jgh07stat['ed']
-    jgh07stat['sit_fam'] = check_code(form, 'sit_fam', 'shf',
-                                      "Situation in Herkunftsfamilie fehlt", jgh07statold)
-    jgh07stat['zeit'] = int(time.time())
-    jgh07statold.update(jgh07stat)
-    
-    ## akte_undo_cached_fields() fuehrt zu einem Error, wenn
-    ## jgh07stat['fall_id'] = None ist.
-    ##
-    
-    akteold = Akte(jgh07statold['fall_id__akte_id'])
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    akteold.update(akte)
-    jgh07statold['akte'].akte_undo_cached_fields()
+    jgh = Jugendhilfestatistik2007()
+    _jgh07_check(form, jgh)
+    jgh['zeit'] = int(time.time())
+    jghold.update(jgh)
+    try:
+        ## akte_undo_cached_fields() fuehrt zu einem Error, wenn
+        ## jgh['fall_id'] = None ist. Daher try-except
+        akteold = Akte(jghold['fall_id__akte_id'])
+        akte = Akte()
+        akte['zeit'] = int(time.time())
+        akteold.update(akte)
+        jghold['akte'].akte_undo_cached_fields()
+    except:
+        # kann schief gehen, wenn es keinen Fall gibt
+        pass
         
 def updjgh(form):
     """Update der Jugendhilfestatistik."""
@@ -1464,10 +1555,8 @@ def updjgh(form):
                               "Kein Stellenzeichen für die Jugendhilfestatistik")
     jghstat['gfall'] = check_code(form, 'gfall', 'gfall',
                                   "Angabe, ob der Fall ein Geschwisterfall ist, fehlt")
-    if config.BERLINER_VERSION:
-        jghstat['bezirksnr'] = check_code(form, 'wohnbez', 'wohnbez',
-                                          "Kein Wohnbezirk")
-    
+    jghstat['bezirksnr'] = check_code(form, 'wohnbez', 'wohnbez',
+                                      "Kein Wohnbezirk")
     jghstat.setDate('bg', check_date(form, 'bg',
                             "Fehler im Datum für den Beginn", nodayallowed = 1 ) )
     if form['fallid'] != None and form['fallid'] != '':
@@ -1637,7 +1726,7 @@ def gruppeeinf(form):
     if type(mitid) is type(''):
         mitid = [mitid]
 
-    # TODO: stimmt das? dürfen beide Daten 0 sein oder in der Zukunft liegen?
+    # TBD: stimmt das? dürfen beide Daten 0 sein oder in der Zukunft liegen?
     gruppe.setDate('bg', check_date(form, 'bg',
                                     "Fehler im Datum für den Beginn", Date(0,0,0), maybezero = 1, maybefuture=1 ))
     gruppe.setDate('e', check_date(form, 'e',
@@ -2350,6 +2439,7 @@ def removeakten(form):
     for f in faelle:
         #print "********* LOESCHEN: %(id)s;%(akte_id)s;%(fn)s" % f
         jghstatl = JugendhilfestatistikList(where = 'fall_id = %s' % f['id'])
+        jgh07statl = Jugendhilfestatistik2007List(where = 'fall_id = %s' % f['id'])
         fachstatl = FachstatistikList(where = 'fall_id = %s' % f['id'])
         dokl = DokumentList(where = 'fall_id = %s' % f['id'])
         zustaendigl = ZustaendigkeitList(where = 'fall_id = %s' % f['id'])
@@ -2363,6 +2453,12 @@ def removeakten(form):
         for j in jghstatl:
             jghstatold = Jugendhilfestatistik(j['id'])
             jghstat = Jugendhilfestatistik()
+            jghstat['fall_id'] = None
+            jghstat['zeit'] = int(time.time())
+            jghstatold.update(jghstat)
+        for j in jgh07statl:
+            jghstatold = Jugendhilfestatistik2007(j['id'])
+            jghstat = Jugendhilfestatistik2007()
             jghstat['fall_id'] = None
             jghstat['zeit'] = int(time.time())
             jghstatold.update(jghstat)
@@ -2482,9 +2578,9 @@ def setAdresse(obj, form):
             obj['lage'] = cc('lage', '1')
             if 'planungsr' in obj.fields:
                 planungs_raum = form.get('planungsr')
-                if planungs_raum in ('0', '9999'):
+                if planungs_raum in ('0',):
                     raise EBUpdateDataError("Kein gültiger Planungsraum")
-                obj['planungsr'] =  planungs_raum or 0
+                obj['planungsr'] =  planungs_raum or '0'
             if 'wohnbez' in obj.fields:
                 # außerhalb Berlins
                 obj['wohnbez'] = cc('wohnbez', '13')
@@ -2496,10 +2592,8 @@ def setAdresse(obj, form):
             obj['lage'] = cc('lage', '999')
             if 'planungsr' in obj.fields:
                 planungs_raum = form.get('planungsr')
-                if planungs_raum in ('0', '9999'):
+                if planungs_raum in ('0',):
                     raise EBUpdateDataError("Kein gültiger Planungsraum")
-                obj['planungsr'] =  planungs_raum or 9999
+                obj['planungsr'] =  planungs_raum or '0'
             if 'wohnbez' in obj.fields:
                 obj['wohnbez'] = cc('wohnbez', '999')
-
-
