@@ -5,7 +5,7 @@ from ebkus.app.session import create_session, get_session, has_session
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.session_templates import *
 from ebkus.app import Request
-from ebkus.app.ebapi import Mitarbeiter, cc
+from ebkus.app.ebapi import MitarbeiterList, cc
 from ebkus.app.protocol import write_sql_protocol
 from ebkus.config import config
 
@@ -31,10 +31,9 @@ class login(Request.Request):
                        {'index_url': "/ebkus/%s/index.html" % config.INSTANCE_NAME})
             return ''.join(res)
 
-        try:
-            mitarbeiter = Mitarbeiter(ben=username,
-                                      stat=cc('status', 'i'))
-        except:
+        ml = MitarbeiterList(where="ben = '%s' and stat = %s" %
+                             (username, cc('status', 'i')))
+        if not ml:
             write_sql_protocol(
                 artdeszugriffs='LOGIN : Ungültiger Benutzername (%s)' % username,
                 username=username, ip=self.ip)
@@ -45,7 +44,7 @@ class login(Request.Request):
                 }
             res.append(meldung_t % meldung)
             return ''.join(res)
-
+        mitarbeiter = ml[0]
         if not mitarbeiter['pass'] == sha.new(password).hexdigest():
             write_sql_protocol(artdeszugriffs='LOGIN : Falsches Passwort (%s)' % username,
                                username=username, ip=self.ip)
