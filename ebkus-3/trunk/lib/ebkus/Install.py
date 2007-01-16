@@ -916,7 +916,7 @@ class ComponentEbkus(Component):
         create_directory(self.config.EBKUS_HOME)
         for f in self.files:
             src = join(self.config.EBKUS_DIST, f)
-            mycopytree(src, self.config.EBKUS_HOME, exclude_dirs=['CVS'],
+            mycopytree(src, self.config.EBKUS_HOME, exclude_dirs=['CVS', '.svn'],
                        overwrite=True, logf=self.log)
 
     def uninstall(self):

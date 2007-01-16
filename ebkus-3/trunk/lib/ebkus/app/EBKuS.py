@@ -75,29 +75,6 @@ class EBKuS:
         
     def index_html(self, REQUEST, RESPONSE):
         return "Die Default Seite"
-
-##     def try_updates(self):
-##         try:
-##             sql.opendb()
-##         except:
-##             # Zum Update muss die Datenbank verfügbar sein.
-##             # Daher:
-##             logging.critical("Für das Update muss die Datenbank verfügbar sein!",
-##                              exc_info=True)
-##             logging.shutdown()
-##             sys.exit(1)
-##         from ebkus.update import needs_update, do_update
-##         if needs_update():
-##             logging.info("Update von EBKuS 3.2 auf 3.3 (neue gesetzliche Statistik) beginnt")
-##             if do_update():
-##                 logging.info("Update von EBKuS 3.2 auf 3.3 erfolgreich")
-##             else:
-##                 logging.critical("Fehler: Update von EBKuS 3.2 auf 3.3 misslungen")
-##                 logging.shutdown()
-##                 sys.exit(1)
-##         else:
-##             logging.info("Kein Update erforderlich")
-            
         
 def makeObject(dict):
     class p: pass

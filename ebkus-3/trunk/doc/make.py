@@ -99,7 +99,7 @@ def run_cmd(cmd):
 
 def usage():
     msg ="""\
-make.py [-h, --help] [html|latex|pdf]
+make.py [-h, --help] [html|latex|pdf|clean]
 
    EBKuS-Dokumentation im HTML-Format oder als PDF erstellen.
 
@@ -119,7 +119,7 @@ make.py [-h, --help] [html|latex|pdf]
    tetex und te_latex installiert.
    
    Falls ``docutils`` nicht installiert ist, wird das Handbuch im HTML- und im
-   PDF-Format von http://ebkus.berlios.de/ebkus-3.2/ heruntergeladen.
+   PDF-Format von http://ebkus.berlios.de/ebkus-3.3/ heruntergeladen.
 """
     print msg
 
@@ -151,7 +151,7 @@ def make_latex():
 
 if __name__ == '__main__':
     os.chdir(dirname(abspath(sys.argv[0])))
-    pdf = html = latex = False
+    pdf = html = latex = clean = False
     args = sys.argv
     if len(args) > 1:
         if 'pdf' in args:
@@ -160,10 +160,12 @@ if __name__ == '__main__':
             html = True
         if 'latex' in args:
             latex = True
+        if 'clean' in args:
+            clean = True
         if '-h' in args or '--help' in args:
             usage()
             sys.exit(0)
-        if not(pdf or html or latex):
+        if not(pdf or html or latex or clean):
             usage()
             sys.exit(1)
     else:
@@ -172,10 +174,22 @@ if __name__ == '__main__':
             # im default-Fall kümmern wir uns um Latex nicht, wenn pdf ok ist.
             latex = False
 
+    if clean:
+        pats = ('*~', '*.pyc',
+                'manual_for_html.txt',
+                'manual_for_latex.txt',
+                '*toc', '*log', '*out', '*tex', '*aux')
+        from glob import glob
+        for p in pats:
+            m = glob(p)
+            for f in m:
+                os.remove(f)
+        sys.exit(0)
+    
     if os.system('rst2html.py --version') != 0:
         # keine docutils, downloaden
         print "docutils zum Generieren des Handbuchs sind nicht installiert"
-        url_dir = 'http://ebkus.berlios.de/ebkus-3.2/'
+        url_dir = 'http://ebkus.berlios.de/ebkus-3.3/'
         target = 'EBKuS_Handbuch.html'
         if html:
             if isfile(target):

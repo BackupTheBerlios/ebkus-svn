@@ -68,14 +68,14 @@ Benötigte Software
 
 Die EBKuS-Software ist erhältlich
 
-- direkt aus der Versionsverwaltung CVS (siehe
-  `CVS-Verzeichnis`_),
+- direkt aus der Versionsverwaltung Subversion (siehe
+  `Quellverzeichnis`_),
 - als Quellcode in Form einer ZIP-Datei oder als Tarball
-  (ca. 5MB, siehe `CVS-Verzeichnis`_), woraus eine vollständige
+  (ca. 5MB, siehe `Quellverzeichnis`_), woraus eine vollständige
   Distribution erzeugt werden kann,
 - als vollständige Distribution inklusive der zusätzlich
   benötigten Software (ca. 70MB, siehe
-  `Distributions-Verzeichnis`_). 
+  `Distributionsverzeichnis`_). 
 
 Die vollständige Distribution kann als Installations-CD gebrannt
 werden.
@@ -142,19 +142,18 @@ Komponenten manuell installieren und konfigurieren.
 Verzeichnisstruktur und Dateien
 -------------------------------
 
-CVS-Verzeichnis
-...............
+Quellverzeichnis
+................
 
-Das CVS-Verzeichnis enthält die EBKuS-Quellen, die Basis für die
+Das Quellverzeichnis enthält die EBKuS-Quellen, die Basis für die
 EBKuS-Entwicklung. 
 
 Der EBKuS-Quellcode wird mit Hilfe des Versionskontrollsystems
-CVS im Rahmen des Open-Source-Portals `BerliOS`_ verwaltet. Die
-neuesten Quellen können direkt CVS-Server bezogen werden (von
+Subversion im Rahmen des Open-Source-Portals `BerliOS`_ verwaltet. Die
+neuesten Quellen können direkt von dort bezogen werden (von
 einer Linux-Konsole aus)::
 
-  export CVS_RSH=ssh
-  cvs -z3 -d:pserver:anonymous@cvs.EBKuS.berlios.de:/cvsroot/ebkus co ebkus-2
+  svn checkout http://svn.berlios.de/svnroot/repos/ebkus/ebkus-3/tags/EBKuS-3.3
 
 .. _`BerliOS`: http://www.berlios.de/
 
@@ -163,9 +162,9 @@ Die Quellen der Version 3.3 können auch als ZIP-Datei
 Tarball (http://ebkus.berlios.de/ebkus/ebkus-3.3-src.tar.gz)
 heruntergeladen werden. 
 
-Wenn man die Quellen aus dem CVS bezieht oder wenn man die
+Wenn man die Quellen aus Subversion bezieht oder wenn man die
 heruntergeladene Archivdatei entpackt, erhält man als oberstes
-Verzeichnis ``ebkus-2``, das CVS-Verzeichnis.
+Verzeichnis ``EBKuS-3.3``, das Quellverzeichnis.
 
 EBKuS kann direkt aus diesem Verzeichnis mit dem
 `install.py`_-Skript installiert werden, es wird aber empfohlen,
@@ -176,7 +175,7 @@ Eine fertige Distribution lässt sich von |dist_url|
 herunterladen (ca. 70MB).
 
 
-Distributions-Verzeichnis
+Distributionsverzeichnis
 .........................
 
 Eine Distribution enthält sämtliche für die Installation von EBKuS
@@ -184,49 +183,50 @@ benötigte Software. Für den laufenden Betrieb ist sie nicht
 erforderlich. 
 
 Eine Distribution kann automatisch mit dem Skript `create_cd.py`_
-aus dem `CVS-Verzeichnis`_ erstellt werden. Alternativ kann eine
+aus dem `Quellverzeichnis`_ erstellt werden. Alternativ kann eine
 fertige Distribution von |dist_url| heruntergeladen werden
 (ca. 70MB). 
 
 In einer Distribution bzw. auf der Installations-CD finden sich
 drei Verzeichnisse:
 
-- ``ebkus-3.3``, das eigentliche EBKuS-Distributions-Verzeichnis
+- ``ebkus-3.3``, das eigentliche EBKuS-Distributionsverzeichnis
   mit der EBKuS-Software
 - ``linux``, enthält die für Linux zusätzlich benötigte Software
 - ``win32``, enthält die für Windows NT/2000/XP zusätzlich
   benötigte Software 
 
-Im Distributions-Verzeichnis ``ebkus-3.3`` befindet sich
+Im Distributionsverzeichnis ``ebkus-3.3`` befindet sich
 insbesondere das `install.py`_-Skript, mit dem eine
 EBKuS-Installation vorgenommen werden kann.
 
 
-Installations-Verzeichnis
-.........................
+Installationsverzeichnis
+........................
 
 Die gesamte Software, die für den laufenden Betrieb von EBKuS
-nötig ist, befindet sich im Installations-Verzeichnis.
+nötig ist, befindet sich nach der Installation im
+Installationsverzeichnis.
 
-Der Name des Installations-Verzeichnis ist frei wählbar. Es muss
+Der Name des Installationsverzeichnis ist frei wählbar. Es muss
 vor der Installation existieren.
 
 Das Installationsskript `install.py`_ installiert die
 EBKuS-Software sowie evt. weitere Komponenten in das
-Installations-Verzeichnis.
+Installationsverzeichnis.
 
 Im Zuge der Installation wird darin vom Installationsskript das
-EBKuS-`Home-Verzeichnis`_ mit dem Name ``ebkus`` angelegt. Unter
+EBKuS-`Homeverzeichnis`_ mit dem Name ``ebkus`` angelegt. Unter
 Windows NT/2000/XP werden außerdem die Verzeichnisse ``apache``,
 ``mysql``, ``openssl`` und ``srvstart`` erzeugt, die die
 Software der jeweiligen Komponente enthalten.
 
-Home-Verzeichnis
-................
+Homeverzeichnis
+...............
 
-Das Home-Verzeichnis ``ebkus`` enthält die EBKuS-Software einer
+Das Homeverzeichnis ``ebkus`` enthält die EBKuS-Software einer
 Installation. Es wird von `install.py`_ im
-`Installations-Verzeichnis`_ angelegt.
+`Installationsverzeichnis`_ angelegt.
 
 Dateien:
 
@@ -259,23 +259,23 @@ Verzeichnisse:
 - ``lib``: enthält den Python-Code der EBKuS-Anwendung
 - ``log``: enthält die Apache-Log-Dateien für die EBKuS-Anwendung
   (nicht jedoch die instanzspezifische Log-Datei, siehe
-  `Instanz-Verzeichnis`_) 
+  `Instanzverzeichnis`_) 
 - ``sql``: enthält Dateien zur Initialisierung der Datenbank
 - ``templates``: enthält Vorlagen für zu generierende Dateien
 - ``vorlagen``: enthält eine Vorlage für den `Wordexport`_
 - für jede Instanz ein eigenes Verzeichnis mit dem Namen der
   Instanz. Enhält die instanzspezifischen Dateien und
-  Verzeichnissen (siehe `Instanz-Verzeichnis`_).
+  Verzeichnissen (siehe `Instanzverzeichnis`_).
 
 Anmerkung: Bei der Erstinstallation werden alle zu generierenden
 Dateien (``ebkus_httpd.conf``, etc.) auch von `install.py`_
 generiert. 
 
 
-Instanz-Verzeichnis
-...................
+Instanzverzeichnis
+..................
 
-Das Instanz-Verzeichnis enthält alle instanzspezifischen Dateien
+Das Instanzverzeichnis enthält alle instanzspezifischen Dateien
 und Verzeichnisse.
 
 Im Rahmen einer EBKuS-Installation können mehrere Instanzen einer
@@ -290,10 +290,10 @@ Daten verschiedener Instanzen zu verknüpfen oder
 zusammenzufassen. Alle Instanzen verwenden gemeinsam eine
 Apache-Installation und eine MySQL-Installation.
 
-Im Normalfall liegt das Instanz-Verzeichnis im
-`Home-Verzeichnis`_ und trägt den Namen der Instanz. Die
+Im Normalfall liegt das Instanzverzeichnis im
+`Homeverzeichnis`_ und trägt den Namen der Instanz. Die
 `Konfiguration`_ kann allerdings explizit vorsehen, dass ein
-Instanz-Verzeichnis woanders liegt und einen anderen Namen trägt.
+Instanzverzeichnis woanders liegt und einen anderen Namen trägt.
 
 Dateien:
 
@@ -328,7 +328,7 @@ Konfiguration
 
 Die zentrale Konfigurationsdatei für eine EBKuS-Installation ist
 eine Textdatei namens ``ebkus.conf`` und befindet sich im
-`Home-Verzeichnis`_.
+`Homeverzeichnis`_.
 
 Als Ausgangspunkt für die eigene Konfiguration dient die vom
 Installationsskript `install.py`_ generierte
@@ -422,8 +422,8 @@ Sektion zur Verfügung.
 ===========================  =========================  ========================
 Parameter                    Standardwert               Bedeutung
 ===========================  =========================  ========================
-``install_dir``              **NOTWENDIG**              `Installations-Verzeichnis`_
-``ebkus_home``               ``%(install_dir)s/ebkus``  `Home-Verzeichnis`_. Sollte
+``install_dir``              **NOTWENDIG**              `Installationsverzeichnis`_
+``ebkus_home``               ``%(install_dir)s/ebkus``  `Homeverzeichnis`_. Sollte
                                                         nie explizit angegeben werden.
 ===========================  =========================  ========================
 
@@ -458,7 +458,7 @@ Parameter                    Standardwert               Bedeutung
 ===========================  =========================  ========================
 ``download_dir``             ``%(install_dir)s``        Download-Verzeichnis, 
                                                         nur bei Installation vom
-                                                        `CVS-Verzeichnis`_ von 
+                                                        `Quellverzeichnis`_ von 
                                                         Bedeutung
 ``python_executable``        wird vom aktuellen         Vollständiger Pfad des 
                              Python-Interpreter         Python-Executables
@@ -615,7 +615,7 @@ Parameter                    Standardwert               Bedeutung
                              (**NOTWENDIG**)            angegeben werden und mit
                                                         dem Namen der Sektion identisch
                                                         sein.
-``instance_home``            ``%(ebkus_home)s/``        `Instanz-Verzeichnis`_
+``instance_home``            ``%(ebkus_home)s/``        `Instanzverzeichnis`_
                              ``%(instance_name)s``
 ``database_name``            ``%(instance_name)s``      Name der Instanz-Datenbank
 ``database_host``            ``localhost``              Name oder IP-Nummer des Rechners,
@@ -711,13 +711,13 @@ Schritte:
    Anweisungen folgen. Benötigt wird nur die erste Komponente,
    Python-Interpreter und libraries.
 
-4. `Installations-Verzeichnis`_ einrichten,
+4. `Installationsverzeichnis`_ einrichten,
    z.B. ``C:\ebkus_installation``::
 
      E:\win32>mkdir C:\ebkus_installation
 
 
-5. In das EBKuS-Distributions-Verzeichnis gehen::
+5. In das EBKuS-Distributionsverzeichnis gehen::
 
      E:\win32>cd \ebkus-3.3
      E:\ebkus-3.3>
@@ -736,7 +736,7 @@ Schritte:
      E:\ebkus-3.3>install.py C:\ebkus_installation
 
    Für jede in der Konfiguration definierten Instanz gibt es dann
-   ein `Instanz-Verzeichnis`_:
+   ein `Instanzverzeichnis`_:
 
      ``C:\ebkus_installation\ebkus\``\ *Instanzname*
 
@@ -777,7 +777,7 @@ Schritte:
 
     Diese Seite kann mit einem HTML-Editor gemäß den lokalen
     Bedürfnissen erweitert oder verändert werden. Die zu
-    editierende Datei ist im `Instanz-Verzeichnis`_ unter
+    editierende Datei ist im `Instanzverzeichnis`_ unter
     ``htdocs\index.html`` zu finden.
 
     Als Administrator anmelden: Benutzer ``Admin``, Passwort
@@ -819,12 +819,12 @@ Voraussetzungen:
 
 Schritte:
 
-1. `Installations-Verzeichnis`_ einrichten,
+1. `Installationsverzeichnis`_ einrichten,
    z.B. ``/home/user/ebinst``::
 
      mkdir /home/user/ebinst
 
-2. In das `Distributions-Verzeichnis`_ gehen
+2. In das `Distributionsverzeichnis`_ gehen
    (z.B. ``/home/user/ebkus-cd/ebkus-3.3``; man könnte hier auch direkt von
    der CD arbeiten)::
 
@@ -843,7 +843,7 @@ Schritte:
      python install.py /home/user/ebinst
 
    Für jede in der Konfiguration definierten Instanz gibt es dann
-   ein `Instanz-Verzeichnis`_:
+   ein `Instanzverzeichnis`_:
 
      ``/home/user/ebinst/ebkus/``\ *Instanzname*
 
@@ -885,7 +885,7 @@ Schritte:
 
    Diese Seite kann mit einem HTML-Editor gemäß den lokalen
    Bedürfnissen erweitert oder verändert werden. Die zu
-   editierende Datei ist im `Instanz-Verzeichnis`_ unter
+   editierende Datei ist im `Instanzverzeichnis`_ unter
    ``htdocs/index.html`` zu finden.
 
    Als Administrator anmelden: Benutzer ``Admin``, Passwort
@@ -1031,7 +1031,7 @@ Es gibt folgende Varianten beim Aufruf der Skripte (am Beispiel
 Zweck: Aus den Quelldateien eine EBKuS-Distribution erstellen,
 geeignet zum Brennen einer Distributions-CD.
 
-Verzeichnis: `CVS-Verzeichnis`_
+Verzeichnis: `Quellverzeichnis`_
 
 Hinweis: Eine fertige Distribution lässt sich von |dist_url|
 herunterladen (ca. 70MB).
@@ -1041,11 +1041,12 @@ will, muss man
 
 - Python 2.3 oder höher installieren (http://www.python.org/)
 - EBKuS 3.3 Quellcode herunterladen und auspacken, so dass ein
-  `CVS-Verzeichnis`_ vorhanden ist 
+  `Quellverzeichnis`_ vorhanden ist 
   (http://ebkus.berlios.de/ebkus/ebkus-3.3-src.tar.gz)
 
 Anmerkung: Die Dokumentation im HTML bzw. PDF-Fomat kann nur
-erstellt werden, wenn docutils_ installiert ist. Ist dies nicht
+erstellt werden, wenn docutils_ installiert ist (sowie
+tetex/te_latex mit dem Kommano pdflatex für PDF). Ist dies nicht
 der Fall, werden automatisch die fertigen HTML-
 bzw. PDF-Versionen des Handbuchs von der `Projekt-Homepage`_
 heruntergeladen und in die Distribution einbezogen.
@@ -1091,11 +1092,11 @@ Zweck: Auf der Grundlage einer Distribution EBKuS auf einem
 Server-System installieren. Mit der Option ``--config`` eine
 default-Konfiguration anlegen.
 
-Verzeichnis: `Distributions-Verzeichnis`_, (`CVS-Verzeichnis`_)
+Verzeichnis: `Distributionsverzeichnis`_, (`Quellverzeichnis`_)
 
 Anmerkung: ``install.py`` sollte bevorzugt vom
-`Distributions-Verzeichnis`_ aus verwendet werden, kann aber auch
-direkt aus dem `CVS-Verzeichnis`_ aus aufgerufen werden, also
+`Distributionsverzeichnis`_ aus verwendet werden, kann aber auch
+direkt aus dem `Quellverzeichnis`_ aus aufgerufen werden, also
 ohne Umweg über die Distribution. Das Handbuch im HTML-
 bzw. PDF-Format sollte in diesem Fall vorher manuell durch Aufruf von
 ``doc/make.py`` erstellt werden.
@@ -1106,7 +1107,7 @@ Aufruf (Konfiguration anlegen)::
   python install.py --config  installationsverzeichnis
   python install.py -c  installationsverzeichnis
 
-Legt das `Home-Verzeichnis`_ ``ebkus`` in
+Legt das `Homeverzeichnis`_ ``ebkus`` in
 *installationsverzeichnis* an, falls es noch nicht existiert,
 und erstellt darin eine default-Konfigurationsdatei
 ``ebkus.conf``. *installationsverzeichnis* muss bereits
@@ -1132,10 +1133,10 @@ Optionen:
 
   --download_dir downloadverzeichnis, -d downloadverzeichnis
     Diese Option wird im Normalfall nicht benötigt, wenn vom
-    `Distributions-Verzeichnis`_ installiert wird. Alle
+    `Distributionsverzeichnis`_ installiert wird. Alle
     benötigte Software ist in der Distribution enthalten.
 
-    Wenn vom `CVS-Verzeichnis`_ installiert wird, werden im
+    Wenn vom `Quellverzeichnis`_ installiert wird, werden im
     *downloadverzeichnis* die ZIP-Archive der zu installierenden
     Komponenten erwartet. Falls nicht vorhanden, werden sie in
     dieses Verzeichnis heruntergeladen. Ohne diese Option wird
@@ -1144,9 +1145,9 @@ Optionen:
 
 
 Installiert alle für den Betrieb von EBKuS benötigten Komponenten
-im `Installations-Verzeichnis`_, das bereits existieren
+im `Installationsverzeichnis`_, das bereits existieren
 muss. Gesteuert wird die Installation von von der
-Konfigurationsdatei ``ebkus.conf`` im `Home-Verzeichnis`_. Falls
+Konfigurationsdatei ``ebkus.conf`` im `Homeverzeichnis`_. Falls
 diese noch nicht existiert, wird eine default-Konfiguration
 angelegt (siehe `Konfiguration`_).
 
@@ -1187,10 +1188,10 @@ Zweck: EBKuS bzw. einzelne Instanzen deinstallieren. Unter
 Windows NT/2000/XP auch die Komponenten ``mysql``, ``apache``,
 ``srvstart`` und ``openssl`` deinstallieren.
 
-Verzeichnis: `Distributions-Verzeichnis`_, `Home-Verzeichnis`_
+Verzeichnis: `Distributionsverzeichnis`_, `Homeverzeichnis`_
 
 Anmerkung: ``uninstall.py`` kann sowohl vom
-Distributions-Verzeichnis als auch vom Home-Verzeichnis aus
+Distributionsverzeichnis als auch vom Homeverzeichnis aus
 aufgerufen werden.
 
 Aufruf::
@@ -1213,7 +1214,7 @@ Deinstallation aller Instanzen.
 Instanzen können nur dann deinstalliert werden, wenn keine Daten
 im Verzeichnis ``daten`` mehr vorhanden sind. Bevor die zur
 Instanz gehörenden MySQL-Datenbank gelöscht wird, wird eine
-Datenbankkopie als SQL-Datei im `Installations-Verzeichnis`_
+Datenbankkopie als SQL-Datei im `Installationsverzeichnis`_
 abgelegt. Diese Kopie kann mit dem Skript
 `datenbank_initialisieren.py`_ verwendet werden, um eine Instanz
 wiederherzustellen.
@@ -1233,7 +1234,7 @@ deinstallieren, wenn alle Instanzen deinstalliert sind.
 Zweck: Auf der Grundlage einer vorhandenen Installation EBKuS
 konfigurieren und neue Instanzen anlegen.
 
-Verzeichnis: `Home-Verzeichnis`_
+Verzeichnis: `Homeverzeichnis`_
 
 Aufruf (EBKuS konfigurieren)::
 
@@ -1256,15 +1257,15 @@ demselben Namen definiert ist (siehe `Konfiguration`_).
 
 Das Anlegen einer neuen Instanz beinhaltet:
 
-- ein neues Verzeichnis angelegen im `Home-Verzeichnis`_,
+- ein neues Verzeichnis angelegen im `Homeverzeichnis`_,
   dessen Name *instanzname* ist und das alle instanzspezifischen
-  Dateien und Verzeichnisse enthält (`Instanz-Verzeichnis`_)
+  Dateien und Verzeichnisse enthält (`Instanzverzeichnis`_)
 - generieren der instanzspezifischen Skripte (``start.py``,
   ``stop.py``, etc.)
 - anlegen der instanzspezifischen Verzeichnisse (``htdocs``,
   ``daten``, etc.)
 - instanzspezifische Einträge in die Datei ``ebkus_httpd.conf`` im
-  `Home-Verzeichnis`_ vornehmen für die Einbindung der Instanz in
+  `Homeverzeichnis`_ vornehmen für die Einbindung der Instanz in
   den Apache-Webserver
 - einrichten einer neuen Datenbank in MySQL, falls nicht schon eine
   Datenbank mit demselben Namen und Passwort vorhanden ist
@@ -1280,7 +1281,7 @@ Das Anlegen einer neuen Instanz beinhaltet:
 
 Zweck: Starten des EBKuS-Servers der Instanz.
 
-Verzeichnis: `Instanz-Verzeichnis`_
+Verzeichnis: `Instanzverzeichnis`_
 
 Aufruf::
 
@@ -1304,7 +1305,7 @@ Startet den EBKuS-Server für die betreffende Instanz.
 
 Zweck: Stoppen des EBKuS-Servers der Instanz.
 
-Verzeichnis: `Instanz-Verzeichnis`_
+Verzeichnis: `Instanzverzeichnis`_
 
 Aufruf::
 
@@ -1319,7 +1320,7 @@ Stoppt den EBKuS-Server für die betreffende Instanz.
 
 Zweck: Status des EBKuS-Servers anzeigen.
 
-Verzeichnis: `Instanz-Verzeichnis`_
+Verzeichnis: `Instanzverzeichnis`_
 
 Aufruf::
 
@@ -1334,7 +1335,7 @@ Gibt ``Ok`` aus wenn der Server läuft, sonst ``Not running``.
 
 Zweck: (Nur Linux) Shell-Skript zur Kontrolle des Servers.
 
-Verzeichnis: `Instanz-Verzeichnis`_, kopieren nach ``/etc/init.d``
+Verzeichnis: `Instanzverzeichnis`_, kopieren nach ``/etc/init.d``
 
 Aufruf (als root)::
 
@@ -1365,7 +1366,7 @@ Starten/Stoppen/Installieren/Deinstallieren des Windows-Dienstes
 für den EBKuS-Server der Instanz. Kann auch für den MySQL
 bzw. den Apache-Dienst verwendet werden.
 
-Verzeichnis: `Instanz-Verzeichnis`_
+Verzeichnis: `Instanzverzeichnis`_
 
 Aufruf (als root)::
 
@@ -1411,7 +1412,7 @@ kann man wie folgt vorgehen:
   *Dienst auswählen*  ``> Beenden``
 
 - Dienst für eine Instanz entfernen: Im
-  `Installations-Verzeichnis`_ in das Verzeichnis ``srvstart``
+  `Installationsverzeichnis`_ in das Verzeichnis ``srvstart``
   gehen, und dort::
 
     srvstart remove EBKuS-demo
@@ -1423,7 +1424,7 @@ kann man wie folgt vorgehen:
   Befehl ausführen.
 
 - Dienst für Apache-Webserver entfernen: Im
-  `Installations-Verzeichnis`_ in das Verzeichnis ``apache``
+  `Installationsverzeichnis`_ in das Verzeichnis ``apache``
   gehen, und dort::
 
     apache -k uninstall -n Apache
@@ -1434,7 +1435,7 @@ kann man wie folgt vorgehen:
   und dort den Befehl ausführen.
 
 - Dienst für MySQL entfernen: Im
-  `Installations-Verzeichnis`_ in das Verzeichnis ``mysql\bin``
+  `Installationsverzeichnis`_ in das Verzeichnis ``mysql\bin``
   gehen, und dort::
 
     mysqld-nt --remove MySQL
@@ -1502,7 +1503,7 @@ Wiederherstellen der Daten einer Instanz aus einer ZIP-Datei, die
 mit `datenbank_sichern.py`_ mit der ``--zip``-Option erzeugt
 wurde. Das ZIP-Archiv enthaelt neben der SQL-Datei auch die
 Dokumente aus ``daten/akten`` und ``daten/gruppen`` im
-`Instanz-Verzeichnis`_. 
+`Instanzverzeichnis`_. 
       
 
 ``datenbank_sichern.py``
@@ -1545,7 +1546,7 @@ aufgebaut::
 
 Das ZIP-Archiv enthält sowohl die Datenbank-Kopie
 als SQL-Datei als auch alle Dateien, die unter ``daten/akten``
-bzw. ``daten/gruppen`` im `Instanz-Verzeichnis`_ abgespeichert
+bzw. ``daten/gruppen`` im `Instanzverzeichnis`_ abgespeichert
 sind.  Damit lassen sich alle Daten einer Instanz sichern.  Die
 Instanz lässt sich mit
 

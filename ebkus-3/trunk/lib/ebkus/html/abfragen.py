@@ -1217,8 +1217,8 @@ class fsabfr_plraum(Request.Request):
             s = SQL("SELECT distinct Plraum from strassenkat where bezirk = '%(code)s' order by Plraum" % kreisliste[0])
             plraumliste = s.execute({})
         else:
-            # alle Planungsräume, die in Akte vorkommen außer 0 und 9999, die
-            # keine gültigen Planungsräume sind
+            # alle Planungsräume, die in Akte vorkommen außer 0, die
+            # keine gültigen Planungsräume ist
             t = SQL("SELECT distinct planungsr FROM akte \
                      WHERE planungsr != '0' ORDER BY planungsr")
             plraumliste = t.execute({})

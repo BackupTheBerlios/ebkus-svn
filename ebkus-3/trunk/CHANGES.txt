@@ -1,8 +1,23 @@
-Entwickler von allen Versionen außer 3.0 sind Jürg Huber
-(juerg@pantau.in-berlin.de) und Albrecht Schmiedel
-(atms@alibi.in-berlin.de). Die Version 3.0 wurde von der Firma
-msg systems ag in Berlin (www.msg.de) erstellt.
+Jürg Huber (juerg@pantau.in-berlin.de)
+Albrecht Schmiedel (atms@alibi.in-berlin.de)
 
+EBKuS-3.3 (15. Januar 2007)
+---------------------------
+
+- neue Bundesstatistik ab 2007:
+  - Statistikformular
+  - Auswertung
+  - Export der veränderten Datensätze für das statistische
+    Landesamt 
+- aktualisierter Straßenkatalog mit neuen Planungsräumen für die
+  Berliner Version 
+- automatisches Update auf 3.3
+- EBKuS funktioniert jetzt auch mit Apache 2.0
+- beinhaltet alle Patches seit EBKuS 3.2
+- zahlreiche kleine Verbesserungen und Behebung von Fehlern
+- Umstellung der Versionsverwaltung von CVS auf Subversion
+- Achtung: Die Datenbankdumps der Version 3.2 und 3.3 sind nicht
+  kompatibel! Siehe README-Update-von-3.2-nach-3.3.txt.
 
 EBKuS-3.2 (17. Oktober 2004)
 ----------------------------
@@ -151,11 +166,7 @@ EBKuS 1.1 (Dezember 2000):
 - Kompatibel zum Python Standard DB-API 2.0. (Standard-SQL-Kompatabilität).
 
 
-
-
-
-
-
-
-
-
+Entwickler von allen Versionen außer 3.0 sind Jürg Huber
+(juerg@pantau.in-berlin.de) und Albrecht Schmiedel
+(atms@alibi.in-berlin.de). Die Version 3.0 wurde von der Firma
+msg systems ag in Berlin (www.msg.de) erstellt.

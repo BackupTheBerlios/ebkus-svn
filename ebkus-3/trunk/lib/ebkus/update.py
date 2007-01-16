@@ -57,6 +57,8 @@ def do_update():
     alter_plraum_fields()
     if config.BERLINER_VERSION:
         replace_strassenkat()
+    create_primary_keys()
+    create_index_akte()
     create_index_strassenkat()
     update_planungs_raeume()
     delete_old_strassenkat()
@@ -71,10 +73,15 @@ def do_update():
     open(filename, 'w').write(filename)
     return True
 
-
+def create_index_akte():
+    SQL('ALTER TABLE akte ADD KEY (str)').execute()
+    SQL('ALTER TABLE akte ADD KEY (hsnr)').execute()
+    SQL('ALTER TABLE akte ADD KEY (plz)').execute()
+    logging.info("Index fuer Felder str, hsnr, plz in Tabelle akte")
+    
 def create_index_strassenkat():
     if config.BERLINER_VERSION:
-        for t in ('strassenkat', 'strassenold'):
+        for t in ('strassenkat',):
             for f in ('str_nummer', 'plz', 'hausnr'):
                 SQL('ALTER TABLE %s ADD KEY (%s)' % (t,f)).execute()
                 logging.info("Index fuer Feld %s in Tabelle %s" % (f, t))
@@ -82,10 +89,10 @@ def create_index_strassenkat():
 def delete_old_strassenkat():
     if config.BERLINER_VERSION:
         SQL('DROP TABLE strassenold').execute()
-    logging.info("Alter Strassenkatalog gelöscht")
+        logging.info("Alter Strassenkatalog gelöscht")
 
 def alter_plraum_fields():
-    d = (('akte', 'planungsr'),('fachstat', 'bz'))
+    d = (('akte', 'planungsr'),('fachstat', 'bz'), ('strassenkat', 'Plraum'))
     for t, f in d:
         SQL('ALTER TABLE %s MODIFY %s CHAR(8)' % (t, f)).execute()
         tab = Tabelle(tabelle=t)
@@ -117,27 +124,36 @@ def replace_strassenkat():
         db = config.DATABASE_NAME
         os.system("zcat %s | mysql -u%s %s %s" % (filename, user, pw_arg, db))
     logging.info("Neuer Strassenkatalog importiert von %s" % filename)
-    
+
+
 
 def update_planungs_raeume():
     if config.BERLINER_VERSION:
         lage_innerhalb = Code(kat_code='lage', code='0')['id']
+
+        # Akte
         s = SQL("""\
-UPDATE akte a, fall f, fachstat fs,
-     strassenold o, strassenkat i
-SET a.planungsr=i.Plraum, fs.bz=i.Plraum
+UPDATE akte a, strassenkat i
+SET a.planungsr=i.Plraum
 WHERE a.lage=%s AND
-      o.str_nummer=i.str_nummer AND
-      a.str=o.str_name and a.hsnr=o.hausnr AND
-      a.plz=o.plz AND o.hausnr=i.hausnr AND
-      f.akte_id=a.id AND fs.fall_id=f.id
+      a.str=i.str_name AND a.hsnr=i.hausnr AND
+      a.plz=i.plz
         """ % lage_innerhalb).execute()
+
+        # rest auf 0
+        s = SQL("""\
+UPDATE akte a
+SET a.planungsr='0'
+WHERE a.lage!=%s OR CAST(a.planungsr as unsigned) < 10000 OR a.planungsr IS NULL
+        """ % lage_innerhalb).execute()
+
+        # Fachstatistik
         s = SQL("""\
 UPDATE akte a, fall f, fachstat fs
-SET a.planungsr='0', fs.bz='0'
-WHERE a.lage!=%s AND
-      f.akte_id=a.id AND fs.fall_id=f.id
-        """ % lage_innerhalb).execute()
+SET fs.bz=a.planungsr
+WHERE f.akte_id=a.id AND fs.fall_id=f.id
+        """).execute()
+
         logging.info("Planungsräume in akte und fachstat updated")
     else:
         SQL("""\
@@ -151,6 +167,8 @@ SET fs.bz='0'
 WHERE fs.bz='9999'
         """).execute()
         logging.info("Planungsräume '9999' in akte und fachstat durch '0' ersetzt")
+    
+
 
 def create_new_table():
     tables = get_schema_info(schemainfo)
@@ -169,10 +187,14 @@ def create_new_table():
         db.query(f.sql_insert(field_id))
     j07 = Tabelle(tabelle='jghstat07')
     logging.info("Neue Tabelle für %s: %s" % (j07['name'], 'jghstat07'))
+
+    if config.BERLINER_VERSION:
+        merkmale = 'merkmale_berlin.py'
+    else:
+        merkmale = 'merkmale_standard.py'
     create_new_kategorien(jghstat07,
                           join(config.EBKUS_HOME, 'sql',
-                               'merkmale_standard.py'))
-#                               'merkmale_berlin.py'))
+                               merkmale))
     for f in jghstat07.fields:
         fupd = Feld()
         v = Code(code=f.verwtyp, kat_code='verwtyp')

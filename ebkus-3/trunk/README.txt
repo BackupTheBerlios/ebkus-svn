@@ -1,15 +1,14 @@
-EBKuS 3.2
+EBKuS 3.3
 =========
 
 Klientenverwaltung, Aktendokumentation, Gruppenverwaltung 
 und Statistik für Erziehungs- und Familienberatungsstellen
 
-Copyright (1997-2004) Jürg Huber, Albrecht Schmiedel 
+Copyright (1997-2007) Jürg Huber, Albrecht Schmiedel 
 Lizenz: GNU General Public License (GPL)
 
 E-Mail: juerg@pantau.in-berlin.de, atms@alibi.in-berlin.de
-Mailing-Liste: ebkus-support@lists.berlios.de
-WWW: http://ebkus.berlios.de/index.html
+WWW: http://www.ebkus.org/
 
 Hinweis für Windows-Benutzer
 ----------------------------
@@ -33,8 +32,8 @@ lokal:
 
 WWW:   
 
-- http://ebkus.berlios.de/ebkus-3.2/EBKuS_Handbuch.html
-- http://ebkus.berlios.de/ebkus-3.2/EBKuS_Handbuch.pdf
+- http://ebkus.berlios.de/ebkus-3.3/EBKuS_Handbuch.html
+- http://ebkus.berlios.de/ebkus-3.3/EBKuS_Handbuch.pdf
 
 Installation
 ------------
@@ -45,16 +44,17 @@ Kapitel Installation im Handbuch.
 EBKuS-Software
 --------------
 
-- Quellen direkt aus dem CVS (bash unter Linux)::
+- Quellen direkt aus Subversion (bash unter Linux)::
 
-    export CVS_RSH=ssh
-    cvs -z3 -d:pserver:anonymous@cvs.EBKuS.berlios.de:/cvsroot/ebkus co ebkus-2
+    svn checkout http://svn.berlios.de/svnroot/repos/ebkus/ebkus-3/tags/EBKuS-3.3
 
 - nur Quellen (ca. 5MB)::
 
-    ftp://ftp.bke.de/pub/ebkus/ebkus-3.2/ebkus-3.2-src.zip
-    http://ebkus.berlios.de/ebkus/ebkus-3.2-src.zip
-    http://ebkus.berlios.de/ebkus/ebkus-3.2-src.tar.gz
+    ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.2-src.zip
+    ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.2-src.tar.gz
+
+    http://ebkus.berlios.de/ebkus/ebkus-3.3-src.zip
+    http://ebkus.berlios.de/ebkus/ebkus-3.3-src.tar.gz
 
   Aus den Quellen kann mit dem mitgelieferten Skript create_cd.py
   eine vollständige Distribution erstellt werden.  Siehe auch den
@@ -64,6 +64,6 @@ EBKuS-Software
 - vollständige Distribution inklusive der gesamten zusätzlich
   benötigten Software (ca. 70MB)::
 
-    ftp://ftp.bke.de/pub/ebkus/ebkus-3.2/ebkus-3.2-dist.zip
+    ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.3-dist.zip
 
 
