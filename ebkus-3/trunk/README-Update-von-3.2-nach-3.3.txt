@@ -45,7 +45,7 @@ kopiert oder umbenannt wird und das Backup wieder eingelesen wird
 <homeverzeichnis>/lib/ebkus eine Datei update.py geben.
 
 Die in diesem Archiv enthaltenen Dateien ersetzen die
-entsprechenden Dateien in der Distribution. Es kommen auch neue
+entsprechenden Dateien im Homeverzeichnis. Es kommen auch neue
 Dateien hinzu. Die relativen Pfade beziehen sich auf das
 Homeverzeichnis. Das Homeverzeichnis ist das Verzeichnis
 ``ebkus`` im Installationsverzeichnis (siehe Handbuch Abschnitt

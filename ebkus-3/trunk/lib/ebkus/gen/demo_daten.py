@@ -17,12 +17,13 @@ def log(s):
 
 seed(100) # zum Testen besser immer neu, da fallen mehr Fehler auf
 
-N_AKTEN = 50
+N_AKTEN = 20
 N_BEARBEITER = 1
 N_STELLEN = 2
-VON_JAHR = Date(2004)
+VON_JAHR = Date(2005)
 BIS_JAHR = None
-TODAY = (2007,7,1)   # gefaked today, sollte im laufenden Demosystem auch gefaked werden
+#TODAY = (2007,7,1)   # gefaked today, sollte im laufenden Demosystem auch gefaked werden
+TODAY = None          # aktuelles Datum
     
 def create_demo_daten(iconfig,                    # config Objekt für die entsprechende Instanz
                       logf=None,

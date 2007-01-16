@@ -50,8 +50,8 @@ EBKuS-Software
 
 - nur Quellen (ca. 5MB)::
 
-    ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.2-src.zip
-    ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.2-src.tar.gz
+    ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.3-src.zip
+    ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.3-src.tar.gz
 
     http://ebkus.berlios.de/ebkus/ebkus-3.3-src.zip
     http://ebkus.berlios.de/ebkus/ebkus-3.3-src.tar.gz
