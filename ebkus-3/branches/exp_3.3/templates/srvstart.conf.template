@@ -1,0 +1,5 @@
+[%(SERVICE_NAME)s]
+startup=%(PYTHON_EXECUTABLE)s %(INSTANCE_HOME)s\start.py
+startup_dir=%(INSTANCE_HOME)s
+shutdown_method=command
+shutdown=%(PYTHON_EXECUTABLE)s %(INSTANCE_HOME)s\stop.py
