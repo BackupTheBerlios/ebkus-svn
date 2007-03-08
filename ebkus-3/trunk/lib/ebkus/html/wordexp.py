@@ -161,6 +161,7 @@ class wordexport(Request.Request):
             for e in einrichtungen:
                 e['lfdnr'] = n
                 res.append(wordexport_einkontakte_t % e)
+                n = n + 1
                 
         fachstat_list=[]
         for f in faelle:
