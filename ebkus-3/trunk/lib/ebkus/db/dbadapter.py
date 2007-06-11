@@ -36,7 +36,7 @@ def connect(host='', user='', passwd='', db=''):
 class DBAdapter:
     def __init__(self, dbhandle):
         self.dbhandle = dbhandle
-
+        self._mysqldb_needs_unicode = (MySQLdb.version_info > (1,2,1))
     def selectdb(self, db = ''):
         self.dbhandle.connect(db = config.DATABASE_NAME)
 
@@ -53,6 +53,9 @@ class DBAdapter:
         is_select = query[:6].lower() == 'select'
         try:
             logging.debug("Datenbankzugriff: \n%s", query)
+            # for MySQLdb 1.2.2 MODIFE
+            if self._mysqldb_needs_unicode and not isinstance(query, unicode):
+                query = query.decode('latin1')
             e_res = cursor.execute(query)
             logging.debug("Resultat (execute): %s", e_res)
             if is_select:
