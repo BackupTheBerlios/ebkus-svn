@@ -12,6 +12,7 @@ import re
 
 # Abkuerzung
 win32 = sys.platform == 'win32'
+debian = (not win32 and len(os.popen('ls /usr/bin/ap* | grep apt').read().split()) > 6)
 
 def readable(path):
     return os.access(path, os.R_OK)
@@ -1047,22 +1048,19 @@ class ComponentEbkusInstance(Component):
         dirs, files = self._get_instance_dirs_and_files()
         self.log("Verzeichnis erzeugen: %s" % self.config.INSTANCE_HOME)
         create_directory(self.config.INSTANCE_HOME, 0755)
-        for path, mode in dirs:
-            self.log("Verzeichnis erzeugen: %s" % path)
-            create_directory(path, mode)
+        for path, mode, cond in dirs:
+            if cond:
+                self.log("Verzeichnis erzeugen: %s" % path)
+                create_directory(path, mode)
         params = vars(self.config)
         if not win32:
             # wird für das ebkus_server template gebraucht (sudo -u $EBKUS_USER)
             import getpass
             params['EBKUS_USER'] = getpass.getuser()
-        for tmpl, path, mode in files:
-            # bloeder hack, damit dienst.py nicht unter linux auftaucht:
-            if not win32 and path.endswith('dienst.py'):
-                continue
-            if win32 and path.endswith('ebkus_%s' % self.config.INSTANCE_NAME):
-                continue
-            self.log("Datei erzeugen: %s" % path)
-            create_file(tmpl, path, params, mode=mode)
+        for tmpl, path, mode, cond in files:
+            if cond:     
+                self.log("Datei erzeugen: %s" % path)
+                create_file(tmpl, path, params, mode=mode)
         
             
         self._add_instance_to_ebkus_httpd_config()
@@ -1081,6 +1079,72 @@ class ComponentEbkusInstance(Component):
                           'SERVICE_NAME': self.service_name,
                           'PYTHON_EXECUTABLE': self.config.PYTHON_EXECUTABLE
                           })
+        self._install_start_script_in_init_d_debian()
+        self._install_logrotate_conf_in_logrotate_d()
+        
+    def _install_logrotate_conf_in_logrotate_d(self):
+        logrotate_dir = "/etc/logrotate.d"
+        if not isdir("/etc/logrotate.d"):
+            return
+        name = 'ebkus_%s' % self.config.INSTANCE_NAME
+        _from = join(self.config.INSTANCE_HOME, 'logrotate')
+        to = join(logrotate_dir, name)
+        res = os.system('sudo mv %s %s' % (_from, to)) 
+        if res == 0:
+            os.system('sudo chown root.root %s' % to) 
+            os.system('sudo chmod 644 %s' % to) 
+            self.log("Logrotate config %s nach /etc/logrotate.d kopiert" % name)
+        if res != 0:
+            self.log("Logrotate config fuer %s konnte nicht in /etc/logrotate.d installiert werden. Keine sudo Rechte?" % name)
+    def _uninstall_logrotate_conf_in_logrotate_d(self):
+        logrotate_dir = "/etc/logrotate.d"
+        if not isdir("/etc/logrotate.d"):
+            return
+        name = 'ebkus_%s' % self.config.INSTANCE_NAME
+        to = join(logrotate_dir, name)
+        res = os.system('sudo rm %s' % to) 
+        if res == 0:
+            self.log("Logrotate config %s aus /etc/logrotate.d geloescht" % name)
+        else:
+            self.log("Logrotate config fuer %s konnte nicht aus /etc/logrotate.d geloescht werden. Keine sudo Rechte?" % name)
+
+    def _install_start_script_in_init_d_debian(self):
+        if not debian:
+            return
+        name = 'ebkus_%s' % self.config.INSTANCE_NAME
+        name_debian = 'ebkus_%s_debian' % self.config.INSTANCE_NAME
+        # das nicht-debian Skript loeschen
+        os.system('rm %s' % join(self.config.INSTANCE_HOME, name))
+        _from = join(self.config.INSTANCE_HOME, name_debian)
+        to = join('/etc/init.d', name)
+        res = os.system('sudo mv %s %s' % (_from, to)) 
+        if res == 0:
+            os.system('sudo chown root.root %s' % to) 
+            os.system('sudo chmod 755 %s' % to) 
+            self.log("Startskript %s nach /etc/init.d kopiert" % name)
+            res1 = os.system('sudo update-rc.d %s defaults' % name)
+            if res1 == 0:
+                self.log("Startskript %s in die Bootsequenz integriert" % name)
+                return
+        if res != 0 or res1 != 0:
+            self.log("Fehler bei der Integration von %s in die Bootsequenz. Keine sudo Rechte?" % name)
+            
+    def _uninstall_start_script_in_init_d_debian(self):
+        if not debian:
+            return
+        name = 'ebkus_%s' % self.config.INSTANCE_NAME
+        path = join('/etc/init.d', name)
+        res = os.system('sudo rm %s' % path) 
+        if res == 0:
+            self.log("Startskript %s aus /etc/init.d geloescht" % name)
+            res1 = os.system('sudo update-rc.d %s remove' % name)
+            if res1 == 0:
+                self.log("Startskript %s aus der Bootsequenz herausgenommen" % name)
+                return
+        if res != 0 or res1 != 0:
+            self.log("Fehler beim Entfernen von %s aus der Bootsequenz. Keine sudo Rechte?" % name)
+            
+            
 
     def _uninstall(self):
         self._remove_instance_from_ebkus_httpd_config()
@@ -1090,6 +1154,8 @@ class ComponentEbkusInstance(Component):
             self.log("Fehler beim Datenbank-Dump")
         # muss hier bereits gedumpt sein!
         self.drop_database()
+        self._uninstall_start_script_in_init_d_debian()
+        self._uninstall_logrotate_conf_in_logrotate_d()
         super(ComponentEbkusInstance, self)._uninstall()
         
     def safe_to_remove(self):
@@ -1122,7 +1188,9 @@ class ComponentEbkusInstance(Component):
 
     def create_database(self, sql_file=None):
         self.log("Datenbank fuer %s einrichten" % self.name, push=True)
-        from MySQLdb import connect
+        from MySQLdb import connect, version_info
+        import traceback # MODIFE
+        self._mysqldb_needs_unicode = (version_info > (1,2,1))
         db = connect(host=self.config.DATABASE_ADMIN_HOST,
                      user=self.config.DATABASE_ADMIN_USER,
                      passwd=self._get_database_admin_passwort()
@@ -1189,13 +1257,27 @@ class ComponentEbkusInstance(Component):
 
             self.log("initialisieren mit %s" % sql_file)
             for c in sql_split(sql_file):
-                #print c
-                cursor.execute(c)
+                # MODIFE cursor.execute am besten mit Unicode strings fuettern,
+                # wenn Umlaute drin sein koennten
+                self._cursor_execute(cursor, c)
+                    
             assert self.check_instance_database()
             self.log("Datenbank fuer %s erfolgreich eingrichtet" % self.name, pop=True)
         except:
             cursor.execute("DROP DATABASE %s" % self.config.DATABASE_NAME)
             self.log("Datenbank fuer %s konnte nicht eingerichtet werden" % self.name, pop=True)
+            raise
+
+    # MODIFE: Sicherstellen, dass Unicode abgeliefert wird
+    def _cursor_execute(self, cursor, query):
+        import traceback
+        # nach unicode umwandeln
+        try:
+            if self._mysqldb_needs_unicode and not isinstance(query, unicode):
+                query = query.decode('latin1')
+            cursor.execute(query)
+        except Exception, msg:
+            traceback.print_exc()
             raise
 
     def backup_instance(self, dir=None):
@@ -1318,7 +1400,7 @@ class ComponentEbkusInstance(Component):
         pw = self.config.DATABASE_PASSWORD
         pw_arg = pw and "-p%s" % pw or ''
         self.log("SQL-Datei ausgeben")
-        cmd = "%s -c -u%s %s %s > %s" % \
+        cmd = "%s -c -u%s %s --default-character-set latin1 %s > %s" % \
                   (join(self.config.MYSQL_DIR, 'mysqldump'),
                    self.config.DATABASE_USER,
                    pw_arg,
@@ -1415,7 +1497,7 @@ class ComponentEbkusInstance(Component):
             pw = self._get_database_admin_passwort()
             pw_arg = pw and "-p%s" % pw or ''
             self.log("SQL-Datei ausgeben: %s" % sql_file_out)
-            os.system("%s -c -u%s %s %s > %s" %
+            os.system("%s -c -u%s %s --default-character-set latin1 %s > %s" %
                       (join(self.config.MYSQL_DIR, 'mysqldump'),
                        self.config.DATABASE_ADMIN_USER,
                        pw_arg,
@@ -1488,37 +1570,44 @@ class ComponentEbkusInstance(Component):
         config = self.config
         TEMPLATES = join(config.EBKUS_HOME, 'templates')
         dirs = (
-            (join(config.INSTANCE_HOME, 'daten'), 0700),
-            (join(config.INSTANCE_HOME, 'daten', 'export'), 0700),
-            (join(config.INSTANCE_HOME, 'daten', 'akten'), 0700),
-            (join(config.INSTANCE_HOME, 'daten', 'gruppen'), 0700),
-            (join(config.DOCUMENT_ROOT, 'daten', 'export'), 0755),
-            (join(config.DOCUMENT_ROOT, 'cgi'), 0755),
-            (config.PROTOCOL_DIR, 0700)
+            (join(config.INSTANCE_HOME, 'daten'), 0700, True),
+            (join(config.INSTANCE_HOME, 'daten', 'export'), 0700, True),
+            (join(config.INSTANCE_HOME, 'daten', 'akten'), 0700, True),
+            (join(config.INSTANCE_HOME, 'daten', 'gruppen'), 0700, True),
+            (join(config.DOCUMENT_ROOT, 'daten', 'export'), 0755, True),
+            (join(config.DOCUMENT_ROOT, 'cgi'), 0755, True),
+            (config.PROTOCOL_DIR, 0700, True)
             )
 
         files = (
             (join(TEMPLATES, 'init.py.template'),
-             join(config.INSTANCE_HOME, 'init.py'), 0700),
+             join(config.INSTANCE_HOME, 'init.py'), 0700, True),
             (join(TEMPLATES, 'start.py.template'),
-             join(config.INSTANCE_HOME, 'start.py'), 0700),
+             join(config.INSTANCE_HOME, 'start.py'), 0700, True),
             (join(TEMPLATES, 'stop.py.template'),
-             join(config.INSTANCE_HOME, 'stop.py'), 0700),
+             join(config.INSTANCE_HOME, 'stop.py'), 0700, True),
             (join(TEMPLATES, 'status.py.template'),
-             join(config.INSTANCE_HOME, 'status.py'), 0700),
+             join(config.INSTANCE_HOME, 'status.py'), 0700, True),
             (join(TEMPLATES, 'ebkus_server.template'),
              join(config.INSTANCE_HOME,
-                  'ebkus_%s' % config.INSTANCE_NAME), 0700),
+                  'ebkus_%s' % config.INSTANCE_NAME), 0700, not win32),
+            (join(TEMPLATES, 'ebkus_server_debian.template'),
+             join(config.INSTANCE_HOME,
+                  'ebkus_%s_debian' % config.INSTANCE_NAME), 0700, debian),
+            (join(TEMPLATES, 'logrotate.template'),
+             join(config.INSTANCE_HOME,
+                  'logrotate'), 0700, not win32),
             (join(TEMPLATES, 'datenbank_initialisieren.py.template'),
-             join(config.INSTANCE_HOME, 'datenbank_initialisieren.py'), 0700),
+             join(config.INSTANCE_HOME, 'datenbank_initialisieren.py'), 
+             0700, True),
             (join(TEMPLATES, 'datenbank_sichern.py.template'),
-             join(config.INSTANCE_HOME, 'datenbank_sichern.py'), 0700),
+             join(config.INSTANCE_HOME, 'datenbank_sichern.py'), 0700, True),
             (join(TEMPLATES, 'dienst.py.template'),
-             join(config.INSTANCE_HOME, 'dienst.py'), 0700),
+             join(config.INSTANCE_HOME, 'dienst.py'), 0700, win32),
             (join(TEMPLATES, 'index.html.template'),
-             join(config.DOCUMENT_ROOT, 'index.html'), 0644),
+             join(config.DOCUMENT_ROOT, 'index.html'), 0644, True),
             (join(TEMPLATES, 'ebcgi.py.template'),
-             join(config.DOCUMENT_ROOT, 'cgi', 'do'), 0755)
+             join(config.DOCUMENT_ROOT, 'cgi', 'do'), 0755, True)
         )
         return dirs, files
 
@@ -1688,3 +1777,5 @@ def download(url, target):
     self.log('herunterladen: %s  ... ' % url, push=True)
     urlretrieve(url, target)
     self.log('erfolgreich heruntergeladen', pop=True)
+
+
