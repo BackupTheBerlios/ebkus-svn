@@ -21,8 +21,8 @@ vorhandene Installation wieder hergestellt werden kann.
    Erfolg bzw. Misserfolg des Updates gemeldet.
 
 6. Im Erfolgsfall die übrigen Instanzen hochfahren. In den
-   entsprechenden Logfiles wird gemeldet, dass kein Update nötig
-   ist.
+   entsprechenden Logfiles wird ebenfalls der Erfolg des Updates
+   gemeldet.
 
 7. Bevor die neue Bundesstatistik genutzt werden kann, müssen vom
    Administrator der Anwendung die vom statistischen Landesamt
