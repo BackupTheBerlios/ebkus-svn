@@ -12,6 +12,7 @@ from ebkus.db.dbadapter import DatabaseError
 from ebkus.db.dbapp import DBAppError
 from ebkus.app.ebapi import EBUpdateError, EBUpdateDataError
 
+
 # Benutzerrechte für inhaltliche Teile (Dateien) des Programms.
 # Neue Einträge in der Kategorie 'Benutzerrechte' müssen hier
 # aufenommen werden, damit sie wirksam sind.
@@ -175,8 +176,12 @@ class Request(object):
           % (ebapi.cc('status', 'i'), ebapi.cc('benr', 'bearb'), stz_id),
           order = 'na')
         return ml
-        
-        
+
+    def render(self, template_name, context_dict):
+        template = self.ebkus.jinja_environment.get_template(template_name)
+        res = template.render(**context_dict)
+        return res.encode('latin-1')
+                              
         
         
         

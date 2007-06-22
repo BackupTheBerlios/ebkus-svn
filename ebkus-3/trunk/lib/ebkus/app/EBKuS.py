@@ -3,12 +3,14 @@
 # einen __doc__ string. Ich habe cgi_module_publisher.py (Zeile 803
 # entsprechend modifiziert.
 
+import logging
+import sys
+from os.path import join
+
 from ebkus import Version
 from ebkus.db import sql
 from ebkus.db import dbapp
 from ebkus.config import config
-import logging
-import sys
 
 class EBKuS:
     """Eine Instanz dieser Klasse bildet den Ausgangspunkt für Bobos
@@ -23,6 +25,13 @@ class EBKuS:
         update()
         self.functions = getFunctionsToBePublished()
         self.classes = getClassesToBePublished()
+        self.templates = {}
+        from jinja import Environment, FileSystemLoader
+        self.jinja_environment = Environment(
+            template_charset='latin-1',
+            charset='latin-1',
+            loader=FileSystemLoader(join(config.EBKUS_HOME, 'lib', 'ebkus', 'app_surface'))
+            )
         logging.info("EBKuS Version %s", Version)
         logging.info("EBKuS-Konfigurationsdatei: %s", config.ebkus_conf)
         if config.instance_conf:
@@ -75,6 +84,15 @@ class EBKuS:
         
     def index_html(self, REQUEST, RESPONSE):
         return "Die Default Seite"
+
+##     def get_template(self, template_name):
+##         template = self.templates.get(template_name)
+##         if template:
+##             return template
+##         template = Template(template_name, self.template_loader)
+##         self.templates[template_name] = template
+##         return template
+
         
 def makeObject(dict):
     class p: pass

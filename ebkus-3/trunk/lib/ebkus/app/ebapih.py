@@ -7,6 +7,99 @@ from ebkus.app import ebapi
 from ebkus.app_surface.abfragen_templates import *
 from ebkus.app_surface.standard_templates import *
 
+def make_option_list(elements,              
+                     value_field,
+                     name_field,
+                     select_first=False,
+                     selected=None,
+                     empty_option=False,
+                     max_name_length=60,
+                     indent=8,
+                     ):
+    """Liefert einen String mit Option-Elementen.
+
+    Für jedes Element aus elements eine Option.
+    Das value-Attribut der Option ergibt sich aus element[value_field].
+    Der Name der Option ergibt sich aus element[name_field].
+    selected kann sein:
+    - None: kein Element ist selected (außer select_first ist True)
+    - ein einzelner Wert: dann ist das Element selected, dessen
+      value_field diesen Wert hat, falls ein solches existiert
+    - eine Liste bzw. ein Tuple von Werten: dann sind alle Elemente selected,
+      deren value_fields darin vorkommen.
+    Falls empty_option True ist, wird eine leere Option an erster Stelle eingefügt.
+    Falls select_first True ist, ist nur die erste Option selected, egal was in selected steht.
+    Falls der Name einer Option (name_field von Element) länger als max_name_length Zeichen ist,
+    wird er auf mehrere Optionen verteilt, die alle denselben Wert haben. Die Folgeoptionen
+    sind eingerückt.
+    Es werden indent Leerzeichen vor jede Option eingefügt.
+    """
+    option = '<option value="%s" %s>%s</option>\n'
+    res = []
+    if selected == None:
+        selected_values = ()
+    elif isinstance(selected, (tuple, list)):
+        selected_values = selected
+    else:
+        selected_values = (selected,)
+
+    if select_first:
+        # hat Priorität vor selected
+        if empty_option:
+            selected_values = (' ',)
+        elif elements:
+            selected_values = (elements[0][value_field], )
+
+    if empty_option:
+        if '' in selected_values or ' ' in selected_values:
+            res.append('<option value=" " selected> </option>')
+        else:
+            res.append('<option value=" "> </option>')
+    for el in elements:
+        value = el[value_field]
+        name = el[name_field]
+        sel = value in selected_values and 'selected' or ''
+        if len(name) > max_name_length:
+            name_list = split_option_name(name, max_name_length)
+            for n in name_list:
+                res.append(option % (value, sel, n))
+                # nur erste option-zeile selektieren
+                if sel:
+                    sel = ''
+        else:
+            res.append(option % (value, sel, name))
+    
+    return (' '*indent).join(res)
+
+def _split_option_name(name, size):
+    """Return list of strings smaller than size.
+
+    Alle Strings außer dem ersten sind mit &nbsp; eingerückt.
+    """
+    assert size > 10 # sonst nicht sinnvoll
+    if len(name) <= size:
+        return [name]
+    words = name.split()
+    res = []
+    curr_size = 0
+    curr_el = []
+    first = True
+    for w in words:
+        new_size = curr_size + len(w)
+        if new_size <= size:
+            curr_el.append(w)
+            curr_size = new_size
+        else:
+            res.append(' '.join(curr_el))
+            curr_size = len(w)
+            curr_el = [('&nbsp;'*4) + w] # einrücken
+            if first:
+                # damit eingerückt werden kann
+                size -= 4
+                first = False
+    res.append(' '.join(curr_el))
+    return res
+
 def mksel(result, template, List, field=None, value=None):
     """Automatisiert die Belegung des 'sel'-Feldes.
     
