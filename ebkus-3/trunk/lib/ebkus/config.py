@@ -61,7 +61,9 @@ _params = (
     ('instance', 'ADMIN_NAME', 'admin_name', 's', 's:Keine Angabe'),
     ('instance', 'ADMIN_TEL', 'admin_tel', 's', 's:Keine Angabe'),
     ('instance', 'ADMIN_EMAIL', 'admin_email', 's', 's:Keine Angabe'),
-    ('instance', 'BERLINER_VERSION', 'berliner_version', 'b', 'b:False')
+    ('instance', 'BERLINER_VERSION', 'berliner_version', 'b', 'b:False'),
+    ('instance', 'BERATUNGSKONTAKTE', 'beratungskontakte', 'b', 'b:False'),
+    ('instance', 'BERATUNGSKONTAKTE_MINUTEN', 'beratungskontakte_minuten', 'b', 'b:False'),
     )
 
 # werden von show/dump nicht angezeigt

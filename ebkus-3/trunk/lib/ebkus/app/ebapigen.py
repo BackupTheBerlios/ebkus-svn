@@ -24,6 +24,7 @@ class Mitarbeiter(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -49,6 +50,7 @@ class Protokoll(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -74,6 +76,7 @@ class Strassenkatalog(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -98,6 +101,7 @@ class Session(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -122,6 +126,7 @@ class MitarbeiterDienststelle(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -148,6 +153,7 @@ class Akte(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -173,6 +179,7 @@ class Fall(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -198,6 +205,7 @@ class Anmeldung(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -224,6 +232,7 @@ class Bezugsperson(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -249,6 +258,7 @@ class Einrichtungskontakt(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -274,6 +284,7 @@ class Leistung(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -288,6 +299,32 @@ class LeistungList(Container):
     querySQL = resultClass.querySQL
 
 #####################################
+# Beratungskontakt  (Tabelle 'beratungskontakt')
+#####################################
+
+
+class Beratungskontakt(DBObjekt):
+    table = 'beratungskontakt'
+    fields =  ['id', 'fall_id', 'mit_id', 'le_id', 'art', 'jgh', 'kd', \
+                       'km', 'ky', 'dauer', 'f2f_min', 'vn_min', 'no', 'stz']
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    multikatfieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = 'id'
+    otherkeys = []
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
+
+class BeratungskontaktList(Container):
+    resultClass = Beratungskontakt
+    querySQL = resultClass.querySQL
+
+#####################################
 # Zustaendigkeit  (Tabelle 'zustaendigkeit')
 #####################################
 
@@ -299,6 +336,7 @@ class Zustaendigkeit(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -324,6 +362,7 @@ class Dokument(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -349,6 +388,7 @@ class Gruppendokument(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -375,6 +415,7 @@ class Gruppe(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -400,6 +441,7 @@ class FallGruppe(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -425,6 +467,7 @@ class BezugspersonGruppe(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -450,6 +493,7 @@ class MitarbeiterGruppe(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -475,10 +519,12 @@ class Fachstatistik(DBObjekt):
                        'bkm', 'bkv', 'qualikm', 'qualikv', 'agkm', 'agkv', \
                        'ba1', 'ba2', 'pbe', 'pbk', 'kat', 'kkm', 'kkv', 'kki', \
                        'kpa', 'kfa', 'ksoz', 'kleh', 'kerz', 'kkonf', 'kson', \
-                       'no', 'no2', 'no3', 'zeit']
+                       'no', 'no2', 'no3', 'kindprobleme', 'elternprobleme', \
+                       'eleistungen', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -503,6 +549,7 @@ class Fachstatistikleistung(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -527,6 +574,7 @@ class Fachstatistikkindproblem(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -551,6 +599,7 @@ class Fachstatistikelternproblem(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -580,6 +629,7 @@ class Jugendhilfestatistik(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -610,6 +660,7 @@ class Jugendhilfestatistik2007(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -635,6 +686,7 @@ class Code(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -659,6 +711,7 @@ class Kategorie(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -683,6 +736,7 @@ class Exportprotokoll(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -707,6 +761,7 @@ class Importprotokoll(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -733,6 +788,7 @@ class Feld(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -757,6 +813,7 @@ class Tabelle(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -782,6 +839,7 @@ class TabellenID(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -806,6 +864,7 @@ class Schluessel(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -850,6 +909,13 @@ Leistung.foreignfieldtypes['fall_id'] = (Fall, 'leistungen')
 Leistung.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'leistungen')
 Leistung.foreignfieldtypes['le'] = (Code, None)
 Leistung.foreignfieldtypes['stz'] = (Code, None)
+Beratungskontakt.foreignfieldtypes['fall_id'] = (Fall, 'beratungskontakte')
+Beratungskontakt.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'beratungskontakte')
+Beratungskontakt.foreignfieldtypes['le_id'] = (Leistung, 'beratungskontakte')
+Beratungskontakt.foreignfieldtypes['art'] = (Code, None)
+Beratungskontakt.foreignfieldtypes['jgh'] = (Code, None)
+Beratungskontakt.foreignfieldtypes['dauer'] = (Code, None)
+Beratungskontakt.foreignfieldtypes['stz'] = (Code, None)
 Zustaendigkeit.foreignfieldtypes['fall_id'] = (Fall, 'zustaendigkeiten')
 Zustaendigkeit.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'zustaendigkeiten')
 Dokument.foreignfieldtypes['fall_id'] = (Fall, 'dokumente')
@@ -985,6 +1051,9 @@ Akte.inversefieldtypes['bezugspersonen'] = (BezugspersonList, 'akte_id')
 Akte.inversefieldtypes['einrichtungen'] = (EinrichtungskontaktList, 'akte_id')
 Fall.inversefieldtypes['leistungen'] = (LeistungList, 'fall_id')
 Mitarbeiter.inversefieldtypes['leistungen'] = (LeistungList, 'mit_id')
+Fall.inversefieldtypes['beratungskontakte'] = (BeratungskontaktList, 'fall_id')
+Mitarbeiter.inversefieldtypes['beratungskontakte'] = (BeratungskontaktList, 'mit_id')
+Leistung.inversefieldtypes['beratungskontakte'] = (BeratungskontaktList, 'le_id')
 Fall.inversefieldtypes['zustaendigkeiten'] = (ZustaendigkeitList, 'fall_id')
 Mitarbeiter.inversefieldtypes['zustaendigkeiten'] = (ZustaendigkeitList, 'mit_id')
 Fall.inversefieldtypes['dokumente'] = (DokumentList, 'fall_id')
@@ -1017,3 +1086,13 @@ Kategorie.inversefieldtypes[''] = (FeldList, 'kat_id')
 Tabelle.inversefieldtypes['iddaten'] = (TabellenIDList, 'table_id')
 Tabelle.inversefieldtypes['schluessel'] = (SchluesselList, 'tab_id')
 Feld.inversefieldtypes['schluessel'] = (SchluesselList, 'feld_id')
+
+    
+# Die folgenden Einträge ermöglichen Mehrfachauswahlfelder.
+# In das Feld werden die IDs von Code-Instanzen als Strings
+# geschrieben. Beim Aufruf über __getitem__ werden die durch
+# Code-Instanzen ersetzt.
+    
+Fachstatistik.multikatfieldtypes['kindprobleme'] = CodeList
+Fachstatistik.multikatfieldtypes['elternprobleme'] = CodeList
+Fachstatistik.multikatfieldtypes['eleistungen'] = CodeList

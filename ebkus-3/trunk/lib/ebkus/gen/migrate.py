@@ -202,11 +202,11 @@ def update_feld():
             dbfupd = Feld()
             dbfupd['verwtyp'] = verwtyp['id']
             #print "  Feld '%s' (%s %s)" % (f.fieldname, f.verwtyp, f.ref)
-            if f.verwtyp in 'kb':
+            if f.verwtyp in 'kmb':
                 kat = katlist.findu('code', f.kat_code)
                 dbfupd['kat_id'] = kat['id']
                 dbfupd['kat_code'] = kat['code']
-            if f.verwtyp in 'fk':    # kodierte Felder sind Fremdschlüssel nach code
+            if f.verwtyp in 'fkm':    # kodierte Felder sind Fremdschlüssel nach code
                 dbfupd['ftab_id'] = dbtlist.findu('tabelle', f.ftable)['id']
                 if f.verwtyp in 'f':    # Name für inverse Beziehung
                     dbfupd['inverse'] = f.inverse

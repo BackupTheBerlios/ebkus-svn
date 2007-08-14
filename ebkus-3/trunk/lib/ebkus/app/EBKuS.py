@@ -26,12 +26,20 @@ class EBKuS:
         self.functions = getFunctionsToBePublished()
         self.classes = getClassesToBePublished()
         self.templates = {}
+        template_path = join(config.EBKUS_HOME, 'lib', 'ebkus', 'app_surface')
         from jinja import Environment, FileSystemLoader
         self.jinja_environment = Environment(
             template_charset='latin-1',
             charset='latin-1',
-            loader=FileSystemLoader(join(config.EBKUS_HOME, 'lib', 'ebkus', 'app_surface'))
+            loader=FileSystemLoader(template_path, use_memcache=True)
             )
+        from mako.lookup import TemplateLookup
+        self.mako_environment = TemplateLookup(directories=[template_path],
+                                               output_encoding='latin-1',
+                                               input_encoding='latin-1',
+                                               encoding_errors='replace',
+                                               default_filters=['decode.latin1'],
+                                               module_directory=template_path)
         logging.info("EBKuS Version %s", Version)
         logging.info("EBKuS-Konfigurationsdatei: %s", config.ebkus_conf)
         if config.instance_conf:
@@ -110,10 +118,12 @@ def getClassesToBePublished():
     from ebkus.html.bezugsperson import persneu, updpers,viewpers
     from ebkus.html.einrichtungskontakt import einrneu, updeinr
     from ebkus.html.leistung import leistneu, updleist
-    from ebkus.html.zustaendigkeit import zustneu, updzust
+    from ebkus.html.beratungskontakt import bkontneu, updbkont
+    #from ebkus.html.zustaendigkeit import zustneu, updzust
+    from ebkus.html.akte import zustneu, updzust
     # updfs wird auch als updfsform importiert weil es einen Nameclash zwischen
     # der Funktion ebupd.updfs und der Klasse updfs gibt. klkarte.py ist verzockt.
-    from ebkus.html.fachstatistik import fsneu, updfs, updfsausw, updfs as updfsform
+    from ebkus.html.fachstatistik import fsneu, updfs, updfs as updfsform
     from ebkus.html.jghstatistik import jghneu, updjgh, jgh07neu, updjgh07, jgh_check, \
          updjghausw, updjgh as updjghform
     from ebkus.html.aktenvorblatt import vorblatt
@@ -134,6 +144,7 @@ def getClassesToBePublished():
     from ebkus.html.mitarbeiter import mitausw, mitneu, updmit
     from ebkus.html.code import codelist, codetab, codeneu, updcode
     from ebkus.html.administration import admin, feedback, admin_protocol
+    from ebkus.html.fskonfig import fskonfig
     # msg neue klassen
     from ebkus.html.login import login, logout
     from ebkus.html.password import pwchange, pw_make_change

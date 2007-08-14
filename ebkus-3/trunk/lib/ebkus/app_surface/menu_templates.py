@@ -243,6 +243,21 @@ administration_t="""
     </td>
   </tr>
   <tr>
+    <td colspan="3" align="center" height="35" valign="middle" legend class="legendtext">
+     <fieldset><legend class="legendtext">Fachstatistik</legend>
+      <table width="83%%" height="35" border="0">
+        <tr>
+          <td align="center" valign="middle" width="174">
+             <input type="button"  value="&nbsp;&nbsp;&nbsp;&nbsp;Konfigurieren&nbsp;&nbsp;&nbsp;&nbsp;" class="button" onClick="go_to_url('fskonfig')">
+          </td>
+          <td>
+          </td>
+        </tr>
+      </table>
+      </fieldset>
+    </td>
+  </tr>
+  <tr>
     <td colspan="3" align="center" height="101" valign="middle" legend class="legendtext">
     <fieldset><legend class="legendtext">Kategorien</legend>
       <table width="83%%" height="70" border="0">

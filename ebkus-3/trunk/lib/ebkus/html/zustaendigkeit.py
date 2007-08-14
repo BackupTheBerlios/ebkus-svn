@@ -1,5 +1,5 @@
 # coding: latin-1
-
+# OBSOLET ist jetzt in akte.py mitdrin
 """Module für die Zuständigkeiten."""
 
 import string

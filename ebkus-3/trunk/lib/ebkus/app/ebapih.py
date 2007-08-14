@@ -19,8 +19,10 @@ def make_option_list(elements,
     """Liefert einen String mit Option-Elementen.
 
     Für jedes Element aus elements eine Option.
-    Das value-Attribut der Option ergibt sich aus element[value_field].
+    Das value-Attribut der Option ergibt sich aus element[value_field]
     Der Name der Option ergibt sich aus element[name_field].
+    (Meistens ergeben sich die Optionen aus den Codes einer Kategorie. Dann
+    gilt value_field = id und name_field = name)
     selected kann sein:
     - None: kein Element ist selected (außer select_first ist True)
     - ein einzelner Wert: dann ist das Element selected, dessen

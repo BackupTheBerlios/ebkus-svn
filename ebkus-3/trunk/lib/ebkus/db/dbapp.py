@@ -224,6 +224,32 @@ class DBObjekt(UserDict):
         ##       raise AttributeError, 'in __getitem__'
         
         
+    def init(self, **kw):
+        """Initialisieren eines nicht-persistenten DB-Objekts mit Werten
+        für die Felder.
+        Exception, falls Objekt bereits persistent ist.
+        """
+        if self.data.has_key('__p__'):
+            raise DBAppError("Init not allowed for persistent db-objects")
+        for f in self.get_string_fields():
+            self.data[f] = ''
+        self.data.update(kw)
+
+    def get_string_fields(self):
+        """Liefert eine Liste von Feldnamen, deren Werte Strings sind.
+        
+        Ein Hack, damit man schnell string-felder initialisieren kann.
+        """
+        try:
+            return self.__class__._string_fields
+        except:
+            from ebkus.app.ebapi import Tabelle, cc
+            table = Tabelle(tabelle=self.table)
+            self.__class__._string_fields = [
+                f['feld'] for f in table['felder']
+                if f['typ'].startswith('CHAR')]
+            return self.__class__._string_fields
+
     def _getKeyValue1(self, ktuple, dict):
         """Versucht, für jedes Element im tuple ktuple einen vWert in dict
         nachzuschlagen. Falls dieses gelingt, die vollständige Liste der Werte
@@ -305,6 +331,8 @@ class DBObjekt(UserDict):
         ##       raise AttributeError, 'in __getitem__'
         ##     #  print '__getitem__ %s: %s->%s' % (self.clk(), key, self.data.get(key))
         ##    assert self._test_data
+##         if self.multikatfieldtypes.has_key(key):
+##             return self._getmultikat(key)
         if self.data.has_key(key):
             return self.data[key]
         if self.inversefieldtypes.has_key(key):
@@ -326,7 +354,7 @@ class DBObjekt(UserDict):
             
             
     def get_conditional(self, key):
-      #print self.__class__.__name__, key
+        print '*****************************CONDITIONAL_FIELD', self.__class__.__name__, key
         alts = self.conditionalfields[key]
         cond =  alts[0]
         if type(cond) == type(''):
@@ -442,6 +470,24 @@ class DBObjekt(UserDict):
         ##     #self[key] = val # data cache
         ##     self._cache_field(key, val)
         ##     return val
+
+    def _getmultikat(self, key):
+        """Holt Liste von Objekten, deren ids als String im Feld selbst
+        abgespeichert sind."""
+        klass  = self.multikatfieldtypes[key]
+        ids = self.data.get(key + '_ids')
+        #print "Gecachte Inversen für %s(%s).%s: %s" \
+         # % (self.__class__.__name__, self[self.primarykey], key, ids)
+        if not ids is None:
+            return klass(ids)
+        id_string = self.data.get(key)
+        if id_string:
+            id_list = [int(i) for i in id_string.split()]
+        list = klass(id_list)
+        #print "Inversen registrieren für %s(%s).%s: %s" \
+         # % (self.__class__.__name__, self[self.primarykey], key, list.getIds())
+        self.data[key + '_ids'] = list.getIds()
+        return list
         
         
     def _getinverses(self, key):

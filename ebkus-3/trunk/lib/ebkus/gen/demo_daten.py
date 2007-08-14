@@ -3,6 +3,7 @@
 import sys, os, time, sha
 from ebkus.app.ebapi import cc, cn, getNewFallnummer, Date, today, getDate, setDate, \
      Kategorie, Code, Mitarbeiter, MitarbeiterList, Akte, Fall, FallList, Leistung, \
+     Beratungskontakt, \
      Zustaendigkeit, Bezugsperson, Einrichtungskontakt, CodeList, \
      StrassenkatalogList, Fachstatistik, Jugendhilfestatistik, Jugendhilfestatistik2007
 from ebkus.app.ebapih import  get_codes
@@ -441,9 +442,12 @@ class DemoDaten(object):
         form['ba2'] = self.choose_code_id('fsba')
         form['pbe'] = self.choose_code_id('fspbe')
         form['pbk'] = self.choose_code_id('fspbk')
-        form['pbeltern'] = self.choose_code_id_several('fspbe', 1, 4, unique=True)
-        form['pbkind'] = self.choose_code_id_several('fspbk', 1, 4, unique=True)
-        form['le'] =  self.choose_code_id_several('fsle', 1, 10)
+        form['elternprobleme'] = self.choose_code_id_several('fspbe', 1, 4, unique=True)
+        form['kindprobleme'] = self.choose_code_id_several('fspbk', 1, 4, unique=True)
+        form['eleistungen'] =  self.choose_code_id_several('fsle', 1, 10)
+##         form['pbeltern'] = self.choose_code_id_several('fspbe', 1, 4, unique=True)
+##         form['pbkind'] = self.choose_code_id_several('fspbk', 1, 4, unique=True)
+##         form['le'] =  self.choose_code_id_several('fsle', 1, 10)
         sum = 0
         for f in ('kkm', 'kkv', 'kki', 'kpa', 'kfa',
                   'ksoz', 'kleh', 'kerz', 'kkonf','kson'):

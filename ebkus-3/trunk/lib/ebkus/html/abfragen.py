@@ -26,14 +26,24 @@ class fachstatistik_ergebnis(Request.Request):
     """
     permissions = Request.ABFR_PERM
     
-    def _expand(self, liste, pfad):
-        """Wird z.B. benutzt um die Menge aller Leistungen über
-        alle Fachstatistiken hinweg zu berechnen."""
-        alle = []
-        for f in liste:
-            for l in f[pfad]:
-                alle.append(l)
-        return alle
+##     def _expand_old(self, liste, pfad):
+##         """Wird z.B. benutzt um die Menge aller Leistungen über
+##         alle Fachstatistiken hinweg zu berechnen."""
+##         alle = []
+##         for f in liste:
+##             for l in f[pfad]:
+##                 alle.append(l)
+##         return alle
+
+##     def _expand(self, liste, pfad):
+##         """Wird z.B. benutzt um die Menge aller Leistungen über
+##         alle Fachstatistiken hinweg zu berechnen."""
+##         alle = []
+##         for f in liste:
+##             for id_str in f[pfad]:
+##                 for i in id_str.split():
+##                     alle.append(Code(i))
+##         return alle
 
     def get_auszaehlungen(self, liste, file):
         """Liefert eine Liste von Auszählungsobjekten für fstat_ausgabe"""
@@ -46,12 +56,18 @@ class fachstatistik_ergebnis(Request.Request):
         auszaehlungen = [CA(liste, f, file=file)
                          for f in felder if f.get('kat_code')]
         app = auszaehlungen.append # Abkürzung
-        app(CA(self._expand(liste, 'leistungen'), 'le',
-               title="Erbrachte Leistungen", file=file))
-        app(CA(self._expand(liste, 'fachstatelternprobleme'), 'pbe',
-               title="Problemspektrum der Eltern", file=file))
-        app(CA(self._expand(liste, 'fachstatkindprobleme'), 'pbk',
-               title="Problemspektrum Kind/Jugendliche", file=file))
+##         app(CA(self._expand(liste, 'leistungen'), 'le',
+##                title="Erbrachte Leistungen", file=file))
+##         app(CA(self._expand(liste, 'fachstatelternprobleme'), 'pbe',
+##                title="Problemspektrum der Eltern", file=file))
+##         app(CA(self._expand(liste, 'fachstatkindprobleme'), 'pbk',
+##                title="Problemspektrum Kind/Jugendliche", file=file))
+##         app(MCA(liste, 'eleistungen',
+##                title="Erbrachte Leistungen", file=file))
+##         app(MCA(liste, 'elternprobleme',
+##                title="Problemspektrum der Eltern", file=file))
+##         app(MCA(liste, 'kindprobleme',
+##                title="Problemspektrum Kind/Jugendliche", file=file))
         app(OA(liste, 'mit_id', self.getMitarbeiterliste(), 'na',
                title="Mitarbeiter", file=file))
         app(WA(liste, 'bz', title="Planungsraum", file=file))

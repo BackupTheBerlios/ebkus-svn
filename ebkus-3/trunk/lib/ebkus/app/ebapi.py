@@ -192,7 +192,7 @@ today = Date
 
 def getDate(self, key):
     y,m,d = key + 'y', key + 'm', key + 'd'
-    return Date(self[y], self[m], self[d])
+    return Date(self[y], self[m], self.get(d))
     
 def setDate(self, key, date):
     y,m,d = key + 'y', key + 'm', key + 'd'
@@ -260,6 +260,8 @@ dbapp.DBObjekt.getNewId = getNewId
 
 def getNewFallnummer(stz_code, jahr):
     """Neue Fallnummer erzeugen."""
+    # TODO: hier könnte doppelte Fallnummer vergeben werden
+    # wenn etwas gelöscht wird
     jahresfallliste = FallList(
       where = "bgy = %s and fn like '%%%s%%'" % (jahr, stz_code))
     return "%s-%s%s" % (len(jahresfallliste) + 1, jahr, stz_code)
@@ -335,18 +337,24 @@ def _aktuell_akte(self, key):
     return res
     
 def _str_inner(self, key):
-    if int(self['lage']) == Code(cc('lage', '0'))['id']:
-      # in Berlin
-        return self['str']
-    else:
-        return ''
+    res = ''
+    try:
+        if int(self['lage']) == Code(cc('lage', '0'))['id']:
+          # in Berlin
+            res = self['str']
+    except:
+        pass
+    return res
         
 def _str_ausser(self, key):
-    if int(self['lage']) == Code(cc('lage', '1'))['id']:
-      # ausserhalb Berlins
-        return self['str']
-    else:
-        return ''
+    res = ''
+    try:
+        if int(self['lage']) == Code(cc('lage', '1'))['id']:
+          # ausserhalb Berlins
+            res = self['str']
+    except:
+        pass
+    return res
 
         
 Akte.attributemethods['wiederaufnehmbar'] = _wiederaufnehmbar
@@ -428,6 +436,9 @@ Anmeldung.pathdefinitions = {
 Leistung.pathdefinitions = {
   'akte': 'fall_id__akte'
 }
+Beratungskontakt.pathdefinitions = {
+  'akte': 'fall_id__akte'
+}
 Zustaendigkeit.pathdefinitions = {
   'akte': 'fall_id__akte'
 }
@@ -472,6 +483,7 @@ def akte_undo_cached_fields(self):
     
     for f in self['faelle']:
         for l in f['leistungen']: l.undo_cached_fields()
+        for b in f['beratungskontakte']: b.undo_cached_fields()
         for z in f['zustaendigkeiten']: z.undo_cached_fields()
         for a in f['anmeldung']: a.undo_cached_fields()
         for fs in f['fachstatistiken']: fs.undo_cached_fields()
@@ -769,6 +781,24 @@ def check_code(dict, key, kat_code, errorstring, default = None):
     except Exception, e:
         raise EE("%s: %s" % (errorstring, e))
     return code
+
+def check_multi_code(dict, key, kat_code, errorstring, default = None):
+    """mehrere code ids als string in einem Feld"""
+    code = dict.get(key)
+    #print key, kat_code, code
+    if code is None or code == '':
+        if not default is None:
+            if type(default) == type(''): return cc(kat_code, default)
+            else: return k_or_val(key, default)
+    if not isinstance(code, list):
+        code = [code]
+    try: code = [int(c) for c in code]
+    except: raise EE(errorstring)
+    try:
+        codes = CodeList(code)
+    except Exception, e:
+        raise EE("%s: %s" % (errorstring, e))
+    return ' '.join([str(i) for i in codes.getIds()])
     
     
 def get_string_fields(object, form, formnames, default = None, objectnames = None):
@@ -1001,27 +1031,4 @@ def convert_pstoascii():
             
     sql.closedb()
     
-    
-class Wrapper(object):
-    """Eine Art dictionary.
-    Sucht erst bei sich selbst, dann im übergebenen Objekt nach
-    einem Wert für einen Key.
-    Nützlich für dbapp-Objekt und Templates.
-    Wird zunächst nur von jghstatistik.py verwendet.
-    """
-    def __init__(self, obj):
-        self.obj = obj
-        self.data = {}
-    def __getitem__(self, key):
-        try:
-            return self.data[key]
-        except KeyError:
-            return self.obj[key]
-    def __setitem__(self, key, value):
-        self.data[key] = value
-    def get(self, key):
-        try:
-            return self[key]
-        except KeyError:
-            return None
     

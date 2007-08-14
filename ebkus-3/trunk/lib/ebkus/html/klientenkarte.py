@@ -2,18 +2,23 @@
 
 """Module für die Klientenkarte."""
 
-import string
-
+from ebkus.config import config
 from ebkus.app import Request
 from ebkus.app import ebupd
 from ebkus.app import ebapi
+from ebkus.html.htmlgen import Base, Form, FormPage, Fieldset, FieldsetDataTable, Tr, Pair, \
+     FieldsetInputTable, Button, Datum, String, Icon, IconDead, SelectGoto, Klientendaten, \
+     TextItem, DummyItem
+
+import ebkus.html.htmlgen as h
+
 from ebkus.app.ebapih import get_all_codes
 from ebkus.app_surface.klientenkarte_templates import *
 from ebkus.app_surface.standard_templates import *
 
+from ebkus.html.akte_share import akte_share
 
-
-class klkarte(Request.Request):
+class klkarte(Request.Request, akte_share):
     """Klientenkarte."""
     
     permissions = Request.KLKARTE_PERM
@@ -25,8 +30,12 @@ class klkarte(Request.Request):
             fallid = self.form.get('fallid')
             akid = self.form.get('akid')
             mitid = self.mitarbeiter['id']
-            if akid: akid = int(akid)
-            elif fallid: fallid = int(fallid)
+            if akid:
+                akid = int(akid)
+            elif fallid:
+                fallid = int(fallid)
+                fall = ebapi.Fall(fallid)
+                akid = fall['akte_id']
             else:
                 res = []
                 meldung = {'titel':'Keine Men&uuml;auswahl erhalten!',
@@ -34,8 +43,8 @@ class klkarte(Request.Request):
                          'zeile1':'Es wurde nichts aus dem Men&uuml; ausgew&auml;hlt.',
                          'zeile2':''}
                 res.append(meldung_t % meldung)
-                return string.join(res, '')
-            return self.klkarte_display(akid, fallid, mitid)
+                return ''.join(res)
+            return self.klkarte_display(akid)
             
             # Fall 2 erst einfuegen oder updaten, dann Klientenkarte darstellen
         if self.einfuege_oder_update_operationen.get(file):
@@ -62,7 +71,7 @@ class klkarte(Request.Request):
                          'zeile1':'Es wurde nichts aus dem Men&uuml; ausgew&auml;hlt.',
                          'zeile2':''}
                 res.append(meldung_t % meldung)
-                return string.join(res, '')
+                return ''.join(res)
             RESPONSE.redirect('dokkarte?fallid=%s' % fallid)
             return ''
         if file == 'updjghform' or file == 'updfsform':
@@ -81,6 +90,7 @@ class klkarte(Request.Request):
       'einreinf': ('akid', ebapi.Akte),
       'anmeinf': ('fallid', ebapi.Fall),
       'leisteinf': ('fallid', ebapi.Fall),
+      'bkonteinf': ('fallid', ebapi.Fall),
       'zusteinf': ('fallid', ebapi.Fall),
       'zdaeinf': ('fallid', ebapi.Fall),
       #'updfall': ('gfall', ebapi.Fall),
@@ -89,6 +99,7 @@ class klkarte(Request.Request):
       'updeinr': ('einrid', ebapi.Einrichtungskontakt),
       'updanm': ('anmid', ebapi.Anmeldung),
       'updleist': ('leistid', ebapi.Leistung),
+      'updbkont': ('bkontid', ebapi.Beratungskontakt),
       'updzust': ('zustid', ebapi.Zustaendigkeit),
       'updfall': ('fallid', ebapi.Fall),
       'waufneinf': ('fallid', ebapi.Fall),
@@ -113,350 +124,516 @@ class klkarte(Request.Request):
         akid = klass(int(self.form[id_name]))['akte__id']
         return akid
         
-    def klkarte_display(self, akid, fallid = None, mitid=None):
+
+
+    def klkarte_display(self, akid):
         "Darstellung der Klientenkarte."
         
-        if not akid and fallid:
-            fall = ebapi.Fall(fallid)
-            akte = ebapi.Akte(fall['akte_id'])
-        else:
-            akte = ebapi.Akte(akid)
-        bezugspersonen = akte['bezugspersonen']
-        einrichtungen = akte['einrichtungen']
+        akte = ebapi.Akte(akid)
+        bezugspersonen_list = akte['bezugspersonen']
+        einrichtungskontakte_list = akte['einrichtungen']
         faelle = akte['faelle']
         
         faelle.sort('bgy', 'bgm', 'bgd')
-        bezugspersonen.sort('verw__sort')
-        einrichtungen.sort('status', 'na')
-        
-        # Aktueller bzw. letzter Fall, Wiederaufnehmbarkeit
-        
+        bezugspersonen_list.sort('verw__sort')
+        einrichtungskontakte_list.sort('status', 'na')
+        leistungen_list = []
+        zustaendigkeiten_list = []
+        beratungskontakte_list = []
+        anmeldekontakte_list = []
+        fachstatistik_list = []
+        jugendhilfestatistik_list = []
+        fallgruppen_list = []
+        bezugspersongruppen_list = []
+        for f in faelle:
+            leistungen_list += f['leistungen']
+            zustaendigkeiten_list += f['zustaendigkeiten']
+            beratungskontakte_list += f['beratungskontakte']
+            anmeldekontakte_list += f['anmeldung']
+            fachstatistik_list += f['fachstatistiken']
+            jugendhilfestatistik_list += f['jgh_statistiken']
+            jugendhilfestatistik_list += f['jgh07_statistiken']
+            fallgruppen_list +=  f['gruppen']
+        for b in bezugspersonen_list:
+            bezugspersongruppen_list += b['gruppen']
         letzter_fall = akte['letzter_fall']
         aktueller_fall = akte['aktueller_fall']
         wiederaufnehmbar =  akte['wiederaufnehmbar']
         
-        
-        res = []
-        ###########
-        res.append(head_normal_t % 'Klientenkarte')
-        res.append(body_start)
-        if aktueller_fall:
-            res.append(menue_t)
-            res.append(menue1_t % aktueller_fall)
-            res.append(menue2_t % akte)
-            res.append(menue3_t % aktueller_fall)
-        else:
-            if wiederaufnehmbar:
-                res.append(menue_t)
-                res.append(menuewaufn_t1 % letzter_fall)
-            else:
-                res.append(menue_t)
-                res.append(menuezdar_t1 % letzter_fall)
-                ##*************************************************************************
-                ## Klientendaten
-                ##*************************************************************************
-        res.append(klientenkarte_t % akte)
-        if aktueller_fall:
-            res.append(klientenkarte_t2 % akte)
-        else:
-            res.append(klientenkarte_t2_keinaktfall)
-            ##*************************************************************************
-            ## Bezugspersonen des Falles
-            ##*************************************************************************
-        if aktueller_fall:
-            if bezugspersonen:
-                res.append(bezugsperson_kopf)
-                for e in bezugspersonen:
-                    res.append(bezugsperson_t %e)
-                res.append(bezugsperson_ende %akte)
-            else:
-                res.append(keine_bezugsperson_kopf)
-                res.append(keine_bezugsperson_ende %akte)
-        else:
-            if bezugspersonen:
-                res.append(bezugsperson_kopf)
-                for e in bezugspersonen:
-                    res.append(bezugsperson_t_keinaktfall %e)
-                res.append(bezugsperson_ende_keinaktfall)
-                
-                ##*************************************************************************
-                ## Leistungen des Falles
-                ##*************************************************************************
-        if aktueller_fall:
-            res.append(leistung_kopf)
-            for f in faelle:
-                for l in f['leistungen']:
-                    if f!=letzter_fall:
-                        res.append(leistungs_t1a % l)
-                    else:
-                        res.append(leistungs_t1 % l)
-                    if l['ey'] == 0:
-                        res.append(leistungsendeleer_t1)
-                    else:
-                        res.append(leistungsendedatum_t1 % l)
-            res.append(leistung_ende % akte)
-        else:
-            res.append(leistung_kopf)
-            for f in faelle:
-                for l in f['leistungen']:
-                    res.append(leistungs_t1a_keinaktfall % l)
-                    if l['ey'] == 0:
-                        res.append(leistungsendeleer_t1)
-                    else:
-                        res.append(leistungsendedatum_t1 % l)
-            res.append(leistung_ende_keinaktfall)
+        menu = Fieldset(content=Tr(cells=(
+            Button(value="Hauptmenü",
+                   tip="Zum Hauptmenü",
+                   onClick="go_to_url('menu')",
+                   ),
+            Button(value="Gruppenmenü",
+                   tip="Zum Gruppenmenü",
+                   onClick="go_to_url('menugruppe')",
+                   ),
+            (aktueller_fall and
+             SelectGoto(name='Auswahl1', options =
+"""<option value="nothing">[ Neu ]</option>
+<option value="akteneu?file=aktene">- Neuaufnahme</option>
+<option value="persneu?akid=%(akte_id)s&fallid=%(id)s">- Familie</option>
+<option value="einrneu?akid=%(akte_id)s&fallid=%(id)s">- Einrichtung</option>
+<option value="anmneu?akid=%(akte_id)s&fallid=%(id)s">- Anmeldung</option>
+<option value="leistneu?akid=%(akte_id)s&fallid=%(id)s">- Leistung</option>
+<option value="bkontneu?akid=%(akte_id)s&fallid=%(id)s">- Beratungskontakt</option>
+<option value="zustneu?akid=%(akte_id)s&fallid=%(id)s">- Bearbeiter</option>
+<option value="vermneu?akid=%(akte_id)s&fallid=%(id)s">- Vermerk</option>
+<option value="upload?akid=%(akte_id)s&fallid=%(id)s">- Dateiimport</option>
+<option value="fsneu?akid=%(akte_id)s&fallid=%(id)s">- Fachstatistik</option>
+<option value="jgh07neu?akid=%(akte_id)s&fallid=%(id)s">- Bundesstatistik</option>
+<option value="zda?akid=%(akte_id)s&fallid=%(id)s">- zu den Akten</option>
+""" % aktueller_fall)
+                  or wiederaufnehmbar and
+                  SelectGoto(name='Auswahl1', options =
+"""<option value="nothing">[ Neu ]</option>
+<option value="akteneu?file=aktene">- Neuaufnahme</option>
+<option value="waufnneu?akid=%(akte_id)d&fallid=%(id)d">- Wiederaufnahme</option>
+""" % letzter_fall)
+                  or
+                  SelectGoto(name='Auswahl1', options =
+"""<option value="nothing">[ Neu ]</option>
+<option value="akteneu?file=aktene">- Neuaufnahme</option>
+<option value="zdar?akid=%(akte_id)d&fallid=%(id)d">- zdA R&uuml;ckg&auml;ngig</option>
+""" % letzter_fall)),
+
+            (aktueller_fall and
+             SelectGoto(name='Auswahl2', options =
+"""<option value="nothing">[ Anzeige ]</option>
+<option value="newXX vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
+<option value="dokkarte?akid=%(akte_id)d&fallid=%(id)d">- Akte</option>
+<option value="formabfr3">- Suche</option>
+<option value="wordexport?akid=%(akte_id)d">- Word-Export</option>
+""" % aktueller_fall)
+             or
+             SelectGoto(name='Auswahl2', options =
+"""<option value="nothing">[ Anzeige ]</option>
+<option value="vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
+<option value="dokkarte?akid=%(akte_id)d&fallid=%(id)d">- Akte</option>
+<option value="formabfr3">- Suche</option>
+""" % letzter_fall )),
+            )))
+
+        klientendaten = FieldsetInputTable(
+            legend='Klientendaten',
+            daten=[[TextItem(label='Vorname',
+                              name='vn',
+                              value=akte['vn'],
+                              readonly=True,
+                              ),
+                    TextItem(label='Strasse',
+                              name='str',
+                              value="%(str)s %(hsnr)s" % akte,
+                              readonly=True,
+                              ),
+                    TextItem(label='Wohnt bei',
+                              name='fs__name',
+                              value=akte['fs__name'],
+                              readonly=True,
+                              ),
+                    ],
+                   [TextItem(label='Nachname',
+                              name='na',
+                              value=akte['na'],
+                              readonly=True,
+                              ),
+                    TextItem(label='Postleitzahl',
+                              name='plz',
+                              value=akte['plz'],
+                              readonly=True,
+                              ),
+                    TextItem(label='Telefon 1',
+                              name='tl1',
+                              value=akte['tl1'],
+                              readonly=True,
+                              ),
+                    ],
+                   [TextItem(label='Geburtstag',
+                              name='gb',
+                              value=akte['gb'],
+                              readonly=True,
+                              ),
+                    TextItem(label='Ort',
+                              name='ort',
+                              value=akte['ort'],
+                              readonly=True,
+                              ),
+                    TextItem(label='Telefon 2',
+                              name='tl2',
+                              value=akte['tl2'],
+                              readonly=True,
+                              ),
+                    ],
+                   [TextItem(label='Ausbildung',
+                              name='ber',
+                              value=akte['ber'],
+                              readonly=True,
+                              ),
+                    DummyItem(),
+                    DummyItem(),
+                    ]
+                   ],
+            button=aktueller_fall and
+            Button(value= "Bearbeiten",
+                   tip= "Klientenstammdaten bearbeiten",
+                   onClick= "go_to_url('updakte?akid=%(id)s')" % akte,
+                   ) or None,
+            )
+
+##         klientendaten = Klientendaten(
+##             legend='Klientendaten',
+##             akte=akte,
+##             button=aktueller_fall and
+##             Button(value= "Bearbeiten",
+##                    tip= "Klientenstammdaten bearbeiten",
+##                    onClick= "go_to_url('updakte?akid=%(id)s')" % akte,
+##                    ) or None,
+##             )
+
+
+
+        bezugspersonen = self.get_bezugspersonen(bezugspersonen_list, aktueller_fall,
+                                                 edit_button=True, view_button=True)
+##         bezugspersonen = FieldsetDataTable(
+##             legend= 'Bezugspersonen',
+##             headers= ('Art', 'Vorname', 'Nachname', 'Telefon 1', 'Telefon 2'),
+##             daten= [[(aktueller_fall and
+##                       Icon(href= 'updpers?akid=%(akte_id)d&bpid=%(id)d' % b,
+##                            icon= "/ebkus/ebkus_icons/edit_button.gif",
+##                            tip= 'Bezugsperson bearbeiten')
+##                       or
+##                       IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
+##                                tip= 'Funktion gesperrt')),
+##                        (aktueller_fall and
+##                         Icon(href= '#',
+##                              onClick= "view_details('viewpers?akid=%(akte_id)d&bpid=%(id)d')" % b,
+##                              icon= "/ebkus/ebkus_icons/view_details.gif",
+##                              tip= 'Bezugsperson ansehen')
+##                         or
+##                         IconDead(icon= "/ebkus/ebkus_icons/view_details_inaktiv.gif",
+##                                  tip= 'Funktion gesperrt')),
+##                        String(string= b['verw__name']),
+##                        String(string= b['vn']),
+##                        String(string= b['na']),
+##                        String(string= b['tl1']),
+##                        String(string= b['tl2'])]
+##                       for b in bezugspersonen_list],
+##             button= (aktueller_fall and
+##                      Button(value="Hinzufügen",
+##                             tip="Bezugsperson hinzufügen",
+##                             onClick=
+##                        "go_to_url('persneu?akid=%(id)d&fallid=%(aktueller_fall__id)d&klerv=1')" % akte,
+##                             ) or None),
+##             )
+        leistungen = FieldsetDataTable(
+            legend= 'Leistungen',
+            headers= ('Mitarbeiter', 'Leistung', 'Am', 'Bis'),
+            daten= [[(aktueller_fall == leist['fall'] and
+                      Icon(href= 'updleist?fallid=%(fall_id)d&leistid=%(id)d' % leist,
+                           icon= "/ebkus/ebkus_icons/edit_button.gif",
+                           tip= 'Leistung bearbeiten')
+                      or
+                      IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
+                               tip= 'Funktion gesperrt')),
+                     String(string= leist['mit_id__na']),
+                     String(string= leist['le__name']),
+                     Datum(date=leist.getDate('bg')),
+                     Datum(date=leist.getDate('e')),
+                     ]
+                    for leist in leistungen_list],
+            button= (aktueller_fall and
+                     Button(value= "Hinzufügen",
+                            tip= "Leistung hinzufügen",
+                         onClick= "go_to_url('leistneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" % akte,
+                            ) or None),
+            )
+        beratungskontakte = FieldsetDataTable(
+            legend= 'Beratungskontakte',
+            headers= ('Mitarbeiter', 'Art', 'Datum', 'Dauer', 'Notiz'),
+            daten= [[(aktueller_fall == bkont['fall'] and
+                      Icon(href= 'updbkont?fallid=%(fall_id)d&bkontid=%(id)d' % bkont,
+                           icon= "/ebkus/ebkus_icons/edit_button.gif",
+                           tip= 'Beratungskontakt bearbeiten')
+                      or
+                      IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
+                               tip= 'Funktion gesperrt')),
+                       String(string= bkont['mit_id__na']),
+                       String(string= bkont['art__name']),
+                       Datum(day=   bkont['kd'],
+                             month= bkont['km'],
+                             year=  bkont['ky']),
+                       String(string= bkont['dauer__name']),
+                       String(string= bkont['no'])]
+                    for bkont in beratungskontakte_list],
+            button= (aktueller_fall and
+                     Button(value= "Hinzufügen",
+                            tip= "Beratungskontakt hinzufügen",
+                        onClick= "go_to_url('bkontneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" % akte,
+                            ) or None),
+            )
+        stand = FieldsetDataTable(
+            legend= 'Stand',
+            headers= ('Fallnummer', 'Beginn', 'z.d.A.'),
+            daten= [[(fall == aktueller_fall and
+                      Icon(href= 'updfall?akid=%(akte_id)d&fallid=%(id)d' % fall,
+                           icon= "/ebkus/ebkus_icons/edit_button.gif",
+                           tip= 'Fallstatus bearbeiten')
+                      or
+                      IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
+                               tip= 'Funktion gesperrt')),
+                     String(string=fall['fn']),
+                     Datum(day=fall['bgd'],
+                           month= fall['bgm'],
+                           year=  fall['bgy']),
+                     Datum(day=fall['zdad'],
+                           month= fall['zdam'],
+                           year=  fall['zday'])]
+                    for fall in faelle],
+            button= (aktueller_fall and
+                     Button(value= "Zu den Akten",
+                            tip= "Fall abschließen",
+                            onClick= "go_to_url('zda?akid=%(akte_id)s&fallid=%(id)d')" % aktueller_fall,)
+                     or wiederaufnehmbar and 
+                     Button(value= "Wiederaufnahme",
+                            tip= "Fall wiederaufnehmen",
+                          onClick= "go_to_url('waufnneu?akid=%(akte_id)s&fallid=%(id)d')" % letzter_fall,)
+                     or
+                     Button(value= "ZdA rückgängig",
+                            tip= "Fall aktivieren",
+                            onClick= "go_to_url('zdar?akid=%(akte_id)s&fallid=%(id)d')" % letzter_fall,)),
+            )
+        bearbeiter = FieldsetDataTable(
+            legend= 'Bearbeiter',
+            headers= ('Bearbeiter', 'Beginn', 'Ende'),
+            daten= [[(zust['fall'] == aktueller_fall and
+                      Icon(href= 'updzust?fallid=%(fall_id)d&zustid=%(id)d' % zust,
+                           icon= "/ebkus/ebkus_icons/edit_button.gif",
+                           tip= "Zuständigkeit bearbeiten")
+                      or
+                      IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
+                               tip= 'Funktion gesperrt')),
+                     String(string= zust['mit_id__na']),
+                     Datum(day=   zust['bgd'],
+                           month= zust['bgm'],
+                           year=  zust['bgy']),
+                     Datum(day=zust['ed'],
+                           month= zust['em'],
+                           year=  zust['ey'])]
+                    for zust in zustaendigkeiten_list],
+            button=(aktueller_fall and
+                    Button(value= "Hinzufügen",
+                           tip= "Neue Zuständigkeit eintragen",
+                           onClick= "go_to_url('zustneu?akid=%(akte_id)s&fallid=%(id)d')" % aktueller_fall,)
+                    or None),
+            )
+        anmeldekontakte = FieldsetDataTable(
+            legend= 'Anmeldungskontakte',
+            headers= ('Gemeldet von', 'Gemeldet am', 'Anmeldegrund'),
+            daten= [[(aktueller_fall == a['fall'] and
+                     Icon(href= 'updanm?anmid=%(id)d' % a,
+                          icon= "/ebkus/ebkus_icons/edit_button.gif",
+                          tip= 'Anmeldungskontakt bearbeiten')
+                      or
+                      IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
+                               tip= 'Funktion gesperrt')),
+                     (aktueller_fall and
+                      Icon(href= '#',
+                           onClick= "view_details('viewanm?anmid=%(id)d')" % a,
+                           icon= "/ebkus/ebkus_icons/view_details.gif",
+                           tip= 'Anmeldungskontakt ansehen')
+                           or
+                      IconDead(icon= "/ebkus/ebkus_icons/view_details_inaktiv.gif",
+                               tip= 'Funktion gesperrt')),
+                       String(string= a['von']),
+                       Datum(day=   a['ad'],
+                             month= a['am'],
+                             year=  a['ay']),
+                       String(string= a['mg'])]
+                       for a in anmeldekontakte_list],
+            button= (aktueller_fall and
+                     Button(value= "Hinzufügen",
+                            tip= "Anmeldungskontakt hinzufügen",
+                            onClick=
+                            "go_to_url('anmneu?fallid=%(id)d')" % aktueller_fall,
+                            ) or None),
+            )
+
+        einrichtungskontakte = FieldsetDataTable(
+            legend= 'Einrichtungskontakte',
+            headers= ('Art', 'Name', 'Telefon 1', 'Telefon 2', 'Aktuell'),
+            daten= [[(aktueller_fall and
+                      Icon(href= 'updeinr?einrid=%(id)d' % e,
+                           icon= "/ebkus/ebkus_icons/edit_button.gif",
+                           tip= 'Einrichtungskontakt bearbeiten')
+                      or
+                      IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
+                               tip= 'Funktion gesperrt')),
+                     String(string= e['insta__name']),
+                     String(string= e['na']),
+                     String(string= e['tl1']),
+                     String(string= e['tl2']),
+                     String(string= e['status__code'])]
+                    for e in einrichtungskontakte_list],
+            button= (aktueller_fall and
+                     Button(value= "Hinzufügen",
+                            tip= "Einrichtungskontakt hinzufügen",
+                            onClick=
+                            "go_to_url('einrneu?fallid=%(id)d')" % aktueller_fall,
+                            ) or None),
+            )
+
+        notiz_daten = []
+        if akte['no']:
+            notiz_daten.append([String(string= 'AK'),
+                          String(string= "%(vn)s %(na)s" % akte),
+                          String(string= akte['no']),
+                          String(string= ''),
+                          ])
+        for b in bezugspersonen_list:
+            if b['no']:
+                notiz_daten.append([String(string= 'BP'),
+                              String(string= "%(vn)s %(na)s" % b),
+                              String(string= b['no']),
+                              String(string= b['nobed__name'],
+                                     class_=ebapi.cc('notizbed', 't')==b['nobed'] and 'tabledatabold'
+                                     or 'tabledata'),
+                              ])
+        for e in einrichtungskontakte_list:
+            if e['no']:
+                notiz_daten.append([String(string= 'ER'),
+                              String(string= "%(insta__name)s %(na)s" % e),
+                              String(string= e['no']),
+                              String(string= e['nobed__name'],
+                                     class_=ebapi.cc('notizbed', 't')==e['nobed'] and 'tabledatabold'
+                                     or 'tabledata'),
+                              ])
+        for a in anmeldekontakte_list:
+            if a['no']:
+                notiz_daten.append([String(string= 'AM'),
+                              String(string= "%(von)s" % a),
+                              String(string= a['no']),
+                              String(string= ''),
+                              ])
             
-            ##*************************************************************************
-            ## Status des Falles
-            ##*************************************************************************
-        res.append(fall_kopf)
-        for f in faelle:
-            if aktueller_fall:
-                if f!=letzter_fall:
-                    res.append(fall_t1a % f)
-                else:
-                    res.append(fall_t1 % f)
-            else:
-                res.append(fall_t1a_keinaktfall % f)
-            if f['aktuell'] == 1:
-                res.append(falloffen_t1)
-            else:
-                res.append(fallendedatum_t1 % f)
-        if aktueller_fall:
-            res.append(fallende_t_aktfall % akte)
-        else:
-            if wiederaufnehmbar:
-                res.append(fallende_t_waufn % akte)
-            else:
-                res.append(fallende_t_zdarueck % akte)
-                
-                ##*************************************************************************
-                ## Bearbeiter des Falles
-                ##*************************************************************************
-        res.append(bearbeiter_kopf_t1)
-        for f in faelle:
-            for z in f['zustaendigkeiten']:
-                if aktueller_fall:
-                    if f!=letzter_fall or z!=letzter_fall['zustaendig']:
-                        res.append(bearbeiter_t1a % z)
-                    else:
-                        res.append(bearbeiter_t1 % z)
-                else:
-                    if f!=letzter_fall or z!=letzter_fall['zustaendig']:
-                        res.append(bearbeiter_t1a_keinaktfall % z)
-                    else:
-                        res.append(bearbeiter_t1_keinaktfall % z)
-                if z['ey'] == 0:
-                    res.append(bearbeiterendeoffen_t1)
-                else:
-                    res.append(bearbeiterendedatum_t1 % z)
-        if aktueller_fall:
-            res.append(bearbeiter_ende_t1 % akte)
-        else:
-            res.append(bearbeiter_ende_keinaktfall)
-            ##*************************************************************************
-            ## Anmeldekontakte des Falles
-            ##*************************************************************************
-            
-        anmeldungs_liste = []
-        if aktueller_fall:
-            for f in faelle:
-                for a in f['anmeldung']:
-                    if f!=letzter_fall:
-                        anmeldungs_liste.append(alt_anmeldung_t % a)
-                    else:
-                        anmeldungs_liste.append(akt_anmeldung_t % a)
-            if anmeldungs_liste:
-                res.append(anmeldung_kopf)
-                for anmeldung in anmeldungs_liste:
-                    res.append(anmeldung)
-                if aktueller_fall['anmeldung']:
-                    res.append(anmeldung_ende_hatanm)
-                else:
-                    res.append(anmeldung_ende_keineanm % akte)
-            else:
-                res.append(keine_anmeldung_kopf)
-                if aktueller_fall['anmeldung']:
-                    res.append(keine_anmeldung_ende_hatanm)
-                else:
-                    res.append(keine_anmeldung_ende_keineanm % akte)
-        else:
-            for f in faelle:
-                for a in f['anmeldung']:
-                    anmeldungs_liste.append(anmeldung_t1_keinaktfall % a)
-            if anmeldungs_liste:
-                res.append(anmeldung_kopf)
-                for anmeldung in anmeldungs_liste:
-                    res.append(anmeldung)
-                res.append(anmeldung_ende_keinaktfall)
-                
-                
-                ##*************************************************************************
-                ## Einrichtungskontakte des Falles
-                ##*************************************************************************
-        if aktueller_fall:
-            if einrichtungen:
-                res.append(einrichtungskontakt_kopf)
-                for e in einrichtungen:
-                    res.append(einrichtungskontakt_t % e)
-                res.append(einrichtungskontakt_ende % akte)
-            else:
-                res.append(kein_einrichtungskontakt_kopf)
-                res.append(kein_einrichtungskontakt_ende % akte)
-        else:
-            if einrichtungen:
-                res.append(einrichtungskontakt_kopf)
-                for e in einrichtungen:
-                    res.append(einrichtungskontakt_t_keinaktfall % e)
-                res.append(einrichtungskontakt_ende_keinaktfall)
-                
-                ##*************************************************************************
-                ## Fachstatistiken des Falles
-                ##*************************************************************************
-        fachstat_list=[]
-        for f in faelle:
-            for fs in f['fachstatistiken']:
-                fachstat_list.append(fs)
-        if aktueller_fall:
-            if fachstat_list:
-                # alle editierbar
-                res.append(fachstatistik_kopf_t)
-                for fachstat in fachstat_list:
-                    res.append(fachstatistik_t1 % fachstat)
-                res.append(fachstatistik_ende % akte)
-            else:
-                res.append(fachstatistik_kopf_leer)
-                res.append(fachstatistik_ende_leer % akte)
-        else:
-            if fachstat_list:
-                # alle editierbar
-                res.append(fachstatistik_kopf_t_keinaktfall)
-                for fachstat in fachstat_list:
-                    res.append(fachstatistik_t1 % fachstat)
-                    #res.append(fachstatistik_keinaktfall % fachstat)
-                res.append(fachstatistik_ende_keinaktfall)
-                ##*************************************************************************
-                ## Fall darf eigentlich nicht vorkommen!
-                ## mastaleckT msg 19.11.2001
-                ##*************************************************************************
-            else:
-                res.append(fachstatistik_kopf_leer_keinaktfall)
-                res.append(fachstatistik_ende_leer_keinaktfall)
-                
-                
-                ##*************************************************************************
-                ## Jugendhilfestatistiken des Falles
-                ##*************************************************************************
-        jgh_list=[]
-        from ebkus.app.ebapi import Jugendhilfestatistik, Jugendhilfestatistik2007
+        notizen = FieldsetDataTable(
+            legend= 'Notizen',
+            daten= notiz_daten,
+            button=None,
+            )
+
+        fachstatistik = FieldsetDataTable(
+            legend= 'Fachstatistiken',
+            headers= ('Fallnummer', 'Jahr',),
+            daten= [[Icon(href= 'updfs?fsid=%(id)d' % fs,
+                          icon= "/ebkus/ebkus_icons/edit_stat_button.gif",
+                          tip= 'Fachstatistik bearbeiten'),
+                     String(string= fs['fall_fn']),
+                     String(string= fs['jahr'])]
+                    for fs in fachstatistik_list],
+            button= (aktueller_fall and
+                     Button(value= "Hinzufügen",
+                            tip= "Fachstatistik hinzufügen",
+                            onClick=
+                            "go_to_url('fsneu?fallid=%(id)d')" % aktueller_fall,
+                            ) or None),
+            )
+        jugendhilfestatistik_list = []
         for f in faelle:
             for js in f['jgh_statistiken']:
-                assert isinstance(js, Jugendhilfestatistik)
-                if js['ey']:
-                    js['ende'] = "%(em)s . %(ey)s" % js
+                if js['ey']: # warum diese Prüfung?
                     js['action'] = 'updjgh'
-                    jgh_list.append(js)
+                    jugendhilfestatistik_list.append(js)
             for js in f['jgh07_statistiken']:
-                assert isinstance(js, Jugendhilfestatistik2007)
-                #if js['ey']: # Warum hier das Ende Jahr geprüft???
-                if js.get('ey'):
-                    js['ende'] = "%(em)s . %(ey)s" % js
-                else:
-                    js['ende'] = ""
-                if js['bgy']:
+                if js['bgy']: # warum diese Prüfung?
                     js['action'] = 'updjgh07'
-                    jgh_list.append(js)
-        if aktueller_fall:
-            if jgh_list:
-                # alle editierbar
-                res.append(jghstatistiken_kopf_t)
-                for jghstat in jgh_list:
-                    res.append(jghstatistiken_t1 % jghstat)
-                res.append(jghstatistiken_ende % akte)
-            else:
-                res.append(jghstatistiken_kopf_leer)
-                res.append(jghstatistiken_ende_leer % akte)
-        else:
-            if jgh_list:
-                # alle editierbar
-                res.append(jghstatistiken_kopf_t_keinaktfall)
-                for jghstat in jgh_list:
-                    res.append(jghstatistiken_t1 % jghstat)
-                res.append(jghstatistiken_ende_keinaktfall)
-                ##*************************************************************************
-                ## Fall darf eigentlich nicht vorkommen!
-                ## mastaleckT msg 19.11.2001
-                ##*************************************************************************
-            else:
-                res.append(jghstatistiken_kopf_leer_keinaktfall)
-                res.append(jghstatistiken_ende_leer_keinaktfall)
-                
-                ##*************************************************************************
-                ## Notizen zum Fall
-                ##*************************************************************************
-        notizen_liste=[]
-        #notizen_liste.append(notiz_header %("Klient"))
-        if akte['no']:
-            notizen_liste.append(notiz_akte_t % akte)
-            #notizen_liste.append(notiz_header %("Bezugspersonen"))
-        for b in bezugspersonen:
-            if b['no']:
-                notizen_liste.append(notiz_bzpers_t % b)
-                #notizen_liste.append(notiz_header %("Einrichtungskontakte"))
-        for e in einrichtungen:
-            if e['no']:
-                notizen_liste.append(notiz_einrichtung_t % e)
-                #notizen_liste.append(notiz_header %("Anmeldungskontakte"))
-        for f in faelle:
-            for a in f['anmeldung']:
-                if a['no']:
-                    notizen_liste.append(notiz_anmeldung_t % a)
-        if notizen_liste:
-            res.append(notiz_kopf)
-            for notiz in notizen_liste:
-                res.append(notiz)
-            res.append(notiz_ende)
-            
-            ##*************************************************************************
-            ## Gruppenkarten des Falles
-            ##*************************************************************************
-        fall_gruppenkarte_list=[]
-        for f in faelle:
-            fallgruppen = ebapi.FallGruppeList(
-              where = 'fall_id = %s' % f['id'])
-            for g in fallgruppen:
-                if aktueller_fall:
-                    fall_gruppenkarte_list.append(fallgruppen_t1 % g)
-                else:
-                    fall_gruppenkarte_list.append(fallgruppen_t1_keinaktfall % g)
-                fall_gruppenkarte_list.append(fallgruppen_t2 % f)
-        if fall_gruppenkarte_list:
-            res.append(fall_gruppen_kopf)
-            for eintrag in fall_gruppenkarte_list:
-                res.append(eintrag)
-            res.append(fall_gruppen_ende)
-        else:
-            res.append(fall_gruppen_leer)
-            
-            ##*************************************************************************
-            ## Gruppenkarten der Bezugspersonen des Falles
-            ##*************************************************************************
-        bzpers_list=[]
-        for b in bezugspersonen:
-            bezugspersongruppen = ebapi.BezugspersonGruppeList(
-              where = 'bezugsp_id = %s' % b["id"])
-            for e in bezugspersongruppen:
-                if aktueller_fall:
-                    bzpers_list.append(bzpersgruppen_t1 % e)
-                else:
-                    bzpers_list.append(bzpersgruppen_t1_keinaktfall % e)
-                bzpers_list.append(bzpersgruppen_t2 % b)
-        if bzpers_list:
-            res.append(bzpersgruppen_kopf)
-            for eintrag in bzpers_list:
-                res.append(eintrag)
-            res.append(bzpersgruppen_ende)
-        else:
-            res.append(bzpersgruppen_leer)
-        res.append(tabelle_ende)
-        return string.join(res, '')
+                    jugendhilfestatistik_list.append(js)
+        jugendhilfestatistik = FieldsetDataTable(
+            legend= 'Jugendhilfestatistiken',
+            headers= ('Fallnummer', 'Ende'),
+            daten= [[Icon(href= '%(action)s?jghid=%(id)d' % js,
+                          icon= "/ebkus/ebkus_icons/edit_stat_button.gif",
+                          tip= 'Jugendhilfestatistik bearbeiten'),
+                     String(string= js['fall_fn']),
+                     Datum(month= js['em'],
+                           year=  js['ey'])]
+                    for js in jugendhilfestatistik_list],
+            button= (aktueller_fall and
+                     Button(value= "Hinzufügen",
+                            tip= "Jugendhilfestatistik hinzufügen",
+                            onClick=
+                            "go_to_url('jgh07neu?fallid=%(id)d')" % aktueller_fall,
+                            ) or None),
+            )
+
+
+
+##         # Alternative Schreibweise
+##         daten = []
+##         for fg in fallgruppen_list:
+##             zeile = []
+##             if aktueller_fall:
+##                 icon = Icon(href='gruppenkarte?gruppeid=%(gruppe_id)s' % fg,
+##                             icon="/ebkus/ebkus_icons/edit_grp_button.gif",
+##                             tip='Gruppenkarte bearbeiten')
+##             else:
+##                 icon = IconDead(icon="/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
+##                                 tip='Funktion gesperrt'),
+##             zeile.append(icon)
+##             zeile.append(String(string=fg['gruppe_id__gn']))
+##             zeile.append(String(string="%(fall__akte__vn)s %(fall__akte__na)s" % fg))
+##         fallgruppen = FieldsetDataTable(
+##             legend='Gruppenkarten des Falls',
+##             headers=('Gruppennr.', 'Name',),
+##             daten=daten)
+
+
+        fallgruppen = FieldsetDataTable(
+            legend='Gruppenkarten des Falls',
+            headers=('Gruppennr.', 'Name',),
+            daten=[[(aktueller_fall
+                     and
+                     Icon(href='gruppenkarte?gruppeid=%(gruppe_id)s' % fg,
+                          icon="/ebkus/ebkus_icons/edit_grp_button.gif",
+                          tip='Gruppenkarte bearbeiten')
+                     or 
+                     IconDead(icon="/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
+                              tip='Funktion gesperrt')),
+                    String(string=fg['gruppe_id__gn']),
+                    String(string="%(fall__akte__vn)s %(fall__akte__na)s" % fg)]
+                   for fg in fallgruppen_list],
+            )
+        bezugspersongruppen = FieldsetDataTable(
+            legend= 'Gruppenkarten der Bezugspersonen',
+            headers= ('Gruppennr.', 'Name',),
+            daten= [[(aktueller_fall and
+                      Icon(href= 'gruppenkarte?gruppeid=%(gruppe_id)s' % bg,
+                           icon= "/ebkus/ebkus_icons/edit_grp_button.gif",
+                           tip= 'Gruppenkarte bearbeiten')
+                      or 
+                      IconDead(icon= "/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
+                               tip= 'Funktion gesperrt')),
+                     String(string= bg['gruppe_id__gn']),
+                     String(string= "%(bezugsp__vn)s %(bezugsp__na)s" % bg)]
+                    for bg in bezugspersongruppen_list],
+            )
+        res = FormPage(
+            title='Klientenkarte',
+            name="",action="",method="",hidden=(),
+            rows=(menu,
+                  klientendaten,
+                  bezugspersonen,
+                  beratungskontakte,
+                  leistungen,
+                  Pair(left=stand,
+                       right=bearbeiter),
+                  anmeldekontakte,
+                  einrichtungskontakte,
+                  Pair(left=fachstatistik,
+                       right=jugendhilfestatistik),
+                  notizen,
+                  Pair(left=fallgruppen,
+                       right=bezugspersongruppen),
+            ))
+        return res.display()
+

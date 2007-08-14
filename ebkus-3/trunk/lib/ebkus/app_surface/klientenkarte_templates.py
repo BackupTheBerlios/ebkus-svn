@@ -42,6 +42,7 @@ menue2_t = """
 
 menue3_t = """
 <option value="leistneu?akid=%(akte_id)d&fallid=%(id)d">- Leistung
+<option value="bkontneu?akid=%(akte_id)d&fallid=%(id)d">- Beratungskontakt
 <option value="zustneu?akid=%(akte_id)d&fallid=%(id)d">- Bearbeiter
 <option value="vermneu?akid=%(akte_id)d&fallid=%(id)d">- Vermerk
 <option value="upload?akid=%(akte_id)d&fallid=%(id)d">- Dateiimport
@@ -412,6 +413,84 @@ leistung_ende_keinaktfall = """
 </tr>
 """
 
+beratungskontakt_anfang = """
+     <tr>
+     <td align="center" valign="top" colspan="2" legend class="legendtext">
+     <fieldset><legend class="legendtext">Beratungskontakte</legend>
+     <table border="0" cellspacing="1" width="95%">"""
+beratungskontakt_kopf = """
+     <tr>
+      <td></td>
+      <td class="labeltext" align="left">Mitarbeiter:</td>
+      <td class="labeltext" align="left">Art:</td>
+      <td class="labeltext" align="left">Datum:</td>"""
+beratungskontakt_dauer_kopf = """
+      <td class="labeltext" align="left">Dauer:</td>
+      <td class="labeltext" align="left">Notiz:</td>
+      </tr>"""
+beratungskontakt_minuten_kopf = """
+      <td class="labeltext" align="left">F.-to-F.:</td>
+      <td class="labeltext" align="left">Vor/Nachb.:</td>
+      <td class="labeltext" align="left">Notiz:</td>
+      </tr>"""
+
+beratungskontakt_t1 =  """
+<tr>
+<td align="left" class="labeltext" valign="middle">
+<a href="updbkont?fallid=%(fall_id)d&bkontid=%(id)d"><img border="0" src="/ebkus/ebkus_icons/edit_button.gif" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um den Beratungskontakt zu bearbeiten';return true;" onMouseOut="window.status='';return true;" title="Beratungskontakt bearbeiten"></a>
+</td> """
+
+beratungskontakt_daten_zeile = """
+<td align="left" class="normaltext" bgcolor="#FFFFFF">%(mit_id__na)s </td>
+<td align="left" class="normaltext" bgcolor="#FFFFFF">%(art__name)s </td>
+<td align="left" class="normaltext" bgcolor="#FFFFFF">%(kd)d.%(km)d.%(ky)d </td> """
+
+beratungskontakt_dauer = """
+<td align="left" class="normaltext" bgcolor="#FFFFFF">%(dauer__name)s </td> """
+
+beratungskontakt_minuten = """
+<td align="left" class="normaltext" bgcolor="#FFFFFF">%(f2f_min)s </td>
+<td align="left" class="normaltext" bgcolor="#FFFFFF">%(vn_min)s </td> """
+
+beratungskontakt_t1a =  """
+<tr>
+<td align="left" class="labeltext" valign="middle">
+<img border="0" src="/ebkus/ebkus_icons/edit_button_locked.gif">
+</td> """
+
+
+beratungskontakt_t1a_keinaktfall =  """
+<tr>
+<td align="left" class="labeltext" valign="middle"><img border="0" src="/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif" onMouseOver="window.status='Funktion gesperrt';return true;" onMouseOut="window.status='';return true;" title="Funktion gesperrt"></td> """
+
+beratungskontaktende_t1 = """
+<td align="left" class="normaltext" bgcolor="#FFFFFF">%(no)s </td>
+<td align="left" bgcolor="#FFFFFF"></td>
+</tr>
+"""
+
+beratungskontakt_ende = """
+<tr>
+<td colspan="5" class="normaltext" height="13" align="center">
+<input type="button" name="Schaltfl&auml;che2"
+   onClick="go_to_url('bkontneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" value="Hinzuf&uuml;gen" class="button" onMouseOver="window.status='Bitte dr&uuml;cken Sie diese Schaltfl&auml;che um einen neuen Beratungskontakt hinzuzuf&uuml;gen';return true;" onMouseOut="window.status='';return true;" title="Neuen Beratungskontakt hinzuf&uuml;gen">
+</td>
+</tr>
+</table>
+</fieldset>
+</td>
+</tr>
+"""
+
+beratungskontakt_ende_keinaktfall = """
+<tr>
+<td colspan="5" class="normaltext" height="13" align="center">&nbsp;</td>
+</tr>
+</table>
+</fieldset>
+</td>
+</tr>
+"""
 
 fall_kopf = """
 <td align="center" valign="top" legend class="legendtext">

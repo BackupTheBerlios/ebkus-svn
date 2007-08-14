@@ -87,25 +87,25 @@ class Table:
 class Field:
     Fields = {}
     #fname, fdbtype, lname,
-    #vtyp =  {s,f,k,b,p}, { , tablename, kat_code, kat_code, }, inversename
+    #vtyp =  {s,f,k,m,b,p}, { , tablename, kat_code, kat_code, }, inversename
     def __init__(self, table, list):
         self.table = table
         list[len(list):] = ['']*(6-len(list))
         self.fieldname, self.dbtype, self.lname, self.verwtyp, self.ref, self.inverse = list[:6]
         if not self.verwtyp: self.verwtyp = 'p'
-        if len(self.verwtyp) != 1 or self.verwtyp not in 'sfkbp':
+        if len(self.verwtyp) != 1 or self.verwtyp not in 'sfkmbp':
             raise 'Error in field definition'
         if self.verwtyp == 's':  # Schluesselfeld
             self.table.primarykey = self.fieldname
         self.kat_code = ''
         self.ftable = ''
         self.flag = 0
-        if self.verwtyp in 'fkb' and not self.ref:
+        if self.verwtyp in 'fkmb' and not self.ref:
             raise 'Error in field definition'
         else:
-            if self.verwtyp in 'kb':
+            if self.verwtyp in 'kmb':
                 self.kat_code = self.ref
-                if self.verwtyp in 'k':
+                if self.verwtyp in 'km':
                     self.ftable = 'code'   # kodierte Felder sind Fremdschlüssel nach code
             if  self.verwtyp in 'f':
                 self.ftable = self.ref

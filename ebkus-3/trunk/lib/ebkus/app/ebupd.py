@@ -97,12 +97,9 @@ def updakte(form):
                                "Kein Stellenzeichen für die Akte")
     akte['stzak'] = check_code(form, 'stzak', 'stzei',
                                "Kein aktuelles Stellenzeichen für die Akte")
-    akte['zeit'] = int(time.time())
-    
     # Werte erst dann übernehmen, wenn keine Fehler aufgetreten sind
     akteold.update(akte)
-    akteold.akte_undo_cached_fields()
-    
+    _stamp_akte(akteold)
     
 def perseinf(form):
     """Neue Bezugsperson."""
@@ -127,20 +124,13 @@ def perseinf(form):
                                "Fehler in Notizbedeutung", 'f')
     pers['vrt'] = check_code(form, 'vrt', 'vert',
                              "Fehler in Verteiler", 'f')
-    
-    akteold = pers['akte']
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    
     try:
         pers.insert(bpid)
-        akteold.update(akte)
     except Exception, args:
         try: pers.delete()
         except: pass
         raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
-        
-    pers['akte'].akte_undo_cached_fields()
+    _stamp_akte(pers['akte'])
     
     
 def updpers(form):
@@ -171,11 +161,7 @@ def updpers(form):
                              "Fehler in Verteiler", persold)
     
     persold.update(pers)
-    akteold = persold['akte']
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    akteold.update(akte)
-    persold['akte'].akte_undo_cached_fields()
+    _stamp_akte(persold['akte'])
     
     
 def einreinf(form):
@@ -197,12 +183,7 @@ def einreinf(form):
                                 "Fehler in Einrichtungsstatus", 'ja')
     
     einr.insert(einrid)
-    akteold = einr['akte']
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    akteold.update(akte)
-    
-    einr['akte'].akte_undo_cached_fields()
+    _stamp_akte(einr['akte'])
     
     
 def updeinr(form):
@@ -226,12 +207,7 @@ def updeinr(form):
                                 "Fehler in Einrichtungsstatus", einrold)
     
     einrold.update(einr)
-    akteold = einrold['akte']
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    akteold.update(akte)
-    
-    einrold['akte'].akte_undo_cached_fields()
+    _stamp_akte(einrold['akte'])
     
     
 def anmeinf(form):
@@ -253,19 +229,12 @@ def anmeinf(form):
     anm.setDate('a',
                 check_date(form, 'a', "Fehler im Anmeldedatum"))
     anm['zm'] = check_code(form, 'zm', 'fszm', "Fehler im Zugangsmodus")
-    
-    akteold = anm['akte']
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    
     try:
-        akteold.update(akte)
         anm.insert(anmid)
     except:
         try: anm.delete()
         except: pass
-        
-    anm['akte'].akte_undo_cached_fields()
+    _stamp_akte(anm['akte'])
     
     
 def updanm(form):
@@ -279,14 +248,8 @@ def updanm(form):
     anmeldedatum = check_date(form, 'a', "Fehler im Anmeldedatum")
     anm.setDate('a', anmeldedatum)
     anm['zm'] = check_code(form, 'zm', 'fszm', "Fehler im Zugangsmodus", anmold)
-    
-    akteold = anmold['akte']
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    
     anmold.update(anm)
-    akteold.update(akte)
-    anmold['akte'].akte_undo_cached_fields()
+    _stamp_akte(anmold['akte'])
     
     
 def leisteinf(form):
@@ -318,18 +281,12 @@ def leisteinf(form):
     
     leist['stz'] = check_code(form, 'stz', 'stzei',
                               "Kein Stellenzeichen für die Leistung")
-    
-    akteold = fall['akte']
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    
     try:
         leist.insert(leistid)
-        akteold.update(akte)
     except:
         try: leist.delete()
         except: pass
-    leist['akte'].akte_undo_cached_fields()
+    _stamp_akte(leist['akte'])
     
     
 def updleist(form):
@@ -359,14 +316,53 @@ def updleist(form):
     leist['stz'] = check_code(form, 'stz', 'stzei',
                               "Kein Stellenzeichen für die Leistung",
                               leistold)
-    
     leistold.update(leist)
-    akteold = fall['akte']
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    akteold.update(akte)
+    _stamp_akte(leistold['akte'])
+
+def _bkont_check(form, bkont):
+    bkont['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
+    bkont['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
+    bkont['art'] = check_code(form, 'art', 'fska', "Fehler in Beratungskontaktart")
+    bkont['no'] = check_str_not_empty(form, 'no', 'Keine Notiz', '')
+    if config.BERATUNGSKONTAKTE_MINUTEN:
+        bkont['f2f_min'] = check_int_not_empty(form, 'f2f_min', "Fehler in Face-2-Face Minuten")
+        bkont['vn_min'] = check_int_not_empty(form, 'vn_min', "Fehler in Vor/Nachbereitung Minuten")
+    else:
+        bkont['dauer'] = check_code(form, 'dauer', 'fskd', "Fehler in Beratungskontaktdauer")
+    datum = check_date(form, 'k', "Fehler im Beratungskontaktdatum")
+    fall = Fall(bkont['fall_id'])
+    if datum < fall.getDate('bg'):
+        raise EE("Datum vor Fallbeginn")
+    if fall.get('ey') and datum > fall.getDate('e'):
+        raise EE("Datum nach Fallende")
+    bkont.setDate('k', datum)
+    bkont['stz'] = check_code(form, 'stz', 'stzei',
+                              "Kein Stellenzeichen für den Beratungskontakt")
     
-    leistold['akte'].akte_undo_cached_fields()
+def bkonteinf(form):
+    """Neuer Beratungskontakt."""
+    
+    bkontid = check_int_not_empty(form, 'bkontid', "Beratungskontaktid fehlt")
+    check_not_exists(bkontid, Beratungskontakt,
+      "Beratungskontakt (id: %(id)s) existiert bereits")
+    bkont = Beratungskontakt()
+    _bkont_check(form, bkont)
+    try:
+        bkont.insert(bkontid)
+    except:
+        try: bkont.delete()
+        except: pass
+    _stamp_akte(bkont['akte'])
+    
+
+def updbkont(form):
+    """Update des Beratungskontakts."""
+    
+    bkontold = check_exists(form,'bkontid', Beratungskontakt, "Keine Beratungskontaktid")
+    bkont = Beratungskontakt()
+    _bkont_check(form, bkont)
+    bkontold.update(bkont)
+    _stamp_akte(bkontold['akte'])
     
     
 def zusteinf(form):
@@ -395,19 +391,14 @@ def zusteinf(form):
     
     aktzust = Zustaendigkeit()
     aktzust.setDate('e', beginndatum)
-    akteold = Akte(zust['fall_id__akte_id'])
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    
     try:
         zust.insert(zustid)
         aktzustold.update(aktzust)
-        akteold.update(akte)
     except:
         try: zust.delete()
         except: pass
         
-    zust['akte'].akte_undo_cached_fields()
+    _stamp_akte(zust['akte'])
     
     ##
     ## Es ist immer genau ein Mitarbeiter pro Zeiteinheit zustaendig.
@@ -438,12 +429,7 @@ def updzust(form):
         #zust.setDate('e', endedatum)
         
     zustold.update(zust)
-    akteold = Akte(zustold['fall_id__akte_id'])
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    
-    akteold.update(akte)
-    zustold['akte'].akte_undo_cached_fields()
+    _stamp_akte(zustold['akte'])
     
     
 def dokeinf(form):
@@ -478,19 +464,14 @@ def dokeinf(form):
         os.chmod('%s/%s' % (akte_path, dok['fname']), 0600)
     except Exception, args:
         raise EBUpdateError("Fehler beim Anlegen der Datei: %s" % str(args))
-        
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    
     try:
         dok.insert(dokid)
-        akteold.update(akte)
     except Exception, args:
         try: dok.delete()
         except: pass
         raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
         
-    dok['akte'].akte_undo_cached_fields()
+    _stamp_akte(dok['akte'])
     
     
 def updvermeinf(form):
@@ -524,10 +505,7 @@ def updvermeinf(form):
         raise EBUpdateError("Fehler beim Anlegen der Datei: %s" % str(args))
         
     dokold.update(dok)
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    akteold.update(akte)
-    dokold['akte'].akte_undo_cached_fields()
+    _stamp_akte(dokold['akte'])
     
     
 def removedoks(form):
@@ -626,19 +604,14 @@ def uploadeinf(form):
             os.chmod('%s/%s' % (akte_path, dok['fname']) ,0600)
         except Exception, args:
             raise EBUpdateError("Fehler beim Anlegen der Datei: %s" % str(args))
-            
-        akte = Akte()
-        akte['zeit'] = int(time.time())
-        
         try:
             dok.insert(dokid)
-            akteold.update(akte)
         except Exception, args:
             try: dok.delete()
             except: pass
             raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
             
-        dok['akte'].akte_undo_cached_fields()
+        _stamp_akte(dok['akte'])
         
         
 def zdaeinf(form):
@@ -694,12 +667,7 @@ def zdaeinf(form):
         
     zustold.update(zust)
     fallold.update(fall)
-    akteold = fallold['akte']
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    akteold.update(akte)
-    
-    fallold['akte'].akte_undo_cached_fields()
+    _stamp_akte(fallold['akte'])
     
     
 def updfall(form):
@@ -715,12 +683,7 @@ def updfall(form):
     # fall['status'] = 236
     
     fallold.update(fall)
-    akteold = fallold['akte']
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    akteold.update(akte)
-    
-    fallold['akte'].akte_undo_cached_fields()
+    _stamp_akte(fallold['akte'])
     
     
 def zdareinf(form):
@@ -745,12 +708,7 @@ def zdareinf(form):
         
     fallold.update(fall)
     zust.insert(zustid)
-    akteold = fallold['akte']
-    akte = Akte()
-    akte['zeit'] = int(time.time())
-    akteold.update(akte)
-    
-    fallold['akte'].akte_undo_cached_fields()
+    _stamp_akte(fallold['akte'])
     
     
 def waufneinf(form):
@@ -803,7 +761,6 @@ def waufneinf(form):
                               "Kein Stellenzeichen für die Leistung",
                               akte['stzbg'])
     
-    akte['zeit'] = int(time.time())
     try:
         akteold.update(akte)
         fall.insert(fallid)
@@ -821,7 +778,7 @@ def waufneinf(form):
         try: leist.delete()
         except: pass
         raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
-    akteold.akte_undo_cached_fields()
+    _stamp_akte(akteold)
     
     
 def fseinf(form):
@@ -894,56 +851,63 @@ def fseinf(form):
                    ['kkm', 'kkv',
                    'kki', 'kpa', 'kfa', 'ksoz', 'kleh', 'kerz', 'kson','kkonf' ], 0)
     
-    if form.has_key('le'):
-        le = form.get('le')
-    else: raise EE("Keine Massnahme angegeben")
+    fstat['eleistungen'] = check_multi_code(
+        form, 'eleistungen', 'fsle', "Keine erbrachte Leistung angegeben")
+    fstat['kindprobleme'] = check_multi_code(
+        form, 'kindprobleme', 'fspbk', "Kein Problemspektrum für das Kind angegeben")
+    fstat['elternprobleme'] = check_multi_code(
+        form, 'elternprobleme', 'fspbk', "Kein Problemspektrum für die Eltern angegeben")
+
+##     if form.has_key('le'):
+##         le = form.get('le')
+##     else: raise EE("Keine Massnahme angegeben")
     
-    if form.has_key('pbkind'):
-        pbk = form.get('pbkind')
-    else: raise EE("Kein Problemspektrum für das Kind angegeben")
+##     if form.has_key('pbkind'):
+##         pbk = form.get('pbkind')
+##     else: raise EE("Kein Problemspektrum für das Kind angegeben")
     
-    if form.has_key('pbeltern'):
-        pbe = form.get('pbeltern')
-    else: raise EE("Kein Problemspektrum für die Eltern angegeben")
+##     if form.has_key('pbeltern'):
+##         pbe = form.get('pbeltern')
+##     else: raise EE("Kein Problemspektrum für die Eltern angegeben")
     
-    #print "LEISTUNGSART:",le
-    if type(le) is type(''):
-        le = [le]
-    for l in le:
-        fstatlei = Fachstatistikleistung()
-        fstatlei['fstat_id'] = fsid
-        fstatlei['le'] = check_code({'le':l},'le', 'fsle', "Keine Leistungsart")
-        try:
-            fstatlei.new()
-            fstatlei.insert()
-        except Exception, args:
-            raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
+##     #print "LEISTUNGSART:",le
+##     if type(le) is type(''):
+##         le = [le]
+##     for l in le:
+##         fstatlei = Fachstatistikleistung()
+##         fstatlei['fstat_id'] = fsid
+##         fstatlei['le'] = check_code({'le':l},'le', 'fsle', "Keine Leistungsart")
+##         try:
+##             fstatlei.new()
+##             fstatlei.insert()
+##         except Exception, args:
+##             raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
             
-            #print "Problemspektrum:",pbkind
-    if type(pbk) is type(''):
-        pbk = [pbk]
-    for p in pbk:
-        fstatpbk = Fachstatistikkindproblem()
-        fstatpbk['fstat_id'] = fsid
-        fstatpbk['pbk'] = check_code({'pbk':p},'pbk', 'fspbk', "Kein Problemspektrum Kind")
-        try:
-            fstatpbk.new()
-            fstatpbk.insert()
-        except Exception, args:
-            raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
+##             #print "Problemspektrum:",pbkind
+##     if type(pbk) is type(''):
+##         pbk = [pbk]
+##     for p in pbk:
+##         fstatpbk = Fachstatistikkindproblem()
+##         fstatpbk['fstat_id'] = fsid
+##         fstatpbk['pbk'] = check_code({'pbk':p},'pbk', 'fspbk', "Kein Problemspektrum Kind")
+##         try:
+##             fstatpbk.new()
+##             fstatpbk.insert()
+##         except Exception, args:
+##             raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
             
-            #print "Problemspektrum:",pbeltern
-    if type(pbe) is type(''):
-        pbe = [pbe]
-    for p in pbe:
-        fstatpbe = Fachstatistikelternproblem()
-        fstatpbe['fstat_id'] = fsid
-        fstatpbe['pbe'] = check_code({'pbe':p},'pbe', 'fspbe', "Kein Problemspektrum Eltern")
-        try:
-            fstatpbe.new()
-            fstatpbe.insert()
-        except Exception, args:
-            raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
+##             #print "Problemspektrum:",pbeltern
+##     if type(pbe) is type(''):
+##         pbe = [pbe]
+##     for p in pbe:
+##         fstatpbe = Fachstatistikelternproblem()
+##         fstatpbe['fstat_id'] = fsid
+##         fstatpbe['pbe'] = check_code({'pbe':p},'pbe', 'fspbe', "Kein Problemspektrum Eltern")
+##         try:
+##             fstatpbe.new()
+##             fstatpbe.insert()
+##         except Exception, args:
+##             raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
             
     fstat['zeit'] = int(time.time())
     
@@ -1018,76 +982,83 @@ def updfs(form):
                    [ 'kkm', 'kkv',
                    'kki', 'kpa', 'kfa', 'ksoz', 'kleh', 'kerz', 'kson','kkonf' ], 0)
     
-    if form.has_key('le'):
-        le = form.get('le')
-    else: raise EE("Keine Massnahme angegeben")
+    fstat['eleistungen'] = check_multi_code(
+        form, 'eleistungen', 'fsle', "Keine erbrachte Leistung angegeben")
+    fstat['kindprobleme'] = check_multi_code(
+        form, 'kindprobleme', 'fspbk', "Kein Problemspektrum für das Kind angegeben")
+    fstat['elternprobleme'] = check_multi_code(
+        form, 'elternprobleme', 'fspbk', "Kein Problemspektrum für die Eltern angegeben")
+
+##     if form.has_key('le'):
+##         le = form.get('le')
+##     else: raise EE("Keine Massnahme angegeben")
     
-    if form.has_key('pbkind'):
-        pbk = form.get('pbkind')
-    else: raise EE("Kein Problemspektrum für das Kind angegeben")
+##     if form.has_key('pbkind'):
+##         pbk = form.get('pbkind')
+##     else: raise EE("Kein Problemspektrum für das Kind angegeben")
     
-    if form.has_key('pbeltern'):
-        pbe = form.get('pbeltern')
-    else: raise EE("Kein Problemspektrum für die Eltern angegeben")
+##     if form.has_key('pbeltern'):
+##         pbe = form.get('pbeltern')
+##     else: raise EE("Kein Problemspektrum für die Eltern angegeben")
     
-    fsid = fstatold['id']
-    if not le is None:
-        fsleilist = FachstatistikleistungList(where='fstat_id = %s' % fsid)
-        fsleilist.deleteall()
-        if type(le) is type(''):
-            le = [le]
-        codelist =  []
-        for l in le:
-            codelist.append(check_code({'le':l},'le', 'fsle',
-                                       "Fehler in Leistungsart"))
-        for l in codelist:
-            fstatlei = Fachstatistikleistung()
-            fstatlei['fstat_id'] = fsid
-            fstatlei['le'] = l
-            try:
-                fstatlei.new()
-                fstatlei.insert()
-                fstatold.update(fstat)
-            except Exception, args:
-                raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
+##     fsid = fstatold['id']
+##     if not le is None:
+##         fsleilist = FachstatistikleistungList(where='fstat_id = %s' % fsid)
+##         fsleilist.deleteall()
+##         if type(le) is type(''):
+##             le = [le]
+##         codelist =  []
+##         for l in le:
+##             codelist.append(check_code({'le':l},'le', 'fsle',
+##                                        "Fehler in Leistungsart"))
+##         for l in codelist:
+##             fstatlei = Fachstatistikleistung()
+##             fstatlei['fstat_id'] = fsid
+##             fstatlei['le'] = l
+##             try:
+##                 fstatlei.new()
+##                 fstatlei.insert()
+##                 fstatold.update(fstat)
+##             except Exception, args:
+##                 raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
                 
-    if not pbk is None:
-        pbkl = FachstatistikkindproblemList(where='fstat_id = %s' % fsid)
-        pbkl.deleteall()
-        if type(pbk) is type(''):
-            pbk = [pbk]
-        codelist =  []
-        for p in pbk:
-            codelist.append(check_code({'pbk':p},'pbk', 'fspbk', "Fehler Problemspektrum Kind"))
-        for p in codelist:
-            fstatpbk = Fachstatistikkindproblem()
-            fstatpbk['fstat_id'] = fsid
-            fstatpbk['pbk'] = p
-            try:
-                fstatpbk.new()
-                fstatpbk.insert()
-                fstatold.update(fstat)
-            except Exception, args:
-                raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
+##     if not pbk is None:
+##         pbkl = FachstatistikkindproblemList(where='fstat_id = %s' % fsid)
+##         pbkl.deleteall()
+##         if type(pbk) is type(''):
+##             pbk = [pbk]
+##         codelist =  []
+##         for p in pbk:
+##             codelist.append(check_code({'pbk':p},'pbk', 'fspbk', "Fehler Problemspektrum Kind"))
+##         for p in codelist:
+##             fstatpbk = Fachstatistikkindproblem()
+##             fstatpbk['fstat_id'] = fsid
+##             fstatpbk['pbk'] = p
+##             try:
+##                 fstatpbk.new()
+##                 fstatpbk.insert()
+##                 fstatold.update(fstat)
+##             except Exception, args:
+##                 raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
                 
-    if not pbe is None:
-        pbelist = FachstatistikelternproblemList(where='fstat_id = %s' % fsid)
-        pbelist.deleteall()
-        if type(pbe) is type(''):
-            pbe = [pbe]
-        codelist =  []
-        for p in pbe:
-            codelist.append(check_code({'pbe':p},'pbe', 'fspbe', "Fehler Problemspektrum Eltern"))
-        for p in codelist:
-            fstatpbe = Fachstatistikelternproblem()
-            fstatpbe['fstat_id'] = fsid
-            fstatpbe['pbe'] = p
-            try:
-                fstatpbe.new()
-                fstatpbe.insert()
-                fstatold.update(fstat)
-            except Exception, args:
-                raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
+##     if not pbe is None:
+##         pbelist = FachstatistikelternproblemList(where='fstat_id = %s' % fsid)
+##         pbelist.deleteall()
+##         if type(pbe) is type(''):
+##             pbe = [pbe]
+##         codelist =  []
+##         for p in pbe:
+##             codelist.append(check_code({'pbe':p},'pbe', 'fspbe', "Fehler Problemspektrum Eltern"))
+##         for p in codelist:
+##             fstatpbe = Fachstatistikelternproblem()
+##             fstatpbe['fstat_id'] = fsid
+##             fstatpbe['pbe'] = p
+##             try:
+##                 fstatpbe.new()
+##                 fstatpbe.insert()
+##                 fstatold.update(fstat)
+##             except Exception, args:
+##                 raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
                 
     fstat['zeit'] = int(time.time())
     fstatold.update(fstat)
@@ -1096,11 +1067,7 @@ def updfs(form):
     ##
     
     if fstatold['fall_id'] != None:
-        akteold = Akte(fstatold['fall_id__akte_id'])
-        akte = Akte()
-        akte['zeit'] = int(time.time())
-        akteold.update(akte)
-        fstatold['akte'].akte_undo_cached_fields()
+        _stamp_akte(fstatold['akte'])
         
         
 def jgheinf(form):
@@ -1527,11 +1494,7 @@ def updjgh07(form):
     try:
         ## akte_undo_cached_fields() fuehrt zu einem Error, wenn
         ## jgh['fall_id'] = None ist. Daher try-except
-        akteold = Akte(jghold['fall_id__akte_id'])
-        akte = Akte()
-        akte['zeit'] = int(time.time())
-        akteold.update(akte)
-        jghold['akte'].akte_undo_cached_fields()
+        _stamp_akte(jghold['akte'])
     except:
         # kann schief gehen, wenn es keinen Fall gibt
         pass
@@ -1691,11 +1654,7 @@ def updjgh(form):
     
     fallid = jghstatold.get('fall_id')
     if fallid:
-        akteold = Akte(jghstatold['fall_id__akte_id'])
-        akte = Akte()
-        akte['zeit'] = int(time.time())
-        akteold.update(akte)
-        jghstatold['akte'].akte_undo_cached_fields()
+        _stamp_akte(jghstatold['akte'])
         
         
 def gruppeeinf(form):
@@ -2534,6 +2493,13 @@ def removeakten(form):
     #print "Loeschen der Gruppen Okay"
     return anzahl_akten_geloescht, anzahl_gruppen_geloescht
     
+def _stamp_akte(akteold):
+    """Zeitstempel in der Akte setzen und cache zurücksetzen"""
+    akte = Akte()
+    akte['zeit'] = int(time.time())
+    akteold.update(akte)
+    akteold.akte_undo_cached_fields()
+    
     
 def setAdresse(obj, form):
     """Wenn strkat einen Wert hat, wird die Ueberpruefung durch den Strassenkatalog
@@ -2586,9 +2552,9 @@ def setAdresse(obj, form):
                 obj['wohnbez'] = cc('wohnbez', '13')
         else:
             # keine Strassenangabe (für Berliner und nicht-Berliner Version)
-            obj['str'] = strasse
-            obj['hsnr'] = form.get('hsnr')
-            obj['plz'] = form.get('plz')
+            obj['str'] = ''
+            obj['hsnr'] = form.get('hsnr', '')
+            obj['plz'] = form.get('plz', '')
             obj['lage'] = cc('lage', '999')
             if 'planungsr' in obj.fields:
                 planungs_raum = form.get('planungsr')

@@ -45,6 +45,7 @@ class %(lname)s(DBObjekt):
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
+    multikatfieldtypes = {}
     attributemethods = {}
     conditionalfields = {}
     pathdefinitions = {}
@@ -96,6 +97,7 @@ def formatFields(str, maxlen, indent):
 def generateForeignKeyInfo(schemadata_tables):
     ifkeys = []
     fkeys = []
+    mkeys = []
     for t in schemadata_tables:
         for f in t.fields:
             if f.verwtyp == 'f': # sei akte_id der Klasse Fall, inverse ist faelle für Akte
@@ -105,7 +107,10 @@ def generateForeignKeyInfo(schemadata_tables):
             if f.verwtyp == 'k':
                 klass = 'Code'
                 fkeys.append((t.classname, f.fieldname, klass, None))
-    return fkeys, ifkeys
+            if f.verwtyp == 'm':
+                klass = 'Code'
+                mkeys.append((t.classname, f.fieldname, klass))
+    return fkeys, ifkeys, mkeys
     
 def generate_ebapi(filename):
     from ebkus.gen.schemagen import get_schema_info
@@ -125,7 +130,7 @@ def generate_ebapi(filename):
                            'keys' : keys, 'primarykey' : primarykey})
         logging.info('Klassendefinition generiert: %s' % lname)
         
-    fkeys, ifkeys = generateForeignKeyInfo(schemadata_tables)
+    fkeys, ifkeys, mkeys = generateForeignKeyInfo(schemadata_tables)
     file.write("""
     
 # Die folgenden Einträge ermöglichen die automatische Navigation über
@@ -145,6 +150,17 @@ def generate_ebapi(filename):
 """)
     for f in ifkeys:
         file.write("%s.inversefieldtypes['%s'] = (%sList, '%s')\n" % f)
+    file.write("""
+    
+# Die folgenden Einträge ermöglichen Mehrfachauswahlfelder.
+# In das Feld werden die IDs von Code-Instanzen als Strings
+# geschrieben. Beim Aufruf über __getitem__ werden die durch
+# Code-Instanzen ersetzt.
+    
+""")
+    for f in mkeys:
+        file.write("%s.multikatfieldtypes['%s'] = %sList\n" % f)
+
     file.close()
 
 

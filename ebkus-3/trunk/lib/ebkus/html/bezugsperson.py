@@ -12,7 +12,76 @@ from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.bezugsperson_templates import *
 from ebkus.app_surface.akte_templates import anschrift_bezugsperson_t
 
-class persneu(Request.Request):
+import ebkus.html.htmlgen as h
+from ebkus.html.akte_share import akte_share
+
+class _pers(Request.Request, akte_share):
+    def _process(self,
+                 title,
+                 file,
+                 bzp,
+                 
+                 hidden,
+                 ):
+
+##         bezugspersonendaten = OBJ(
+##             legend = 'Bezugspersonendaten',
+##             items = (TEXT(
+
+        notiz_wichtig = h.FieldsetInputTable(
+            legend='Notiz',
+            daten=[[h.TextItem(label='Notiz',
+                               name='no',
+                               value=bzp['no'],
+                               maxlength=250,
+                               class_='textbox310',
+                               n_col=4,
+                               ),
+                    h.CheckItem(label='Wichtig',
+                                name='nobed',
+                                value=cc('notizbed', 't'),
+                                checked=(bzp['nobed'] == cc('notizbed', 't'))
+                                ),
+                    ]],
+            )
+        res = h.FormPage(
+            title=title,
+            name='persform',action="klkarte",method="post",
+            hidden=hidden,
+            rows=(h.Pair(left=self.get_klientendaten(bzp),
+                         right=self.get_anschrift(bzp),
+                         ),
+                  notiz_wichtig,
+                  verwandtschaftsart,
+                  bezugspersonen,
+                  h.SpeichernZuruecksetzenAbbrechen(),
+                  ),
+            )
+        return res.display()
+
+
+        context_dict = {
+            'form': form,
+            'title': "Klientenkarte",
+            'menu': menu,
+            'klientendaten': klientendaten,
+            'bezugspersonen': bezugspersonen,
+            'beratungskontakte': beratungskontakte,
+            'leistungen': leistungen,
+            'stand': stand,
+            'bearbeiter': bearbeiter,
+            'anmeldekontakte': anmeldekontakte,
+            'einrichtungskontakte': einrichtungskontakte,
+            'fachstatistik': fachstatistik,
+            'jugendhilfestatistik': jugendhilfestatistik,
+            'notizen': notizen,
+            'fallgruppen': fallgruppen,
+            'bezugspersongruppen': bezugspersongruppen,
+            }
+
+        return self.mrender('bezugsperson.html', context_dict)
+    
+class persneu(_pers):
     """Neue Bezugsperson eintragen. (Tabelle: Bezugsperson)"""
     
     permissions = Request.UPDATE_PERM

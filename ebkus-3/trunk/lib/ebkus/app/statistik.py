@@ -57,6 +57,8 @@ class CodeAuszaehlung(_Auszaehlung):
         self.liste = liste
         # Feldobjekt holen
         self.feld = self._get_feld_objekt(feld)
+        if self.feld['verwtyp__code'] == 'm':
+            self.__class__ = MultiCodeAuszaehlung
         self._set_attributes(kw)
 
     def _compute_result(self):
@@ -64,6 +66,11 @@ class CodeAuszaehlung(_Auszaehlung):
             return xcountbereich(self.kategorie['code'], self.liste, self.feld['feld'])
         else:
             return xcountitem(self.kategorie['code'], self.liste, self.feld['feld'])
+    
+class MultiCodeAuszaehlung(CodeAuszaehlung):
+    """Für die Felder, wo mehrere Code-Ids als Strings gespeichert werden."""
+    def _compute_result(self):
+        return xcountmultiitem(self.kategorie['code'], self.liste, self.feld['feld'])
     
 class MehrfachCodeAuszaehlung(_Auszaehlung):
     """Zur Zeit nur für die ba*- Felder in der Jugendhilfestatistik"""
@@ -165,6 +172,30 @@ def xcountitem(kat_code, d_list, d_item):
     for c in codelist:
         freq = values.count(c['id'])
         a = (c['name'], freq, ((float(freq)*100)/float(len(d_list))))
+        res.append(a)
+    return res
+
+def xcountmultiitem(kat_code, d_list, d_item):
+    """Liste mit Namen, Anzahl, Prozent fuer die Codefelder in
+    der Fach- oder Jugendhilfestatistikdictliste.
+
+    kat_code: die Kategorie, für die die Auszählung gemacht werden soll
+    d_list: die Liste der Objekte, über die gezählt werden soll
+    d_item: der Name des Attributes, dessen Werte gezählt werden sollen
+            (die Werte sind Strings, die ids für Codes der Kategorie enthalten)
+
+    Anwendung:
+    zugangsarten = xcountitem('fspbk', fachstatlise, 'kindprobleme') """
+    res = []
+    codelist = get_all_codes(kat_code)
+    def get_ids():
+        for x in d_list:
+            for i in x[d_item].split():
+                yield int(i)
+    values = [i for i in get_ids()]
+    for c in codelist:
+        freq = values.count(c['id'])
+        a = (c['name'], freq, ((float(freq)*100)/float(len(values))))
         res.append(a)
     return res
 

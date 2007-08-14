@@ -45,6 +45,8 @@ Feldzeilen
                     s = Primär(s)chlüssel für die Tabelle
                     f = (F)remdschlüssel
                     k = (k)odiertes Feld, Wert verweist in die Tabelle code
+                    m = (m)ultikat kodiertes Feld, Liste von ids als String,
+                        Werte verweisen in die Tabelle code
                     b = Zahlenfeld, für das aber Werte(b)ereiche in der Tabelle code
                         definert sind
                     p = primitives Feld
@@ -197,6 +199,22 @@ em, INT, Ende Monat, p,
 ey, INT, Ende Jahr, p,
 stz, INT, Dienststelle, k, stzei
 
+table, beratungskontakt, , Beratungskontakt, Beratungskontakt
+id, INT, id, s,
+fall_id, INT, Fallid, f, fall, beratungskontakte
+mit_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte
+le_id, INT, Leistungsid, f, leistung, beratungskontakte
+art, INT, Kontaktart, k, fska
+jgh, INT, Kontakt im Sinne der Jugendstatistik, k, ja_nein
+kd, INT, Kontakt Tag, p,
+km, INT, Kontakt Monat, p,
+ky, INT, Kontakt Jahr, p,
+dauer, INT, Dauer der Kontakte im Sinne der Jugendstatistik, k, fskd
+f2f_min, INT, Face to face Minuten, p,
+vn_min, INT, Vorbereitung/Nachbereitung Minuten, p,
+no, CHAR(255), Notiz, p,
+stz, INT, Dienststelle, k, stzei
+
 table, zustaendigkeit, , Zuständigkeit, Zustaendigkeit
 id, INT, id, s,
 fall_id, INT, Fallid, f, fall, zustaendigkeiten
@@ -332,6 +350,9 @@ kson, INT, Kontaktanzahl Sonstige, b, fskat
 no, CHAR(255), Notiz, p,
 no2, CHAR(255), anders geartete Problemlagen Kind, p,
 no3, CHAR(255), anders geartete Problemlagen Eltern, p,
+kindprobleme, CHAR(255), Problemspektrum Kind/Jugendliche, m, fspbk
+elternprobleme, CHAR(255), Problemspektrum der Eltern, m, fspbe
+eleistungen, CHAR(255), Erbrachte Leistungen, m, fsle
 zeit, INT, Änderungszeit, p,
 
 table, fachstatlei, , Zuordnung Fachstatistik-Leistung, Fachstatistikleistung

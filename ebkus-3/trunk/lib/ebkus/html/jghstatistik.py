@@ -26,7 +26,7 @@ from ebkus.config import config
 from ebkus.app import ebapi
 from ebkus.app import Request,date
 from ebkus.app.ebapi import Akte, Fall, Jugendhilfestatistik, Code, \
-     JugendhilfestatistikList, cc, today, check_date, Wrapper, \
+     JugendhilfestatistikList, cc, today, check_date, \
      Jugendhilfestatistik2007List, Jugendhilfestatistik2007
 from ebkus.app.ebupd import upgrade_jgh
 from ebkus.app.ebapih import get_codes, mksel, get_all_codes
