@@ -37,6 +37,7 @@ def make_option_list(elements,
     Es werden indent Leerzeichen vor jede Option eingefügt.
     """
     option = '<option value="%s" %s>%s</option>\n'
+    select_attr = ' selected="selected" '
     res = []
     if selected == None:
         selected_values = ()
@@ -54,13 +55,13 @@ def make_option_list(elements,
 
     if empty_option:
         if '' in selected_values or ' ' in selected_values:
-            res.append('<option value=" " selected> </option>')
+            res.append('<option value=" "%s> </option>' % select_attr)
         else:
             res.append('<option value=" "> </option>')
     for el in elements:
         value = el[value_field]
         name = el[name_field]
-        sel = value in selected_values and 'selected' or ''
+        sel = value in selected_values and select_attr or ''
         if len(name) > max_name_length:
             name_list = split_option_name(name, max_name_length)
             for n in name_list:

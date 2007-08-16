@@ -68,7 +68,9 @@ class CodeAuszaehlung(_Auszaehlung):
             return xcountitem(self.kategorie['code'], self.liste, self.feld['feld'])
     
 class MultiCodeAuszaehlung(CodeAuszaehlung):
-    """Für die Felder, wo mehrere Code-Ids als Strings gespeichert werden."""
+    """Für die Felder, wo mehrere Code-Ids als Strings gespeichert werden,
+    zB fachstat.eleistungen
+    """
     def _compute_result(self):
         return xcountmultiitem(self.kategorie['code'], self.liste, self.feld['feld'])
     
@@ -185,7 +187,7 @@ def xcountmultiitem(kat_code, d_list, d_item):
             (die Werte sind Strings, die ids für Codes der Kategorie enthalten)
 
     Anwendung:
-    zugangsarten = xcountitem('fspbk', fachstatlise, 'kindprobleme') """
+    zugangsarten = xcountitem('fspbk', fachstatliste, 'kindprobleme') """
     res = []
     codelist = get_all_codes(kat_code)
     def get_ids():

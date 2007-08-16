@@ -3,77 +3,58 @@
 """Module für die Leistung."""
 
 from ebkus.app import Request
-from ebkus.app.ebapi import Fall, Leistung, today
-from ebkus.app.ebapih import get_codes, make_option_list
+from ebkus.app.ebapi import cc, Fall, Leistung, today
 from ebkus.config import config
 
-from ebkus.html.htmlgen import Base, Form, FormPage, Fieldset, FieldsetDataTable, \
-     FieldsetInputTable, Tr, Pair, \
-     Button, Datum, String, Icon, IconDead, SelectGoto, Klientendaten, \
-     SelectItem, DatumItem, TextItem, \
-     SpeichernZuruecksetzenAbbrechen
+import ebkus.html.htmlgen as h
+from ebkus.html.akte_share import akte_share
 
-
-class _leist(Request.Request):
-    # leistneu und updleist mit derselben Routine,
-    # nur anders parametrisiert
+class _leist(Request.Request, akte_share):
     def _process(self, REQUEST, RESPONSE,
                  title,
                  legend,
-                 fall,
                  leistung,
                  file,
-                 mitarbeiter_selected,
-                 leistung_selected,
                  ):
+        fall = leistung['fall']
         leistungen_list = fall['leistungen']
         leistungen_list.sort('bgy', 'bgm', 'bgd')
-        leistungsarten = get_codes('fsle')
-        # hier kommt alles rein, was das template braucht
-        mitarbeiter_options = make_option_list(self.getMitarbeiterliste(),
-                                               'id', 'na',
-                                               selected=mitarbeiter_selected),
-        leistungsart_options = make_option_list(leistungsarten,
-                                                'id', 'name',
-                                                selected=leistung_selected),
-
-        mitarbeiter_leistung = FieldsetInputTable(
+        mitarbeiter_leistung = h.FieldsetInputTable(
             legend = '%s %s %s' % (legend, fall['akte__vn'], fall['akte__na']),
-            daten = [[SelectItem(label='Mitarbeiter',
-                                 name='mitid',
-                                 options=mitarbeiter_options),
-                      SelectItem(label='Leistung',
-                                 name='le',
-                                 options=leistungsart_options),
+            daten = [[h.SelectItem(label='Mitarbeiter',
+                                   name='mitid',
+                                   options=self.for_mitarbeiter(leistung['mit_id'])),
+                      h.SelectItem(label='Leistung',
+                                   name='le',
+                                   options=self.for_kat('fsle', leistung['le'])),
             ]]
             )
-        leistungszeitraum = FieldsetInputTable(
+        leistungszeitraum = h.FieldsetInputTable(
             legend = 'Leistungszeitraum',
-            daten = [[DatumItem(label='Am',
-                                name='bg',
-                                date = leistung.getDate('bg'),
-                                ),
-                      DatumItem(label='Bis',
-                                name='e',
-                                date = leistung.getDate('e'),
-                                ),
-            ]]
+            daten = [[h.DatumItem(label='Am',
+                                  name='bg',
+                                  date = leistung.getDate('bg'),
+                                  ),
+                      h.DatumItem(label='Bis',
+                                  name='e',
+                                  date = leistung.getDate('e'),
+                                  ),
+                      ]]
             )
-        leistungen = FieldsetDataTable(
+        leistungen = h.FieldsetDataTable(
             legend= 'Leistungen',
             headers= ('Mitarbeiter', 'Leistung', 'Am', 'Bis'),
-            daten= [[String(string= leist['mit_id__na']),
-                     String(string= leist['le__name']),
-                     Datum(date=leist.getDate('bg')),
-                     Datum(date=leist.getDate('e')),
+            daten= [[h.String(string= leist['mit_id__na']),
+                     h.String(string= leist['le__name']),
+                     h.Datum(date=leist.getDate('bg')),
+                     h.Datum(date=leist.getDate('e')),
                      ]
                     for leist in leistungen_list],
             )
-        res = FormPage(
+        res = h.FormPage(
             title=title,
             name="leistung",action="klkarte",method="post",
-            hidden=(("akid", fall['akte_id']),
-                    ("fallid", fall['id']),
+            hidden=(("fallid", fall['id']),
                     ("stz", leistung['stz']),
                     ("leistid", leistung['id']),
                     ("file", file),
@@ -81,7 +62,7 @@ class _leist(Request.Request):
             rows=(mitarbeiter_leistung,
                   leistungszeitraum,
                   leistungen,
-                  SpeichernZuruecksetzenAbbrechen(),
+                  h.SpeichernZuruecksetzenAbbrechen(),
                   )
             )
         return res.display()
@@ -89,9 +70,7 @@ class _leist(Request.Request):
     
 class leistneu(_leist):
     """Neue Leistung eintragen. (Tabelle: Leistung.)"""
-    
     permissions = Request.UPDATE_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
         if self.form.has_key('fallid'):
             fallid = self.form.get('fallid')
@@ -102,44 +81,37 @@ class leistneu(_leist):
         leistung = Leistung()
         leistung.init(
             id=Leistung().getNewId(),
-            bgy=today().year,
-            bgm=today().month,
-            bgd=today().day,
             ey='',
             em='',
             ed='',
             stz=self.stelle['id'],
+            fall_id=fall['id'],
+            mit_id=self.mitarbeiter['id'],
+            le=cc('fsle', '1'),
             )
+        leistung.setDate('bg', today())
         return self._process(REQUEST, RESPONSE,
-                             "Neue Leistung eintragen",
-                             "Neue Leistung eintragen für",
-                             fall,
-                             leistung,
-                             'leisteinf',
-                             self.mitarbeiter['id'],
-                             None,
+                             title="Neue Leistung eintragen",
+                             legend="Neue Leistung eintragen für",
+                             leistung=leistung,
+                             file='leisteinf',
                              )
         
 class updleist(_leist):
     """Leistung ändern. (Tabelle: Leistung.)"""
-    
     permissions = Request.UPDATE_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
         if self.form.has_key('leistid'):
             id = self.form.get('leistid')
         else:
             self.last_error_message = "Keine ID für die Leistung erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-        leistung = Leistung(int(id))
+        leistung = Leistung(id)
         fall = Fall(leistung['fall_id'])
         return self._process(REQUEST, RESPONSE,
-                             "Leistung bearbeiten",
-                             "Leistung bearbeiten von",
-                             fall,
-                             leistung,
-                             'updleist',
-                             leistung['mit_id'],
-                             leistung['le']
+                             title="Leistung bearbeiten",
+                             legend="Leistung bearbeiten von",
+                             leistung=leistung,
+                             file='updleist',
                              )
 

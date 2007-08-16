@@ -21,7 +21,7 @@ class _einr(Request.Request, akte_share):
             legend=title,
             daten=[[h.SelectItem(label='Art',
                                name='insta',
-                               options=self.options.for_kat('klinsta', sel=einrichtung['insta']),
+                               options=self.for_kat('klinsta', sel=einrichtung['insta']),
                                class_='listbox120',
                                n_col=6,
                                ),

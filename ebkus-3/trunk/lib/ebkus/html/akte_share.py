@@ -1,24 +1,99 @@
 # coding: latin-1
 
-"""Gemeinsame Elemente für die Akte."""
+"""Gemeinsame HTML Elemente."""
 
 from ebkus.config import config
 from ebkus.app.ebapi import today, cc, Akte, Bezugsperson
+from ebkus.app.ebapih import get_codes, make_option_list
 import ebkus.html.htmlgen as h
+from ebkus.html.options import options
 
-class akte_share(object):
+class akte_share(options):
     """Html-Elemente, die an verschiedenen Stellen gebraucht werden
     und hier nur einmal definiert werden.
     """
     
+
+    def get_klientendaten_readonly(self, data, button=None):
+        if isinstance(data, Akte):
+            bezug = 'des Klienten'
+            legend = 'Klientendaten'
+        elif isinstance(data, Bezugsperson):
+            bezug = 'der Bezugsperson'
+            legend = 'Bezugsperson %s' % data['verw__name']
+        klientendaten = h.FieldsetInputTable(
+            legend=legend,
+            daten=[[h.TextItem(label='Vorname',
+                              name='vn',
+                              value=data['vn'],
+                              readonly=True,
+                              ),
+                    h.TextItem(label='Strasse',
+                              name='str',
+                              value="%(str)s %(hsnr)s" % data,
+                              readonly=True,
+                              ),
+                    h.TextItem(label='Wohnt bei',
+                              name='fs__name',
+                              value=data['fs__name'],
+                              readonly=True,
+                              ),
+                    ],
+                   [h.TextItem(label='Nachname',
+                              name='na',
+                              value=data['na'],
+                              readonly=True,
+                              ),
+                    h.TextItem(label='Postleitzahl',
+                              name='plz',
+                              value=data['plz'],
+                              readonly=True,
+                              ),
+                    h.TextItem(label='Telefon 1',
+                              name='tl1',
+                              value=data['tl1'],
+                              readonly=True,
+                              ),
+                    ],
+                   [h.TextItem(label='Geburtstag',
+                              name='gb',
+                              value=data['gb'],
+                              readonly=True,
+                              ),
+                    h.TextItem(label='Ort',
+                              name='ort',
+                              value=data['ort'],
+                              readonly=True,
+                              ),
+                    h.TextItem(label='Telefon 2',
+                              name='tl2',
+                              value=data['tl2'],
+                              readonly=True,
+                              ),
+                    ],
+                   [h.TextItem(label='Ausbildung',
+                              name='ber',
+                              value=data['ber'],
+                              readonly=True,
+                              ),
+                    h.DummyItem(),
+                    h.DummyItem(),
+                    ]
+                   ],
+            button=button,
+            )
+        return klientendaten
+
     def get_klientendaten(self, data):
         if isinstance(data, Akte):
             bezug = 'des Klienten'
+            legend = 'Klientendaten'
         elif isinstance(data, Bezugsperson):
             bezug = 'der Bezugsperson'
+            legend = 'Bezugspersondaten'
         klientendaten = h.FieldsetInputTable(
-            legend = 'Klientendaten',
-            daten = [[h.TextItem(label='Vorname',
+            legend=legend,
+            daten=[[h.TextItem(label='Vorname',
                                name='vn',
                                value=data['vn'],
                                tip='Vorname %s' % bezug,
@@ -107,7 +182,7 @@ class akte_share(object):
             planungsr = h.DummyItem()
         fs = h.SelectItem(label='Wohnt bei',
                         name='fs',
-                        options=self.options.for_kat('fsfs', sel=data['fs']),
+                        options=self.for_kat('fsfs', sel=data['fs']),
                         tip='Bei wem der Klient lebt',
                         n_col=n_col,
                         )
@@ -159,8 +234,11 @@ class akte_share(object):
         return bisherige_zustaendigkeit
 
 
-    def get_bezugspersonen(self, bezugspersonen_list, aktueller_fall,
-                           edit_button, view_button):
+    def get_bezugspersonen(self, bezugspersonen_list,
+                           aktueller_fall, # falls False, kein Hinzufügen-Button, inaktive edit/view buttons
+                           edit_button, # falls False, kein edit button
+                           view_button, # falls False, kein view button
+                           ):
         bezugspersonen = h.FieldsetDataTable(
             legend= 'Bezugspersonen',
             headers= ('Art', 'Vorname', 'Nachname', 'Telefon 1', 'Telefon 2'),

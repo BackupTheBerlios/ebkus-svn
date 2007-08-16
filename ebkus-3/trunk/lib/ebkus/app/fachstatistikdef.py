@@ -192,7 +192,7 @@ class FachstatistikGruppeAngabenKlient(FachstatistikGruppe):
                ),
             FI(name='Alter Mutter',
                feld='agkm',
-                              typ='k',
+               typ='k',
                kat='fsagel',
                ),
             FI(name='Alter Vater',

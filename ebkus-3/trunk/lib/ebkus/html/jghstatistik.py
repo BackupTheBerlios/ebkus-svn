@@ -24,9 +24,9 @@ import logging
 import string
 from ebkus.config import config
 from ebkus.app import ebapi
-from ebkus.app import Request,date
+from ebkus.app import Request
 from ebkus.app.ebapi import Akte, Fall, Jugendhilfestatistik, Code, \
-     JugendhilfestatistikList, cc, today, check_date, \
+     JugendhilfestatistikList, cc, today, check_date, calc_age, \
      Jugendhilfestatistik2007List, Jugendhilfestatistik2007
 from ebkus.app.ebupd import upgrade_jgh
 from ebkus.app.ebapih import get_codes, mksel, get_all_codes
@@ -72,7 +72,7 @@ class jghneu(Request.Request):
                      'zeile2':''}
             return meldung_t % meldung
 
-        alter_klient = date.calc_age(akte['gb'],fall['bgd'],fall['bgm'],fall['bgy'])
+        alter_klient = calc_age(akte['gb'],fall.getDate('bg'))
         geschwisterfaelle = get_codes('gfall')
         stellenzeichen = get_codes('stzei')
         bezirke = get_codes('rbz')

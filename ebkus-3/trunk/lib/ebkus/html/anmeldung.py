@@ -2,123 +2,186 @@
 
 """Module für die Anmeldung."""
 
-import string
-
 from ebkus.app import Request
 from ebkus.app.ebapi import Akte, Fall, Anmeldung, cc
-from ebkus.app.ebapih import get_codes, mksel
-from ebkus.app_surface.klientenkarte_templates import detail_view_anmeldung_t
-from ebkus.app_surface.standard_templates import *
-from ebkus.app_surface.anmeldung_templates import *
 
-class anmneu(Request.Request):
+
+import ebkus.html.htmlgen as h
+from ebkus.html.akte_share import akte_share
+
+
+class _anm(Request.Request, akte_share):
+    def _process(self,
+                 title,
+                 anm,
+                 hidden,
+                 ):
+        anmeldekontakt = h.FieldsetInputTable(
+            legend='Anmeldekontakt',
+            daten=[[h.TextItem(label='Gemeldet von',
+                               name='von',
+                               value=anm['von'],
+                               ),
+                    h.TextItem(label='Telefon',
+                               name='mtl',
+                               value=anm['mtl'],
+                               ),
+                    ],
+                   [h.SelectItem(label='Zugangsart',
+                                 name='zm',
+                                 options=self.for_kat('fszm', anm['zm']),
+                                 ),
+                    h.TextItem(label='Empfehlung von',
+                               name='me',
+                               value=anm['me'],
+                               ),
+                    ],
+                   [h.DatumItem(label='Gemeldet am',
+                                 name='a',
+                                 date=anm.getDate('a'),
+                                 ),
+                    h.DummyItem(),
+                    ],
+                   [h.TextItem(label='Anmeldegrund',
+                               name='mg',
+                               value=anm['mg'],
+                               class_='textboxverylarge',
+                               maxlength=250,
+                               n_col=4
+                               ),
+                    ],
+                   [h.TextItem(label='Notiz',
+                               name='no',
+                               value=anm['no'],
+                               class_='textboxverylarge',
+                               maxlength=250,
+                               n_col=4
+                               ),
+                    ],
+            ]
+            )
+        res = h.FormPage(
+            title=title,
+            name='anmform',action="klkarte",method="post",
+            hidden=hidden,
+            rows=(anmeldekontakt,
+                  h.SpeichernZuruecksetzenAbbrechen(),
+                  ),
+            )
+        return res.display()
+
+
+
+class anmneu(_anm):
     """Neue Anmeldung eintragen. (Tabelle: Anmeldung)"""
-    
     permissions = Request.UPDATE_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
         if self.form.has_key('fallid'):
             fallid = self.form.get('fallid')
         else:
             self.last_error_message = "Keine ID für den Fall erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-        fall = Fall(int(fallid))
+        fall = Fall(fallid)
         akte = Akte(fall['akte_id'])
         bezugspersonen = akte['bezugspersonen']
         bezugspersonen.sort('verw__sort')
-        zugangsarten = get_codes('fszm')
-        
+        anm = Anmeldung()
+        anm.init(
+            id=Anmeldung().getNewId(),
+            fall_id=fall['id'],
+            zm=cc('fszm', '999'),
+            )
         # Datum des Fallbeginns und Nachname der 1 Bezugspers. zur Übernahme
         # im Formular anbieten.
-        
-        anmeldung = Anmeldung()
-        anmeldung['ad'] = fall['bgd']
-        anmeldung['am'] = fall['bgm']
-        anmeldung['ay'] = fall['bgy']
+        anm.setDate('a', fall.getDate('bg'))
         if bezugspersonen:
             b1 = bezugspersonen[0]
-            anmeldung['von'] = b1['na']
-            anmeldung['mtl'] = b1['tl1']
-        else:
-            anmeldung['von'] = ''
-            anmeldung['mtl'] = ''
-            
-            # Für FORM-HIDDEN-VALUES
-            
-        hidden ={'file': 'anmeinf'}
-        anmid = Anmeldung().getNewId()
-        hiddenid ={'name': 'anmid', 'value': anmid}
+            anm['von'] = b1['na']
+            anm['mtl'] = b1['tl1']
+                    
+        return self._process(
+            title="Neue Anmeldeinformation eintragen",
+            anm=anm,
+            hidden=(('anmid', anm['id']),
+                    ('file', 'anmeinf'),
+                    ('fallid', anm['fall_id']),
+                    )
+            )
         
-        # Liste der Templates als String
-        
-        res = []
-        res.append(head_normal_t %("Neue Anmeldeinformation eintragen"))
-        res.append(anmneuvon_t % anmeldung)
-        mksel(res, codeliste_t, zugangsarten)
-        res.append(anmneuempfehlung_t % anmeldung)
-        res.append(formhiddenvalues_t % hidden)
-        res.append(formhiddennamevalues_t % hiddenid)
-        res.append(anmneuende_t % fall)
-        return string.join(res, '')
-        
-        
-class updanm(Request.Request):
+class updanm(_anm):
     """Anmeldung ändern. (Tabelle: Anmeldung)"""
-    
     permissions = Request.UPDATE_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
         if self.form.has_key('anmid'):
             id = self.form.get('anmid')
         else:
             self.last_error_message = "Keine ID für die Anmeldung erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-        anmeldung = Anmeldung(int(id))
-        fall = Fall(anmeldung['fall_id'])
-        akte = Akte(fall['akte_id'])
-        zugangsarten = get_codes('fszm')
-        
-        # Für FORM-HIDDEN-VALUES
-        
-        hidden ={'file': 'updanm'}
-        
-        # Liste der Templates als String
-        
-        res = []
-        res.append(head_normal_t % ("Anmeldeinformation &auml;ndern"))
-        res.append(anmneuvon_t % anmeldung)
-        mksel(res, codeliste_t, zugangsarten, 'id', anmeldung['zm'])
-        res.append(updanmempfehlung_t % anmeldung)
-        res.append(formhiddenvalues_t % hidden)
-        res.append(anmupdende_t % fall)
-        return string.join(res, '')
-        
+        anm = Anmeldung(id)
+        return self._process(
+            title="Anmeldeinformation &auml;ndern",
+            anm=anm,
+            hidden=(('anmid', anm['id']),
+                    ('file', 'updanm'),
+                    ),
+            )
+
 class viewanm(Request.Request):
     """Anmeldung ändern. (Tabelle: Anmeldung)"""
-    
     permissions = Request.UPDATE_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
         if self.form.has_key('anmid'):
             id = self.form.get('anmid')
         else:
             self.last_error_message = "Keine ID für die Anmeldung erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-        anmeldung = Anmeldung(int(id))
-        fall = Fall(anmeldung['fall_id'])
-        akte = Akte(fall['akte_id'])
-        zugangsarten = get_codes('fszm')
+        anm = Anmeldung(id)
+        anmeldekontakt = h.FieldsetInputTable(
+            legend='Anmeldekontakt',
+            daten=[[h.TextItem(label='Gemeldet von',
+                               name='von',
+                               value=anm['von'],
+                               readonly=True,
+                               ),
+                    h.TextItem(label='Anmeldegrund',
+                               name='mg',
+                               value=anm['mg'],
+                               maxlength=250,
+                               readonly=True,
+                               ),
+                    ],
+                   [h.TextItem(label='Gemeldet am',
+                               name='a',
+                               value=str(anm.getDate('a')),
+                               readonly=True,
+                                 ),
+                    h.TextItem(label='Empfehlung von',
+                               name='me',
+                               value=anm['me'],
+                               readonly=True,
+                               ),
+                    ],
+                   [h.TextItem(label='Telefon',
+                               name='mtl',
+                               value=anm['mtl'],
+                               readonly=True,
+                               ),
+                    h.TextItem(label='Zugangsmodus',
+                               name='zm',
+                               value=anm['zm__name'],
+                               readonly=True,
+                               ),
+                    ],
+            ],
+            button=h.Button(value="Schließen",
+                            onClick="javascript:window.close()",
+                            tip="Fenster schließen",
+                            ),
+            )
+        res = h.FormPage(
+            title="Detailansicht: Anmeldekontakt von %(fall__akte__vn)s  %(fall__akte__na)s" % anm,
+            rows=(anmeldekontakt,),
+            )
+        return res.display()
         
-        hidden ={'file': 'updanm'}
-        res = []
-        titel = ("Detailansicht: Anmeldekontakt von " + akte['vn'] + " " + akte['na'])
-        res.append(head_normal_ohne_help_t %(titel))
-        res.append(detail_view_anmeldung_t % anmeldung)
-        
-        return string.join(res, '')
+

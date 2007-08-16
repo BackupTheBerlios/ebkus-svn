@@ -176,6 +176,13 @@ class Date(object):
     
 today = Date
 
+def calc_age(gb_datum_als_string, aktuelles_datum_als_date):
+    d,m,y = [int(x) for x in gb_datum_als_string.split('.')]
+    assert y > 1900
+    gb = Date(y, m, d)
+    diff = gb.diff(aktuelles_datum_als_date)
+    return diff/12
+
 #print today()
 
 

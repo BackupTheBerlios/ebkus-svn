@@ -7,12 +7,6 @@ import string,time
 from ebkus.app import Request
 from ebkus.config import config
 from ebkus.app.ebapi import StrassenkatalogList, Akte, Fall, Zustaendigkeit, today, cc
-#from ebkus.app.ebapih import get_codes, mksel,mksel_str,mksel_str_upd
-#from ebkus.app_surface.akte_templates import *
-#from ebkus.app_surface.standard_templates import *
-
-#from ebkus.app.ebapih import get_codes, make_option_list
-
 
 import ebkus.html.htmlgen as h
 from ebkus.html.akte_share import akte_share
@@ -46,7 +40,7 @@ class _akte(Request.Request, akte_share):
                 daten=[[h.SelectItem(label='Bearbeiter',
                                      name='zumitid',
                                      tip='Fallbearbeiter auswählen',
-                                     options=self.options.for_mitarbeiter(sel=self.user)),
+                                     options=self.for_mitarbeiter(sel=self.mitarbeiter['id'])),
                         h.DatumItem(label='Fallbeginn',
                                     name='zubg',
                                     tip='Monat des Fallbeginns',
@@ -59,11 +53,11 @@ class _akte(Request.Request, akte_share):
                 daten=[[h.SelectItem(label='Mitarbeiter',
                                      name='lemitid',
                                      tip='Mitarbeiter auswählen, der die Leistung erbracht hat',
-                                     options=self.options.for_mitarbeiter(sel=self.user)),
+                                     options=self.for_mitarbeiter(sel=self.mitarbeiter['id'])),
                         h.SelectItem(label='Leistung',
                                      name='le',
                                      tip='Art der erbrachten Leistung',
-                                     options=self.options.for_kat('fsle', akte['fs'])),
+                                     options=self.for_kat('fsle', akte['fs'])),
                         ],[h.DummyItem(),
                            h.DatumItem(label='Am',
                                        name='lebg',
@@ -136,7 +130,7 @@ class updakte(_akte):
     def processForm(self, REQUEST, RESPONSE):
         if self.form.has_key('akid'):
             akid = self.form.get('akid')
-            akte = Akte(int(akid))
+            akte = Akte(akid)
         else:
             self.last_error_message = "Keine ID fuer die Akte erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
@@ -232,13 +226,13 @@ class zdar(_akte):
         else:
             self.last_error_message = "Keine ID fuer den Fall erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-        fall = Fall(int(fallid))
+        fall = Fall(fallid)
         zustid = Zustaendigkeit().getNewId()
         beginndatum = h.FieldsetInputTable(
             daten=[[h.SelectItem(label='Mitarbeiter',
                                  name='zumitid',
                                  tip='Fallbearbeiter auswählen',
-                                 options=self.options.for_mitarbeiter(sel=self.user)),
+                                 options=self.for_mitarbeiter(sel=self.mitarbeiter['id'])),
                     h.DatumItem(label='Beginn',
                                 name='bg',
                                 tip='Datum des Fallbeginns',
@@ -300,7 +294,7 @@ class zustneu(_zust):
         neue_zust = Zustaendigkeit()
         neue_zust.init(
             id=Zustaendigkeit().getNewId(),
-            mit_id=self.user,
+            mit_id=self.mitarbeiter['id'],
             fall_id=fall['id'],
             )
         neue_zust.setDate('bg', today())
@@ -309,7 +303,7 @@ class zustneu(_zust):
             daten=[[h.SelectItem(label='Bearbeiter',
                                  name='mitid',
                                  tip='Fallbearbeiter auswählen',
-                                 options=self.options.for_mitarbeiter(neue_zust['mit_id'])),
+                                 options=self.for_mitarbeiter(neue_zust['mit_id'])),
                     h.DatumItem(label='Beginn',
                                 name='bg',
                                 tip='Datum des Zuständigkeitbeginns',
@@ -343,7 +337,7 @@ class updzust(_zust):
             daten=[[h.SelectItem(label='Bearbeiter',
                                  name='mitid',
                                  tip='Fallbearbeiter auswählen',
-                                 options=self.options.for_mitarbeiter(zust['mit_id'])),
+                                 options=self.for_mitarbeiter(zust['mit_id'])),
                     h.DatumItem(label='Beginn',
                                 name='bg',
                                 tip='Datum des Zuständigkeitbeginns',

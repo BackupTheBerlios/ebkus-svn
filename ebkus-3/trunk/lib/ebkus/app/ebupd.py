@@ -930,13 +930,15 @@ def updfs(form):
     else:
         fstat['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
     fstat['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
-    fstat['kat'] = check_int_not_empty(form, 'kat', "Terminsumme fehlt")
     fstat['fall_fn'] = check_str_not_empty(form, 'fall_fn', "Fallnummer fehlt")
     fstat['jahr'] = check_int_not_empty(form, 'jahr', "Jahr fehlt")
     fstat['stz'] = check_code(form, 'stz', 'stzei',
                               "Kein Stellenzeichen für die Fachstatistik")
-    fstat['bz'] = check_code(form, 'bz', 'fsbz',
-                              "Kein Bezirk", fstatold)
+
+    # TODO: bz hat keinen Wert im Formular, daher immer default von fstatold
+    #       fsbz ist keine gültige Kategorie!!!!
+    #fstat['bz'] = check_code(form, 'bz', 'fsbz',
+    #                          "Kein Bezirk", fstatold)
     fstat['gs'] = check_code(form, 'gs', 'gs',
                               "Kein Geschlecht", fstatold)
     fstat['ag'] = check_code(form, 'ag', 'fsag',
@@ -977,6 +979,8 @@ def updfs(form):
                                        "Keine Notiz andersgeartete Problemlage Eltern", fstatold)
     fstat['no'] = check_str_not_empty(form, 'no', "Keine Notiz", fstatold)
     
+    fstat['kat'] = check_int_not_empty(form, 'kat', "Terminsumme fehlt")
+
     #get_int_fields(fstat, form, ['ka'], )
     get_int_fields(fstat, form,
                    [ 'kkm', 'kkv',

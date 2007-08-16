@@ -2,237 +2,479 @@
 
 import string
 from ebkus.app import ebapi
-from ebkus.app import Request,date
-from ebkus.app.ebapi import Akte, Fall, Fachstatistik, FachstatistikList, LeistungList,cc,today,Code
-from ebkus.app.ebapih import get_codes, mksel, get_all_codes
-from ebkus.app_surface.fachstatistik_templates import *
-from ebkus.app_surface.standard_templates import *
+from ebkus.app import Request
+from ebkus.app.ebapi import Akte, Fall, Fachstatistik, FachstatistikList, \
+     LeistungList,cc,today,calc_age
+## from ebkus.app.ebapih import get_codes, mksel, get_all_codes
+## from ebkus.app_surface.fachstatistik_templates import *
+## from ebkus.app_surface.standard_templates import *
 
-from ebkus.app.fachstatistikdef import fsdef, FachstatistikDefinition
+## from ebkus.app.fachstatistikdef import fsdef, FachstatistikDefinition
 
-class _fs(Request.Request):
-    def _process(self, REQUEST, RESPONSE,
+import ebkus.html.htmlgen as h
+from ebkus.html.akte_share import akte_share
+
+
+def customize(fs, options, rows):
+    c = CustomizeFachstatistik(fs, options)
+    return c.customize(rows)
+
+class CustomizeFachstatistik(object):
+    def __init__(self,
+                 fs, # Fachstatistik Objekt, bei fsneu None
+                 options,
+                 ):
+        from ebkus.app.ebapi import Tabelle, FeldList
+        tab = Tabelle(tabelle='fachstat')
+        felder = FeldList(where="tab_id=%s" % tab['id'])
+        self.fs = fs
+        self.options = options
+        self.fd = {}
+        for f in felder:
+            self.fd[f['feld']] = f  # feldname --> feldobjekt
+        jokf1 = {
+            'flag': 0,
+            'kat_code':'fsag',
+            'name': "Eine künstliche, jokerbedingte Altersgruppe",
+            'verwtyp': cc('verwtyp', 'k'),
+            }
+        self.fd['jokf1'] = jokf1
+
+    def deaktiviert(self, feld):
+        # deaktiviert wenn erstes bit auf eins steht
+        if feld and feld[0] in ('p', 'g', 'q'):
+            return True
+        if feld in self.fd:
+            return (self.fd[feld]['flag'])&1
+        return False
+        
+    def jokerfeld(self, feld):
+        # Name fängt mit jok an
+        return feld.startswith('jok')
+    def jokerfeld_bei_angaben(self, feld): # item in Angaben zum Klienten eingebunden
+        # Name fängt mit joka an
+        return feld.startswith('joka')
+    def jokerfeld_selbstaendig(self, feld): # item in eigenem Fieldset, evt. mit Notiz
+        # Name fängt mit jokf an
+        return feld.startswith('jokf')
+
+    def customize(self, rows):
+        res = []
+        for r in rows:
+            rc = self.customize_fieldset(r)
+            if rc:
+                res.append(rc)
+        return tuple(res)
+
+    def customize_fieldset(self, f):
+        res = []
+        self._legend = None # customize item kann hier was reinschreiben
+        for zeile in f.daten:
+            z = self.customize_zeile(zeile)
+            if z:
+                res.append(z)
+        if res:
+            f.daten = res
+            if self._legend:
+                f.legend = self._legend
+            return f
+        return None
+
+    def customize_zeile(self, zeile):
+        res = []
+        valid_item = False # mindestens 1 gültiges item pro Zeile, sonst verschwindet Zeile
+        for item in zeile:
+            i = self.customize_item(item)
+            if i:
+                valid_item = True
+                res.append(i)
+            else:
+                res.append(h.DummyItem())
+        if valid_item:
+            return res
+        return None
+
+    def customize_item(self, item):
+        if self.deaktiviert(item.name):
+            return None
+        if self.jokerfeld(item.name):
+            feld = self.fd[item.name]
+            kat_code = feld['kat_code']
+            if kat_code:
+                multiple = feld['verwtyp'] == cc('verwtyp', 'm')
+                item.label = feld['name']
+                if self.jokerfeld_selbstaendig(item.name):
+                    self._legend = item.label
+                if multiple:
+                    item.multiple = True
+                    item.size = 8
+                if self.fs: # fachstat Objekt vorhanden, wir sind in updfs
+                    item.options = self.options.for_kat(kat_code, self.fs[item.name])
+                elif multiple: # initialisieren
+                    item.options = self.options.for_kat(kat_code, None)
+                else:
+                    item.options = self.options.for_kat(kat_code, ' ')
+        try:
+            item.label = '>>' + item.label
+        except:
+            pass
+        return item
+
+class _fachstatistik(Request.Request, akte_share):
+    def _process(self,
                  title,
                  file,
                  fs,
-                 akte,
-                 fall,
-                 mitarbeiter,
                  ):
-        fsdef = FachstatistikDefinition()
-        fsdef.set_fs_data(fs)
-        form = {
-            'name': 'fachstatform',
-            'method': 'post',
-            'action': 'klkarte',
-            'hidden': (
-            (akte['id'], "akid"),
-            (akte['stzak'], "stz"),
-            (fall['id'], "fallid"),
-            (fall['fn'], "fall_fn"),
-            (fs['id'], "fsid"),
-            (mitarbeiter['id'], "mitid"),
-            (file, "file"),
-            )
-            }
-        context_dict = {
-            'form': form,
-            'title': title,
-            'file': file,
-            'fsdef': fsdef,
-            'fs': fs,
-            'akte': akte,
-            'fall': fall,
-            'mitarbeiter': mitarbeiter,
-            }
-        return self.render('fachstatistik.html', context_dict)
 
-class fsneu(_fs):
+        falldaten = h.FieldsetInputTable(
+            legend='Falldaten',
+            daten = [[h.TextItem(label='Fallnummer',
+                                 name='xxx',
+                                 value=fs['fall_fn'],
+                                 readonly=True,
+                               ),
+                      h.TextItem(label='Mitarbeiter',
+                                 name='xxx',
+                                 value=fs['mit__ben'],
+                                 readonly=True,
+                               ),
+                      h.TextItem(label='Jahr',
+                                 name='jahr',
+                                 value=fs['jahr'],
+                                 class_='textboxmid',
+                                 maxlength=4,
+                               ),
+                      ]],
+            )
+        angabenklient = h.FieldsetInputTable(
+            legend="Angaben zum Klienten und dessen Angehörige",
+            daten = [[h.TextItem(label='Planungsraum',
+                                 name='xxx',
+                                 value=fs['bz'],
+                                 readonly=True,
+                                 ),
+                      h.DummyItem(),
+                      ],
+                     [h.SelectItem(label='Geschlecht',
+                                   name='gs',
+                                   options=self.for_kat('gs', fs['gs']),
+                                   aktiviert=True,
+                                    ),
+                      h.SelectItem(label='Alter Kind',
+                                   name='ag',
+                                   options=self.for_kat('fsag', fs['ag']),
+                                   aktiviert=True,
+                                    ),
+                      ],
+                     [h.SelectItem(label='Lebensmittelpunkt des Kindes',
+                                   name='fs',
+                                   options=self.for_kat('fsfs', fs['fs']),
+                                   ),
+                      h.SelectItem(label='Empfohlen von',
+                                   name='zm',
+                                   options=self.for_kat('fszm', fs['zm']),
+                                   ),
+                      ],
+                     [h.SelectItem(label='Qualifikation Jugendlicher',
+                                   name='qualij',
+                                   options=self.for_kat('fsqualij', fs['qualij']),
+                                   ),
+                      h.DummyItem(),
+                      ],
+                     [h.SelectItem(label='Qualifikation Mutter',
+                                   name='qualikm',
+                                   options=self.for_kat('fsquali', fs['qualikm']),
+                                   ),
+                      h.SelectItem(label='Qualifikation Vater',
+                                   name='qualikv',
+                                   options=self.for_kat('fsquali', fs['qualikv']),
+                                   ),
+                      ],
+                     [h.SelectItem(label='Beruf Mutter',
+                                   name='bkm',
+                                   options=self.for_kat('fsbe', fs['bkm']),
+                                   ),
+                      h.SelectItem(label='Beruf Vater',
+                                   name='bkv',
+                                   options=self.for_kat('fsbe', fs['bkv']),
+                                   ),
+                      ],
+                     [h.SelectItem(label='Herkunftsland Mutter',
+                                   name='hkm',
+                                   options=self.for_kat('fshe', fs['hkm']),
+                                   ),
+                      h.SelectItem(label='Herkunftsland Vater',
+                                   name='hkv',
+                                   options=self.for_kat('fshe', fs['hkv']),
+                                   ),
+                      ],
+                     [h.SelectItem(label='Alter Mutter',
+                                   name='agkm',
+                                   options=self.for_kat('fsagel', fs['agkm']),
+                                   ),
+                      h.SelectItem(label='Alter Vater',
+                                   name='agkv',
+                                   options=self.for_kat('fsagel', fs['agkv']),
+                                   ),
+                      ],
+                     ]
+            )
+        label_width = "20%" # richtet die Select-Elemente Fieldset-übergreifend aus
+        ba1 = h.FieldsetInputTable(
+            legend='Problem 1 bei der Anmeldung',
+            daten=[[h.SelectItem(label='',
+                                 name='ba1',
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 options=self.for_kat('fsba', fs['ba1']),
+                                 )
+                    ]],
+            )
+        ba2 = h.FieldsetInputTable(
+            legend='Problem 2 bei der Anmeldung',
+            daten=[[h.SelectItem(label='',
+                                 name='ba2',
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 options=self.for_kat('fsba', fs['ba2']),
+                                 )
+                    ]],
+            )
+        pbk = h.FieldsetInputTable(
+            legend='Hauptproblematik Kind / Jugendliche',
+            daten=[[h.SelectItem(label='',
+                                 name='pbk',
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 options=self.for_kat('fspbk', fs['pbk']),
+                                 )
+                    ]],
+            )
+        jokf1 = h.FieldsetInputTable(
+            legend='Hauptproblematik Kind / Jugendliche',
+            daten=[[h.SelectItem(label='',
+                                 name='jokf1',
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 options=self.for_kat('fspbk', fs['pbk']),
+                                 )
+                    ]],
+            )
+        pbe = h.FieldsetInputTable(
+            legend='Hauptproblematik der Eltern',
+            daten=[[h.SelectItem(label='',
+                                 name='pbe',
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 options=self.for_kat('fspbe', fs['pbe']),
+                                 )
+                    ]],
+            )
+        kindprobleme = h.FieldsetInputTable(
+            legend='Problemspektrum Kind / Jugenliche',
+            daten=[[h.SelectItem(label='',
+                                 name='kindprobleme',
+                                 options=self.for_kat('fspbk', fs['kindprobleme']),
+                                 multiple=True,
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 size=8,
+                                 ),
+                    ],
+                   [h.TextItem(label='Sonstige',
+                               name='no2',
+                               value=fs['no2'],
+                               class_="textbox310",
+                               ),
+                    ]],
+            )
+        elternprobleme = h.FieldsetInputTable(
+            legend='Problemspektrum Eltern',
+            daten=[[h.SelectItem(label='',
+                                 name='elternprobleme',
+                                 options=self.for_kat('fspbe', fs['elternprobleme']),
+                                 multiple=True,
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 size=8,
+                                 ),
+                    ],
+                   [h.TextItem(label='Sonstige',
+                               name='no3',
+                               value=fs['no3'],
+                               class_="textbox310",
+                                  ),
+                    ]],
+            )
+        eleistungen = h.FieldsetInputTable(
+            legend='Erbrachte Leistungen',
+            daten=[[h.SelectItem(label='',
+                                 name='eleistungen',
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 multiple=True,
+                                 options=self.for_kat('fsle', fs['eleistungen']),
+                                 size=8,
+                                 ),
+                    ]],
+            )
+        #### anfang get_termine_daten
+        def get_termine_daten():
+            label = ('KiMu', 'KiVa', 'Kind', 'Paar', 'Familie',
+                     'Soz.', 'Lehrer', 'Erz.', 'Hilfebespr.', 'Sonst.', 'Summe')
+            namen = ('kkm', 'kkv', 'kki', 'kpa', 'kfa',
+                     'ksoz', 'kleh', 'kerz', 'kkonf', 'kson', 'kat')
+
+            items = [h.TextItem(label=lab,
+                                name=name,
+                                value=fs[name],
+                                class_='textboxmid',
+                                )
+                     for lab, name in zip(label, namen)]
+            kat = items[-1]
+            kat.bold_label=True
+            kat.bold_value=True
+            return [items[0:5]+[h.DummyItem()], items[5:10]+[kat]]
+        ### ende get_termine_daten
+        termine = h.FieldsetInputTable(
+            legend='Terminsumme',
+            daten=get_termine_daten(),
+            )
+        notiz = h.FieldsetInputTable(
+            legend='Notiz',
+            daten=[[h.TextItem(label='Notiz',
+                               name='no',
+                               value=fs['no'],
+                               class_='textboxverylarge',
+                               ),
+            ]],
+            )
+        if file == 'updfs':
+            fstat = fs
+            fstat['jokf1'] = cc('fsag', '3')
+        else:
+            fstat = None
+        rows = customize(fstat, self, (
+            falldaten,
+            angabenklient,
+            ba1, ba2,
+            pbk, pbe,
+            kindprobleme,
+            elternprobleme,
+            eleistungen,
+            termine,
+            jokf1,
+            notiz,
+            ))
+        res = h.FormPage(
+            title=title,
+            help=False,
+            name="fachstatform",action="klkarte",method="post",
+            rows=rows + (h.SpeichernZuruecksetzenAbbrechen(),),
+            hidden=(('file', file),
+                    ('stz', fs['stz']),
+                    ('fallid', fs['fall_id']),
+                    ('fall_fn', fs['fall_fn']),
+                    ('mitid', fs['mit_id']),
+                    ('plr', fs['bz']),
+                    ('fsid', fs['id']),
+                    ),
+            )
+        return res.display()
+
+
+
+class fsneu(_fachstatistik):
     """Neue Fachstatistik eintragen. (Tabelle: Fachstatistik)"""
-    
     permissions = Request.STAT_PERM
     def processForm(self, REQUEST, RESPONSE):
         fallid = self.form.get('fallid')
         if not fallid:
-            meldung = {'titel':'Fehler',
-                       'legende':'Fehlerbeschreibung',
-                       'zeile1':'Erstellen einer Fachstatistik nur f&uuml;r einen Fall moeglich!',
-                       'zeile2':''}
-            return  meldung_t % meldung
-        fall = Fall(int(fallid))
+            return h.Meldung(
+                titel='Fehler',
+                legend='Fehlerbeschreibung',
+                zeilen=('Erstellen einer Fachstatistik nur f&uuml;r einen Fall moeglich!',)
+                ).display()
+        fall = Fall(fallid)
         akte = fall['akte']
-        letzter_fall = akte['letzter_fall']
+        # Ich kanns mir nicht anders vorstellen:
+        if akte['aktueller_fall']:
+            assert fall['id'] == akte['aktueller_fall']['id'] == akte['letzter_fall']['id']
+        # das geht nicht immer weil Gleichheit nicht richtig definiert ist
+        #assert fall == akte['letzter_fall'] == akte['aktueller_fall']
         leistungen = fall['leistungen']
-        jahr = '%(year)s' % today()
-        jahresl = ebapi.FachstatistikList(where = "fall_fn = '%s'" % letzter_fall['fn'])
+        jahresl = ebapi.FachstatistikList(where = "fall_fn = '%s'" % fall['fn'])
         if jahresl:
-            meldung = {'titel':'Hinweis',
-                       'legende':'Hinweis',
-                       'zeile1':'Es ist bereits eine Fachstatistik f&uuml;r die Fallnummer vorhanden!',
-                       'zeile2':''}
-            return meldung_t % meldung
-        fs = {
-            'id': Fachstatistik().getNewId(),
-            'jahr': jahr,
-            'bz': akte['planungsr']
-
-            }
-        for f in fsdef['termine'].felder:
+            return h.Meldung(
+                legend='Hinweis',
+                zeilen=('Es ist bereits eine Fachstatistik f&uuml;r die Fallnummer vorhanden!',)
+                ).display()
+        fs = Fachstatistik()
+        def altersgruppe(geburtsdatum_als_string, aktuelles_datum):
+            alter = calc_age(geburtsdatum_als_string, aktuelles_datum)
+            ag = cc('fsag','999')
+            gruppen = (2,5,9,13,17,20,26) # gr 1: <=2, gr 2: <=5, etc, siehe Merkmale fsag
+            for i,v in enumerate(gruppen):
+                if alter <= v:
+                    ag = cc('fsag', str(i+1))
+                    break
+            return ag
+        fs.init(
+            id=Fachstatistik().getNewId(),
+            mit_id=self.mitarbeiter['id'],
+            fall_id=fall['id'],
+            fall_fn=fall['fn'],
+            jahr=str(today().year),
+            stz=akte['stzak'],
+            bz=akte['planungsr'],
+            gs=' ', # Geschlecht wird nicht übernommen!
+            ag=altersgruppe(akte['gb'], fall.getDate('bg')),
+            fs=akte['fs'],
+            kindprobleme=None,
+            elternprobleme=None,
+            )
+        fs['eleistungen'] = ' '.join([str(leist['le']) for leist in leistungen])
+        single_kat_felder = ('zm', 'qualij', 'hkm', 'hkv', 'bkm', 'bkv',
+                             'qualikm', 'qualikv',
+                             'agkm', 'agkv', 'ba1', 'ba2', 'pbe', 'pbk', )
+        for f in single_kat_felder:
+            fs[f] = ' ' # leere, selektierte Option, es muss aktiv ausgewählt werden
+        termin_felder = ('kkm', 'kkv', 'kki', 'kpa', 'kfa',
+                         'ksoz', 'kleh', 'kerz', 'kkonf', 'kson', 'kat',)
+        for f in termin_felder:
             fs[f] = 0
-        return self._process(REQUEST, RESPONSE,
-                             'Neue Fachstatistik erstellen',
-                             'fseinf',
-                             fs,
-                             akte,
-                             fall,
-                             self.mitarbeiter,
+        print '***********FSNEU', fs
+        return self._process(title='Neue Fachstatistik erstellen',
+                             file='fseinf',
+                             fs=fs,
                              )
-                             
-
-##         alter_klient = date.calc_age(akte['gb'],letzter_fall['bgd'],
-##                                      letzter_fall['bgm'],letzter_fall['bgy'])
-##         stellenzeichen = get_codes('stzei')
-##         geschlechter = get_codes('gs')
-##         altersgruppen = get_codes('fsag')
-##         altersgruppeneltern = get_codes('fsagel')
-##         familienarten = get_codes('fsfs')
-##         zugangsarten = get_codes('fszm')
-##         herkunftelternl = get_codes('fshe')
-##         berufelternl = get_codes('fsbe')
-##         beratungsanlaesse = get_codes('fsba')
-##         problembereicheeltern = get_codes('fspbe')
-##         problembereichekinder = get_codes('fspbk')
-##         qualifikationen_mutter_vater = get_codes('fsquali')
-##         qualifikationen_kind = get_codes('fsqualij')
-##         massnahmen = get_codes('fsle')
-##         hidden ={'file': 'fseinf'}
-##         fsid = Fachstatistik().getNewId()
-##         hiddenid ={'name': 'fsid', 'value': fsid}
-##         res = []
-##         ##*************************************************************************
-##         ##
-##         ## Formular: Erstellen einer neuen Fachstatistik
-##         ##
-##         ##*************************************************************************
-##         res.append(head_normal_t %('Neue Fachstatistik erstellen'))
-##         res.append(fsneu_t1)
-##         res.append(fsneu_fn_t % fall)
-##         mitarb_data = {'mit_id': self.mitarbeiter['id'],'mit_name' : self.mitarbeiter['ben']}
-##         res.append(fsneu_mit_t % mitarb_data)
-##         res.append(fsneu_jahr_t % today())
-##         res.append(fsneu_region_t % akte)
-        
-##         res.append(fsneu_geschlecht_t)
-##         mksel(res, codeliste_t, geschlechter)
-##         res.append(fsneu_altersgr_t)
-##         if(alter_klient >= 0 and alter_klient <= 2):
-##             altersgruppe_kat = cc('fsag','1')
-##         elif(alter_klient >= 3 and alter_klient <= 5):
-##             altersgruppe_kat = cc('fsag','2')
-##         elif(alter_klient >= 6 and alter_klient <= 9):
-##             altersgruppe_kat = cc('fsag','3')
-##         elif(alter_klient >= 10 and alter_klient <= 13):
-##             altersgruppe_kat = cc('fsag','4')
-##         elif(alter_klient >= 14 and alter_klient <= 17):
-##             altersgruppe_kat = cc('fsag','5')
-##         elif(alter_klient >= 18 and alter_klient <= 20):
-##             altersgruppe_kat = cc('fsag','6')
-##         elif(alter_klient >= 21 and alter_klient <= 26):
-##             altersgruppe_kat = cc('fsag','7')
-##         else:
-##             altersgruppe_kat = cc('fsag','999')
-##         mksel(res, codeliste_t, altersgruppen, 'id', altersgruppe_kat)
-##         res.append(fsneu_famstatus_t)
-##         for f in familienarten:
-##             if fallid and fall['akte_id__fs'] == f['id']:
-##                 f['sel'] = 'selected'
-##             else:
-##                 f['sel'] = ''
-##             res.append(codeliste_t % f)
-##         res.append(fsneu_zugangsmodus_t)
-##         mksel(res, codeliste_t, zugangsarten)
-##         res.append(fsneu_qualikind_t)
-##         mksel(res, codeliste_t, qualifikationen_kind)
-##         res.append(fsneu_qualimutter_t)
-##         mksel(res, codeliste_t, qualifikationen_mutter_vater)
-##         res.append(fsneu_qualivater_t)
-##         mksel(res, codeliste_t, qualifikationen_mutter_vater)
-##         res.append(fsneu_berufmutter_t)
-##         mksel(res, codeliste_t, berufelternl)
-##         res.append(fsneu_berufvater_t)
-##         mksel(res, codeliste_t, berufelternl)
-##         res.append(fsneu_hkmutter_t)
-##         mksel(res, codeliste_t, herkunftelternl)
-##         res.append(fsneu_hkvater_t)
-##         mksel(res, codeliste_t, herkunftelternl)
-##         res.append(fsneu_altermutter_t)
-##         mksel(res, codeliste_t, altersgruppeneltern)
-##         res.append(fsneu_altervater_t)
-##         mksel(res, codeliste_t, altersgruppeneltern)
-##         res.append(fsneu_beratungsanlass1_t)
-##         mksel(res, codeliste_t, beratungsanlaesse)
-##         res.append(fsneu_beratungsanlass2_t)
-##         mksel(res, codeliste_t, beratungsanlaesse)
-##         res.append(fsneu_problemkind_t)
-##         mksel(res, codeliste_t, problembereichekinder)
-##         res.append(fsneu_problemeltern_t)
-##         mksel(res, codeliste_t, problembereicheeltern)
-##         res.append(fsneu_problemspektrumkind_t )
-##         mksel(res, codeliste_t, problembereichekinder)
-##         res.append(fsneu_problemkindnot_t)
-##         res.append(fsneu_problemspektrumeltern_t)
-##         mksel(res, codeliste_t, problembereicheeltern)
-##         res.append(fsneu_problemelternnot_t)
-##         res.append(fsneu_massnahmen_t)
-##         fsleistungen = LeistungList(where = 'fall_id = %s' % letzter_fall['id'])
-##         leistungs_liste = []
-##         for s in fsleistungen:
-##             leistungs_liste.append(s['le'])
-##         mksel(res, codeliste_t, massnahmen,'id',leistungs_liste)
-        
-##         res.append(fsneu_zahlkontakte_t)
-##         res.append(formhiddenvalues_t % hidden)
-##         res.append(formhiddennamevalues_t % hiddenid)
-##         res.append(fsneu_notizsubmit_t)
-##         return string.join(res, '')
 
 # kann auch als updfsform angesprochen werden (siehe EBKuS.py)
 # wird in menu_templates.py verwendet
-class updfs(_fs):
+class updfs(_fachstatistik):
     permissions = Request.STAT_PERM
     def processForm(self, REQUEST, RESPONSE):
-        if self.form.has_key('fsid'):
-            id = self.form.get('fsid')
-            fstat = Fachstatistik(int(id))
-        elif self.form.has_key('fallid'):
-            fallid = self.form.get('fallid')
+        fsid = self.form.get('fsid')
+        fallid = self.form.get('fallid')
+        if fsid:
+            fs = Fachstatistik(fsid)
+        elif fallid:
             fall = Fall(fallid)
-            fs = fall['fachstatistiken']
-            if not fs:
-                meldung = {'titel':'Hinweis',
-                           'legende':'Hinweis',
-                           'zeile1':'Es ist noch keine Fachstatistik f&uuml;r den Fall vorhanden!',
-                           'zeile2':''}
-                return meldung_t % meldung
+            fs_list = fall['fachstatistiken']
+            if not fs_list:
+                return h.Meldung(
+                    legend='Hinweis',
+                    zeilen=('Es ist noch keine Fachstatistik f&uuml;r den Fall vorhanden!',),
+                    ).display()
             else:
-                fstat = fs[-1] # müsste eigentlich immer nur eine sein ...
+                fs = fs_list[-1] # müsste eigentlich immer nur eine sein ...
         else:
             self.last_error_message = "Keine ID für die Fachstatistik erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-##         fsleistungen = fstat['leistungen']
-##         fskindprobleme = fstat['fachstatkindprobleme']
-##         fselternprobleme = fstat['fachstatelternprobleme']
-        fallid = fstat.get('fall_id')
-        fall = Fall(int(fstat['fall_id']))
-        akte = fall['akte']
-
-        return self._process(REQUEST, RESPONSE,
-                             'Fachstatistik &auml;ndern',
-                             'updfs',
-                             fstat,
-                             akte,
-                             fall,
-                             self.mitarbeiter,
+        return self._process(title='Fachstatistik &auml;ndern',
+                             file='updfs',
+                             fs=fs,
                              )
 
 
