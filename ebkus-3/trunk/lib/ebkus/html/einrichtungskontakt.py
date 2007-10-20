@@ -78,6 +78,9 @@ class _einr(Request.Request, akte_share):
         res = h.FormPage(
             title=title,
             name="einrichtungskontakt",action="klkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Klientenkarte', 'klkarte?akid=%(id)s' % akte),
+                           ),
             hidden=(("akid", akte['id']),
                     ("einrid", einrichtung['id']),
                     ("status", einrichtung['status']),

@@ -60,6 +60,9 @@ class _bkont(Request.Request, akte_share):
         res = h.FormPage(
             title=title,
             name="beratungskontakt",action="klkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Klientenkarte', 'klkarte?akid=%(fall__akte_id)s' % bkont),
+                           ),
             hidden=(("akid", fall['akte_id']),
                     ("stz", bkont['stz']),
                     ("bkontid", bkont['id']),

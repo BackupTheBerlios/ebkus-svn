@@ -61,13 +61,12 @@ class login(Request.Request):
             # Es gibt noch eine Session desselben Benutzers, die
             # nicht mit einem logout oder durch Timeout beendet wurde.
             other_session.delete()
-        if mitarbeiter['pass'] == sha.new(username).hexdigest():
-            # Passwort ist identisch mit dem Benutzernamen
-            weiterleitung = 'pwchange'
-        else:
-            weiterleitung = 'menu'
+        weiterleitung = 'menu'
+##         if mitarbeiter['pass'] == sha.new(username).hexdigest():
+##             # Passwort ist identisch mit dem Benutzernamen
+##             weiterleitung = 'pwchange'
         self.session = create_session(username, self.RESPONSE)
-        res.append(head_weiterleitung_t % ("Willkommen bei EBKuS","2", weiterleitung))
+        res.append(head_weiterleitung_t % ("Willkommen bei EBKuS",".2", weiterleitung))
         res.append(login_meldung_t % mitarbeiter)
         write_sql_protocol(artdeszugriffs='LOGIN : Gültiges Login (%s)' % username,
                            username=username, ip=self.ip)

@@ -63,6 +63,9 @@ class _anm(Request.Request, akte_share):
         res = h.FormPage(
             title=title,
             name='anmform',action="klkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Klientenkarte', 'klkarte?akid=%(fall__akte_id)s' % anm),
+                           ),
             hidden=hidden,
             rows=(anmeldekontakt,
                   h.SpeichernZuruecksetzenAbbrechen(),

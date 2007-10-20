@@ -54,6 +54,9 @@ class _leist(Request.Request, akte_share):
         res = h.FormPage(
             title=title,
             name="leistung",action="klkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Klientenkarte', 'klkarte?akid=%(akte_id)s' % fall),
+                           ),
             hidden=(("fallid", fall['id']),
                     ("stz", leistung['stz']),
                     ("leistid", leistung['id']),
@@ -66,7 +69,6 @@ class _leist(Request.Request, akte_share):
                   )
             )
         return res.display()
-        return self.render('leistung.html', context_dict)
     
 class leistneu(_leist):
     """Neue Leistung eintragen. (Tabelle: Leistung.)"""

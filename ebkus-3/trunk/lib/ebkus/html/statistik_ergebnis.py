@@ -34,9 +34,9 @@ class auszergebnis(Request.Request):
     def processForm(self, REQUEST, RESPONSE):
         self.id = self.form.get('id')
         self.typ = self.form.get('typ')
-        self.file = self.form.get('file')
+        self.session_key = self.form.get('session_key')
         try:
-            self.auszaehlung = self.session.data[self.file][self.id]
+            self.auszaehlung = self.session.data[self.session_key][self.id]
         except KeyError:
             meldung = {
                 'titel':'Abfrageergebnis veraltet',
@@ -56,6 +56,9 @@ class auszergebnis(Request.Request):
         elif self.typ == 'image':
             # das eigentliche Chart
             return self.generate_chart()
+        elif self.typ == 'csv':
+            # csv-Datei für Tabellenkalkulation
+            return self.export_csv()
         
 
     def generate_chart(self):
@@ -72,10 +75,30 @@ class auszergebnis(Request.Request):
         self.RESPONSE.setHeader('content-type', 'image/gif')
         self.RESPONSE.setBody(chart.draw())
 
+    def export_csv(self):
+        """Generiert ein CSV-Datei."""
+        counts = self.auszaehlung.get_result()
+        title = self.auszaehlung.title
+        ident = self.auszaehlung.identname
+        names=[i[0][:65] for i in counts]
+        frequencies=[i[1] for i in counts]
+        percentages=[i[2] for i in counts]
+        res = '"%s";Häufigkeit;Prozentsatz\r\n' % (title,)
+        res += '\r\n'.join(['"%s";%s;%s' % t
+                           for t in zip(names, frequencies, percentages)])
+        res += '\r\n'
+        print 'CSV', res
+        self.RESPONSE.setHeader('content-type',
+                                #"text/comma-separated-values; charset=iso-8859-1")
+                                "text/csv; charset=iso-8859-1")
+        self.RESPONSE.setHeader('content-disposition',
+                                'attachment; filename=%s' % ident + '.csv')
+        self.RESPONSE.setBody(res)
+
     def show_chart(self):
         """Zeigt eine eine HTML-Seite für eine Ergebnistabelle,
         die als einzigen Inhalt einen Link auf das Chart-Image hat."""
-        image_url = "auszergebnis?typ=image&file=%s&id=%s" % (self.file, self.id)
+        image_url = "auszergebnis?typ=image&session_key=%s&id=%s" % (self.session_key, self.id)
         inhalt2 = {'titel': self.auszaehlung.title,
                    'imagedir': "\"" + image_url + "\""}
         res = efbchart_html_tag_datei % inhalt2
@@ -103,16 +126,19 @@ class auszergebnis(Request.Request):
         mit allen Tabellen benötigt (jghergebnis, fstat_ausgabe, ...)
         """
         self.id = self.auszaehlung.id
-        self.file = self.auszaehlung.file
+        self.session_key = self.auszaehlung.session_key
         res.append(sprungmarke_t % self.auszaehlung.identname)
         res.append(thkategoriejgh_t % self.auszaehlung.title)
         for i in self.auszaehlung.get_result():
             res.append(item_t % (i[0],  i[1], i[2]) )
         res.append(item_ende_t)
-        image_url = "auszergebnis?typ=chart&file=%s&id=%s" % (self.file, self.id)
-        tab_url = "auszergebnis?typ=tab&file=%s&id=%s" % (self.file, self.id)
+        image_url = "auszergebnis?typ=chart&session_key=%s&id=%s" % (self.session_key, self.id)
+        tab_url = "auszergebnis?typ=tab&session_key=%s&id=%s" % (self.session_key, self.id)
+        csv_url = "auszergebnis?typ=csv&session_key=%s&id=%s" % (self.session_key, self.id)
         # tbd template überarbeiten (vereinfachen)
-        inhalt = {'titel1': self.auszaehlung.title,
+        inhalt = {'titel0': self.auszaehlung.title,
+                  'imagedir0': "\"" + csv_url + "\"",
+                  'titel1': self.auszaehlung.title,
                   'imagedir1': "\"" + tab_url + "\"",
                   'titel2': self.auszaehlung.title,
                   'imagedir2': "\"" + image_url + "\""}
@@ -150,13 +176,13 @@ class Chart(object):
         """Erstellt Chart als GIF. Gibt das GIF als string zurück."""
         # Put options into effect.
         gdchart.option(*(), **self.options)
-        file = cStringIO.StringIO()
+        data = cStringIO.StringIO()
         args = (gdchart.GDC_3DBAR, self.size,
-                file,
+                data,
                 self.names,
                 self.frequencies)
         gdchart.chart(*args)
-        return file.getvalue()
+        return data.getvalue()
 
 
 

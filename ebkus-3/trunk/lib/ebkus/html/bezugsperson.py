@@ -5,7 +5,8 @@
 import string
 
 from ebkus.app import Request
-from ebkus.app.ebapi import StrassenkatalogList,Akte, Fall, Bezugsperson, cc, Code
+from ebkus.config import config
+from ebkus.app.ebapi import Akte, Fall, Bezugsperson, cc, Code
 from ebkus.app.ebapih import get_codes, mksel,mksel_str, mksel_str_upd
 from ebkus.app_surface.klientenkarte_templates import detail_view_bezugsperson_t
 from ebkus.app_surface.standard_templates import *
@@ -51,6 +52,9 @@ class _pers(Request.Request, akte_share):
         res = h.FormPage(
             title=title,
             name='persform',action="klkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Klientenkarte', 'klkarte?akid=%s' % bzp['akte_id']),
+                           ),
             hidden=hidden,
             rows=(h.Pair(left=self.get_klientendaten(bzp),
                          right=self.get_anschrift(bzp),
@@ -58,7 +62,8 @@ class _pers(Request.Request, akte_share):
                   notiz_wichtig,
                   verwandtschaftsart,
                   self.get_bezugspersonen(bezugspersonen_list, aktueller_fall,
-                                          edit_button=False, view_button=True),
+                                          edit_button=False, view_button=True,
+                                          hinzufuegen_button=False),
                   h.SpeichernZuruecksetzenAbbrechen(),
                   ),
             )
@@ -80,17 +85,22 @@ class persneu(_pers):
         bzp.init(
             id=Bezugsperson().getNewId(),
             akte_id=fall['akte_id'],
-            lage=cc('lage', '999'),
+            #lage=cc('lage', '999'),
             no='',
             nobed=cc('notizbed', 't'),
             vrt=cc('vert', 'f'),
             fs=cc('fsfs', '999'),
             verw=cc('klerv', '999'),
+            gs=' ',
+            lage=((config.STRASSENKATALOG) and cc('lage', '0')
+                  or cc('lage', '1'))
             )
         return self._process(title='Neue Bezugsperson eintragen',
                              bzp=bzp,
                              hidden=(('bpid', bzp['id']),
                                      ('file', 'perseinf'),
+                                     ("strid", ""), # wird nur von strkat mit javascript gesetzt
+                                     ('akid', bzp['akte_id']),
                                      ('vrt', bzp['vrt']),
                                      ),
                              )
@@ -111,23 +121,29 @@ class updpers(_pers):
                              bzp=bzp,
                              hidden=(('bpid', bzp['id']),
                                      ('file', 'updpers'),
+                                     ("strid", ""), # wird nur von strkat mit javascript gesetzt
                                      ('vrt', bzp['vrt']),
                                      )
                              )
         
 class viewpers(Request.Request, akte_share):
-    """Bezugsperson ansehen (Tabelle: Bezugsperson)"""
+    """Daten (Addresse, etc.) des Klienten bzw. einer Bezugsperson ansehen"""
     permissions = Request.UPDATE_PERM
     def processForm(self, REQUEST, RESPONSE):
         if self.form.has_key('bpid'):
             id = self.form.get('bpid')
+            obj = Bezugsperson(id)
+            title="Detailansicht: %(verw__name)s von  %(akte__vn)s  %(akte__na)s" % obj
+        elif self.form.has_key('akid'):
+            id = self.form.get('akid')
+            obj = Akte(id)
+            title="Detailansicht: Klient %(vn)s  %(na)s" % obj,
         else:
-            self.last_error_message = "Keine ID für die Bezugsperson erhalten"
+            self.last_error_message = "Keine ID für die Person erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-        bzp = Bezugsperson(id)
         res = h.FormPage(
-            title="Detailansicht: %(verw__name)s von  %(akte__vn)s  %(akte__na)s" % bzp,
-            rows=(self.get_klientendaten_readonly(bzp,
+            title=title,
+            rows=(self.get_klientendaten_readonly(obj,
                                                   button=h.Button(value="Schließen",
                                                                   onClick="javascript:window.close()",
                                                                   tip="Fenster schließen",

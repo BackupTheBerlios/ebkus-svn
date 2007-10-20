@@ -60,7 +60,7 @@ def make_option_list(elements,
             res.append('<option value=" "> </option>')
     for el in elements:
         value = el[value_field]
-        name = el[name_field]
+        name = str(el[name_field])
         sel = value in selected_values and select_attr or ''
         if len(name) > max_name_length:
             name_list = split_option_name(name, max_name_length)

@@ -4,7 +4,7 @@ hier. """
 
 import time
 import sha
-
+import os
 from ebkus.app.ebapi import *
 from ebkus.app.ebapih import *
 from ebkus.config import config
@@ -18,10 +18,14 @@ def akteeinf(form):
       "Akte (id: %(id)s, Name: %(na)s, %(vn)s, Geburtsdatum %(gb)s) existiert bereits")
     akte = Akte()
     get_string_fields(akte, form,
-          ['vn', 'na', 'gb', 'ber', 'str','hsnr','plz', 'ort', 'tl1', 'tl2', 'no'],'')
+          ['vn', 'na', 'ber', 'tl1', 'tl2', 'no'],'')
     setAdresse(akte, form)
     akte['na'] = check_str_not_empty(form, 'na', "Kein Name")
-    akte['gb'] = check_str_not_empty(form, 'gb', "Kein Geburtsdatum")
+
+    akte['gs'] = check_code(form,'gs', 'gs',
+                            "Keine Geschlechtsangabe")
+    akte['gb'] = str(check_date(form, 'gb', 'Fehler im Geburtsdatum'))
+##     akte['gb'] = check_str_not_empty(form, 'gb', "Kein Geburtsdatum")
     akte['fs'] = check_code(form,'fs', 'fsfs',
                             "Fehler im Familienstatus", '999')
     akte['stzbg'] = check_code(form, 'stzbg',
@@ -85,9 +89,12 @@ def updakte(form):
     akteold = check_exists(form, 'akid', Akte, "Aktenid fehlt")
     akte = Akte()
     akte['na'] = check_str_not_empty(form, 'na', "Kein Name", akteold)
-    akte['gb'] = check_str_not_empty(form, 'gb', "Kein Geburtsdatum", akteold)
+    akte['gs'] = check_code(form,'gs', 'gs',
+                            "Keine Geschlechtsangabe")
+    akte['gb'] = str(check_date(form, 'gb', 'Fehler im Geburtsdatum'))
+##     akte['gb'] = check_str_not_empty(form, 'gb', "Kein Geburtsdatum", akteold)
     get_string_fields(akte, form,
-                      ['vn', 'ber', 'str', 'plz', 'ort',
+                      ['vn', 'ber',
                        'tl1', 'tl2', 'no'], akteold)
     
     setAdresse(akte, form)
@@ -110,11 +117,16 @@ def perseinf(form):
     pers = Bezugsperson()
     pers['akte_id'] = check_fk(form, 'akid', Akte, "Keine Akte")
     get_string_fields(pers, form,
-                      ['vn', 'na', 'gb', 'ber', 'str',
-                       'plz', 'ort', 'tl1', 'tl2', 'no'],'')
+                      ['vn', 'na', 'ber', 'tl1', 'tl2', 'no'],'')
     if pers['vn'] == '' and pers['na'] == '':
         raise EE("Kein Name")
-        
+    gs = check_code(form,'gs', 'gs',
+                    "Keine Geschlechtsangabe", '')
+    if gs:
+        pers['gs'] = gs
+    gb = check_date(form, 'gb', 'Fehler im Geburtsdatum', (0,0,0),
+                    alle_jahrgaenge_akzeptieren=True)
+    pers['gb'] = gb.year != 0 and str(gb) or ''
     setAdresse(pers, form)
     pers['verw'] = check_code(form, 'verw', 'klerv',
                               "Fehler im Verwandtschaftsgrad", '999')
@@ -144,12 +156,17 @@ def updpers(form):
     persold = check_exists(form, 'bpid', Bezugsperson, "Bezugspersonid fehlt")
     pers = Bezugsperson()
     get_string_fields(pers, form,
-                      ['vn', 'na', 'gb', 'ber', 'str', 'plz',
-                       'ort', 'tl1', 'tl2', 'no','hsnr'],
+                      ['vn', 'na', 'ber', 'tl1', 'tl2', 'no','hsnr'],
                       persold)
     if pers['vn'] == '' and pers['na'] == '':
         raise EE("Kein Name")
-        
+    gs = check_code(form,'gs', 'gs',
+                    "Keine Geschlechtsangabe", '')
+    if gs:
+        pers['gs'] = gs
+    gb = check_date(form, 'gb', 'Fehler im Geburtsdatum', (0,0,0),
+                    alle_jahrgaenge_akzeptieren=True)
+    pers['gb'] = gb.year != 0 and str(gb) or ''
     setAdresse(pers, form)
     pers['verw'] = check_code(form, 'verw', 'klerv',
                               "Fehler im Verwandtschaftsgrad", persold)
@@ -338,13 +355,44 @@ def _bkont_check(form, bkont):
     bkont.setDate('k', datum)
     bkont['stz'] = check_code(form, 'stz', 'stzei',
                               "Kein Stellenzeichen für den Beratungskontakt")
+
+def _bkont_bs_check(form, bkont):
+    print '_bkont_bs_check', form
+    bkont['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
+    bkont['fall1_id'] = form.get('fall1id') and \
+                        check_fk(form, 'fall1id', Fall, "Kein Fall") or None
+    bkont['fall2_id'] = form.get('fall2id') and \
+                        check_fk(form, 'fall2id', Fall, "Kein Fall") or None
+    bkont['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
+    bkont['mit1_id'] = form.get('mit1id') and \
+                       check_fk(form, 'mit1id', Mitarbeiter, "Kein Mitarbeiter", '') or None
+    bkont['mit2_id'] = form.get('mit2id') and \
+                       check_fk(form, 'mit2id', Mitarbeiter, "Kein Mitarbeiter", '') or None
+    bkont['art'] = check_code(form, 'art', 'kabs', "Fehler in Beratungskontaktart")
+    mc = check_multi_code(form, 'teilnehmer', 'teilnbs', "Fehler in Teilnehmer")
+    print 'MULTICODE', mc, type(mc)
+    bkont['teilnehmer'] = check_multi_code(form, 'teilnehmer', 'teilnbs', "Fehler in Teilnehmer")
+    bkont['offenespr'] = check_code(form, 'offenespr', 'ja_nein', "", cn('ja_nein', 'ja'))
+    bkont['no'] = check_str_not_empty(form, 'no', 'Keine Notiz', '')
+    bkont['dauer'] = check_int_not_empty(form, 'dauer', "Fehler in Dauer")
+    bkont['anzahl'] = check_int_not_empty(form, 'anzahl', "Fehler in Anzahl der Teilnehmer")
+    datum = check_date(form, 'k', "Fehler im Beratungskontaktdatum")
+    fall = Fall(bkont['fall_id'])
+    if datum < fall.getDate('bg'):
+        raise EE("Datum vor Fallbeginn")
+    if fall.get('ey') and datum > fall.getDate('e'):
+        raise EE("Datum nach Fallende")
+    bkont.setDate('k', datum)
+    bkont['stz'] = check_code(form, 'stz', 'stzei',
+                              "Kein Stellenzeichen für den Beratungskontakt")
     
 def bkonteinf(form):
     """Neuer Beratungskontakt."""
-    
+    if not config.BERATUNGSKONTAKTE:
+        raise EBUpdateError("Aufruf von bkonteinf ohne config.BERATUNGSKONTAKTE")
     bkontid = check_int_not_empty(form, 'bkontid', "Beratungskontaktid fehlt")
     check_not_exists(bkontid, Beratungskontakt,
-      "Beratungskontakt (id: %(id)s) existiert bereits")
+                     "Beratungskontakt (id: %(id)s) existiert bereits")
     bkont = Beratungskontakt()
     _bkont_check(form, bkont)
     try:
@@ -352,17 +400,44 @@ def bkonteinf(form):
     except:
         try: bkont.delete()
         except: pass
-    _stamp_akte(bkont['akte'])
+    _stamp_akte(bkont['fall__akte'])
+
+def bkontbseinf(form):
+    """Neuer Beratungskontakt."""
+    if not config.BERATUNGSKONTAKTE_BS:
+        raise EBUpdateError("Aufruf von bkontbseinf ohne config.BERATUNGSKONTAKTE_BS")
+    bkontid = check_int_not_empty(form, 'bkontid', "Beratungskontaktid fehlt")
+    check_not_exists(bkontid, Beratungskontakt_BS,
+                     "Beratungskontakt (id: %(id)s) existiert bereits")
+    bkont = Beratungskontakt_BS()
+    _bkont_bs_check(form, bkont)
+    try:
+        bkont.insert(bkontid)
+    except:
+        try: bkont.delete()
+        except: pass
+    _stamp_akte(bkont['fall__akte'])
     
 
 def updbkont(form):
     """Update des Beratungskontakts."""
-    
+    if not config.BERATUNGSKONTAKTE:
+        raise EBUpdateError("Aufruf von updbkont ohne config.BERATUNGSKONTAKTE")
     bkontold = check_exists(form,'bkontid', Beratungskontakt, "Keine Beratungskontaktid")
     bkont = Beratungskontakt()
     _bkont_check(form, bkont)
     bkontold.update(bkont)
-    _stamp_akte(bkontold['akte'])
+    _stamp_akte(bkontold['fall__akte'])
+    
+def updbkontbs(form):
+    """Update des Beratungskontakts."""
+    if not config.BERATUNGSKONTAKTE_BS:
+        raise EBUpdateError("Aufruf von updbkontbs ohne config.BERATUNGSKONTAKTE_BS")
+    bkontold = check_exists(form,'bkontid', Beratungskontakt_BS, "Keine Beratungskontaktid")
+    bkont = Beratungskontakt_BS()
+    _bkont_bs_check(form, bkont)
+    bkontold.update(bkont)
+    _stamp_akte(bkontold['fall__akte'])
     
     
 def zusteinf(form):
@@ -486,24 +561,24 @@ def updvermeinf(form):
     dok['betr'] = check_str_not_empty(form, 'betr', "Kein Betreff", dokold)
     dok['art'] = check_code(form, 'art', 'dokart', "Text ist: fehlt", dokold)
     dok['zeit'] = int(time.time())
-    dok['mtyp'] = cc('mimetyp','txt')
-    dok['fname'] = '%s.txt' % dokold['id']
     dok.setDate('v',
-                  check_date(form, 'v',
-                             "Fehler im Datum"))
-    text = check_str_not_empty(form, 'text', "Kein Text")
-    fall = Fall(dok['fall_id'])
-    akteold = Akte(fall['akte_id'])
-    akte_path = get_akte_path(akteold['id'])
-    
-    try:
-        f = open('%s/%s' % (akte_path, dok['fname']), 'w+')
-        f.write(text)
-        f.close()
-        os.chmod('%s/%s' % (akte_path, dok['fname']),0600)
-    except Exception, args:
-        raise EBUpdateError("Fehler beim Anlegen der Datei: %s" % str(args))
-        
+                check_date(form, 'v',
+                           "Fehler im Datum"))
+    if not is_binary(dokold):
+        dok['mtyp'] = cc('mimetyp','txt')
+        dok['fname'] = '%s.txt' % dokold['id']
+        text = check_str_not_empty(form, 'text', "Kein Text")
+        fall = Fall(dok['fall_id'])
+        akteold = Akte(fall['akte_id'])
+        fname = os.path.join(get_akte_path(akteold['id']),
+                             dok['fname'])
+        try:
+            f = open(fname, 'w+')
+            f.write(text)
+            f.close()
+            os.chmod(fname,0600)
+        except Exception, args:
+            raise EBUpdateError("Fehler beim Anlegen der Datei: %s" % str(args))
     dokold.update(dok)
     _stamp_akte(dokold['akte'])
     
@@ -512,13 +587,7 @@ def removedoks(form):
     """Dokument löschen."""
     
     import os
-    if form.has_key('dokids'):
-        dokids = form.get('dokids')
-    else:
-        raise EE("Keinen Eintrag markiert?")
-        
-    if type(dokids) is type(''):
-        dokids = [dokids]
+    dokids = check_list(form, 'dokids', "Keinen Eintrag markiert?")
     for d in dokids:
         try:
             dok = Dokument(int(d))
@@ -717,11 +786,13 @@ def waufneinf(form):
     akteold = check_exists(form, 'akid', Akte, "Aktenid fehlt")
     akte = Akte()
     akte['na'] = check_str_not_empty(form, 'na', "Kein Name", akteold)
-    akte['gb'] = check_str_not_empty(form, 'gb',
-                                     "Kein Geburtsdatum", akteold)
+    akte['gs'] = check_code(form,'gs', 'gs',
+                            "Keine Geschlechtsangabe")
+    akte['gb'] = str(check_date(form, 'gb', 'Fehler im Geburtsdatum'))
+##     akte['gb'] = check_str_not_empty(form, 'gb',
+##                                      "Kein Geburtsdatum", akteold)
     get_string_fields(akte, form,
-                      ['vn', 'ber', 'str', 'plz', 'ort',
-                       'tl1', 'tl2', 'no'], akteold)
+                      ['vn', 'ber', 'tl1', 'tl2', 'no'], akteold)
     akte['fs'] = check_code(form,'fs', 'fsfs',
                             "Fehler im Familienstatus", akteold)
     setAdresse(akte, form)
@@ -780,7 +851,38 @@ def waufneinf(form):
         raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
     _stamp_akte(akteold)
     
-    
+
+def _fs_check(form, fstat):
+    fstat['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
+    fstat['jahr'] = check_int_not_empty(form, 'jahr', "Jahr fehlt")
+    fstat['stz'] = check_code(form, 'stz', 'stzei',
+                              "Kein Stellenzeichen für die Fachstatistik")
+    # ab hier abschaltbar
+    from ebkus.html.fskonfig import fs_customize as fsc
+    multicode = cc('verwtyp', 'm')
+    singlecode = cc('verwtyp', 'k')
+    for fname in fsc.abschaltbare_items:
+        if not fsc.deaktiviert(fname):
+            feld = fsc.get(fname) # das Feldobjekt
+            verwtyp = feld['verwtyp']
+            if verwtyp == singlecode:
+                fstat[fname] = check_code(form, fname,
+                                          feld['kat_code'],
+                                          "Fehlt: %s" % feld['name'])
+            elif verwtyp == multicode:
+                fstat[fname] = check_multi_code(form, fname,
+                                                feld['kat_code'],
+                                                "Fehlt: %s" % feld['name'])
+            elif fname in ('no', 'no2', 'no3'):
+                fstat[fname] = check_str_not_empty(form, fname, "Keine Notiz", '')
+            elif fname in ('kat',):
+                fstat[fname] = check_int_not_empty(form, fname, "Terminsumme fehlt")
+                for f in fsc.termin_felder:
+                    fobj = fsc.get(f)
+                    fstat[f] = check_int_not_empty(form, f, "Fehlt: %s" % fobj['name'])
+            elif fname in fsc.termin_felder:
+                fstat[fname] = check_int_not_empty(form, fname, "Keine Terminanzahl", 0)
+
 def fseinf(form):
     """Neue Fachstatistik."""
     
@@ -791,126 +893,13 @@ def fseinf(form):
     fstat = Fachstatistik()
     if form['fallid'] != None and form['fallid'] != '':
         fstat['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
-    fstat['mit_id'] = check_fk(form, 'mitid', Mitarbeiter,
-                               "Kein Mitarbeiter")
-    fstat['kat'] = check_int_not_empty(form, 'kat',
-                                       "Terminsumme fehlt")
-    fstat['fall_fn'] = check_str_not_empty(form, 'fall_fn',
-                                           "Fallnummer fehlt")
-    fstat['jahr'] = check_int_not_empty(form, 'jahr', "Jahr fehlt")
-    
+    fstat['fall_fn'] = check_str_not_empty(form, 'fall_fn', "Fallnummer fehlt")
     jahresl = FachstatistikList(where = "fall_fn = '%s'" % fstat['fall_fn'])
-    
     if len(jahresl) >= 1:
-        raise EE("Fachstatistik für Fallnummer: '%s'" % fstat['fall_fn'])
-        
-    fstat['stz'] = check_code(form, 'stz', 'stzei',
-                              "Kein Stellenzeichen für die Fachstatistik")
+        raise EE("Fachstatistik für Fallnummer: '%s' vorhanden" % fstat['fall_fn'])
     fstat['bz'] = form.get('plr')
-
-    fstat['gs'] = check_code(form, 'gs', 'gs',
-                              "Kein Geschlecht")
-    fstat['ag'] = check_code(form, 'ag', 'fsag',
-                              "Keine Altersgruppe Kind")
-    fstat['agkm'] = check_code(form, 'agkm', 'fsagel',
-                              "Keine Altersgruppe Mutter")
-    fstat['agkv'] = check_code(form, 'agkv', 'fsagel',
-                              "Keine Altersgruppe Vater")
-    fstat['fs'] = check_code(form, 'fs', 'fsfs',
-                              "Kein Familienstatus")
-    fstat['zm'] = check_code(form, 'zm', 'fszm',
-                              "Keine Zugangsart")
-    fstat['hkm'] = check_code(form, 'hkm', 'fshe',
-                              "Keine Herkunft, Mutter")
-    fstat['hkv'] = check_code(form, 'hkv', 'fshe',
-                              "Keine Herkunft, Vater" )
-    fstat['qualij'] = check_code(form, 'qualij', 'fsqualij',
-                              "Keine Qualifikation f&uuml;r Jugendlichen gew&auml;hlt")
-    fstat['qualikm'] = check_code(form, 'qualikm', 'fsquali',
-                              "Keine Qualifikation f&uuml;r Vater gew&auml;hlt")
-    fstat['qualikv'] = check_code(form, 'qualikv', 'fsquali',
-                              "Keine Qualifikation f&uuml;r Vater gew&auml;hlt")
-    fstat['bkm'] = check_code(form, 'bkm', 'fsbe',
-                              "Kein Beruf, Mutter")
-    fstat['bkv'] = check_code(form, 'bkv', 'fsbe',
-                              "Kein Beruf, Vater fehlt")
-    fstat['ba1'] = check_code(form, 'ba1', 'fsba',
-                              "Keine Problemlage 1 bei der Anmeldung" )
-    fstat['ba2'] = check_code(form, 'ba2', 'fsba',
-                              "Keine Problemlage 2 bei der Anmeldung" )
-    fstat['pbe'] = check_code(form, 'pbe', 'fspbe',
-                              "Keine Hauptproblematik der Eltern" )
-    fstat['pbk'] = check_code(form, 'pbk', 'fspbk',
-                              "Keine Hauptproblematik Kind" )
-    fstat['no'] = check_str_not_empty(form, 'no', "Keine Notiz", '')
-    fstat['no2'] = check_str_not_empty(form, 'no2', "Keine Notiz andersgeartete Problemlage Kind", '')
-    fstat['no3'] = check_str_not_empty(form, 'no3', "Keine Notiz andersgeartete Problemlage Eltern", '')
-    
-    #get_int_fields(fstat, form, ['ka'], )
-    get_int_fields(fstat, form,
-                   ['kkm', 'kkv',
-                   'kki', 'kpa', 'kfa', 'ksoz', 'kleh', 'kerz', 'kson','kkonf' ], 0)
-    
-    fstat['eleistungen'] = check_multi_code(
-        form, 'eleistungen', 'fsle', "Keine erbrachte Leistung angegeben")
-    fstat['kindprobleme'] = check_multi_code(
-        form, 'kindprobleme', 'fspbk', "Kein Problemspektrum für das Kind angegeben")
-    fstat['elternprobleme'] = check_multi_code(
-        form, 'elternprobleme', 'fspbk', "Kein Problemspektrum für die Eltern angegeben")
-
-##     if form.has_key('le'):
-##         le = form.get('le')
-##     else: raise EE("Keine Massnahme angegeben")
-    
-##     if form.has_key('pbkind'):
-##         pbk = form.get('pbkind')
-##     else: raise EE("Kein Problemspektrum für das Kind angegeben")
-    
-##     if form.has_key('pbeltern'):
-##         pbe = form.get('pbeltern')
-##     else: raise EE("Kein Problemspektrum für die Eltern angegeben")
-    
-##     #print "LEISTUNGSART:",le
-##     if type(le) is type(''):
-##         le = [le]
-##     for l in le:
-##         fstatlei = Fachstatistikleistung()
-##         fstatlei['fstat_id'] = fsid
-##         fstatlei['le'] = check_code({'le':l},'le', 'fsle', "Keine Leistungsart")
-##         try:
-##             fstatlei.new()
-##             fstatlei.insert()
-##         except Exception, args:
-##             raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
-            
-##             #print "Problemspektrum:",pbkind
-##     if type(pbk) is type(''):
-##         pbk = [pbk]
-##     for p in pbk:
-##         fstatpbk = Fachstatistikkindproblem()
-##         fstatpbk['fstat_id'] = fsid
-##         fstatpbk['pbk'] = check_code({'pbk':p},'pbk', 'fspbk', "Kein Problemspektrum Kind")
-##         try:
-##             fstatpbk.new()
-##             fstatpbk.insert()
-##         except Exception, args:
-##             raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
-            
-##             #print "Problemspektrum:",pbeltern
-##     if type(pbe) is type(''):
-##         pbe = [pbe]
-##     for p in pbe:
-##         fstatpbe = Fachstatistikelternproblem()
-##         fstatpbe['fstat_id'] = fsid
-##         fstatpbe['pbe'] = check_code({'pbe':p},'pbe', 'fspbe', "Kein Problemspektrum Eltern")
-##         try:
-##             fstatpbe.new()
-##             fstatpbe.insert()
-##         except Exception, args:
-##             raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
-            
+    _fs_check(form, fstat)
     fstat['zeit'] = int(time.time())
-    
     try:
         fstat.insert(fsid)
     except Exception, args:
@@ -929,151 +918,50 @@ def updfs(form):
         fstat['fall_id'] = None
     else:
         fstat['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
-    fstat['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
     fstat['fall_fn'] = check_str_not_empty(form, 'fall_fn', "Fallnummer fehlt")
-    fstat['jahr'] = check_int_not_empty(form, 'jahr', "Jahr fehlt")
-    fstat['stz'] = check_code(form, 'stz', 'stzei',
-                              "Kein Stellenzeichen für die Fachstatistik")
-
-    # TODO: bz hat keinen Wert im Formular, daher immer default von fstatold
-    #       fsbz ist keine gültige Kategorie!!!!
-    #fstat['bz'] = check_code(form, 'bz', 'fsbz',
-    #                          "Kein Bezirk", fstatold)
-    fstat['gs'] = check_code(form, 'gs', 'gs',
-                              "Kein Geschlecht", fstatold)
-    fstat['ag'] = check_code(form, 'ag', 'fsag',
-                              "Keine Altersgruppe Kind", fstatold)
-    fstat['agkm'] = check_code(form, 'agkm', 'fsagel',
-                              "Keine Altersgruppe Mutter", fstatold)
-    fstat['agkv'] = check_code(form, 'agkv', 'fsagel',
-                              "Keine Altersgruppe Vater", fstatold)
-    fstat['fs'] = check_code(form, 'fs', 'fsfs',
-                              "Kein Familienstatus", fstatold )
-    fstat['zm'] = check_code(form, 'zm', 'fszm',
-                              "Keine Zugangsart", fstatold)
-    fstat['qualij'] = check_code(form, 'qualij', 'fsqualij',
-                              "Keine Qualifikation f&uuml;r Jugendlichen gew&auml;hlt")
-    fstat['qualikm'] = check_code(form, 'qualikm', 'fsquali',
-                              "Keine Qualifikation f&uuml;r Vater gew&auml;hlt")
-    fstat['qualikv'] = check_code(form, 'qualikv', 'fsquali',
-                              "Keine Qualifikation f&uuml;r Vater gew&auml;hlt")
-    fstat['hkm'] = check_code(form, 'hkm', 'fshe',
-                              "Keine Herkunft, Mutter", fstatold)
-    fstat['hkv'] = check_code(form, 'hkv', 'fshe',
-                              "Keine Herkunft, Vater", fstatold)
-    fstat['bkm'] = check_code(form, 'bkm', 'fsbe',
-                              "Kein Beruf, Mutter", fstatold)
-    fstat['bkv'] = check_code(form, 'bkv', 'fsbe',
-                              "Kein Beruf, Vater fehlt", fstatold)
-    fstat['ba1'] = check_code(form, 'ba1', 'fsba',
-                              "Keine Problemlage 1 bei der Anmeldung", fstatold)
-    fstat['ba2'] = check_code(form, 'ba2', 'fsba',
-                              "Keine Problemlage 1 bei der Anmeldung", fstatold)
-    fstat['pbe'] = check_code(form, 'pbe', 'fspbe',
-                              "Keine Hauptproblematik der Eltern", fstatold)
-    fstat['pbk'] = check_code(form, 'pbk', 'fspbk',
-                              "Keine Hauptproblematik Kind", fstatold)
-    fstat['no2'] = check_str_not_empty(form, 'no2',
-                                       "Keine Notiz andersgeartete Problemlage Kind", fstatold)
-    fstat['no3'] = check_str_not_empty(form, 'no3',
-                                       "Keine Notiz andersgeartete Problemlage Eltern", fstatold)
-    fstat['no'] = check_str_not_empty(form, 'no', "Keine Notiz", fstatold)
-    
-    fstat['kat'] = check_int_not_empty(form, 'kat', "Terminsumme fehlt")
-
-    #get_int_fields(fstat, form, ['ka'], )
-    get_int_fields(fstat, form,
-                   [ 'kkm', 'kkv',
-                   'kki', 'kpa', 'kfa', 'ksoz', 'kleh', 'kerz', 'kson','kkonf' ], 0)
-    
-    fstat['eleistungen'] = check_multi_code(
-        form, 'eleistungen', 'fsle', "Keine erbrachte Leistung angegeben")
-    fstat['kindprobleme'] = check_multi_code(
-        form, 'kindprobleme', 'fspbk', "Kein Problemspektrum für das Kind angegeben")
-    fstat['elternprobleme'] = check_multi_code(
-        form, 'elternprobleme', 'fspbk', "Kein Problemspektrum für die Eltern angegeben")
-
-##     if form.has_key('le'):
-##         le = form.get('le')
-##     else: raise EE("Keine Massnahme angegeben")
-    
-##     if form.has_key('pbkind'):
-##         pbk = form.get('pbkind')
-##     else: raise EE("Kein Problemspektrum für das Kind angegeben")
-    
-##     if form.has_key('pbeltern'):
-##         pbe = form.get('pbeltern')
-##     else: raise EE("Kein Problemspektrum für die Eltern angegeben")
-    
-##     fsid = fstatold['id']
-##     if not le is None:
-##         fsleilist = FachstatistikleistungList(where='fstat_id = %s' % fsid)
-##         fsleilist.deleteall()
-##         if type(le) is type(''):
-##             le = [le]
-##         codelist =  []
-##         for l in le:
-##             codelist.append(check_code({'le':l},'le', 'fsle',
-##                                        "Fehler in Leistungsart"))
-##         for l in codelist:
-##             fstatlei = Fachstatistikleistung()
-##             fstatlei['fstat_id'] = fsid
-##             fstatlei['le'] = l
-##             try:
-##                 fstatlei.new()
-##                 fstatlei.insert()
-##                 fstatold.update(fstat)
-##             except Exception, args:
-##                 raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
-                
-##     if not pbk is None:
-##         pbkl = FachstatistikkindproblemList(where='fstat_id = %s' % fsid)
-##         pbkl.deleteall()
-##         if type(pbk) is type(''):
-##             pbk = [pbk]
-##         codelist =  []
-##         for p in pbk:
-##             codelist.append(check_code({'pbk':p},'pbk', 'fspbk', "Fehler Problemspektrum Kind"))
-##         for p in codelist:
-##             fstatpbk = Fachstatistikkindproblem()
-##             fstatpbk['fstat_id'] = fsid
-##             fstatpbk['pbk'] = p
-##             try:
-##                 fstatpbk.new()
-##                 fstatpbk.insert()
-##                 fstatold.update(fstat)
-##             except Exception, args:
-##                 raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
-                
-##     if not pbe is None:
-##         pbelist = FachstatistikelternproblemList(where='fstat_id = %s' % fsid)
-##         pbelist.deleteall()
-##         if type(pbe) is type(''):
-##             pbe = [pbe]
-##         codelist =  []
-##         for p in pbe:
-##             codelist.append(check_code({'pbe':p},'pbe', 'fspbe', "Fehler Problemspektrum Eltern"))
-##         for p in codelist:
-##             fstatpbe = Fachstatistikelternproblem()
-##             fstatpbe['fstat_id'] = fsid
-##             fstatpbe['pbe'] = p
-##             try:
-##                 fstatpbe.new()
-##                 fstatpbe.insert()
-##                 fstatold.update(fstat)
-##             except Exception, args:
-##                 raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
-                
+    #fstat['bz'] kann nicht updatet werden
+    _fs_check(form, fstat)
     fstat['zeit'] = int(time.time())
     fstatold.update(fstat)
-    
     ## vgl. Kommentar bei updjgh
     ##
-    
     if fstatold['fall_id'] != None:
         _stamp_akte(fstatold['akte'])
         
-        
+
+def updfskonfig(form):
+    """Fachstatistikformular konfigurieren."""
+    def set_aktiviert(f_obj, status):
+        flag = f_obj['flag']
+        if status:
+            f_obj.update({'flag': flag&~1})
+        else:
+            f_obj.update({'flag': flag|1})
+    from ebkus.html.fskonfig import fs_customize as fsc
+    for f in fsc.abschaltbare_items:
+        f_obj = fsc.get(f)
+        status = form.get('%s_a' % f)
+        set_aktiviert(f_obj, status)
+        if f == 'kat':
+            # alle Terminfelder richten sich nach kat, der Summe
+            for t in fsc.termin_felder:
+                t_obj = fsc.get(t)
+                set_aktiviert(t_obj, status)
+        if f in fsc.joker_felder:
+            label = form.get('%s_l' % f)
+            f_obj.update({'name': label})
+            kat_id = form.get('%s_k' % f)
+            kat = Kategorie(kat_id)
+            f_obj.update({'kat_code': kat['code']})
+            f_obj.update({'kat_id': kat['id']})
+        if f in fsc.joker_frei:
+            mehrfach = form.get('%s_m' % f)
+            if mehrfach:
+                f_obj.update({'verwtyp': cc('verwtyp', 'm')})
+            else:
+                f_obj.update({'verwtyp': cc('verwtyp', 'k')})
+
+    
 def jgheinf(form):
     """Jugendhilfestatistik."""
     
@@ -1171,12 +1059,7 @@ def jgheinf(form):
         jghstat['fbe3'] = check_code(form, 'fbe3', 'fbe3',
                                  "Beratungsansatz 'soziales Umfeld' leer", '0')
         
-    if form.has_key('ba'):
-        ba = form.get('ba')
-    else: raise EE("Keinen Beratunganlass angegeben")
-    ##  print "BERATUNGSANLÄSSE:",ba
-    if type(ba) is type(''):
-        ba = [ba]
+    ba = check_list(form, 'ba', "Keinen Beratunganlass angegeben")
     if len(ba) > 2:
         raise EE("Mehr als 2 Beratungsanlässe markiert")
     for b in ba:
@@ -1336,12 +1219,22 @@ def _jgh07_check(form, jgh):
     item_J = "J / Intensität / Zahl der Beratungskontakte"
     item_M = "M / Betreuungsintensität / Zahl der Beratungskontakte"
     if hilfe_dauert_an:
+        if config.BERATUNGSKONTAKTE_BS:
+            # falls leer Übernahm aus Beratungskontakten
+            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte_bs
+            if not form.get('nbkakt'):
+                form['nbkakt'], _ = get_jgh_kontakte_bs(fall)
         jgh['nbkakt'] = check_int_not_empty(form, 'nbkakt',
                             "Fehlt: %s" % item_J)
         raise_if_int(form, ('nbkges',),
                      "Nur bei beendeter Hilfe ausfüllen: %s" % item_M)
         jgh['nbkges'] = None
     else:
+        if config.BERATUNGSKONTAKTE_BS:
+            # falls leer Übernahm aus Beratungskontakten
+            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte_bs
+            if not form.get('nbkges'):
+                _, form['nbkges'] = get_jgh_kontakte_bs(fall)
         jgh['nbkges'] = check_int_not_empty(form, 'nbkges',
                             "Fehlt: %s" % item_M)
         raise_if_int(form, ('nbkakt',),
@@ -1589,12 +1482,13 @@ def updjgh(form):
         jghstat['fbe3'] = check_code(form, 'fbe3', 'fbe3',
                                  "Beratungsansatz 'soziales Umfeld' leer", '0')
         
-    if form.has_key('ba'):
-        ba = form.get('ba')
-    else: raise EE("Keinen Beratunganlass angegeben")
-    #  print "BERATUNGSANLÄSSE:",ba
-    if type(ba) is type(''):
-        ba = [ba]
+##     if form.has_key('ba'):
+##         ba = form.get('ba')
+##     else: raise EE("Keinen Beratunganlass angegeben")
+##     #  print "BERATUNGSANLÄSSE:",ba
+##     if type(ba) is type(''):
+##         ba = [ba]
+    ba = check_list(form, 'ba', "Keinen Beratunganlass angegeben")
     if len(ba) > 2:
         raise EE("Mehr als 2 Beratungsanlässe markiert")
     for b in ba:
@@ -1660,6 +1554,83 @@ def updjgh(form):
     if fallid:
         _stamp_akte(jghstatold['akte'])
         
+
+
+## def abfreinf(form):
+##     from ebkus.html.abfragedef import Query
+##     abfr_id =  check_int_not_empty(form, 'abfrid', "ID fehlt")
+##     name=check_str_not_empty(form, 'name', "Kein Name")
+##     mit_id = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
+##     cgi_name = 'query1' 
+##     q = Query(cgi_name, form.get(cgi_name, []))
+##     abfr = Abfrage()
+##     abfr.init(id=abfr_id,
+##               zeit=time.time(),
+##               mit_id=mit_id,
+##               name=name,
+##               dok=self.form.get('dok', ''),
+##               value=q.get_query_string(),
+##               typ='statistik_teilmengen_definition',
+##               )
+##     abfr.new()
+##     abfr.insert()
+
+
+def upd_or_einf_abfr(form):
+    from ebkus.html.abfragedef import Query
+    abfr_id =  form.get('abfrid')
+    name=check_str_not_empty(form, 'name', "Kein Name")
+    abfrage_list = AbfrageList(where="name = '%s'" % name)
+    if len(abfrage_list) > 1:
+        raise EE(("Es existieren mehrere Teilmengendefinitionen mit dem Namen '%s'." % name) +
+                 "Bitte erst löschen.")
+    elif abfrage_list:
+        abfrold = abfrage_list[0]
+        if abfr_id and int(abfr_id) != abfrold['id']:
+            raise EE("Es existiert bereits eine Definition mit dem Namen '%s'." % name)
+    else:
+        abfrold = None
+    mit_id = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
+    cgi_name = 'query1' 
+    query1 = check_list(form, cgi_name, 'Keine Query', [])
+    q = Query(query1, cgi_name=cgi_name)
+    abfr = Abfrage()
+    abfr.init(zeit=time.time(),
+              mit_id=mit_id,
+              name=name,
+              dok=form.get('dok', ''),
+              value=q.get_query_string(),
+              typ='statistik_teilmengen_definition',
+              )
+    if abfrold:
+        abfrold.update(abfr)
+    else:
+        abfr.new()
+        abfr.insert()
+
+## def updabfr(form):
+##     from ebkus.html.abfragedef import Query
+##     abfr_id =  check_int_not_empty(form, 'abfrid', "ID fehlt")
+##     abfrold = Abfrage(abfr_id)
+##     name=check_str_not_empty(form, 'name', "Kein Name")
+##     mit_id = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
+##     cgi_name = 'query1' 
+##     q = Query(cgi_name, form.get(cgi_name, []))
+##     abfr = Abfrage()
+##     abfr.init(id=abfr_id,
+##               zeit=time.time(),
+##               mit_id=mit_id,
+##               name=name,
+##               dok=self.form.get('dok', ''),
+##               value=q.get_query_string(),
+##               typ='statistik_teilmengen_definition',
+##               )
+##     abfrold.update(abfr)
+
+def rmabfr(form):
+    abfr_id =  check_int_not_empty(form, 'abfrid', "ID fehlt")
+    abfrold = Abfrage(abfr_id)
+    abfrold.delete()
         
 def gruppeeinf(form):
     """Neue Gruppe."""
@@ -1680,15 +1651,15 @@ def gruppeeinf(form):
                                  "Fehler beim Gruppentyp")
     gruppe['stz'] = check_code(form, 'stz', 'stzei',
                                "Kein Stellenzeichen für die Grupp")
-    get_int_fields(gruppe, form, ['tzahl', 'stzahl'], 0)
+    get_int_fields(gruppe, form, ['tzahl', 'stzahl'], None)
     
-    if form.has_key('mitid'):
-        mitid = form.get('mitid')
-    else: raise EE("Keine Mitarbeiter angegeben")
-    #  print "Mitarbeiter:",mitid
-    if type(mitid) is type(''):
-        mitid = [mitid]
-
+##     if form.has_key('mitid'):
+##         mitid = form.get('mitid')
+##     else: raise EE("Keine Mitarbeiter angegeben")
+##     #  print "Mitarbeiter:",mitid
+##     if type(mitid) is type(''):
+##         mitid = [mitid]
+    mitid = check_list(form, 'mitid', "Keine Mitarbeiter angegeben")
     # TBD: stimmt das? dürfen beide Daten 0 sein oder in der Zukunft liegen?
     gruppe.setDate('bg', check_date(form, 'bg',
                                     "Fehler im Datum für den Beginn", Date(0,0,0), maybezero = 1, maybefuture=1 ))
@@ -1698,7 +1669,7 @@ def gruppeeinf(form):
         raise EE('Beginndatum liegt vor Endedatum')
     for m in mitid:
         mitgruppe = MitarbeiterGruppe()
-        mitgruppe['mit_id'] = m
+        mitgruppe['mit_id'] = int(m)
         mitgruppe['gruppe_id'] = gruppeid
         mitgruppe.setDate('bg', gruppe.getDate('bg'))
         mitgruppe.setDate('e', gruppe.getDate('e'))
@@ -1723,12 +1694,13 @@ def updgr(form):
     """Update der Gruppe."""
     
     gruppeold = check_exists(form, 'gruppeid', Gruppe, "Gruppe-Id fehlt")
-    if form.has_key('mitid'):
-        mitid = form.get('mitid')
-    else:
-        raise EE("Keine Mitarbeiter angegeben")
-    if type(mitid) is type(''):
-        mitid = [mitid]
+##     if form.has_key('mitid'):
+##         mitid = form.get('mitid')
+##     else:
+##         raise EE("Keine Mitarbeiter angegeben")
+##     if type(mitid) is type(''):
+##         mitid = [mitid]
+    mitid = check_list(form, 'mitid', "Keine Mitarbeiter angegeben")
     gruppe = Gruppe()
     get_string_fields(gruppe, form, ['gn', 'name', 'thema'], '')
     gruppe['gn'] = check_str_not_empty(form, 'gn',
@@ -1741,12 +1713,14 @@ def updgr(form):
                                  "Fehler beim Gruppentyp")
     gruppe['stz'] = check_code(form, 'stz', 'stzei',
                                "Kein Stellenzeichen für die Gruppe")
-    get_int_fields(gruppe, form, ['tzahl', 'stzahl'], gruppeold)
+    get_int_fields(gruppe, form, ['tzahl', 'stzahl'], None)
     
     gruppe.setDate('bg', check_date(form, 'bg',
-                                    "Fehler im Datum für den Beginn", Date(0,0,0), maybezero = 1, maybefuture=1 ))
+                                    "Fehler im Datum für den Beginn",
+                                    Date(0,0,0), maybezero = 1, maybefuture=1 ))
     gruppe.setDate('e', check_date(form, 'e',
-                                   "Fehler im Datum für das Ende", Date(0,0,0), maybezero = 1, maybefuture=1 ))
+                                   "Fehler im Datum für das Ende",
+                                   Date(0,0,0), maybezero = 1, maybefuture=1 ))
     
     if gruppe.getDate('bg') > gruppe.getDate('e'):
         raise EE('Beginndatum liegt vor Endedatum')
@@ -1767,7 +1741,7 @@ def updgr(form):
         mloesch.delete()
     for m in mitid:
         mitgruppe = MitarbeiterGruppe()
-        mitgruppe['mit_id'] = m
+        mitgruppe['mit_id'] = int(m)
         mitgruppe['gruppe_id'] = gruppeold['id']
         ## Sollte unterschieden werden bei Mitzuständigkeit später als Gruppenbeginn?
         mitgruppe.setDate('bg', gruppeold.getDate('bg'))
@@ -1847,24 +1821,24 @@ def updgrvermeinf(form):
                                       "Kein Betreff", dokold)
     dok['art'] = check_code(form, 'art', 'dokart',
                             "Text ist: fehlt", dokold)
-    dok['zeit'] = int(time.time())
-    dok['mtyp'] = cc('mimetyp','txt')
-    dok['fname'] = '%s.txt' % dokold['id']
     dok.setDate('v',
                   check_date(form, 'v',
                              "Fehler im Datum"))
-    text = check_str_not_empty(form, 'text', "Kein Text")
     dok['zeit'] = int(time.time())
     gruppeold = Gruppe(dok['gruppe_id'])
-    gruppe_path = get_gruppe_path(gruppeold['id'])
-    
-    try:
-        f = open('%s/%s' % (gruppe_path, dok['fname']), 'w+')
-        f.write(text)
-        f.close()
-        os.chmod('%s/%s' % (gruppe_path, dok['fname']),0600)
-    except Exception, args:
-        raise EBUpdateError("Fehler beim Anlegen der Datei: %s" % str(args))
+    if not is_binary(dokold):
+        dok['mtyp'] = cc('mimetyp','txt')
+        dok['fname'] = '%s.txt' % dokold['id']
+        text = check_str_not_empty(form, 'text', "Kein Text")
+        gruppe_path = get_gruppe_path(gruppeold['id'])
+        fname = os.path.join(gruppe_path, dok['fname'])
+        try:
+            f = open(fname, 'w+')
+            f.write(text)
+            f.close()
+            os.chmod(fname,0600)
+        except Exception, args:
+            raise EBUpdateError("Fehler beim Anlegen der Datei: %s" % str(args))
         
     dokold.update(dok)
     gruppe = Gruppe()
@@ -1962,61 +1936,55 @@ def gruppeteilneinf(form):
     gruppeid = check_int_not_empty(form, 'gruppeid', "Gruppeid fehlt")
     gruppeold = Gruppe(gruppeid)
     
-    if form.has_key('fallid'):
-        fallid = form.get('fallid')
-    elif form.has_key('bezugspid'):
-        bezugspid = form.get('bezugspid')
-    else:
+    fallid = check_list(form, 'fallid', '', [])
+    bezugspid = check_list(form, 'bezugspid', '', [])
+    if not fallid and not bezugspid:
         raise EE("Keine TeilnehmerIn angegeben")
-        
-    if form.has_key('fallid'):
-        if type(fallid) is type(''):
-            fallid = [fallid]
-        for f in fallid:
-            fallgruppel = FallGruppeList(where = 'gruppe_id = %s and fall_id = %s'
-                                         % (gruppeid, f))
-            if len(fallgruppel) > 0:
-                raise EE("Klient wird schon als Teilnehmer geführt")
-            fallgruppe = FallGruppe()
-            fallgruppe['fall_id'] = f
-            fallgruppe['gruppe_id'] = gruppeid
-            fallgruppe.setDate('bg', check_date(form, 'bg',
-                "Fehler im Datum für den Beginn", Date(0,0,0), maybezero = 1, maybefuture = 1 ))
-            fallgruppe.setDate('e', check_date(form, 'e',
-              "Fehler im Datum für das Ende", Date(0,0,0), maybezero = 1, maybefuture = 1 ))
-            if fallgruppe.getDate('bg') > fallgruppe.getDate('e'):
-                raise EE('Beginndatum liegt vor Endedatum')
+    for f in fallid:
+        fallgruppel = FallGruppeList(where = 'gruppe_id = %s and fall_id = %s'
+                                     % (gruppeid, f))
+        if len(fallgruppel) > 0:
+            # das muss nicht gemeldet werden
+            #raise EE("Klient wird schon als Teilnehmer geführt")
+            continue
+        fallgruppe = FallGruppe()
+        fallgruppe['fall_id'] = f
+        fallgruppe['gruppe_id'] = gruppeid
+        fallgruppe.setDate('bg', check_date(form, 'bg',
+            "Fehler im Datum für den Beginn", Date(0,0,0), maybezero = 1, maybefuture = 1 ))
+        fallgruppe.setDate('e', check_date(form, 'e',
+          "Fehler im Datum für das Ende", Date(0,0,0), maybezero = 1, maybefuture = 1 ))
+        if fallgruppe.getDate('bg') > fallgruppe.getDate('e'):
+            raise EE('Beginndatum liegt vor Endedatum')
+
+        fallgruppe['zeit'] = int(time.time())
+        try:
+            fallgruppe.new()
+            fallgruppe.insert()
+        except Exception, args:
+            raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
                 
-            fallgruppe['zeit'] = int(time.time())
-            try:
-                fallgruppe.new()
-                fallgruppe.insert()
-            except Exception, args:
-                raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
-                
-    if form.has_key('bezugspid'):
-        bezugspid = form.get('bezugspid')
-        if type(bezugspid) is type(''):
-            bezugspid = [bezugspid]
-        for b in bezugspid:
-            bezugspgruppel = BezugspersonGruppeList(where =                                               'gruppe_id = %s and bezugsp_id = %s' % (gruppeid, b))
-            if len(bezugspgruppel) > 0:
-                raise EE("Klient wird schon als Teilnehmer geführt")
-            bezugspgruppe = BezugspersonGruppe()
-            bezugspgruppe['bezugsp_id'] = b
-            bezugspgruppe['gruppe_id'] = gruppeid
-            bezugspgruppe.setDate('bg', check_date(form, 'bg',
-               "Fehler im Datum für den Beginn", Date(0,0,0), maybezero = 1 ))
-            bezugspgruppe.setDate('e', check_date(form, 'e',
-               "Fehler im Datum für das Ende", Date(0,0,0), maybezero = 1 ))
-            bezugspgruppe['zeit'] = int(time.time())
-            if bezugspgruppe.getDate('bg') > bezugspgruppe.getDate('e'):
-                raise EE('Beginndatum liegt vor Endedatum')
-            try:
-                bezugspgruppe.new()
-                bezugspgruppe.insert()
-            except Exception, args:
-                raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
+    for b in bezugspid:
+        bezugspgruppel = BezugspersonGruppeList(where =                                               'gruppe_id = %s and bezugsp_id = %s' % (gruppeid, b))
+        if len(bezugspgruppel) > 0:
+            # das muss nicht gemeldet werden
+            #raise EE("Bezugsperson wird schon als Teilnehmer geführt")
+            continue
+        bezugspgruppe = BezugspersonGruppe()
+        bezugspgruppe['bezugsp_id'] = b
+        bezugspgruppe['gruppe_id'] = gruppeid
+        bezugspgruppe.setDate('bg', check_date(form, 'bg',
+           "Fehler im Datum für den Beginn", Date(0,0,0), maybezero = 1 ))
+        bezugspgruppe.setDate('e', check_date(form, 'e',
+           "Fehler im Datum für das Ende", Date(0,0,0), maybezero = 1 ))
+        bezugspgruppe['zeit'] = int(time.time())
+        if bezugspgruppe.getDate('bg') > bezugspgruppe.getDate('e'):
+            raise EE('Beginndatum liegt vor Endedatum')
+        try:
+            bezugspgruppe.new()
+            bezugspgruppe.insert()
+        except Exception, args:
+            raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
                 
     gruppe = Gruppe()
     gruppe['zeit'] = int(time.time())
@@ -2029,39 +1997,54 @@ def removeteiln(form):
     """Gruppenteilnehmer löschen."""
     
     gruppeid = check_int_not_empty(form, 'gruppeid', "Gruppe-Id fehlt")
-    if form.has_key('fallid'):
-        fallid = form.get('fallid')
-    elif form.has_key('bezugspid'):
-        bezugspid = form.get('bezugsid')
-    else:
+    fallgr_id = check_list(form, 'fallgrid', '', [])
+    bzpgr_id = check_list(form, 'bzpgrid', '', [])
+    if not (fallgr_id or bzpgr_id):
         raise EE("Keine TeilnehmerIn zum Löschen markiert")
-    if form.has_key('fallid'):
-        fallid = form.get('fallid')
-        if type(fallid) is type(''):
-            fallid = [fallid]
-        for f in fallid:
-            try:
-                fallgr = FallGruppe(int(f))
-                fallgr.delete()
-            except Exception, args:
-                raise EBUpdateError("Fehler beim Löschen in der Datenbank: %s" % str(args))
-                
-    if form.has_key('bezugspid'):
-        bezugspid = form.get('bezugspid')
-        if type(bezugspid) is type(''):
-            bezugspid = [bezugspid]
-        for b in bezugspid:
-            try:
-                bezugspgr = BezugspersonGruppe(int(b))
-                bezugspgr.delete()
-            except Exception, args:
-                raise EBUpdateError("Fehler beim Löschen in der Datenbank: %s" % str(args))
-                
+    for f in fallgr_id:
+        fallgr = FallGruppe(f)
+        fallgr.delete()
+    for b in bzpgr_id:
+        bzpgr = BezugspersonGruppe(b)
+        bzpgr.delete()
     gruppeold = Gruppe(gruppeid)
     gruppe = Gruppe()
     gruppe['zeit'] = int(time.time())
-    
     gruppeold.update(gruppe)
+
+## def removeteiln(form):
+##     """Gruppenteilnehmer löschen."""
+    
+##     gruppeid = check_int_not_empty(form, 'gruppeid', "Gruppe-Id fehlt")
+##     fallgr_id = form.get('fallgrid')
+##     bzpgr_id = form.get('bzpgrid')
+##     if not (fallgr_id or bzpgr_id):
+##         raise EE("Keine TeilnehmerIn zum Löschen markiert")
+##     if fallgr_id:
+##         if type(fallgr_id) is type(''):
+##             fallgr_id = [fallgr_id]
+##         for f in fallgr_id:
+##             try:
+##                 fallgr = FallGruppe(f)
+##                 fallgr.delete()
+##             except Exception, args:
+##                 raise EBUpdateError("Fehler beim Löschen in der Datenbank: %s" % str(args))
+                
+##     if bzpgr_id:
+##         if type(bzpgr_id) is type(''):
+##             bzpgr_id = [bzpgr_id]
+##         for b in bzpgr_id:
+##             try:
+##                 bzpgr = BezugspersonGruppe(b)
+##                 bzpgr.delete()
+##             except Exception, args:
+##                 raise EBUpdateError("Fehler beim Löschen in der Datenbank: %s" % str(args))
+                
+##     gruppeold = Gruppe(gruppeid)
+##     gruppe = Gruppe()
+##     gruppe['zeit'] = int(time.time())
+    
+##     gruppeold.update(gruppe)
     
     
 def updgrteiln(form):
@@ -2069,16 +2052,15 @@ def updgrteiln(form):
     
     if form.has_key('fallgrid'):
         fallgrold = check_exists(form, 'fallgrid', FallGruppe, "Kein Teilnehmer")
-        fall = Fall(fallgrold['fall_id'])
         gruppeold = fallgrold['gruppe']
         fallgr = FallGruppe()
         fallgr.setDate('bg', check_date(form, 'bg',
                                         "Fehler im Datum für den Beginn",
-                                        fallgrold,
+                                        (0,0,0), # Datum darf leer sein
                                         maybezero = 1, maybefuture = 1 ))
         fallgr.setDate('e', check_date(form, 'e',
                                        "Fehler im Datum für das Ende",
-                                       fallgrold, maybezero = 1,
+                                       (0,0,0), maybezero = 1,
                                        maybefuture = 1 ))
         fallgr['zeit'] = int(time.time())
         if fallgr.getDate('bg') > fallgr.getDate('e'):
@@ -2089,19 +2071,19 @@ def updgrteiln(form):
         gruppeold.update(gruppe)
         gruppeold.gruppe_undo_cached_fields()
         
-    elif form.has_key('bezugspgrid'):
-        bezpgrold = check_exists(form, 'bezugspgrid',
+    elif form.has_key('bzpgrid'):
+        bezpgrold = check_exists(form, 'bzpgrid',
                                  BezugspersonGruppe, "Kein Teilnehmer")
         bezp = Bezugsperson(bezpgrold['bezugsp_id'])
         gruppeold = bezpgrold['gruppe']
         bezpgr = BezugspersonGruppe()
         bezpgr.setDate('bg', check_date(form, 'bg',
                                         "Fehler im Datum für den Beginn",
-                                        bezpgrold, maybezero = 1,
+                                        (0,0,0), maybezero = 1,
                                         maybefuture = 1 ))
         bezpgr.setDate('e', check_date(form, 'e',
                                        "Fehler im Datum für das Ende",
-                                       bezpgrold, maybezero = 1,
+                                       (0,0,0), maybezero = 1,
                                        maybefuture = 1 ))
         if bezpgr.getDate('bg') > bezpgr.getDate('e'):
             raise EE('Beginndatum liegt vor Endedatum')
@@ -2120,13 +2102,7 @@ def removegrdoks(form):
     """Gruppendokument löschen."""
     
     import os
-    if form.has_key('dokids'):
-        dokids = form.get('dokids')
-    else:
-        raise EE("Keinen Eintrag markiert?")
-        
-    if type(dokids) is type(''):
-        dokids = [dokids]
+    dokids = check_list(form, 'dokids', "Keinen Eintrag markiert?")
     for d in dokids:
         try:
             dok = Gruppendokument(int(d))
@@ -2304,7 +2280,7 @@ def updcode(form):
                               "Kategorienid fehlt", codeold)
     code['name'] = check_str_not_empty(form, 'name',
                                        "Merkmalsname fehlt", codeold)
-    if form['mini'] != '' or form['maxi'] != '' or codeold['kat_code'] == 'dbsite':
+    if form.get('mini') or form.get('maxi') or code['kat_code'] == 'dbsite':
         code['mini'] = check_int_not_empty(form, 'mini',
                                          "Minimum des Bereichs fehlt")
         code['maxi'] = check_int_not_empty(form, 'maxi',
@@ -2374,6 +2350,12 @@ def updcode(form):
             t['maxist'] = int(t['minid']) -1
             m.update(t)
             
+
+def updkategorie(form):
+    kat = check_exists(form, 'katid', Kategorie, "Kategorienid fehlt")
+    name = check_str_not_empty(form, 'name', 'Kein Name', '')
+    dok  = check_str_not_empty(form, 'dok', 'Keine Doku', '')
+    kat.update({'name': name, 'dok': dok})
             
 def removeakten(form):
     """Akten und Gruppen löschen."""
@@ -2506,64 +2488,144 @@ def _stamp_akte(akteold):
     
     
 def setAdresse(obj, form):
-    """Wenn strkat einen Wert hat, wird die Ueberpruefung durch den Strassenkatalog
-    getriggert. Dies ist z.Z. nur in der Berliner Version der Fall.
+    """Wenn strkat_on gesetzt ist, wird die Ueberpruefung durch den Strassenkatalog
+    getriggert.
 
     Kann auch fuer Bezugspersonenadressen verwendet werden,
     planungsr und wohnbez werden dann nicht beruecksichtigt
     """
-    strasse = form.get('str')
-    strkat = form.get('strkat')
-    if strkat:
-        # Straßenkatalog, nur Berliner Version
-        if check_strasse(form, 'strkat', 'hsnr', 'plz') != '':
-            obj['str'] = strkat
-            if form.get('hsnr') == '':
-                obj['hsnr'] = '---'
-            else:
-                obj['hsnr'] = form.get('hsnr')
-            obj['plz'] = form.get('plz')
-        # innerhalb der Gültigkeit des Straßenkatalogs
+    #print 'SETADRESSE', form
+    from ebkus.html.strkat import fuehrende_nullen_ersetzen
+    strkat_on = form.get('strkat_on')
+    if strkat_on and config.STRASSENKATALOG:
+        from ebkus.html.strkat import get_strassen_list
+        try:
+            strassen_list = get_strassen_list(form)
+        except Exception, e:
+            raise EE(str(e))
+        #print 'SETADRESSE', strassen_list
+        if strassen_list == None:
+            raise EE("Keine Adresse.<br /><br />"
+                     "Falls Sie ausdrücklich keine Adresse angeben wollen, "
+                     "deaktivieren Sie den Abgleich mit dem Straßenkatalog.")
+        elif len(strassen_list) < 1:
+            raise EE("Kein passender Eintrag für die Adresse "
+                     "im Straßenkatalog gefunden.<br /><br />"
+                     "Bitte verwenden Sie die Straßensuche,"
+                     "oder deaktivieren Sie den Abgleich "
+                     "mit dem Straßenkatalog.""")
+        elif len(strassen_list) > 1:
+            raise EE("Mehrere passende Einträge "
+                     "im Straßenkatalog gefunden.<br /><br />"
+                     "Bitte wählen Sie mit der Straßensuche "
+                     "einen eindeutigen Eintrag aus.""")
+        hsnr = form.get('hsnr')
+        strasse = strassen_list[0]
         obj['lage'] = cc('lage', '0') 
+        obj['ort'] = strasse['ort']
+        obj['plz'] = strasse['plz']
+        obj['str'] = strasse['name']
+        von = strasse['von']
+        if von and von == strasse['bis']:
+            hsnr = fuehrende_nullen_ersetzen(von)
+        if not hsnr:
+            raise EE("Keine Hausnummer.<br /><br />"
+                     "Falls Sie ausdrücklich keine Hausnummer angeben wollen, <br />"
+                     "tragen Sie '---' anstelle der Hausnummer ein.")
+        elif hsnr.startswith('-'):
+            obj['hsnr'] = '' # erfolgreicher Abgleich ohne Hausnummer
+        else:
+            obj['hsnr'] = hsnr
         if 'planungsr' in obj.fields:
             # Übernahme des Planungsraums aus dem Straßenkatalogs
-            # falls Objekt ein planungsr-Feld hat
-            obj['planungsr'] = plraum_zuweisen(form, 'strkat', 'hsnr',
-                                               'plz', "Kein Planungsraum gefunden")
+            # Was übernommen wird, ist config-abhängig
+            obj['planungsr'] = strasse[config.PLANUNGSRAUMFELD]
         if 'wohnbez' in obj.fields:
-            # wohnbez aus dem Straßenkatalog übernehmen
-            obj['wohnbez'] = wohnbez_zuordnen(form, 'strkat', 'hsnr',
-                                              'plz', "Kein Wohnbezirk gefunden")
+            if config.BERLINER_VERSION:
+                # wohnbez aus dem Straßenkatalog übernehmen, nur Berlin
+                obj['wohnbez'] = Code(kat_code='wohnbez', name=strasse['bezirk'])['id']
+            else:
+                obj['wohnbez'] = cc('wohnbez', '13')
     else:
-        # Für nicht-Berliner Version kommen wir immer hier durch
-        # Für Berliner Version nur dann, wenn gar keine Straße angegeben wurde
-        # oder eine außerhalb Berlins.
-        if strasse:
-            # Strassenangabe (immer für nicht-Berliner Version, nur Straßen
-            # außerhalb von Berlin für Berliner Version)
-            obj['str'] = strasse
-            obj['hsnr'] = form.get('hsnr')
-            obj['plz'] = form.get('plz')
-            # außerhalb der Gültigkeit des Straßenkatalogs
-            obj['lage'] = cc('lage', '1')
-            if 'planungsr' in obj.fields:
-                planungs_raum = form.get('planungsr')
-                if planungs_raum in ('0',):
-                    raise EBUpdateDataError("Kein gültiger Planungsraum")
-                obj['planungsr'] =  planungs_raum or '0'
-            if 'wohnbez' in obj.fields:
+        # Ohne Abgleich mit Straßenkatalog
+        obj['lage'] = cc('lage', '1')
+        ort = form.get('ort', '')
+        obj['ort'] = ort
+        obj['str'] = form.get('str', '')
+        obj['hsnr'] = form.get('hsnr', '')
+        obj['plz'] = form.get('plz', '')
+        if 'planungsr' in obj.fields:
+            planungs_raum = form.get('planungsr')
+            if planungs_raum in ('0',):
+                raise EBUpdateDataError("Kein gültiger Planungsraum")
+            obj['planungsr'] =  planungs_raum or '0'
+        if 'wohnbez' in obj.fields:
+            if ort and not ort.startswith('Berlin'):
                 # außerhalb Berlins
                 obj['wohnbez'] = cc('wohnbez', '13')
-        else:
-            # keine Strassenangabe (für Berliner und nicht-Berliner Version)
-            obj['str'] = ''
-            obj['hsnr'] = form.get('hsnr', '')
-            obj['plz'] = form.get('plz', '')
-            obj['lage'] = cc('lage', '999')
-            if 'planungsr' in obj.fields:
-                planungs_raum = form.get('planungsr')
-                if planungs_raum in ('0',):
-                    raise EBUpdateDataError("Kein gültiger Planungsraum")
-                obj['planungsr'] =  planungs_raum or '0'
-            if 'wohnbez' in obj.fields:
+            else:
+                # kein Ort oder Berlin ohne Bezirksangabe mangels Straßenkatalog
                 obj['wohnbez'] = cc('wohnbez', '999')
+
+## def setAdresse(obj, form):
+##     """Wenn strkat einen Wert hat, wird die Ueberpruefung durch den Strassenkatalog
+##     getriggert. Dies ist z.Z. nur in der Berliner Version der Fall.
+
+##     Kann auch fuer Bezugspersonenadressen verwendet werden,
+##     planungsr und wohnbez werden dann nicht beruecksichtigt
+##     """
+##     strasse = form.get('str')
+##     strkat = form.get('strkat')
+##     if strkat:
+##         # Straßenkatalog, nur Berliner Version
+##         if check_strasse(form, 'strkat', 'hsnr', 'plz') != '':
+##             obj['str'] = strkat
+##             if form.get('hsnr') == '':
+##                 obj['hsnr'] = '---'
+##             else:
+##                 obj['hsnr'] = form.get('hsnr')
+##             obj['plz'] = form.get('plz')
+##         # innerhalb der Gültigkeit des Straßenkatalogs
+##         obj['lage'] = cc('lage', '0') 
+##         if 'planungsr' in obj.fields:
+##             # Übernahme des Planungsraums aus dem Straßenkatalogs
+##             # falls Objekt ein planungsr-Feld hat
+##             obj['planungsr'] = plraum_zuweisen(form, 'strkat', 'hsnr',
+##                                                'plz', "Kein Planungsraum gefunden")
+##         if 'wohnbez' in obj.fields:
+##             # wohnbez aus dem Straßenkatalog übernehmen
+##             obj['wohnbez'] = wohnbez_zuordnen(form, 'strkat', 'hsnr',
+##                                               'plz', "Kein Wohnbezirk gefunden")
+##     else:
+##         # Für nicht-Berliner Version kommen wir immer hier durch
+##         # Für Berliner Version nur dann, wenn gar keine Straße angegeben wurde
+##         # oder eine außerhalb Berlins.
+##         if strasse:
+##             # Strassenangabe (immer für nicht-Berliner Version, nur Straßen
+##             # außerhalb von Berlin für Berliner Version)
+##             obj['str'] = strasse
+##             obj['hsnr'] = form.get('hsnr')
+##             obj['plz'] = form.get('plz')
+##             # außerhalb der Gültigkeit des Straßenkatalogs
+##             obj['lage'] = cc('lage', '1')
+##             if 'planungsr' in obj.fields:
+##                 planungs_raum = form.get('planungsr')
+##                 if planungs_raum in ('0',):
+##                     raise EBUpdateDataError("Kein gültiger Planungsraum")
+##                 obj['planungsr'] =  planungs_raum or '0'
+##             if 'wohnbez' in obj.fields:
+##                 # außerhalb Berlins
+##                 obj['wohnbez'] = cc('wohnbez', '13')
+##         else:
+##             # keine Strassenangabe (für Berliner und nicht-Berliner Version)
+##             obj['str'] = ''
+##             obj['hsnr'] = form.get('hsnr', '')
+##             obj['plz'] = form.get('plz', '')
+##             obj['lage'] = cc('lage', '999')
+##             if 'planungsr' in obj.fields:
+##                 planungs_raum = form.get('planungsr')
+##                 if planungs_raum in ('0',):
+##                     raise EBUpdateDataError("Kein gültiger Planungsraum")
+##                 obj['planungsr'] =  planungs_raum or '0'
+##             if 'wohnbez' in obj.fields:
+##                 obj['wohnbez'] = cc('wohnbez', '999')

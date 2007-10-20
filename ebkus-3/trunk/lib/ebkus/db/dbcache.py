@@ -26,8 +26,10 @@ class DBCache:
             data = cache.get((object.__class__, id))
             if data:
                 object.data = data
+                #print '_cache.get HIT'
                 return object
             else:
+                #print '_cache.get MISS'
                 return None
         otherkeys = object.otherkeys
         data = object.data
@@ -106,7 +108,6 @@ class DummyDBCache:
     def uncache(self, object, update_inverses = None): pass
     def is_cached(self, klass, id): pass
     def is_on(self): return None
-    def on(self): pass
     def on(self):
         self.__class__ = DBCache
     def off(self): pass

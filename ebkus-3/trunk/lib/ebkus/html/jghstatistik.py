@@ -26,7 +26,7 @@ from ebkus.config import config
 from ebkus.app import ebapi
 from ebkus.app import Request
 from ebkus.app.ebapi import Akte, Fall, Jugendhilfestatistik, Code, \
-     JugendhilfestatistikList, cc, today, check_date, calc_age, \
+     JugendhilfestatistikList, cc, cn, today, check_date, calc_age, \
      Jugendhilfestatistik2007List, Jugendhilfestatistik2007
 from ebkus.app.ebupd import upgrade_jgh
 from ebkus.app.ebapih import get_codes, mksel, get_all_codes
@@ -719,6 +719,7 @@ class _jgh07(Request.Request):
         else:
             jgh['laufendenr'] = 'noch nicht vergeben'
         if config.BERLINER_VERSION:
+            # TODO auf neue regio umstellen
             jgh['wohnbez_kl'] = jghwohnbez_klient_berlin_t % wohnbez_sel
         else:
             jgh['wohnbez_kl'] = jghwohnbez_klient_t % jgh['bezirksnr']
@@ -794,6 +795,11 @@ class _jgh07(Request.Request):
             else:
                 w = "100%"
             item['width'] = w
+            if name == 'hda':
+                item['onChange'] = """onChange="del_anzahl_kontakte('%s', '%s')" """ % \
+                                   (cn('ja_nein', 'ja'), cn('ja_nein', 'nein'))
+            else:
+                item['onChange'] = ''
             return fb_select_one_item_t % item
         elif label == 'int':
             minl, maxl = item['typ'][1:3]
@@ -884,7 +890,11 @@ class jgh07neu(_jgh07):
         geburtsdatum = ebapi.Date(*dmy)
         jgh['gey'] = geburtsdatum.year
         jgh['gem'] = geburtsdatum.month
+        jgh['gs'] = fall['akte__gs']
         jgh['bezirksnr'] = fall['akte__wohnbez']
+        if config.BERATUNGSKONTAKTE_BS:
+            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte_bs
+            jgh['nbkakt'], jgh['nbkges'] = get_jgh_kontakte_bs(fall)
         return self._formular(jgh)
         
 

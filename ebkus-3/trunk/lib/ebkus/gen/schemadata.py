@@ -100,6 +100,20 @@ bezirk, INT, Bezirk, p,
 plz, INT, Plz, p,
 Plraum, CHAR(8), Planungsraum, p
 
+table, strkatalog, ,StrassenkatalogNeu
+id, INT, id, s,
+von, VARCHAR(5), von Hausnummer, p,
+bis, VARCHAR(5), bis Hausnummer, p,
+gu, CHAR(1), gerade (G)  oder ungerade (U) oder NULL, p, 
+name, VARCHAR(60), Strassenname, p,
+plz, VARCHAR(5), Postleitzahl, p,
+ort, VARCHAR(60), Ort, p,
+ortsteil, VARCHAR(60), Ortsteil, p,
+samtgemeinde, VARCHAR(60), Samtgemeinde, p,
+bezirk, VARCHAR(60), Bezirk, p,
+plraum, VARCHAR(60), Planungsraum, p,
+
+
 table, sessions, ,Session
 session_id, CHAR(50), SessionID, s,
 time, CHAR(16), Time, p,
@@ -114,11 +128,12 @@ id, INT, id, s
 vn, CHAR(35), Vorname, p,
 na, CHAR(35), Name, p,
 gb, CHAR(10), Geburtsdatum, p,
+gs, INT, Geschlecht, k, gs
 ber, CHAR(30), Ausbildung, p,
 str, CHAR(35), Strasse, p,
 hsnr, CHAR(5), Hausnummer, p,
 plz, CHAR(9), Postleitzahl, p,
-planungsr, CHAR(8), Planungsraum, p, wird in das fachstat.bz Feld übernommen
+planungsr, VARCHAR(60), Planungsraum, p, wird in das fachstat.bz Feld übernommen
 wohnbez, INT, Wohnbezirk, k, wohnbez, berlinspezifisch
 lage, INT, inBerlin, p,
 ort, CHAR(35), Ort, p,
@@ -161,6 +176,7 @@ akte_id, INT, Aktenid, f, akte, bezugspersonen
 vn, CHAR(35), Vorname, p,
 na, CHAR(35), Name, p,
 gb, CHAR(10), Geburtsdatum, p,
+gs, INT, Geschlecht, k, gs
 ber, CHAR(30), Beruf, p,
 str, CHAR(35), Strasse, p,
 hsnr, CHAR(5), Hausnummer, p,
@@ -212,6 +228,25 @@ ky, INT, Kontakt Jahr, p,
 dauer, INT, Dauer der Kontakte im Sinne der Jugendstatistik, k, fskd
 f2f_min, INT, Face to face Minuten, p,
 vn_min, INT, Vorbereitung/Nachbereitung Minuten, p,
+no, CHAR(255), Notiz, p,
+stz, INT, Dienststelle, k, stzei
+
+table, beratungskontakt_bs, , Beratungskontakt_BS, Beratungskontakt_BS
+id, INT, id, s,
+fall_id, INT, Fallid, f, fall, beratungskontakte_bs
+fall1_id, INT, Fallid, f, fall, beratungskontakte_bs1
+fall2_id, INT, Fallid, f, fall, beratungskontakte_bs2
+mit_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs
+mit1_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs1
+mit2_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs2
+teilnehmer, VARCHAR(60), Teilnehmer am Kontakt, m, teilnbs
+anzahl, INT, Anzahl der Teilnehmer, p
+art, INT, Kontaktart, k, kabs
+kd, INT, Kontakt Tag, p,
+km, INT, Kontakt Monat, p,
+ky, INT, Kontakt Jahr, p,
+dauer, INT, Dauer der Kontakts in 10-Minuten-Einheiten (ohne Vor- und Nachbereitung), b, kdbs
+offenespr, INT, Beratung in der offenen Sprechstunde, k, ja_nein
 no, CHAR(255), Notiz, p,
 stz, INT, Dienststelle, k, stzei
 
@@ -318,7 +353,7 @@ fall_id, INT, Fallid, f, fall, fachstatistiken
 fall_fn, CHAR(20), Fallnummer, p,
 jahr, INT, Jahr, p,
 stz, INT, Dienststelle, k, stzei, default ist aktuelle Dst. des Falles, wird benötigt wegen standalone Funktion der Fachstatistik
-bz, CHAR(8), Region, p, berlinspezifisch - das ist der Planungsraum
+bz, VARCHAR(60), Region, p, (jetzt nicht mehr berlinspezifisch) - das ist der Planungsraum
 gs, INT, Geschlecht, k, gs
 ag, INT, Altersgruppe Kind, k, fsag
 fs, INT, Familienstatus (lebt bei), k, fsfs
@@ -353,6 +388,14 @@ no3, CHAR(255), anders geartete Problemlagen Eltern, p,
 kindprobleme, CHAR(255), Problemspektrum Kind/Jugendliche, m, fspbk
 elternprobleme, CHAR(255), Problemspektrum der Eltern, m, fspbe
 eleistungen, CHAR(255), Erbrachte Leistungen, m, fsle
+joka1, INT, Frei definierbar unter Angaben zum Klienten, k, fsjoka1
+joka2, INT, Frei definierbar unter Angaben zum Klienten, k, fsjoka2
+joka3, INT, Frei definierbar unter Angaben zum Klienten, k, fsjoka3
+joka4, INT, Frei definierbar unter Angaben zum Klienten, k, fsjoka4
+jokf5, INT, Frei definierbar eigenständig, k, fsjokf5
+jokf6, INT, Frei definierbar eigenständig, k, fsjokf6
+jokf7, INT, Frei definierbar eigenständig, k, fsjokf7
+jokf8, INT, Frei definierbar eigenständig, k, fsjokf8
 zeit, INT, Änderungszeit, p,
 
 table, fachstatlei, , Zuordnung Fachstatistik-Leistung, Fachstatistikleistung
@@ -444,13 +487,13 @@ ees, INT, Entzug der elterlichen Sorge nach §1666 BGB, k, ja_nein
 va52, INT, Verfahrensaussetzung nach §52 FGG, k, ja_nein
 rgu, INT, Unterbringung nach §1631b BGB, k, ja_nein
 hda, INT, Hilfe dauert am Jahresende an, k, ja_nein
-nbkakt, INT, Zahl der Beratungskontakte bei andauernder Hilfe, p,
+nbkakt, INT, Zahl der Beratungskontakte bei andauernder Hilfe, b, fskat
 gr1, INT, Hauptgrund für die Hilfegewährung, k, gruende
 gr2, INT, 2. Grund für die Hilfegewährung, k, gruende
 gr3, INT, 3. Grund für die Hilfegewährung, k, gruende
 em, INT, Ende der Hilfe Monat, p,
 ey, INT, Ende der Hilfe Jahr, p,
-nbkges, INT, Zahl der Beratungskontakte insgesamt, p,
+nbkges, INT, Zahl der Beratungskontakte insgesamt, b, fskat
 lbk6m, INT, Letzter Kontakt vor mehr als 6 Monaten, k, ja_nein
 grende, INT, Gründe für Beendigung, k, grende
 aort_nac, INT, Anschließender Aufenthalt, k, auf_ort
@@ -532,6 +575,22 @@ table, schluessel, tab_id.feld_id.seq, Schlüssel, Schluessel
 tab_id, INT, Tabelle, f, tabelle, schluessel
 feld_id, INT, Feld, f, feld, schluessel
 seq, INT, Laufende Nummer, p,
+
+table, register, regkey, Register, Register
+id, INT, id, s,
+regkey, VARCHAR(255), Schluessel, p,
+value, MEDIUMBLOB, Wert, p,
+
+table, abfrage, name, Abfrage, Abfrage
+id, INT, id, s,
+mit_id, INT, Mitarbeiterid, f, mitarbeiter,
+name, VARCHAR(255), Name, p,
+dok, TEXT, Beschreibung, p,
+value, TEXT, Wert, p,
+typ, VARCHAR(255), Typ der Abfrage, p,
+zeit, INT, Änderungszeit, p,
+
+
 """
 
 #fname, fdbtype, lname, vtyp =  {s,f,k,b,p}, { , tablename, kat_code, kat_code, }

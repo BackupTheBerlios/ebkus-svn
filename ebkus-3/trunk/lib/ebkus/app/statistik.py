@@ -2,9 +2,14 @@
 
 # TODO: die xcount*-Funktionen sollten Methoden der Klassen werden.
 
-from ebkus.app.ebapi import Code, Tabelle, Feld, today, cc
+from ebkus.app.ebapi import Code, Tabelle, Feld, today, cc, sorted
 from ebkus.app.ebapih import get_codes, get_all_codes
 
+# für python2.3, kein set
+try:
+    s = set
+except NameError:
+    from sets import Set as set
 
 class _Auszaehlung(object):
 
@@ -23,16 +28,20 @@ class _Auszaehlung(object):
         return self.result
 
     def _set_attributes(self, kw):
-        self.file = kw.get('file')
+        self.session_key = kw.get('session_key')
         if not hasattr(self, 'feld'):
             self.feld = None
         # die Zahl hat nichts zu sagen, nur damit es nicht
         # genau die Adresse des Objekts ist :-)
-        self.id = str(id(self)+785423) 
+        self.id = str(id(self)+785423)
+        el0 = self.liste[0] 
+        if isinstance(el0, tuple): # Liste kann auch aus Paaren bestehen
+            el0 = el0[0]
+        class_ = el0.__class__.__name__
         self.auswertungs_ueberschrift = \
                                       kw.get('auswertungs_ueberschrift',
                                              "%sauswertung vom %s" % (
-            Tabelle(klasse=self.liste[0].__class__.__name__)['name'],
+            Tabelle(klasse=class_)['name'],
             "%(day)d.%(month)d.%(year)d." % today()))
         self.kategorie = kw.get('kategorie', self.feld and self.feld['kat']
                                 or None)
@@ -113,6 +122,31 @@ class WertAuszaehlung(_Auszaehlung):
     def _compute_result(self):
         return xcountkontakte(self.liste, self.feld['feld'])
     
+class RohWertAuszaehlung(_Auszaehlung):
+    """Es wird mit feld im Objekt der Wert aufgesucht und die Häufigkeit gezählt.
+    Beschriftet wird mit dem Wert selbst.
+    """
+    def __init__(self, liste, feldname, **kw):
+        self.liste = liste
+        self.feldname = feldname
+        self._set_attributes(kw)
+
+    def _compute_result(self):
+        return xcountrohwerte(self.liste, self.feldname)
+    
+class FunktionsAuszaehlung(_Auszaehlung):
+    """Für eine Liste von Paaren (Name, Funktion) wird ausgezählt,
+    wie oft die Funktion einen wahren Wert liefert.
+    Beschriftet wird mit dem Namen selbst.
+    """
+    def __init__(self, liste, name_function_pairs, **kw):
+        self.liste = liste
+        self.name_function_pairs = name_function_pairs
+        self._set_attributes(kw)
+
+    def _compute_result(self):
+        return xcountfunction(self.liste, self.name_function_pairs)
+    
 class ObjektAuszaehlung(_Auszaehlung):
     """Zur Zeit funktionieren nur Mitarbeiter in der objekt_liste
     (es werden die Felder 'id' und 'na' für die Auszählung verwendet).
@@ -150,7 +184,7 @@ class EinzelWertAuszaehlung(_Auszaehlung):
             self.namen = ['']*len(werte)
         self.attr = attr
         self._set_attributes(kw)
-        print werte, namen
+        #print werte, namen
         assert len(self.werte) == len(self.namen)
     def _compute_result(self):
         return xcountwerte(self.liste, self.werte, self.namen, self.attr)
@@ -207,6 +241,27 @@ def xcountwerte(d_list, werte, namen, attr):
     for w, n in zip(werte, namen):
         freq = values.count(w)
         a = (n, freq, ((float(freq)*100)/float(len(d_list))))
+        res.append(a)
+    return res
+
+def xcountrohwerte(d_list, feldname):
+    res = []
+    values = [x[feldname] for x in d_list]
+    werte = sorted(set(values))
+    for w in werte:
+        freq = values.count(w)
+        a = (w, freq, ((float(freq)*100)/float(len(d_list))))
+        res.append(a)
+    return res
+
+def xcountfunction(d_list, functions):
+    """functions ist eine Sequence aus Paaren name, Funktion.
+    Für jeden Namen wird ausgezählt, wie häufig die Funktion true
+    liefert für jedes Element von d_list"""
+    res = []
+    for name, func in functions:
+        freq = [bool(func(el)) for el in d_list].count(True)
+        a = (name, freq, ((float(freq)*100)/float(len(d_list))))
         res.append(a)
     return res
         
@@ -297,6 +352,9 @@ def xcountkontakte(d_list, d_item):
     """
     values = [x[d_item] for x in d_list]
     values.sort()
+    #print 'XCOUNTKONTAKTE', values
+    #print d_item
+    #print d_list
     res = []
     i = 0
     n = len(values)

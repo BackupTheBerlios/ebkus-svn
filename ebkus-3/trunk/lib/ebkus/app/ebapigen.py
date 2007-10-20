@@ -91,6 +91,32 @@ class StrassenkatalogList(Container):
     querySQL = resultClass.querySQL
 
 #####################################
+# StrassenkatalogNeu  (Tabelle 'strkatalog')
+#####################################
+
+
+class StrassenkatalogNeu(DBObjekt):
+    table = 'strkatalog'
+    fields =  ['id', 'von', 'bis', 'gu', 'name', 'plz', 'ort', \
+                       'ortsteil', 'samtgemeinde', 'bezirk', 'plraum']
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    multikatfieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = 'id'
+    otherkeys = []
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
+
+class StrassenkatalogNeuList(Container):
+    resultClass = StrassenkatalogNeu
+    querySQL = resultClass.querySQL
+
+#####################################
 # Session  (Tabelle 'sessions')
 #####################################
 
@@ -147,9 +173,9 @@ class MitarbeiterDienststelleList(Container):
 
 class Akte(DBObjekt):
     table = 'akte'
-    fields =  ['id', 'vn', 'na', 'gb', 'ber', 'str', 'hsnr', 'plz', \
-                       'planungsr', 'wohnbez', 'lage', 'ort', 'tl1', 'tl2', \
-                       'fs', 'no', 'stzbg', 'stzak', 'zeit']
+    fields =  ['id', 'vn', 'na', 'gb', 'gs', 'ber', 'str', 'hsnr', \
+                       'plz', 'planungsr', 'wohnbez', 'lage', 'ort', 'tl1', \
+                       'tl2', 'fs', 'no', 'stzbg', 'stzak', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -226,7 +252,7 @@ class AnmeldungList(Container):
 
 class Bezugsperson(DBObjekt):
     table = 'bezugsperson'
-    fields =  ['id', 'akte_id', 'vn', 'na', 'gb', 'ber', 'str', \
+    fields =  ['id', 'akte_id', 'vn', 'na', 'gb', 'gs', 'ber', 'str', \
                        'hsnr', 'lage', 'plz', 'ort', 'tl1', 'tl2', 'fs', \
                        'verw', 'no', 'nobed', 'vrt']
     fieldtypes = {}
@@ -322,6 +348,33 @@ class Beratungskontakt(DBObjekt):
 
 class BeratungskontaktList(Container):
     resultClass = Beratungskontakt
+    querySQL = resultClass.querySQL
+
+#####################################
+# Beratungskontakt_BS  (Tabelle 'beratungskontakt_bs')
+#####################################
+
+
+class Beratungskontakt_BS(DBObjekt):
+    table = 'beratungskontakt_bs'
+    fields =  ['id', 'fall_id', 'fall1_id', 'fall2_id', 'mit_id', \
+                       'mit1_id', 'mit2_id', 'teilnehmer', 'anzahl', 'art', \
+                       'kd', 'km', 'ky', 'dauer', 'offenespr', 'no', 'stz']
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    multikatfieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = 'id'
+    otherkeys = []
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
+
+class Beratungskontakt_BSList(Container):
+    resultClass = Beratungskontakt_BS
     querySQL = resultClass.querySQL
 
 #####################################
@@ -520,7 +573,8 @@ class Fachstatistik(DBObjekt):
                        'ba1', 'ba2', 'pbe', 'pbk', 'kat', 'kkm', 'kkv', 'kki', \
                        'kpa', 'kfa', 'ksoz', 'kleh', 'kerz', 'kkonf', 'kson', \
                        'no', 'no2', 'no3', 'kindprobleme', 'elternprobleme', \
-                       'eleistungen', 'zeit']
+                       'eleistungen', 'joka1', 'joka2', 'joka3', 'joka4', \
+                       'jokf5', 'jokf6', 'jokf7', 'jokf8', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -878,6 +932,56 @@ class SchluesselList(Container):
     resultClass = Schluessel
     querySQL = resultClass.querySQL
 
+#####################################
+# Register  (Tabelle 'register')
+#####################################
+
+
+class Register(DBObjekt):
+    table = 'register'
+    fields =  ['id', 'regkey', 'value']
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    multikatfieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = 'id'
+    otherkeys = [('regkey',)]
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
+
+class RegisterList(Container):
+    resultClass = Register
+    querySQL = resultClass.querySQL
+
+#####################################
+# Abfrage  (Tabelle 'abfrage')
+#####################################
+
+
+class Abfrage(DBObjekt):
+    table = 'abfrage'
+    fields =  ['id', 'mit_id', 'name', 'dok', 'value', 'typ', 'zeit']
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    multikatfieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = 'id'
+    otherkeys = [('name',)]
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
+
+class AbfrageList(Container):
+    resultClass = Abfrage
+    querySQL = resultClass.querySQL
+
     
 # Die folgenden Einträge ermöglichen die automatische Navigation über
 # Fremdschlüssel. Wird insbesondere von DBObjekt.__getitem__ verwendet.
@@ -888,6 +992,7 @@ Mitarbeiter.foreignfieldtypes['benr'] = (Code, None)
 Mitarbeiter.foreignfieldtypes['stz'] = (Code, None)
 MitarbeiterDienststelle.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'neben_stz')
 MitarbeiterDienststelle.foreignfieldtypes['stz'] = (Code, None)
+Akte.foreignfieldtypes['gs'] = (Code, None)
 Akte.foreignfieldtypes['wohnbez'] = (Code, None)
 Akte.foreignfieldtypes['fs'] = (Code, None)
 Akte.foreignfieldtypes['stzbg'] = (Code, None)
@@ -897,6 +1002,7 @@ Fall.foreignfieldtypes['status'] = (Code, None)
 Anmeldung.foreignfieldtypes['fall_id'] = (Fall, 'anmeldung')
 Anmeldung.foreignfieldtypes['zm'] = (Code, None)
 Bezugsperson.foreignfieldtypes['akte_id'] = (Akte, 'bezugspersonen')
+Bezugsperson.foreignfieldtypes['gs'] = (Code, None)
 Bezugsperson.foreignfieldtypes['fs'] = (Code, None)
 Bezugsperson.foreignfieldtypes['verw'] = (Code, None)
 Bezugsperson.foreignfieldtypes['nobed'] = (Code, None)
@@ -916,6 +1022,15 @@ Beratungskontakt.foreignfieldtypes['art'] = (Code, None)
 Beratungskontakt.foreignfieldtypes['jgh'] = (Code, None)
 Beratungskontakt.foreignfieldtypes['dauer'] = (Code, None)
 Beratungskontakt.foreignfieldtypes['stz'] = (Code, None)
+Beratungskontakt_BS.foreignfieldtypes['fall_id'] = (Fall, 'beratungskontakte_bs')
+Beratungskontakt_BS.foreignfieldtypes['fall1_id'] = (Fall, 'beratungskontakte_bs1')
+Beratungskontakt_BS.foreignfieldtypes['fall2_id'] = (Fall, 'beratungskontakte_bs2')
+Beratungskontakt_BS.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'beratungskontakte_bs')
+Beratungskontakt_BS.foreignfieldtypes['mit1_id'] = (Mitarbeiter, 'beratungskontakte_bs1')
+Beratungskontakt_BS.foreignfieldtypes['mit2_id'] = (Mitarbeiter, 'beratungskontakte_bs2')
+Beratungskontakt_BS.foreignfieldtypes['art'] = (Code, None)
+Beratungskontakt_BS.foreignfieldtypes['offenespr'] = (Code, None)
+Beratungskontakt_BS.foreignfieldtypes['stz'] = (Code, None)
 Zustaendigkeit.foreignfieldtypes['fall_id'] = (Fall, 'zustaendigkeiten')
 Zustaendigkeit.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'zustaendigkeiten')
 Dokument.foreignfieldtypes['fall_id'] = (Fall, 'dokumente')
@@ -955,6 +1070,14 @@ Fachstatistik.foreignfieldtypes['ba1'] = (Code, None)
 Fachstatistik.foreignfieldtypes['ba2'] = (Code, None)
 Fachstatistik.foreignfieldtypes['pbe'] = (Code, None)
 Fachstatistik.foreignfieldtypes['pbk'] = (Code, None)
+Fachstatistik.foreignfieldtypes['joka1'] = (Code, None)
+Fachstatistik.foreignfieldtypes['joka2'] = (Code, None)
+Fachstatistik.foreignfieldtypes['joka3'] = (Code, None)
+Fachstatistik.foreignfieldtypes['joka4'] = (Code, None)
+Fachstatistik.foreignfieldtypes['jokf5'] = (Code, None)
+Fachstatistik.foreignfieldtypes['jokf6'] = (Code, None)
+Fachstatistik.foreignfieldtypes['jokf7'] = (Code, None)
+Fachstatistik.foreignfieldtypes['jokf8'] = (Code, None)
 Fachstatistikleistung.foreignfieldtypes['fstat_id'] = (Fachstatistik, 'leistungen')
 Fachstatistikleistung.foreignfieldtypes['le'] = (Code, None)
 Fachstatistikkindproblem.foreignfieldtypes['fstat_id'] = (Fachstatistik, 'fachstatkindprobleme')
@@ -1037,6 +1160,7 @@ TabellenID.foreignfieldtypes['table_id'] = (Tabelle, 'iddaten')
 TabellenID.foreignfieldtypes['dbsite'] = (Code, None)
 Schluessel.foreignfieldtypes['tab_id'] = (Tabelle, 'schluessel')
 Schluessel.foreignfieldtypes['feld_id'] = (Feld, 'schluessel')
+Abfrage.foreignfieldtypes['mit_id'] = (Mitarbeiter, '')
 
     
 # Die folgenden Einträge ermöglichen die automatische Navigation über
@@ -1054,6 +1178,12 @@ Mitarbeiter.inversefieldtypes['leistungen'] = (LeistungList, 'mit_id')
 Fall.inversefieldtypes['beratungskontakte'] = (BeratungskontaktList, 'fall_id')
 Mitarbeiter.inversefieldtypes['beratungskontakte'] = (BeratungskontaktList, 'mit_id')
 Leistung.inversefieldtypes['beratungskontakte'] = (BeratungskontaktList, 'le_id')
+Fall.inversefieldtypes['beratungskontakte_bs'] = (Beratungskontakt_BSList, 'fall_id')
+Fall.inversefieldtypes['beratungskontakte_bs1'] = (Beratungskontakt_BSList, 'fall1_id')
+Fall.inversefieldtypes['beratungskontakte_bs2'] = (Beratungskontakt_BSList, 'fall2_id')
+Mitarbeiter.inversefieldtypes['beratungskontakte_bs'] = (Beratungskontakt_BSList, 'mit_id')
+Mitarbeiter.inversefieldtypes['beratungskontakte_bs1'] = (Beratungskontakt_BSList, 'mit1_id')
+Mitarbeiter.inversefieldtypes['beratungskontakte_bs2'] = (Beratungskontakt_BSList, 'mit2_id')
 Fall.inversefieldtypes['zustaendigkeiten'] = (ZustaendigkeitList, 'fall_id')
 Mitarbeiter.inversefieldtypes['zustaendigkeiten'] = (ZustaendigkeitList, 'mit_id')
 Fall.inversefieldtypes['dokumente'] = (DokumentList, 'fall_id')
@@ -1086,6 +1216,7 @@ Kategorie.inversefieldtypes[''] = (FeldList, 'kat_id')
 Tabelle.inversefieldtypes['iddaten'] = (TabellenIDList, 'table_id')
 Tabelle.inversefieldtypes['schluessel'] = (SchluesselList, 'tab_id')
 Feld.inversefieldtypes['schluessel'] = (SchluesselList, 'feld_id')
+Mitarbeiter.inversefieldtypes[''] = (AbfrageList, 'mit_id')
 
     
 # Die folgenden Einträge ermöglichen Mehrfachauswahlfelder.
@@ -1093,6 +1224,7 @@ Feld.inversefieldtypes['schluessel'] = (SchluesselList, 'feld_id')
 # geschrieben. Beim Aufruf über __getitem__ werden die durch
 # Code-Instanzen ersetzt.
     
+Beratungskontakt_BS.multikatfieldtypes['teilnehmer'] = CodeList
 Fachstatistik.multikatfieldtypes['kindprobleme'] = CodeList
 Fachstatistik.multikatfieldtypes['elternprobleme'] = CodeList
 Fachstatistik.multikatfieldtypes['eleistungen'] = CodeList

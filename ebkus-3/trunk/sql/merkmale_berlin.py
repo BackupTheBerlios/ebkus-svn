@@ -30,6 +30,7 @@ f;Fremdschlüssel;verwtyp
 k;Kategorie;verwtyp
 b;Bereichskategorie;verwtyp
 p;Primitiv;verwtyp
+m;Mehrfachkategorie;verwtyp
 1;m;gs
 2;w;gs
 1;0-2;fsag
@@ -175,6 +176,42 @@ p;Primitiv;verwtyp
 18;Gerichtsgutachten;fsle
 19;sonstige;fsle
 999;keine Angabe;fsle
+0;weniger als 30 Minuten;fskd;0;29
+1;30 bis 60 Minuten;fskd;30;59
+2;60 bis 120 Minuten;fskd;60;119
+3;mehr als 120 Minuten;fskd;120;99999
+0;weniger als 30 Minuten;kdbs;0;2
+1;30 bis 60 Minuten;kdbs;3;5
+2;60 bis 120 Minuten;kdbs;6;11
+3;mehr als 120 Minuten;kdbs;12;99999
+1;Mutter;teilnbs
+2;Vater;teilnbs
+3;Stiefmutter;teilnbs
+4;Stiefvater;teilnbs
+5;Kind/Jugendlicher;teilnbs
+6;Geschwister;teilnbs
+7;Andere Verwandte;teilnbs
+8;Andere Institutionen;teilnbs
+9;sonstige;teilnbs
+1;Mutter;fska
+2;Vater;fska
+3;Kind/Jugendlicher;fska
+4;Paar;fska
+5;Familie;fska
+6;Sozialarbeiter;fska
+7;Lehrer;fska
+8;Erzieher;fska
+9;Hilfebesprechung;fska
+10;Sonstige;fska
+1;persönlicher Kontakt §28;kabs
+2;telefonischer Kontakt (mit Beratungscharakter);kabs
+3;Schreiben;kabs
+4;Fachkontakt;kabs
+5;ausgefallener Kontakt;kabs
+6;Gruppenkontakt;kabs
+7;E-Mail;kabs
+8;interner Fachkontakt, Fallbesprechung;kabs
+9;fallbezogene Fahrzeit;kabs
 0;keine Angabe;fskat;0;0
 1;1-5;fskat;1;5
 2;6-10;fskat;6;10
@@ -344,6 +381,14 @@ xls;application/x-msexcel;mimetyp
 sdw;application/soffice;mimetyp
 sxw;application/soffice;mimetyp
 sdc;application/vnd.stardivision.calc;mimetyp
+odt;application/vnd.oasis.opendocument.text;mimetyp
+ods;application/vnd.oasis.opendocument.spreadsheet;mimetyp
+odp;application/vnd.oasis.opendocument.presentation;mimetyp
+odg;application/vnd.oasis.opendocument.graphics;mimetyp
+odc;application/vnd.oasis.opendocument.chart;mimetyp
+odf;application/vnd.oasis.opendocument.formula;mimetyp
+odi;application/vnd.oasis.opendocument.image;mimetyp
+odm;application/vnd.oasis.opendocument.text-master;mimetyp
 zip;application/zip;mimetyp
 gtar;application/x-gtar;mimetyp
 tgz;application/x-gtar;mimetyp
@@ -505,12 +550,22 @@ code_list_str += \
 8;ab 27;jghag;27;99
 """
 
-
+# Ergänzungen für frei definierbare Fragen in der Fachstatistik
+code_list_str += """
+1;Merkmal 1;fsjoka1
+1;Merkmal 1;fsjoka2
+1;Merkmal 1;fsjoka3
+1;Merkmal 1;fsjoka4
+1;Merkmal 1;fsjokf5
+1;Merkmal 1;fsjokf6
+1;Merkmal 1;fsjokf7
+1;Merkmal 1;fsjokf8
+"""
 
 #
 # Welche Kategorien sind Bereichskategorien?
 #
-bereichs_kategorien_str = "fskat gsa dbsite jghag"
+bereichs_kategorien_str = "fskat gsa dbsite jghag kdbs"
 
 
 #
@@ -531,6 +586,11 @@ fshe;Herkunftsland der Eltern
 fspbe;Problemspektrum Eltern
 fspbk;Problemspektrum Kind, Jugendliche
 fsle;Erbrachte Leistungen
+fskd;Dauer des Kontakts
+kdbs;Dauer des Kontakts in 10Min. Einheiten (BS)
+fska;Art des Beratungskontakts
+kabs;Art des Beratungskontakts (BS)
+teilnbs;Teilnehmer am Kontakt (BS)
 fskat;Anzahl der Termine
 fsqualij;sozialer Status Jugendlicher, 14-27
 fsquali;Qualifikation der Eltern
@@ -599,6 +659,18 @@ unh;Unmittelbar nachfolgende Hilfe
 land;Land (Feld 2-3)
 einrnr;Einrichtungs-Nr (Feld 10-15)
 jghag;Altersgruppe
+"""
+
+# Ergänzungen für frei definierbare Fragen in der Fachstatistik
+kategorie_list_str += """
+fsjoka1;Frei definierbare Kategorie für Joker 1
+fsjoka2;Frei definierbare Kategorie für Joker 2
+fsjoka3;Frei definierbare Kategorie für Joker 3
+fsjoka4;Frei definierbare Kategorie für Joker 4
+fsjokf5;Frei definierbare Kategorie für Joker 5
+fsjokf6;Frei definierbare Kategorie für Joker 6
+fsjokf7;Frei definierbare Kategorie für Joker 7
+fsjokf8;Frei definierbare Kategorie für Joker 8
 """
 
 #

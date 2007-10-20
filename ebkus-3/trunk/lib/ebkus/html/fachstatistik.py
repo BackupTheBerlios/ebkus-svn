@@ -13,64 +13,30 @@ from ebkus.app.ebapi import Akte, Fall, Fachstatistik, FachstatistikList, \
 
 import ebkus.html.htmlgen as h
 from ebkus.html.akte_share import akte_share
+from ebkus.html.fskonfig import fs_customize
 
+class _fachstatistik(Request.Request, akte_share):
+    # fs und options wird von customize_item gebraucht
+    def _customize(self, fs, rows):
+        """Überträgt die in fskonfig definierten Anpassungen der Fachstatistik
+        auf den Aufbau des Formulars. Die eigentliche Arbeit findet in
+        _customize_item statt.
 
-def customize(fs, options, rows):
-    c = CustomizeFachstatistik(fs, options)
-    return c.customize(rows)
-
-class CustomizeFachstatistik(object):
-    def __init__(self,
-                 fs, # Fachstatistik Objekt, bei fsneu None
-                 options,
-                 ):
-        from ebkus.app.ebapi import Tabelle, FeldList
-        tab = Tabelle(tabelle='fachstat')
-        felder = FeldList(where="tab_id=%s" % tab['id'])
-        self.fs = fs
-        self.options = options
-        self.fd = {}
-        for f in felder:
-            self.fd[f['feld']] = f  # feldname --> feldobjekt
-        jokf1 = {
-            'flag': 0,
-            'kat_code':'fsag',
-            'name': "Eine künstliche, jokerbedingte Altersgruppe",
-            'verwtyp': cc('verwtyp', 'k'),
-            }
-        self.fd['jokf1'] = jokf1
-
-    def deaktiviert(self, feld):
-        # deaktiviert wenn erstes bit auf eins steht
-        if feld and feld[0] in ('p', 'g', 'q'):
-            return True
-        if feld in self.fd:
-            return (self.fd[feld]['flag'])&1
-        return False
-        
-    def jokerfeld(self, feld):
-        # Name fängt mit jok an
-        return feld.startswith('jok')
-    def jokerfeld_bei_angaben(self, feld): # item in Angaben zum Klienten eingebunden
-        # Name fängt mit joka an
-        return feld.startswith('joka')
-    def jokerfeld_selbstaendig(self, feld): # item in eigenem Fieldset, evt. mit Notiz
-        # Name fängt mit jokf an
-        return feld.startswith('jokf')
-
-    def customize(self, rows):
+        Das aus fskonfig importierte fs_customize-Objekt enthält die für die
+        Anpassung nötigen Informationen.
+        """
+        self._fs = fs
         res = []
         for r in rows:
-            rc = self.customize_fieldset(r)
+            rc = self._customize_fieldset(r)
             if rc:
                 res.append(rc)
         return tuple(res)
-
-    def customize_fieldset(self, f):
+    def _customize_fieldset(self, f):
         res = []
-        self._legend = None # customize item kann hier was reinschreiben
+        self._legend = None # _customize item kann hier was reinschreiben
         for zeile in f.daten:
-            z = self.customize_zeile(zeile)
+            z = self._customize_zeile(zeile)
             if z:
                 res.append(z)
         if res:
@@ -78,14 +44,14 @@ class CustomizeFachstatistik(object):
             if self._legend:
                 f.legend = self._legend
             return f
-        return None
-
-    def customize_zeile(self, zeile):
+        return None # es kann sein, dass ein fieldset wegfällt, wenn es keine gültigen Zeilen hat
+    def _customize_zeile(self, zeile):
         res = []
         valid_item = False # mindestens 1 gültiges item pro Zeile, sonst verschwindet Zeile
         for item in zeile:
-            i = self.customize_item(item)
-            if i:
+            i = self._customize_item(item)
+            #print 'CUSTOMIZE ITEM: ', item.name, i
+            if i and not isinstance(i, h.DummyItem):
                 valid_item = True
                 res.append(i)
             else:
@@ -93,40 +59,39 @@ class CustomizeFachstatistik(object):
         if valid_item:
             return res
         return None
-
-    def customize_item(self, item):
-        if self.deaktiviert(item.name):
+    def _customize_item(self, item):
+        if fs_customize.deaktiviert(item.name):
             return None
-        if self.jokerfeld(item.name):
-            feld = self.fd[item.name]
+        if fs_customize.jokerfeld(item.name):
+            feld = fs_customize.fd[item.name]
             kat_code = feld['kat_code']
             if kat_code:
                 multiple = feld['verwtyp'] == cc('verwtyp', 'm')
-                item.label = feld['name']
-                if self.jokerfeld_selbstaendig(item.name):
-                    self._legend = item.label
+                if fs_customize.jokerfeld_eigenstaendig(item.name):
+                    self._legend = feld['name']
+                    item.label = ''
+                else:
+                    item.label = feld['name']
                 if multiple:
                     item.multiple = True
                     item.size = 8
-                if self.fs: # fachstat Objekt vorhanden, wir sind in updfs
-                    item.options = self.options.for_kat(kat_code, self.fs[item.name])
+                if self._fs: # fachstat Objekt vorhanden, wir sind in updfs
+                    item.options = self.for_kat(kat_code, self._fs[item.name])
                 elif multiple: # initialisieren
-                    item.options = self.options.for_kat(kat_code, None)
+                    item.options = self.for_kat(kat_code, None)
                 else:
-                    item.options = self.options.for_kat(kat_code, ' ')
-        try:
-            item.label = '>>' + item.label
-        except:
-            pass
+                    item.options = self.for_kat(kat_code, ' ')
+##         try:
+##             item.label = '>>' + item.label
+##         except:
+##             pass
         return item
 
-class _fachstatistik(Request.Request, akte_share):
     def _process(self,
                  title,
                  file,
                  fs,
                  ):
-
         falldaten = h.FieldsetInputTable(
             legend='Falldaten',
             daten = [[h.TextItem(label='Fallnummer',
@@ -161,13 +126,13 @@ class _fachstatistik(Request.Request, akte_share):
                                    options=self.for_kat('gs', fs['gs']),
                                    aktiviert=True,
                                     ),
-                      h.SelectItem(label='Alter Kind',
+                      h.SelectItem(label='Alter Kind/Jugendliche(r)',
                                    name='ag',
                                    options=self.for_kat('fsag', fs['ag']),
                                    aktiviert=True,
                                     ),
                       ],
-                     [h.SelectItem(label='Lebensmittelpunkt des Kindes',
+                     [h.SelectItem(label='Lebensmittelpunkt Kind/Jugendliche(r)',
                                    name='fs',
                                    options=self.for_kat('fsfs', fs['fs']),
                                    ),
@@ -176,7 +141,7 @@ class _fachstatistik(Request.Request, akte_share):
                                    options=self.for_kat('fszm', fs['zm']),
                                    ),
                       ],
-                     [h.SelectItem(label='Qualifikation Jugendlicher',
+                     [h.SelectItem(label='Qualifikation Kind/Jugendliche(r)',
                                    name='qualij',
                                    options=self.for_kat('fsqualij', fs['qualij']),
                                    ),
@@ -218,6 +183,24 @@ class _fachstatistik(Request.Request, akte_share):
                                    options=self.for_kat('fsagel', fs['agkv']),
                                    ),
                       ],
+                     [h.SelectItem(label='Joker 1',
+                                   name='joka1',
+                                   options=self.for_kat('fsjoka1', fs['joka1']),
+                                   ),
+                      h.SelectItem(label='Joker 2',
+                                   name='joka2',
+                                   options=self.for_kat('fsjoka2', fs['joka2']),
+                                   ),
+                      ],
+                     [h.SelectItem(label='Joker 3',
+                                   name='joka3',
+                                   options=self.for_kat('fsjoka3', fs['joka3']),
+                                   ),
+                      h.SelectItem(label='Joker 4',
+                                   name='joka4',
+                                   options=self.for_kat('fsjoka4', fs['joka4']),
+                                   ),
+                      ],
                      ]
             )
         label_width = "20%" # richtet die Select-Elemente Fieldset-übergreifend aus
@@ -242,7 +225,7 @@ class _fachstatistik(Request.Request, akte_share):
                     ]],
             )
         pbk = h.FieldsetInputTable(
-            legend='Hauptproblematik Kind / Jugendliche',
+            legend='Hauptproblematik Kind/Jugendliche(r)',
             daten=[[h.SelectItem(label='',
                                  name='pbk',
                                  class_='listbox310',
@@ -251,16 +234,16 @@ class _fachstatistik(Request.Request, akte_share):
                                  )
                     ]],
             )
-        jokf1 = h.FieldsetInputTable(
-            legend='Hauptproblematik Kind / Jugendliche',
-            daten=[[h.SelectItem(label='',
-                                 name='jokf1',
-                                 class_='listbox310',
-                                 label_width=label_width,
-                                 options=self.for_kat('fspbk', fs['pbk']),
-                                 )
-                    ]],
-            )
+##         jokf1 = h.FieldsetInputTable(
+##             legend='Hauptproblematik Kind / Jugendliche',
+##             daten=[[h.SelectItem(label='',
+##                                  name='jokf1',
+##                                  class_='listbox310',
+##                                  label_width=label_width,
+##                                  options=self.for_kat('fspbk', fs['pbk']),
+##                                  )
+##                     ]],
+##             )
         pbe = h.FieldsetInputTable(
             legend='Hauptproblematik der Eltern',
             daten=[[h.SelectItem(label='',
@@ -272,7 +255,7 @@ class _fachstatistik(Request.Request, akte_share):
                     ]],
             )
         kindprobleme = h.FieldsetInputTable(
-            legend='Problemspektrum Kind / Jugenliche',
+            legend='Problemspektrum Kind/Jugendliche(r)',
             daten=[[h.SelectItem(label='',
                                  name='kindprobleme',
                                  options=self.for_kat('fspbk', fs['kindprobleme']),
@@ -307,6 +290,47 @@ class _fachstatistik(Request.Request, akte_share):
                                   ),
                     ]],
             )
+
+        jokf5 = h.FieldsetInputTable(
+            legend='Joker 5',
+            daten=[[h.SelectItem(label='',
+                                 name='jokf5',
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 options=self.for_kat('fsjokf5', fs['jokf5']),
+                                 )
+                    ]],
+            )
+        jokf6 = h.FieldsetInputTable(
+            legend='Joker 6',
+            daten=[[h.SelectItem(label='',
+                                 name='jokf6',
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 options=self.for_kat('fsjokf6', fs['jokf6']),
+                                 )
+                    ]],
+            )
+        jokf7 = h.FieldsetInputTable(
+            legend='Joker 7',
+            daten=[[h.SelectItem(label='',
+                                 name='jokf7',
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 options=self.for_kat('fsjokf7', fs['jokf7']),
+                                 )
+                    ]],
+            )
+        jokf8 = h.FieldsetInputTable(
+            legend='Joker 8',
+            daten=[[h.SelectItem(label='',
+                                 name='jokf8',
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 options=self.for_kat('fsjokf8', fs['jokf8']),
+                                 )
+                    ]],
+            )
         eleistungen = h.FieldsetInputTable(
             legend='Erbrachte Leistungen',
             daten=[[h.SelectItem(label='',
@@ -330,6 +354,7 @@ class _fachstatistik(Request.Request, akte_share):
                                 name=name,
                                 value=fs[name],
                                 class_='textboxmid',
+                                onBlur="set_term_sum_fachstat('%s')" % name,
                                 )
                      for lab, name in zip(label, namen)]
             kat = items[-1]
@@ -352,25 +377,28 @@ class _fachstatistik(Request.Request, akte_share):
             )
         if file == 'updfs':
             fstat = fs
-            fstat['jokf1'] = cc('fsag', '3')
+            #fstat['jokf1'] = cc('fsag', '3')
         else:
             fstat = None
-        rows = customize(fstat, self, (
+        rows = self._customize(fstat, (
             falldaten,
             angabenklient,
             ba1, ba2,
             pbk, pbe,
             kindprobleme,
             elternprobleme,
+            jokf5, jokf6, jokf7, jokf8, 
             eleistungen,
             termine,
-            jokf1,
             notiz,
             ))
         res = h.FormPage(
             title=title,
             help=False,
             name="fachstatform",action="klkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Klientenkarte', 'klkarte?akid=%(fall__akte_id)s' % fs),
+                           ),
             rows=rows + (h.SpeichernZuruecksetzenAbbrechen(),),
             hidden=(('file', file),
                     ('stz', fs['stz']),
@@ -428,7 +456,7 @@ class fsneu(_fachstatistik):
             jahr=str(today().year),
             stz=akte['stzak'],
             bz=akte['planungsr'],
-            gs=' ', # Geschlecht wird nicht übernommen!
+            gs=akte['gs'],
             ag=altersgruppe(akte['gb'], fall.getDate('bg')),
             fs=akte['fs'],
             kindprobleme=None,
@@ -440,11 +468,19 @@ class fsneu(_fachstatistik):
                              'agkm', 'agkv', 'ba1', 'ba2', 'pbe', 'pbk', )
         for f in single_kat_felder:
             fs[f] = ' ' # leere, selektierte Option, es muss aktiv ausgewählt werden
+
+        joker_felder = ('joka1', 'joka2', 'joka3', 'joka4',
+                        'jokf5', 'jokf6', 'jokf7', 'jokf8',)
+        for f in joker_felder:
+            if fs_customize.multifeld(f):
+                fs[f] = None
+            else:
+                fs[f] = ' ' # leere, selektierte Option, es muss aktiv ausgewählt werden
         termin_felder = ('kkm', 'kkv', 'kki', 'kpa', 'kfa',
                          'ksoz', 'kleh', 'kerz', 'kkonf', 'kson', 'kat',)
         for f in termin_felder:
             fs[f] = 0
-        print '***********FSNEU', fs
+        #print '***********FSNEU', fs
         return self._process(title='Neue Fachstatistik erstellen',
                              file='fseinf',
                              fs=fs,

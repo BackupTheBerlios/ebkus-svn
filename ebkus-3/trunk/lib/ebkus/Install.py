@@ -1230,6 +1230,7 @@ class ComponentEbkusInstance(Component):
         cursor.execute("FLUSH PRIVILEGES")    
         self.log(("name=%(DATABASE_NAME)s  user=%(DATABASE_USER)s  " + 
               "passwort=%(DATABASE_PASSWORD)s  host=%(DATABASE_HOST)s") % vars(self.config))
+        ort = self.config.STRASSENKATALOG
         try:
             cursor.execute("CREATE DATABASE %s" % self.config.DATABASE_NAME)
             cursor.execute("USE %s" % self.config.DATABASE_NAME)
@@ -1239,8 +1240,8 @@ class ComponentEbkusInstance(Component):
                 # standard.sql
                 # demo_berlin.sql
                 # demo_standard.sql
-                if self.config.BERLINER_VERSION:
-                    sql_file = 'berlin'
+                if ort:
+                    sql_file = ort
                 else:
                     sql_file = 'standard'
                 if self.config.INSTANCE_NAME.startswith('demo'):
@@ -1250,28 +1251,24 @@ class ComponentEbkusInstance(Component):
                 if exists(sql_file + '.gz'):
                     sql_file += '.gz'
                 else:
-                    # muss erzeugt werden aus migrate_*, strkat_*, demo_daten
+                    # muss erzeugt werden aus migrate_*, strkat*, demo_daten
                     self.log("keine initiale Datenbank vorhanden")
                     str_kat = demo_daten = None
+                    merkmale_file_in = 'merkmale_standard.py'
                     if self.config.INSTANCE_NAME.startswith('demo'):
                         demo_daten = 'demo_daten.py'
-                    if self.config.BERLINER_VERSION:
+                    if ort == 'berlin':
                         merkmale_file_in = 'merkmale_berlin.py'
-                        if self.config.INSTANCE_NAME.startswith('demo'):
-                            #str_kat = 'strassen_katalog_berlin_ausschnitt.txt.gz'
-                            str_kat = 'strassenkat_berlin_ausschnitt.sql.gz'
-##                             demo_daten = 'demo_daten.py'
+                        if demo_daten:
+                            str_kat = 'strkatalog_berlin_ausschnitt.sql.gz'
                         else:
-                            #str_kat = 'strassen_katalog_berlin.txt.gz'
-                            str_kat = 'strassenkat_berlin.sql.gz'
-                        str_kat = join(self.config.EBKUS_HOME, 'sql', str_kat)
-                    else:
-                        merkmale_file_in = 'merkmale_standard.py'
-##                         if self.config.INSTANCE_NAME.startswith('demo'):
-##                             demo_daten = 'demo_daten.py'
+                            str_kat = 'strkatalog_berlin.sql.gz'
+                    elif ort:
+                        # für andere Orte immer der ganz Strkat, auch für die Demo
+                        str_kat = 'strkatalog_%s.sql.gz' % ort
                     merkmale_file_in = join(self.config.EBKUS_HOME, 'sql', merkmale_file_in)
-##                     if demo_daten:
-##                         demo_daten = join(self.config.EBKUS_HOME, 'sql', demo_daten)
+                    if str_kat:
+                        str_kat = join(self.config.EBKUS_HOME, 'sql', str_kat)
                     self.generate_initial_database(merkmale_file_in,
                                                    sql_file,
                                                    str_kat=str_kat,
@@ -1494,10 +1491,7 @@ class ComponentEbkusInstance(Component):
             migrate(merkmale_file_in)
             if str_kat:
                 self.log("Strassenkatalog %s einlesen (kann lange dauern!) ..." % str_kat)
-##                 read_strkat(str_kat)
-##                 for c in sql_split(str_kat):
-##                     cursor.execute(c)
-                cursor.execute("DROP TABLE strassenkat")
+                cursor.execute("DROP TABLE IF EXISTS strkatalog")
                 if sys.platform == 'win32':
                     for c in sql_split(str_kat):
                         cursor.execute(c)
@@ -1519,7 +1513,8 @@ class ComponentEbkusInstance(Component):
             pw = self._get_database_admin_passwort()
             pw_arg = pw and "-p%s" % pw or ''
             self.log("SQL-Datei ausgeben: %s" % sql_file_out)
-            os.system("%s -c -u%s %s --default-character-set latin1 %s > %s" %
+            #os.system("%s -c -u%s %s --default-character-set latin1 %s > %s" %
+            os.system("%s -u%s %s --skip-opt --add-drop-table --default-character-set latin1 %s > %s" %
                       (join(self.config.MYSQL_DIR, 'mysqldump'),
                        self.config.DATABASE_ADMIN_USER,
                        pw_arg,

@@ -68,8 +68,14 @@ class _akte(Request.Request, akte_share):
         res = h.FormPage(
             title=title,
             name=formname,action="klkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                          (not file=='akteeinf') and
+                           ('Klientenkarte', 'klkarte?akid=%s' % akte['id'])
+                           or None,
+                           ),
             hidden=(("akid", akte['id']),
                     ("file", file),
+                    ("strid", ""), # wird nur von strkat mit javascript gesetzt
                     ) + hidden,
             rows=(h.Pair(left=klientendaten,
                          right=anschrift,
@@ -90,8 +96,10 @@ class akteneu(_akte):
         akte.init(
             id=Akte().getNewId(),
             fs=cc('fsfs', '999'),
+            gs=' ',
             stzbg=self.stelle['id'],
-            lage=cc('lage', '999'),
+            lage=(config.STRASSENKATALOG and  cc('lage', '0') or
+                  cc('lage', '1')),
             )
         return self._process(
             title='Neue Akte anlegen',
@@ -165,6 +173,9 @@ class updfall(_akte):
         res = h.FormPage(
             title='Beginndatum ändern',
             name='akteform',action="klkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Klientenkarte', 'klkarte?akid=%(akte_id)s' % fall),
+                           ),
             hidden=(("fallid", fallid),
                     ("file", 'updfall'),
                     ),
@@ -203,6 +214,9 @@ class zda(_akte):
         res = h.FormPage(
             title='Abschlussdatum eintragen',
             name='akteform',action="klkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Klientenkarte', 'klkarte?akid=%(akte_id)s' % fall),
+                           ),
             hidden=(("fallid", fallid),
                     ("file", 'zdaeinf'),
                     ("aktuellzustid", aktuell_zustaendig['id']),
@@ -242,6 +256,9 @@ class zdar(_akte):
         res = h.FormPage(
             title='Abschlussdatum rückgängig machen',
             name='zdarform',action="klkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Klientenkarte', 'klkarte?akid=%(akte_id)s' % fall),
+                           ),
             hidden=(("fallid", fallid),
                     ("file", 'zdareinf'),
                     ("zustid", Zustaendigkeit().getNewId()),
@@ -270,6 +287,9 @@ class _zust(_akte):
         res = h.FormPage(
             title=title,
             name='zustform',action="klkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Klientenkarte', 'klkarte?akid=%(akte_id)s' % fall),
+                           ),
             hidden=hidden,
             rows=(self.get_klientendaten_kurz(fall),
                   zustaendigkeit,

@@ -4,8 +4,10 @@
 from  cStringIO import StringIO
 
 def join(seq):
+    #print 'JOIN', seq
     return ''.join([str(i) for i in seq if i])
 
+# abstrakt
 class _HTML(object):
     """Abstrakte Oberklasse zur HTML Generierung
     
@@ -16,7 +18,7 @@ class _HTML(object):
     __init__ merkt sich nur die übergebenden Parameter.
 
     Die eigentliche Initialisierung wird von der display-Methode angestoßen
-    durch Aufruf der _init-Methode. Diese ruft immer zuerst die _init-Methode
+    durch Aufruf der _init-Methode. Diese ruft in der Regel zuerst die _init-Methode
     der Oberklasse auf, und kann dann als letzte das Objekt für das display
     vorbereiten.
 
@@ -32,8 +34,10 @@ class _HTML(object):
     """
     tip_t = """ title="%(tip)s" onMouseOver="window.status='%(tip)s';return true;" onMouseOut="window.status='';return true;" """
 
-
+    # können sein: basestring, _HTML-Instanz, Sequenz. Wird automatisch evaluiert
+    attribute_to_evaluate = ('content', 'left', 'right', 'rows', 'cells')
     def __init__(self, **kw):
+        """Nicht überschreiben."""
         for k,v in kw.items():
             setattr(self, k, v)
     def expand_attr(self, attr, boolean=False):
@@ -52,10 +56,20 @@ class _HTML(object):
     def _init(self):
         """Jede Unterklasse kann diese Methode zur Initialisierung implementieren, sollte
         aber als erstes super(<klass>, self)._init() aufrufen.
-        __init__ sollte nicht überschrieben werden.
         """
-        if self.tip:
-            self.tip = self.tip_t % self
+        if self.tip and not(self.tip1 or self.tip2):
+            self.tip1 = self.tip2 = self.tip
+        for t in ('tip', 'tip1', 'tip2'):
+            val = getattr(self, t)
+            if val:
+                setattr(self, t, self.tip_t % {'tip': val})
+        for attr in self.attribute_to_evaluate:
+            val = getattr(self, attr)
+            if val:
+                if isinstance(val, _HTML):
+                    setattr(self, attr, val.display())
+                elif not isinstance(val, basestring):
+                    setattr(self, attr, join(val))
     def __getattr__(self, k):
         return ''
     def __getitem__(self, k):
@@ -65,29 +79,50 @@ class _HTML(object):
     def display(self):
         self._init()
         return self.tmpl % self
-##     def display_tr(self, cells):
-##         return "<tr>%s</tr>\n" % ''.join([str(c) for c in cells])
-##     def display_tds(self, contents):
-##         pass
+    def set_form(self):
+        """optional: name,method,action,hidden,onSubmit
+        setzt self.form_begin und self.form_end
+        """
+        if not self.hidden:
+            self.hidden = ()
+        self.expand_attr('onSubmit')
+        self.hidden_input = join([
+            """<input type="hidden" name="%s" value="%s">\n""" % (name, value)
+            for name, value in self.hidden
+            ])
+        form_begin_t = """<form name="%(name)s" method="%(method)s" action="%(action)s" enctype="multipart/form-data"%(onSubmit_attr)s>
+        %(hidden_input)s""" % self
+        self.form_begin = form_begin_t % self
+        self.form_end = "</form>\n"
 
+# Block
 class Base(_HTML):
     """oblig: title, content
-    optional: onload, delay, url, weiterleitung
-    erwartet in content: string von Block-Element
+    optional: onload, delay, url, weiterleitung, width
+    erwartet in content: Block-Element
     liefert string mit kompletter HTML Seite
     """
-    onload = ''
-    delay = ''
-    url = ''
-    help = ''
+    width = 760
     weiterleitung_t = """<meta http-equiv="refresh" content="%(delay)s; URL=%(url)s">\n"""
-    help_t = """<script src="/ebkus/ebkus_javascripte/ebkus_help.js" type="text/javascript"></script>\n"""
+    #help_t = """<script src="/ebkus/ebkus_javascripte/ebkus_help.js" type="text/javascript"></script>\n"""
+    help_t = """<div id="help")s><a href="/ebkus/doc/EBKuS_Handbuch.html#%(help)s" target="_blank">Hilfe</a></div>\n"""
+    #help_t = """<a href="/ebkus/doc/EBKuS_Handbuch.html#%(help)s" target="_blank">Hilfe</a>"""
+    breadcrumbs_t = """<tr><td class="breadcrumb" align="left">%s</td></tr>"""
     def _init(self):
         super(Base, self)._init()
+        self.expand_attr('onload')
         if self.weiterleitung:
             self.weiterleitung = self.weiterleitung_t % self
         if self.help:
-            self.help = self.help_t
+            self.help = self.help_t % self
+        else:
+            self.help = ''
+        if self.breadcrumbs:
+            # name, url
+            crumbs = ' > '.join(['<a href="%s">%s</a>' % (entry[1], entry[0]) 
+                                 for entry in self.breadcrumbs if entry])
+            crumbs += ' > %s' % self.title
+            self.breadcrumb = self.breadcrumbs_t % crumbs
     tmpl = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -96,13 +131,14 @@ class Base(_HTML):
 <meta name="robots" content="noindex">
 <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
 %(weiterleitung)s<script src="/ebkus/ebkus_javascripte/ebkus_sonstige.js" type="text/javascript"></script>
-%(help)s<link rel="stylesheet" type="text/css" href="/ebkus/ebkus_styles/css_styles.css">
+<link rel="stylesheet" type="text/css" href="/ebkus/ebkus_styles/css_styles.css">
 </head>
-<body %(onload)s>
-<table width="800" align="center">
+<body%(onload_attr)s><a name="top"></a>
+%(help)s<table class="pageframe" width="%(width)s" align="center" valign="top">
+%(breadcrumb)s
   <tr>
       <td align="center" valign="top">
-%(content)s
+%(form_begin)s%(content)s%(form_end)s
      </td>
   </tr>
 </table>
@@ -111,119 +147,48 @@ class Base(_HTML):
 """
 #"
 
-class Meldung(_HTML):
-    """obligat: legend, zeilen
-    optional: titel
-    """
-    empty_row = '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>'
-    def _init(self):
-        super(Meldung, self)._init()
-        if not self.titel:
-            self.titel = self.legend
-    def display(self):
-        self._init()
-        rows = [self.empty_row]*3
-        rows += ['<tr><td>%s</td></tr>' % z for z in self.zeilen]
-        rows += [self.empty_row]*3
-        button = Button(value="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ok&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
-                        onClick="javascript:history.back()",
-                        tip="Zurück",
-                        )
-        rows.append('<tr>%s</tr>' % str(button)) 
-        form = FormPage(
-            title=self.titel,
-            rows=(Fieldset(legend=self.legend,
-                           rows=rows,),
-                  )
-            )
-        return form.display()
-           
-class FormPage(_HTML):
-    """obligat:title, rows ODER content
-    optional: name,method,action,hidden
-    erwartet in rows: Seq von <tr>
+# <tr>-Elemente
+class Page(Base):
+    """obligat:rows
+    erwartet in rows: <tr>
     liefert: string mit komplette HTML-Seite
     """
-    name = method = action = ''
-    hidden = ()
-    def display(self):
-        self._init()
-        form = Form(
-            name=self.name,
-            action=self.action,
-            method=self.method,
-            hidden=self.hidden,
-            rows=self.rows,
-            )
-        page = Base(
-            title=self.title,
-            content=form.display(),
-            )
-        return page.display()
+    def set_content(self):
+        tmpl_table = """<table width="100%%" border="0" cellpadding="1">
+%s
+</table>
+"""
+        self.content = tmpl_table % join(self.rows)
+    def _init(self):
+        super(Page, self)._init()
+        self.set_content()
 
 
+
+
+# <tr>-Elemente
+class FormPage(Page):
+    """liefert string mit kompletter HTML-Seite
+    """
+    def _init(self):
+        super(FormPage, self)._init()
+        self.set_form()
+        
+
+# <td>-Elemente
 class Tr(_HTML):
     """obligat: cells
     erwartet in cells: Seq von <td>
     liefert: string mit ein <tr>
     """
-    tmpl = "<tr>%(content)s</tr>\n"
-    def display(self):
-        self._init()
-        if not self.content:
-            self.content = join(self.cells)
-        return self.tmpl % self
+    tmpl = "<tr>%(cells)s</tr>\n"
     
-class Form(_HTML):
-    """oblig: rows ODER content
-    optional: name,method,action,hidden
-    erwartet in rows: Seq von <tr>
-    liefert: string mit ein <form>
-    """
-    name = method = action = ''
-    hidden = ()
-    tmpl = """<form name="%(name)s" method="%(method)s" action="%(action)s">
-%(hidden_input)s
-<table border="0" cellpadding="1" width="95%%">
-%(content)s
-</table>\n</form>
-"""
-    def _init(self):
-        super(Form, self)._init()
-        self.hidden_input = join([
-            """<input type="hidden" name="%s" value="%s">\n""" % (name, value)
-            for name, value in self.hidden
-            ])
-        if not self.content:
-            self.content = join(self.rows)
-        
-class Fieldset(_HTML):
-    """obligat: legend, rows ODER content
-    erwartet in rows: Seq  <tr>
-    liefert: string mit ein <tr>
-
-    """
-    legend = ''
-    def _init(self):
-        super(Fieldset, self)._init()
-        if not self.content:
-            self.content = join(self.rows)
-    tmpl ="""           <tr>
-            <td align="center"> 
-              <fieldset>
-              <legend class="legendtext">%(legend)s</legend>
-              <table width="90%%" border="0" cellpadding="2">
-%(content)s
-              </table>
-              </fieldset> 
-            </td>
-          </tr>
-"""
-              
+# <tr>-Elemente
 class Pair(_HTML):
     """left, right
-    erwartet in left bzw right: String von <tr>
-    liefert: <tr>
+    erwartet in left bzw right: <tr>,
+    also z.B. mehrere Fieldsets
+    liefert: <tr> mit einer Zelle
     """
     def display(self):
         self._init()
@@ -241,104 +206,258 @@ class Pair(_HTML):
   </table>
 </td></tr>
 """
-  
 
-class DataTable(_HTML):
-    """oblig: daten oder button oder empty_msg
-    optional: headers
+class Table(_HTML):
+    """obligat: rows
+    optional: colspan - wird in die einzelne Zelle eingesetzt
+    erwartet in rows: <tr>
+    liefert: string mit ein <tr>, das eine Zelle enthält
+    """
+    def _init(self):
+        super(Table, self)._init()
+        self.expand_attr('colspan')
+    tmpl ="""           <tr>
+            <td align="center"%(colspan_attr)s>%(fieldset_begin)s%(form_begin)s 
+              <table width="100%%" border="0" cellpadding="2">
+%(rows)s
+              </table>%(form_end)s%(fieldset_end)s
+            </td>
+          </tr>
+"""
+
+    def set_fieldset(self):
+        """optional: legend, anchor - Name für ein Sprungziel zur legend
+        """
+        legend_t = """<legend class="legendtext">%(legend)s</legend>"""
+        fieldset_begin_t = """\n<fieldset%(tip)s>%(legend_elem)s"""
+        fieldset_end = "</fieldset>\n"
+        if self.anchor:
+            self.legend = '<a name="%(anchor)s" id="%(anchor)s">%(legend)s</a>' % self
+        if self.legend:
+            self.legend_elem = legend_t % self
+        self.fieldset_begin = fieldset_begin_t % self
+        self.fieldset_end = fieldset_end
+
+
+
+class Fieldset(Table):
+    def _init(self):
+        super(Fieldset, self)._init()
+        self.set_fieldset()
+        
+class FieldsetForm(Table):
+    """liefert ein Fieldset dessen Inhalt von einer form eingerahmt ist.
+    """
+    def _init(self):
+        super(FieldsetForm, self)._init()
+        self.set_fieldset()
+        self.set_form()
+
+class DataTable(object):
+    """oblig: daten oder button oder buttons oder empty_msg
+    optional: daten_before_headers - Zeilen, die vor headers eingefügt werden
+              headers - Spaltenüberschriften, strings
     erwartet in headers: Seq von string
     erwartet in daten: Seq von Seq von <td>
     liefert string mit ein oder mehrere <tr>
+
+    Items in Daten müssen alle aus einer td bestehen, sonst stehen die
+    header nicht an der richtigen Stelle!!
     """
-    daten = ()
+    daten_before_headers = ()
     headers = ()
+    noheaders = 0 # Anzahl der Spalten am Anfang ohne header
+                  # alternativ zum Auszählen der Icons, s.u.
+    daten = ()
     button = None
     empty_msg = None
-    def display(self):
-        self._init()
-        cols = 0 # enthält am Ende die Zahl Spalten
+    def set_rows(self):
+        max_cols = 0 # enthält am Ende die Zahl der Zeile mit den meisten Spalten
+                 # Damit kann colspan für button gesetzt werden.
+        # TODO cols wird nicht in allen Fällen richtig gesetzt
+        # (keine header, keine daten)
         buf = StringIO()
         pr = buf.write
+        if self.daten_before_headers:
+            for zeile in self.daten_before_headers:
+                if zeile:
+                    cols = 0 
+                    pr("<tr>")
+                    for spalte in zeile:
+                        if spalte:
+                            cols += spalte.n_col
+                            pr(str(spalte))
+                    pr("</tr>\n")
+                    max_cols = max(max_cols, cols)
         if self.daten and self.headers:
-            for i in self.daten[0]:
-                # leere Header einfügen entsprechend der Anzahl der Icons
-                if isinstance(i, (Icon, IconDead)):
+            cols = 0
+            if self.noheaders:
+                for i in range(self.noheaders):
                     pr("<th></th>")
-                    cols += i.n_col
-                else:
-                    break
+                    cols += 1
+            else:
+                for i in self.daten[0]:
+                    # leere Header einfügen entsprechend der Anzahl der Icons
+                    if isinstance(i, (Icon, IconDead)):
+                        pr("<th></th>")
+                        cols += i.n_col
+                    else:
+                        break
             for h in self.headers:
                 cols += 1
                 if h != '':
                     h += ':'
                 pr("<th>%s</th>" % h)
             pr("</tr>\n")
-        for zeile in self.daten:
-            pr("<tr>")
-            for spalte in zeile:
-                pr(str(spalte))
-            pr("</tr>\n")
+            max_cols = max(max_cols, cols)
+        if self.daten:
+            for zeile in self.daten:
+                if zeile:
+                    cols = 0
+                    pr("<tr>")
+                    for spalte in zeile:
+                        if spalte:
+                            pr(str(spalte))
+                    pr("</tr>\n")
+                    max_cols = max(max_cols, cols)
         if self.button:
             #self.button.set_n_col(cols)
-            self.button.n_col = cols
+            self.button.n_col = max(self.button.n_col, max_cols)
             pr("<tr>")
             pr(str(self.button))
             pr("</tr>\n")
+        elif self.buttons:
+            # Wenn mehrere Button reinsollen, besser eine eigene Tabelle
+            class _TableDataTable(Table, DataTable):
+                def _init(self):
+                    super(_TableDataTable, self)._init()
+                    self.set_rows()
+            button_zeile = _TableDataTable(
+                daten=[self.buttons],
+                colspan=max(1, max_cols),
+                )
+            pr(str(button_zeile))
         elif not self.daten and self.empty_msg:
-            self.colspan = cols
+            self.colspan = max(1, max_cols)
             pr("<tr>")
             pr("""<td colspan="%(colspan)s">%(empty_msg)s</td>""" % self)
             pr("</tr>\n")
-        return buf.getvalue()
+        self.rows = buf.getvalue()
 
-class InputTable(_HTML):
+
+class InputTable(object):
     """oblig: daten
     optional: button
     erwartet in daten: Seq von Seq von <td>
     Liefert string mit ein oder mehrere <tr>
     """
-    def display(self):
-        self._init()
+    def set_rows(self):
         buf = StringIO()
         pr = buf.write
-        cols = 0 # enthält am Ende die Zahl Spalten
-        
-        if self.daten:
-            for spalte in self.daten[0]:
-                cols += spalte.n_col
+        max_cols = 0 # enthält am Ende die Zahl Spalten
         for zeile in self.daten:
-            pr("<tr>")
-            for spalte in zeile:
-                pr(str(spalte))
-            pr("</tr>\n")
+            if zeile:
+                cols = 0
+                pr("<tr>")
+                for spalte in zeile:
+                    if spalte:
+                        cols += spalte.n_col
+                        pr(str(spalte))
+                pr("</tr>\n")
+                max_cols = max(max_cols, cols)
         if self.button:
-            #self.button.set_n_col(cols)
-            self.button.n_col = cols
+            self.button.n_col = max(self.button.n_col, max_cols)
             pr("<tr>")
             pr(str(self.button))
             pr("</tr>\n")
-        return buf.getvalue()
+        self.rows = buf.getvalue()
                             
-class FieldsetDataTable(DataTable):
-    legend = ''
-    def display(self):
-        self._init()
-        return Fieldset(legend=self.legend,
-                        content=DataTable.display(self)).display()
 
-class FieldsetInputTable(InputTable):
-    legend = ''
-    def display(self):
-        self._init()
-        return Fieldset(legend=self.legend,
-                        content=InputTable.display(self)).display()
+class FieldsetDataTable(Fieldset, DataTable):
+    """liefert ein Fieldset dessen Inhalt von einer Datatable aufgefüllt wird.
+    """
+    def _init(self):
+        super(FieldsetDataTable, self)._init()
+        self.set_rows()
+        
+class FieldsetInputTable(Fieldset, InputTable):
+    """liefert ein Fieldset dessen Inhalt von einer InputTable aufgefüllt wird.
+    """
+    def _init(self):
+        super(FieldsetInputTable, self)._init()
+        self.set_rows()
+        
+class FieldsetFormInputTable(FieldsetForm, InputTable):
+    """liefert ein Fieldset dessen Inhalt von einer InputTable aufgefüllt wird
+    und von einer Form umgeben ist.
+    """
+    def _init(self):
+        super(FieldsetFormInputTable, self)._init()
+        self.set_rows()
+
+class Meldung(FormPage):
+    """obligat: legend, zeilen
+    optional: titel
+    """
+    onClick = "javascript:history.back()"
+    empty_row = '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>'
+    def _init(self):
+        self.set_rows()
+        super(Meldung, self)._init()
+        if not self.titel:
+            self.titel = self.legend
+    def set_rows(self):
+        rows = [self.empty_row]*3
+        rows += ['<tr><td>%s</td></tr>' % z for z in self.zeilen]
+        rows += [self.empty_row]*3
+        button = Button(value="Ok",
+                        onClick=self.onClick,
+                        tip="Zurück",
+                        )
+        rows.append('<tr>%s</tr>' % str(button)) 
+        self.rows = (Fieldset(legend=self.legend,
+                              rows=rows,),
+                     )
+
+class SubmitOrBack(FormPage):
+    """obligat: legend, zeilen
+    optional: titel
+    optional: alle Parameter von Form
+    """
+    onclick_abbrechen = "javascript:history.back()"
+    onclick_submit = ''
+    
+    empty_row = '<tr><td colspan="2">&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>'
+    def _init(self):
+        self.set_rows()
+        super(SubmitOrBack, self)._init()
+        if not self.titel:
+            self.titel = self.legend
+    def set_rows(self):
+        rows = [self.empty_row]*3
+        rows += ['<tr><td colspan="2">%s</td></tr>' % z for z in self.zeilen]
+        rows += [self.empty_row]*3
+        button_back = Button(value="Abbrechen",
+                             onClick=self.onclick_abbrechen,
+                             tip="Aktion nicht durchführen",
+                             )
+        button_submit = Button(value="Ok",
+                               onClick=self.onclick_submit,
+                               type='submit',
+                               tip="Aktion durchführen",
+                               )
+        rows.append('<tr>%s%s</tr>' % (str(button_submit), str(button_back)))
+        self.rows = (Fieldset(legend=self.legend,
+                              rows=rows,),
+                     )
 
 class Item(_HTML):
-    """optional: class_, n_col
+    """optional: class_, n_col, n_label
     
     Jede Instanz dieser Klasse generiert 1 oder mehrere td-Elemente.
     n_td die Zahl der td-Elemente
     n_col die Zahl der überspannten Zellen
+    n_label damit kann bei Input-Items auch der label-Teil mehrere Zellen überspannen
     colspan der colspan Wert für die Zelle, die mehrere Spalten überspannen kann
     Es gilt: n_col = n_td + colspan - 1
     """
@@ -348,30 +467,36 @@ class Item(_HTML):
     def _init(self):
         super(Item, self)._init()
         if self.n_col != self.n_td:
-            self.colspan = self.n_col - self.n_td + 1
-            self.expand_attr('colspan')
+            if self.n_label:
+                self.label_colspan_attr = ' colspan="%s" ' % self.n_label
+                diff = self.n_col - self.n_td - self.n_label + 1
+            else:
+                diff = self.n_col - self.n_td
+            if diff > 0:
+                self.colspan = diff + 1
+                self.expand_attr('colspan')
         self.expand_attr('onBlur')
-##     def set_n_col(self, val):
-##         self.n_col = val
-##         if val != self.n_td:
-##             self.colspan = self.n_col - self.n_td + 1
-##             self.expand_attr('colspan')
+        self.expand_attr('align')
+        self.expand_attr('onClick')
+        self.expand_attr('onChange')
+        self.expand_attr('width')
+        self.expand_attr('target')
+        self.expand_attr('rowspan')
+
+class Dummy(Item):
+    tmpl = """<td%(tip)s%(label_width_attr)s%(colspan_attr)s%(rowspan_attr)s></td>"""
 
 class Icon(Item):
     href = ''
     onClick = ''
-    tmpl = """<td width="1%%"%(colspan_attr)s>
-      <a
-         href="%(href)s"
-         onClick="%(onClick)s"
-      >
-        <img border="0" 
-             src="%(icon)s"%(tip)s>
+    tmpl = """<td width="1%%"%(colspan_attr)s%(align_attr)s%(rowspan_attr)s>
+      <a href="%(href)s"%(onClick_attr)s%(target_attr)s>
+        <img border="0" src="%(icon)s"%(tip)s>
       </a>
 </td>
 """
 class IconDead(Item):
-    tmpl = """<td width="1%%"%(colspan_attr)s>
+    tmpl = """<td width="1%%"%(colspan_attr)s%(align_attr)s%(rowspan_attr)s>
         <img border="0" 
              src="%(icon)s"%(tip)s>
     </td>
@@ -382,8 +507,16 @@ class String(Item):
     obligat: string
     """
     class_ = 'tabledata'
-    tmpl = """<td class="%(class_)s"%(colspan_attr)s>%(string)s</td>"""
+    tmpl = """<td class="%(class_)s"%(colspan_attr)s%(tip)s%(align_attr)s%(rowspan_attr)s>%(string)s</td>"""
     
+class Link(Item):
+    """
+    obligat: string, url
+    """
+    class_ = 'tabledata'
+    tmpl = """<td class="%(class_)s"%(colspan_attr)s%(tip)s%(align_attr)s%(rowspan_attr)s><a href="%(url)s"%(target_attr)s>%(string)s</a></td>"""
+    
+
 class Datum(Item):
     """
     obligat: date ODER year, month, day, 
@@ -394,7 +527,7 @@ class Datum(Item):
     """
     year = ''
     day = ''
-    tmpl = """<td class="tabledata"%(colspan_attr)s>%(content)s</td>"""
+    tmpl = """<td class="tabledata"%(colspan_attr)s%(rowspan_attr)s>%(datum)s</td>"""
     def _init(self):
         super(Datum, self)._init()
         if self.date:
@@ -402,37 +535,40 @@ class Datum(Item):
             self.month = self.date.month
             self.day = self.date.day
         if not self.year:
-            content = "offen"
+            datum = "offen"
         else:
-            content = ''
+            datum = ''
             if self.day:
-                content = "%(day)s<B>.</B>" % self
-            content += "%(month)s<B>.</B>%(year)s" % self
-        self.content = content
+                datum = "%(day)s<B>.</B>" % self
+            datum += "%(month)s<B>.</B>%(year)s" % self
+        self.datum = datum
 
 class Button(Item):
-    """obligat: value, onClick
+    """obligat: value
+    optional: onClick, type, class_, name
     """
-    tmpl = """<td class="buttoncell" align="center" %(colspan_attr)s>
-      <input type="button" 
-       class="button"
-       value="%(value)s"
-       onClick="%(onClick)s"%(tip)s>
+    class_ = 'button'
+    type = 'button'
+    align = 'center'
+    tmpl = """<td class="buttoncell"%(colspan_attr)s%(align_attr)s%(width_attr)s%(rowspan_attr)s>
+      <input type="%(type)s" 
+       class="%(class_)s" name="%(name)s"
+       value="%(value)s"%(onClick_attr)s%(tip)s>
      </td>
 """
 
 class SelectGoto(Item):
     """name, options"""
-    tmpl = """<td%(tip)s%(colspan_attr)s>
+    class_='listbox130'
+    tmpl = """<td%(tip)s%(colspan_attr)s%(align_attr)s%(rowspan_attr)s>
      <select size="1" 
              name="%(name)s" 
              onChange="go_to_url(this.form.%(name)s.options[this.form.%(name)s.options.selectedIndex].value)"           
-             class="listbox130">
+             class="%(class_)s">
      %(options)s
      </select>
      </td>
 """
-
 
 class InputItem(Item):
     """Items, die der Eingabe von Daten dienen.
@@ -440,12 +576,16 @@ class InputItem(Item):
               label_width, damit können Eingabeelemente positioniert werden
                     auch wenn keine labels da sind, oder sie in verschieden
                     Fieldsets stehen
-              readonly
+              label_class, die Klasse der ersten Zelle
+              class_, die Klasse der zweiten Zelle 
+              readonly, disabled
     InputItems haben in der Regel zwei <td> Elemente (label und Eingabeelement)
     """
     n_td = 2
     n_col = 2
-    boolean_attrs = ('multiple', 'readonly', 'checked')
+    boolean_attrs = ('multiple', 'readonly', 'disabled', 'checked')
+    label_class='labeltext'
+    class_='textbox'
     def _init(self):
         super(InputItem, self)._init()
         self.id = self.name # Verknüpfung label - input-element
@@ -455,63 +595,128 @@ class InputItem(Item):
             self.label += ':'
         if self.label_width:
             self.label_width_attr = ' width="%s" ' % self.label_width
-class DummyItem(Item):
-    tmpl = """<td%(tip)s%(label_width_attr)s></td><td%(tip)s%(colspan_attr)s></td>"""
+        if self.value == None:
+            self.value = ''
+
+class DummyItem(InputItem):
+    """optional: name, value
+    damit wird ein hidden input gesetzt.
+    """
+    def _init(self):
+        super(InputItem, self)._init()
+        if self.name:
+            self.hidden_attr = '<input type="hidden" name="%(name)s" value="%(value)s">' 
+    tmpl = """<td class="%(label_class)s" %(tip)s%(label_width_attr)s%(rowspan_attr)s%(label_colspan_attr)s></td><td class="%(class_)s"%(tip)s%(colspan_attr)s%(rowspan_attr)s>%(hidden_attr)s</td>"""
     
 class TextItem(InputItem):
     """label,name,value
     optional: readonly, icon
     """
     class_ = 'textbox120'
-    maxlength = 50
-    def _init(self):
-        super(TextItem, self)._init()
+    maxlength = 1024
+    def __init__(self, **kw):
+        super(TextItem, self).__init__(**kw)
+        # muss *vor* _init gemacht werden:
         if self.icon:
-            self.iconcell = str(self.icon)
             n_col = 3
-    tmpl = """<td align="right" class="labeltext"%(label_width_attr)s>
+    tmpl = """<td align="right" class="%(label_class)s"%(label_width_attr)s%(rowspan_attr)s%(label_colspan_attr)s>
     <label for="%(id)s">%(label)s</label></td>
-    <td align="left"%(colspan_attr)s%(tip)s>
+    <td align="left"%(colspan_attr)s%(tip)s%(rowspan_attr)s>
     <input type="text" name="%(name)s" value="%(value)s" id="%(id)s"
     class="%(class_)s" maxlength="%(maxlength)s"%(onBlur_attr)s%(readonly_attr)s>
-    </td>%(iconcell)s
+    </td>%(icon)s
 """
 
-class CheckItem(InputItem):
-    """label,name,value
-    optional: readonly, checked
+class TextareaItem(InputItem):
+    """label,name,value,rows,cols
+    optional: readonly
     """
-    class_ = 'textbox'
-    tmpl = """
-    <td align="right" class="labeltext"%(label_width_attr)s>
+    class_ = 'textbox120'
+    tmpl = """<td align="right" class="%(label_class)s"%(label_width_attr)s%(rowspan_attr)s%(label_colspan_attr)s>
     <label for="%(id)s">%(label)s</label></td>
-    <td align="left"%(tip)s%(colspan_attr)s>
-    <input type="checkbox" name="%(name)s" value="%(value)s" id="%(id)s"
-     %(checked_attr)s%(readonly_attr)s>
+    <td align="left"%(colspan_attr)s%(tip)s%(rowspan_attr)s>
+    <textarea name="%(name)s" id="%(id)s" rows=%(rows)s cols=%(cols)s
+    class="%(class_)s" %(onBlur_attr)s%(readonly_attr)s>%(value)s</textarea>
     </td>
 """
 
 
+
+class UploadItem(InputItem):
+    """obligatorisch: label,name
+    """
+    class_ = 'textbox120'
+    tmpl = """<td align="right" class="%(label_class)s"%(label_width_attr)s%(rowspan_attr)s%(label_colspan_attr)s>
+    <label for="%(id)s">%(label)s</label></td>
+    <td align="left"%(colspan_attr)s%(tip)s%(rowspan_attr)s>
+    <input type="file" name="%(name)s" id="%(id)s"
+    class="%(class_)s"%(onBlur_attr)s>
+    </td>
+"""
+
+class CheckItem(InputItem):
+    """label,name,value
+    optional: readonly, checked, onClick
+    """
+    class_ = 'textbox'
+    tmpl = """
+    <td align="right" class="%(label_class)s"%(label_width_attr)s%(tip1)s%(label_colspan_attr)s>
+    <label for="%(id)s">%(label)s</label></td>
+    <td class="%(class_)s" align="left"%(tip2)s%(colspan_attr)s>
+    <input type="checkbox" name="%(name)s" value="%(value)s" id="%(id)s"
+     %(checked_attr)s%(readonly_attr)s%(onClick_attr)s>
+    </td>
+"""
+
+class RadioItem(InputItem):
+    """label,name,value
+    optional: readonly, checked
+    """
+    class_ = 'textbox'
+    def _init(self):
+        super(RadioItem, self)._init()
+        if self.label[-1] == ':':
+            self.label = self.label[:-1]
+    tmpl = """
+    <td align="right"%(tip)s%(colspan_attr)s>
+    <input type="radio" name="%(name)s" value="%(value)s" id="%(id)s"
+     %(checked_attr)s%(readonly_attr)s></td>
+    <td align="left" class="%(label_class)s"%(label_width_attr)s%(tip)s%(label_colspan_attr)s>
+    <label for="%(id)s">%(label)s</label></td>
+"""
+
 class SelectItem(InputItem):
     """label,name,options
-    optional: class_, multiple, label_width
+    optional: class_, multiple, label_width, size, nolabel, onChange
     """
     class_ = 'listbox120'
     def _init(self):
+        if self.nolabel:
+            self.n_td = 1
+        if self.readonly:
+            self.disabled = True
         super(SelectItem, self)._init()
         if self.size and int(self.size) > 1:
             self.expand_attr('size')
-            
-    tmpl = """<td align="right" class="labeltext"%(label_width_attr)s>
+    def display(self):
+        self._init()
+        if self.nolabel:
+            return self.tmpl_i % self
+        else:
+            return (self.tmpl_l + self.tmpl_i) % self
+    tmpl_l = """<td align="right" class="%(label_class)s"%(label_width_attr)s%(rowspan_attr)s%(label_colspan_attr)s>
     <label for="%(id)s">%(label)s</label></td>
-    <td align="left"%(tip)s%(colspan_attr)s>
-      <select name="%(name)s"%(size_attr)sclass="%(class_)s"%(multiple_attr)s%(readonly_attr)s>
+"""
+    tmpl_i = """<td%(colspan_attr)s align="left" %(tip)s%(rowspan_attr)s>
+      <select name="%(name)s"%(size_attr)s%(onChange_attr)s class="%(class_)s"%(multiple_attr)s%(disabled_attr)s>
     %(options)s
       </select></td>
 """
 
 class DatumItem(InputItem):
-    """label,name,(year,month,day oder date)"""
+    """label,name,(year,month,day oder date)
+    optional: noday - Kein input-Feld für den Tag
+    """
     def _init(self):
         super(DatumItem, self)._init()
         if self.date:
@@ -521,12 +726,21 @@ class DatumItem(InputItem):
         self.dname = self.name + 'd'
         self.mname = self.name + 'm'
         self.yname = self.name + 'y'
-    tmpl = """    <td align="right" class="labeltext"%(label_width_attr)s>
-    <label for="%(id)s">%(label)s</label></td>
-    <td align="left"%(tip)s%(colspan_attr)s>
-      <input id="%(name)s" type="text" value="%(day)s" class="textboxsmall"
+    def display(self):
+        self._init()
+        if self.noday:
+            self.day_input = ''
+        else:
+            self.day_input = self.day_t % self
+        return self.tmpl % self
+    day_t = """
+       <input id="%(name)s" type="text" value="%(day)s" class="textboxsmall"
              size=2 maxlength=2 name="%(dname)s"%(readonly_attr)s>
       <b>.</b>
+      """
+    tmpl = """    <td align="right" class="%(label_class)s"%(label_width_attr)s%(label_colspan_attr)s>
+    <label for="%(id)s">%(label)s</label></td>
+    <td align="left"%(tip)s%(colspan_attr)s>%(day_input)s
       <input type="text" value="%(month)s" class="textboxsmall" size=2 maxlength=2
              name="%(mname)s"%(readonly_attr)s>
       <b>.</b>
@@ -535,84 +749,33 @@ class DatumItem(InputItem):
     </td>
 """
 
-class Klientendaten(_HTML):
-    """legend, akte, button
-    liefert: string von <tr>
-    """
-    def display(self):
-        self._init()
-        content = self.tmpl % self.akte
-        if self.button:
-            self.button.n_col = 6 
-            content += Tr(cells=(self.button,)).display()
-        return Fieldset(legend=self.legend, content=content).display()
-    tmpl = """<tr>
-          <td align="right" class="labeltext">Vorname:</td>
-          <td>
-            <input type="text"  value="%(vn)s" size="14" class="textbox" readonly>
-          </td>
-          <td class="labeltext" align="right">Strasse:</td>
-          <td>
-            <input type="text" value="%(str)s %(hsnr)s" size="14" class="textbox" readonly>
-          </td>
-          <td class="labeltext" align="right">Wohnt bei:</td>
-          <td>
-            <input type="text" value="%(fs__name)s" size="14" class="textbox" readonly>
-          </td>
-        </tr>
-        <tr>
-          <td align="right" class="labeltext">Nachname:</td>
-          <td>
-            <input type="text" value="%(na)s" size="14" class="textbox" readonly>
-          </td>
-          <td class="labeltext" align="right">Postleitzahl:</td>
-          <td>
-            <input type="text" value="%(plz)s" size="14" class="textbox" readonly>
-          </td>
-          <td class="labeltext" align="right">Telefon 1:</td>
-          <td>
-            <input type="text" value="%(tl1)s" size="14" class="textbox" readonly>
-          </td>
-        </tr>
-        <tr>
-          <td align="right" class="labeltext">Geburtstag:</td>
-          <td>
-            <input type="text" value="%(gb)s " size="14" class="textbox" readonly>
-          </td>
-          <td class="labeltext" align="right">Ort:</td>
-          <td>
-            <input type="text" value="%(ort)s" size="14" class="textbox" readonly>
-          </td>
-          <td class="labeltext" align="right">Telefon 2:</td>
-          <td>
-            <input type="text" value="%(tl2)s" size="14" class="textbox" readonly>
-          </td>
-        </tr>
-        <tr valign="top">
-          <td align="right" class="labeltext" height="2">Ausbildung:</td>
-          <td height="2">
-            <input type="text" value="%(ber)s" size="14" class="textbox" readonly>
-          </td>
-          <td height="2" colspan="4"></td>
-        </tr>
-"""
-    
-
 class SpeichernZuruecksetzenAbbrechen(_HTML):
+    """
+    optional: abbrechen - anstatt history.back() eine URL
+              name - für submit
+              value- für submit
+    """
+    value = 'Speichern'
+    onclick_abbrechen = "javascript:history.back()"
+    onclick_submit = ''
+    value_abbrechen = 'Abbrechen'
     def display(self):
         self._init()
-        return Fieldset(content=self.tmpl % self).display()
+        if self.abbrechen:
+            self.onclick_abbrechen = "go_to_url('%(abbrechen)s')" % self
+        return Fieldset(rows=self.tmpl % self).display()
     
     tmpl = """
                 <tr height="40">
                   <td width="33%%" align="center" valign="middle">
-                    <input type="submit" name="" value="Speichern" class="button">
+                    <input type="submit" name="%(name)s" value="%(value)s" class="button"
+                     onClick="%(onclick_submit)s">
                   </td>
                   <td align="center" valign="middle" width="33%%">
                     <input type="reset" value="Zur&uuml;cksetzen" class="button">
                   </td>
                   <td align="center" valign="middle" width="34%%">
-                    <input type="button" value="Abbrechen" class="button" onClick="javascript:history.back()">
+                    <input type="button" value="%(value_abbrechen)s" class="button" onClick="%(onclick_abbrechen)s">
                   </td>
                 </tr>
 """

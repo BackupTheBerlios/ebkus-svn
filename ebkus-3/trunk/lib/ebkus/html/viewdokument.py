@@ -91,14 +91,9 @@ class dokview2(Request.Request):
     permissions = Request.DOKVIEW_PERM
     
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        
         if self.form.has_key('gruppeid'):
             gruppeid = self.form.get('gruppeid')
             gruppe = Gruppe(gruppeid)
-            dokid = self.form.get('dokid')
-            dok = Gruppendokument(dokid)
             titel = 'Auszug vom %(day)d.%(month)d.%(year)d.' % today() + \
                       ' - %s -' % gruppe['gn'] + '\n\n\n'
         else:
@@ -180,9 +175,10 @@ class print_pdf(Request.Request):
     permissions = Request.DOKVIEW_PERM
     
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        
+        if self.form.has_key('gruppeid'):
+            self.__class__ = printgr_pdf
+            # damit print_pdf auch für Gruppen funktioniert
+            return printgr_pdf.processForm(self, REQUEST, RESPONSE)
         art = self.form.get('art')
         if self.form.has_key('fallid'):
             fallid = self.form.get('fallid')
@@ -354,9 +350,6 @@ class printgr_pdf(Request.Request):
     permissions = Request.DOKVIEW_PERM
     
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        
         art = self.form.get('art')
         if self.form.has_key('gruppeid'):
             gruppeid = self.form.get('gruppeid')

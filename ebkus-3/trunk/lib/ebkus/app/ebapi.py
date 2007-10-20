@@ -14,7 +14,6 @@ from ebkus.app.ebapigen import *
 from ebkus.db import dbapp, sql
 from ebkus.config import config
 
-
 ####################
 # utility Funktionen
 ####################
@@ -27,11 +26,20 @@ def nfc(code_nr):
         pass
     return name
     
-def is_binary(mimecode):
-    if mimecode == cc('mimetyp','txt')or mimecode == cc('mimetyp','asc')or mimecode == cc('mimetyp','html')or mimecode == cc('mimetyp','htm')or mimecode == cc('mimetyp','ps')or mimecode == cc('mimetyp','rtf')or mimecode == cc('mimetyp','rtx'):
-        return 0
-    else:
-        return 1
+def is_binary(arg):
+    code = None
+    if isinstance(arg, (Dokument, Gruppendokument)):
+        code = arg['mtyp__code']
+    elif isinstance(arg, Code):
+        code = arg['code']
+    elif isinstance(arg, (basestring, int, long)):
+        # ist id
+        code = Code(arg)['code']
+    assert code
+    # Nun muss es Objekt sein
+    if code in ('txt', 'asc', 'html', 'htm', 'ps', 'rtf', 'rtx',):
+        return False
+    return True
         
 def ist_gruppen_mitarbeiter(gruppen_id,mit_id):
     gruppex = Gruppe(int(gruppen_id))
@@ -59,7 +67,16 @@ def cn(kat_code, name):
     except:
         raise dbapp.DBAppError("Code '%s' für Kategorie '%s' existiert nicht" % (name, kat_code))
     return id
-    
+
+def get_feld(feldname, tabelle=None, klasse=None):
+    "Liefert das entsprechende Feldobjekt."
+    if tabelle:
+        return Feld(feld=feldname,
+                    tab_id=Tabelle(tabelle=tabelle)['id'])
+    elif klasse:
+        return Feld(feld=feldname,
+                    tab_id=Tabelle(klasse=klasse)['id'])
+
     
 class Date(object):
     def __init__(self, year = None, month = None, day = None):
@@ -123,7 +140,7 @@ class Date(object):
             assert new_date.check(), "Addition von Monaten misslungen"
         return new_date
 
-    def check(self):
+    def check(self, alle_jahrgaenge_akzeptieren=False):
         """Liefert true, falls Datum (0,0,0) ist, oder ein korrektes Datum.
         TODO: ACHTUNG: ZWEISTELLIGE DATEN SIND ZULÄSSIG!
         Folgende Jahreszahlen sind gültig:
@@ -146,8 +163,12 @@ class Date(object):
         elif 30 < y < 100:
             y += 1900
         self.year = y
-        if y < 1970 or y > 2030:
-            return False
+        if alle_jahrgaenge_akzeptieren:
+            if y < 1890 or y > today().year:
+                return False
+        else:
+            if y < 1970 or y > 2030:
+                return False
         try:
             self.to_py_date()
             return True
@@ -175,6 +196,18 @@ class Date(object):
     __repr__ = __str__
     
 today = Date
+
+def str2date(str):
+    "3.4.1999 -> Date"
+    try:
+        if str:
+            nums = [int(i) for i in str.split('.')]
+        else:
+            nums = [0,0,0]
+    except:
+        raise EE('Fehler in Datumsstring: %s' %str)
+    nums.reverse()
+    return Date(*nums)
 
 def calc_age(gb_datum_als_string, aktuelles_datum_als_date):
     d,m,y = [int(x) for x in gb_datum_als_string.split('.')]
@@ -304,6 +337,9 @@ def getNewGruppennummer(stz_code):
     ## werden, da eine derartige Genauigkeit hier nicht notwendig ist.
     ##*************************************************************************
     
+def _akte_name(self, key):
+    return "%(vn)s %(na)s" % self
+
 def _wiederaufnehmbar(self, key):
     letzter_fall = self['letzter_fall']
     if letzter_fall and letzter_fall['zday'] != 0:
@@ -363,20 +399,39 @@ def _str_ausser(self, key):
         pass
     return res
 
+def _get_strkat_ortsangabe(self, key):
+    strasse = self.get('strasse')
+    if strasse == None:
+        from ebkus.html.strkat import get_strasse
+        strasse = self['strasse'] = get_strasse(self)
+    return strasse.get(key)
+
         
+Akte.attributemethods['name'] = _akte_name
 Akte.attributemethods['wiederaufnehmbar'] = _wiederaufnehmbar
 Akte.attributemethods['letzter_fall'] = _letzter_fall
 Akte.attributemethods['aktueller_fall'] = _aktueller_fall
 Akte.attributemethods['aktuell'] = _aktuell_akte
 Akte.attributemethods['str_inner'] = _str_inner
 Akte.attributemethods['str_ausser'] = _str_ausser
+Akte.attributemethods['bezirk'] = _get_strkat_ortsangabe
+Akte.attributemethods['ortsteil'] = _get_strkat_ortsangabe
+Akte.attributemethods['samtgemeinde'] = _get_strkat_ortsangabe
+# Achtung ganz doof: Akte hat eigenes Feld planungsr
+Akte.attributemethods['plraum'] = _get_strkat_ortsangabe
 
 Bezugsperson.attributemethods['str_inner'] = _str_inner
 Bezugsperson.attributemethods['str_ausser'] = _str_ausser
+Bezugsperson.attributemethods['bezirk'] = _get_strkat_ortsangabe
+Bezugsperson.attributemethods['ortsteil'] = _get_strkat_ortsangabe
+Bezugsperson.attributemethods['samtgemeinde'] = _get_strkat_ortsangabe
 
 ############################
 # Berechnete Felder für Fall
 ############################
+
+def _fall_name(self, key):
+    return self['akte__name']
 
 def _aktuell_fall(self, key):
     return self['zday'] == 0
@@ -410,6 +465,7 @@ def _get_jgh(self, key):
     else:
         return None
 
+Fall.attributemethods['name'] = _fall_name
 Fall.attributemethods['aktuell'] = _aktuell_fall
 Fall.attributemethods['zustaendig'] = _zustaendig_fall
 Fall.attributemethods['zuletzt_zustaendig'] = _zuletzt_zustaendig_fall
@@ -428,6 +484,10 @@ def _alter(self, key):
         
 Jugendhilfestatistik2007.attributemethods['alter'] = _alter
 
+# Felder vn, na wie bei Akter
+Mitarbeiter.attributemethods['name'] = _akte_name
+
+
 ############################
 # Pfaddefinitionen
 ############################
@@ -444,6 +504,9 @@ Leistung.pathdefinitions = {
   'akte': 'fall_id__akte'
 }
 Beratungskontakt.pathdefinitions = {
+  'akte': 'fall_id__akte'
+}
+Beratungskontakt_BS.pathdefinitions = {
   'akte': 'fall_id__akte'
 }
 Zustaendigkeit.pathdefinitions = {
@@ -581,67 +644,112 @@ def check_str_not_empty(dict, key, errorstring, default = None):
     if not val or type(val) != type(''): raise EE(errorstring)
     return val
     
-    
-    ##****************************************************************
-    ## Hsnr und Plz aus Tabelle Strassenkatalog auslesen
-    ##
-    ## HeS 25.10.2001
-    ## ABR 31.12.2002
-    ##****************************************************************
-    
-def read_hsnr(stra, plz):
-    res = []
-    res.append("<br>")
-    
-    for el in plz:
-        res.append("<br><b>Plz. " +  str(el[0]) + " : </b><br>")
-        sql_query = "SELECT DISTINCT hausnr FROM strassenkat WHERE str_name = '%s' and plz = '%s'" % (stra,str(el[0]))
-        hsnr = sql.execute(sql_query)
-        n=0
-        g=0
-        for el in hsnr:
-            if n == 11:
-                res.append("<br>")
-                n = 0
-            res.append(str(el[0]))
-            if g != (len(hsnr)-1):
-                res.append(", ")
-            n = n + 1
-            g = g + 1
-        res.append("<br>")
-    return string.join(res, '')
-    
-    
-def read_plz(stra):
-    sql_query = "SELECT DISTINCT plz FROM strassenkat WHERE str_name = '%s'" % stra
-    Plz = sql.execute(sql_query)
-    return Plz
-    ##****************************************************************
-    ## Check ob Strasse mit Hsnr und Plz im Strassenkatalog vorhanden
-    ##
-    ## HeS 25.10.2001
-    ## ABR 31.12.2002
-    ##****************************************************************
-def check_strasse(dict, key1, key2, key3):
-    stra = dict.get(key1)
-    if dict.get(key2) == '':
-        hsnr = '"---"'
+def check_list(dict, key, errorstring, default=None):
+    "garantiert eine Liste mit nicht-leeren Elementen"
+    "Falls default == [], auch eine leere Liste"
+    val = dict.get(key)
+    if val:
+        if isinstance(val, basestring):
+            val = [val]
+        else:
+            # TODO: das muss man nicht immer prüfen
+            assert isinstance(val, list)
+        # keine leeren strings
+        val = [v for v in val if v]
+        return val
     else:
-        hsnr = dict.get(key2)
-    if dict.get(key3) == '':
-        Plz = '"00000"'
-    else:
-        Plz = dict.get(key3)
+        if default == None:
+            raise EE(errorstring)
+        else:
+            return default
+    
+    
+##     ##****************************************************************
+##     ## Hsnr und Plz aus Tabelle Strassenkatalog auslesen
+##     ##
+##     ## HeS 25.10.2001
+##     ## ABR 31.12.2002
+##     ##****************************************************************
+    
+## def read_hsnr(stra, plz):
+##     res = []
+##     res.append("<br>")
+    
+##     for el in plz:
+##         res.append("<br><b>Plz. " +  str(el[0]) + " : </b><br>")
+##         sql_query = "SELECT DISTINCT hausnr FROM strassenkat WHERE str_name = '%s' and plz = '%s'" % (stra,str(el[0]))
+##         hsnr = sql.execute(sql_query)
+##         n=0
+##         g=0
+##         for el in hsnr:
+##             if n == 11:
+##                 res.append("<br>")
+##                 n = 0
+##             res.append(str(el[0]))
+##             if g != (len(hsnr)-1):
+##                 res.append(", ")
+##             n = n + 1
+##             g = g + 1
+##         res.append("<br>")
+##     return string.join(res, '')
+    
+    
+## def read_plz(stra):
+##     sql_query = "SELECT DISTINCT plz FROM strassenkat WHERE str_name = '%s'" % stra
+##     Plz = sql.execute(sql_query)
+##     return Plz
+##     ##****************************************************************
+##     ## Check ob Strasse mit Hsnr und Plz im Strassenkatalog vorhanden
+##     ##
+##     ## HeS 25.10.2001
+##     ## ABR 31.12.2002
+##     ##****************************************************************
+
+## def get_strassen_list(ort, plz, name, hsnr, strkat_id=None):
+##     """Hier geht es nur darum, die Richtigkeit der Angaben
+##     zu überprüfen. Die Parameter ort,plz,name, hsnr sollten immer
+##     zu einem eindeutigen Eintrag im Strassenkatalog    führen.
+##     """
+##     # fuer den Abgleich mit der DB fuehrende Nullen einsetzen
+##     if not config.STRASSENKATALOG:
+##         raise EE("Kein Strassenkatalog konfiguriert")
+##     from ebkus.html.strkat import hausnr_fuellen, split_hausnummer
+##     where = []
+##     if hsnr:
+##         gu = split_hausnummer(hsnr)[2]
+##         hsnr_check = hausnr_fuellen(hsnr)
+##         where.append("(von <= '%s' or von IS NULL)" % hsnr_check)
+##         where.append("(bis >= '%s' or bis IS NULL)" % hsnr_check)
+##         where.append("(gu = '%s' or gu IS NULL)" % gu)
+##     if ort:
+##         where.append("ort = '%s'" % ort)
+##     if plz:
+##         where.append("plz = '%s'" % plz)
+##     if name:
+##         where.append("name = '%s'" % name)
+##     if strkat_id:
+##         where.append("id = %s" % strkat_id)
+##     return StrassenkatalogNeuList(where=' and '.join(where))
+
+## def check_strasse(dict, key1, key2, key3):
+##     stra = dict.get(key1)
+##     if dict.get(key2) == '':
+##         hsnr = '"---"'
+##     else:
+##         hsnr = dict.get(key2)
+##     if dict.get(key3) == '':
+##         Plz = '"00000"'
+##     else:
+##         Plz = dict.get(key3)
         
-    strasse = StrassenkatalogList(where = 'str_name = "%s"' % stra
-                           + 'and hausnr = "%s"' % hsnr + ' and plz = %s ' % Plz)
-    if len(strasse) == 0:
-        plz_liste = read_plz(stra)
-        hsnr_liste = read_hsnr(stra, plz_liste)
-        errorstring = "Angabe zur Strasse <b>(" + str(stra) + ")</b> nicht korrekt: <br> Es sind folgende Postleitzahlen mit den dazu genannten Hausnummern verf&uuml;gbar:  " +  str(hsnr_liste)
-        raise  EE(errorstring)
-    else:
-        return stra
+##     strasse = get_strassen_list(stra, hsnr, Plz)
+##     if len(strasse) == 0:
+##         plz_liste = read_plz(stra)
+##         hsnr_liste = read_hsnr(stra, plz_liste)
+##         errorstring = "Angabe zur Strasse <b>(" + str(stra) + ")</b> nicht korrekt: <br> Es sind folgende Postleitzahlen mit den dazu genannten Hausnummern verf&uuml;gbar:  " +  str(hsnr_liste)
+##         raise  EE(errorstring)
+##     else:
+##         return stra
         
         ##****************************************************************
         ## Planungsraum zuweisen
@@ -649,74 +757,72 @@ def check_strasse(dict, key1, key2, key3):
         ## HeS 29.10.2001
         ##****************************************************************
         
-def plraum_zuweisen(dict, key1, key2, key3, errorstring):
-    stra = dict.get(key1)
-    if dict.get(key2) == '':
-        hsnr = '"---"'
-    else:
-        hsnr = dict.get(key2)
-    Plz = dict.get(key3)
+## def plraum_zuweisen(dict, key1, key2, key3, errorstring):
+##     stra = dict.get(key1)
+##     if dict.get(key2) == '':
+##         hsnr = '"---"'
+##     else:
+##         hsnr = dict.get(key2)
+##     Plz = dict.get(key3)
     
-    strasse = StrassenkatalogList(where = 'str_name = "%s"' % stra
-                           + ' and hausnr = "%s" ' % hsnr + ' and plz = %s ' % Plz)
+##     strasse = get_strassen_list(stra, hsnr, Plz)
     
-    if len(strasse) == 0:
-        raise EE(errorstring)
-    else:
-        for i in strasse:
-            plr = i['Plraum']
-            return plr
+##     if len(strasse) == 0:
+##         raise EE(errorstring)
+##     else:
+##         for i in strasse:
+##             plr = i['Plraum']
+##             return plr
             
             
-            ##*****************************************************************
-            ## Wohnbezirk zuordnen
-            ##
-            ## HeS
-            ##*****************************************************************
+##             ##*****************************************************************
+##             ## Wohnbezirk zuordnen
+##             ##
+##             ## HeS
+##             ##*****************************************************************
             
-def wohnbez_zuordnen(dict, key1, key2, key3, errorstring):
-    stra = dict.get(key1)
-    if dict.get(key2) == '':
-        hsnr = '"---"'
-    else:
-        hsnr = dict.get(key2)
-    Plz = dict.get(key3)
+## def wohnbez_zuordnen(dict, key1, key2, key3, errorstring):
+##     stra = dict.get(key1)
+##     if dict.get(key2) == '':
+##         hsnr = '"---"'
+##     else:
+##         hsnr = dict.get(key2)
+##     Plz = dict.get(key3)
     
-    strasse = StrassenkatalogList(where = 'str_name = "%s"' % stra
-                           + ' and hausnr = "%s" ' % hsnr + ' and plz = %s ' % Plz)
+##     strasse = get_strassen_list(stra, hsnr, Plz)
     
-    if len(strasse) == 0:
-        raise EE(errorstring)
-    else:
-        for i in strasse:
-            bezirk = i['bezirk']
-            if bezirk == 1:
-                wohnbezirk = cc('wohnbez', '01')
-            elif bezirk == 2:
-                wohnbezirk = cc('wohnbez', '02')
-            elif bezirk == 3:
-                wohnbezirk = cc('wohnbez', '03')
-            elif bezirk == 4:
-                wohnbezirk = cc('wohnbez', '04')
-            elif bezirk == 5:
-                wohnbezirk = cc('wohnbez', '05')
-            elif bezirk == 6:
-                wohnbezirk = cc('wohnbez', '06')
-            elif bezirk == 7:
-                wohnbezirk = cc('wohnbez', '07')
-            elif bezirk == 8:
-                wohnbezirk = cc('wohnbez', '08')
-            elif bezirk == 9:
-                wohnbezirk = cc('wohnbez', '09')
-            elif bezirk == 10:
-                wohnbezirk = cc('wohnbez', '10')
-            elif bezirk == 11:
-                wohnbezirk = cc('wohnbez', '11')
-            elif bezirk == 12:
-                wohnbezirk = cc('wohnbez', '12')
-            elif bezirk == 13:
-                wohnbezirk = cc('wohnbez', '13')
-            return wohnbezirk
+##     if len(strasse) == 0:
+##         raise EE(errorstring)
+##     else:
+##         for i in strasse:
+##             bezirk = i['bezirk']
+##             if bezirk == 1:
+##                 wohnbezirk = cc('wohnbez', '01')
+##             elif bezirk == 2:
+##                 wohnbezirk = cc('wohnbez', '02')
+##             elif bezirk == 3:
+##                 wohnbezirk = cc('wohnbez', '03')
+##             elif bezirk == 4:
+##                 wohnbezirk = cc('wohnbez', '04')
+##             elif bezirk == 5:
+##                 wohnbezirk = cc('wohnbez', '05')
+##             elif bezirk == 6:
+##                 wohnbezirk = cc('wohnbez', '06')
+##             elif bezirk == 7:
+##                 wohnbezirk = cc('wohnbez', '07')
+##             elif bezirk == 8:
+##                 wohnbezirk = cc('wohnbez', '08')
+##             elif bezirk == 9:
+##                 wohnbezirk = cc('wohnbez', '09')
+##             elif bezirk == 10:
+##                 wohnbezirk = cc('wohnbez', '10')
+##             elif bezirk == 11:
+##                 wohnbezirk = cc('wohnbez', '11')
+##             elif bezirk == 12:
+##                 wohnbezirk = cc('wohnbez', '12')
+##             elif bezirk == 13:
+##                 wohnbezirk = cc('wohnbez', '13')
+##             return wohnbezirk
             
             
             
@@ -732,7 +838,7 @@ def check_int_not_empty(dict, key, errorstring, default = None):
     
 def check_fk(dict, key, klass, errorstring, default = None):
     fk = dict.get(key)
-    if fk is None or fk == '':
+    if fk in (None, '', ' '):
         if not default is None: return k_or_val(key, default)
     try: fk = int(fk)
     except: raise EE(errorstring)
@@ -746,7 +852,12 @@ def check_fk(dict, key, klass, errorstring, default = None):
     
     
 def check_date(dict, key, errorstring, default = None,
-               maybezero = None, maybefuture = None, nodayallowed = None):
+               maybezero = None,    # darf 0 sein
+               maybefuture = None,  # darf in der Zukunft liegen
+               nodayallowed = None, # Tag darf fehlen
+               alle_jahrgaenge_akzeptieren=False,
+               # falls True, nur Jahre zwischen 1890 und heute akzeptieren
+               ):
 
     if type(key) == type(()):
         d, m, y = key[0], key[1], key[2]
@@ -766,7 +877,7 @@ def check_date(dict, key, errorstring, default = None,
     except:
         raise EE(errorstring)
     datum = Date(y,m,d)
-    if (not datum.check()  or
+    if (not datum.check(alle_jahrgaenge_akzeptieren)  or
         (not maybefuture and datum.year != 0 and today() < datum) or
         (not maybezero and datum.year == 0)):
         raise EE("%s: %s" % (errorstring, str(datum)))
@@ -795,12 +906,16 @@ def check_multi_code(dict, key, kat_code, errorstring, default = None):
     #print key, kat_code, code
     if code is None or code == '':
         if not default is None:
-            if type(default) == type(''): return cc(kat_code, default)
-            else: return k_or_val(key, default)
+            if type(default) == type(''):
+                return cc(kat_code, default)
+            else:
+                return k_or_val(key, default)
     if not isinstance(code, list):
         code = [code]
-    try: code = [int(c) for c in code]
-    except: raise EE(errorstring)
+    try:
+        code = [int(c) for c in code]
+    except:
+        raise EE(errorstring)
     try:
         codes = CodeList(code)
     except Exception, e:
@@ -1038,4 +1153,46 @@ def convert_pstoascii():
             
     sql.closedb()
     
-    
+
+
+# Ein Register in der Datenbank, wo man beliebige Python-Objekte
+# mit einem Schlüssel persistent ablegen kann
+def register_set(key, value=None):
+    from cPickle import dumps
+    r = None
+    try:
+        r = Register(regkey=key)
+    except dbapp.DBAppError:
+        pass
+    if value == None:
+        if r:
+            r.delete()
+        return
+    p = dumps(value)
+    if r:
+        r.update({key: p})
+    else:
+        r = Register()
+        r.init(id=Register().getNewId(),
+               regkey=key,
+               value=p,)
+        r.insert()
+def register_get(key, default=None):
+    from cPickle import loads
+    try:
+        r = Register(regkey=key)
+    except dbapp.DBAppError:
+        return default
+    s = r['value']
+    return loads(s)
+
+
+# TBD wieder wegnehmen beim Umstieg auf höhrere Version
+def sorted(seq):
+    "da wir python2.3 verwenden, leider kein eingebautes sorted"
+    try:
+        copy = seq[:]
+        copy.sort()
+        return copy
+    except:
+        return seq

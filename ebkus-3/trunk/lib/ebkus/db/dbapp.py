@@ -189,11 +189,12 @@ class DBObjekt(UserDict):
       # Wir nehmen dann an, daß es sich um den Wert für den primarykey handelt.
       # self.changed = 0
         if  not s_NXXlnokey_word is None:
+            # Hier gibt es nur Treffer, wenn s_NXXlnokey_word im Normalfall
+            # ein Integer ist. Falls die ID als String übergeben wird,
+            # kommt weiter unten die SQL-Query zum Zuge. Ebenfalls erfolgreich,
+            # aber unter Umgehung des Caches
+            # Braucht man den Cache überhaupt?
             if _cache.get(self, s_NXXlnokey_word):
-            ##      if self._test_data():
-            ##        print self._test_data()
-            ##        print self.data
-            ##        raise AttributeError, 'in __getitem__'
                 return
             primarykeyval = s_NXXlnokey_word
             if params:
@@ -1053,6 +1054,11 @@ class Container(UserList):
             return 0
         UserList.sort(self, mycmp)
         
+    def sorted(self, *fields):
+        new = self.__class__(self)
+        new.sort(*fields)
+        return new
+
     def __cmp__(self, list):
         if type(list) == type(self.data):
             return cmp(self.data, list)

@@ -2,331 +2,300 @@
 
 """Module für Gruppen."""
 
-import string
-
 from ebkus.app import Request
-from ebkus.app. ebapi import Gruppe, MitarbeiterGruppe, MitarbeiterGruppeList, Akte, Fall, FallGruppe, Bezugsperson, BezugspersonGruppe, ZustaendigkeitList, getNewGruppennummer, today, cc,ist_gruppen_mitarbeiter
-from ebkus.app.ebapih import get_codes, mksel
-from ebkus.app_surface.gruppe_templates import *
-from ebkus.app_surface.standard_templates import *
+from ebkus.app.ebapi import Gruppe, MitarbeiterGruppeList, \
+     FallGruppe, BezugspersonGruppe, \
+     ZustaendigkeitList, getNewGruppennummer, Date, today
 
-class menugruppe(Request.Request):
+import ebkus.html.htmlgen as h
+from ebkus.html.akte_share import akte_share
+
+class menugruppe(Request.Request, akte_share):
     """Hauptmenü der Gruppenkartei (Tabellen: Gruppe, MitarbeiterGruppe)."""
-    
     permissions = Request.MENUGRUPPE_PERM
-    
-    def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        
-        res = []
-        res.append(head_normal_t % 'Gruppenkartei')
-        res.append(gruppenmenu_t)
+    def for_gruppen(self):
+        """Optionen für Gruppenauswahl erstellen"""
+        option_t = '<option value="%(gruppe_id)s">%(mit_id__na)s | %(gruppe_id__name)s</option>\n'
+        options = ''
         if self.mitarbeiter['benr__code'] == 'bearb':
             mitarbeitergruppenl = MitarbeiterGruppeList(where = 'mit_id = %s'
                                                   % self.mitarbeiter['id'] )
             mitarbeitergruppenl.sort('mit_id__na', 'gruppe_id__name')
             for m in mitarbeitergruppenl:
                 if m['gruppe_id__stz'] == self.stelle['id']:
-                    res.append(gruppenmenu_auswahl_t % m)
-                    
+                    options += option_t % m
         elif self.mitarbeiter['benr__code'] == 'verw' or self.mitarbeiter['benr__code'] == 'admin':
             mitarbeitergruppenl = MitarbeiterGruppeList()
             mitarbeitergruppenl.sort('mit_id__na', 'gruppe_id__name')
             for m in mitarbeitergruppenl:
                 if m['gruppe_id__stz'] == self.stelle['id']:
-                    res.append(gruppenmenu_auswahl_t % m)
-        res.append(gruppemenu_ende_t)
-        return string.join(res, '')
+                    options += option_t % m
+        return options
         
-        
-class gruppeneu(Request.Request):
+    def processForm(self, REQUEST, RESPONSE):
+        gruppe = h.FieldsetFormInputTable(
+            action='grkarte',
+            name='gruppeform',
+            method='post',
+            legend='Gruppenauswahl', 
+            daten=[
+                   [h.SelectItem(name='gruppeid',
+                                 size="12",
+                                 class_="listbox280",
+                                 tip="Alle Gruppen, für die Sie Zugriffsrechte haben",
+                                 options=self.for_gruppen(),
+                                 n_col=4,
+                                 nolabel=True,
+                                 ),
+                    ],
+                   [h.RadioItem(label='Gruppenkarte',
+                                name='file',
+                                value='grkarte',
+                                checked=True,
+                                tip='Gruppenkarte für ausgewählte Gruppe ansehen',
+                                ),
+                    h.RadioItem(label='Gruppendokumente',
+                                name='file',
+                                value='grdok',
+                                tip='Gruppendokumente für ausgewählte Gruppe ansehen',
+                                ),
+                    ],
+                   [h.DummyItem(n_col=4)],
+                   [h.Button(value='Ok',
+                             type='submit',
+                             n_col=2,
+                             ),
+                    h.Button(value='Neue Gruppe',
+                             type='button',
+                             onClick="go_to_url('gruppeneu')",
+                             tip='Neue Gruppe anlegen',
+                             n_col=2,
+                             ),
+                    ],
+                   ],
+            )
+        hauptmenu = h.FieldsetInputTable(
+            daten=[[h.Button(value='Hauptmenü',
+                             onClick="go_to_url('menu')",
+                             tip="Hauptmenü",
+                             ),
+            ]]
+            )
+        res = h.Page(
+            title='Gruppenmenü',
+            help="das-gruppenmen",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ),
+            rows=(h.Pair(left=(hauptmenu,
+                               self.get_suche(),
+                               ),
+                         right=(gruppe,
+                                ),
+                         ),
+                  ),
+            )
+        return res.display()
+
+class _gruppe(Request.Request,akte_share):
+    def _display_gruppendaten(self,
+                      file,
+                      title,
+                      gruppe,
+                      ):
+        res = h.FormPage(
+            title=title,
+            name='gruppenform',action="grkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Gruppenmenü', 'menu'),
+                          (not file=='gruppeeinf') and
+                           ('Gruppenkarte', 'grkarte?gruppeid=%s' % gruppe['id'])
+                           or None,
+                           ),
+            hidden=(("gruppeid", gruppe['id']),
+                    ("file", file),
+                    ("gn", gruppe['gn']),
+                    ("stz", gruppe['stz']),
+                    ),
+            rows=(self.get_gruppendaten(gruppe, readonly=False),
+                  h.SpeichernZuruecksetzenAbbrechen(),
+                  ),
+            )
+        return res.display()
+
+class gruppeneu(_gruppe):
     """Neue Gruppe eintragen (Tabellen: Gruppe, MitarbeiterGruppe)."""
-    
     permissions = Request.GRUPPENEU_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        gruppentypen = get_codes('grtyp')
-        teilnehmer = get_codes('teiln')
-        gruppentypen.sort('name')
-        teilnehmer.sort('name')
-        hidden ={'file': 'gruppeeinf'}
-        gruppeid = Gruppe().getNewId()
-        hiddenid ={'name': 'gruppeid', 'value': gruppeid}
-        hiddenid2 ={'name': 'stz', 'value': self.stelle['id']}
-        
-        # Gruppenummer
-        
-        gruppennummer = getNewGruppennummer(self.stelle['code'])
-        hiddengn ={'name': 'gn', 'value': gruppennummer }
-        
-        # Liste der Templates als String
-        
-        res = []
-        res.append(head_normal_t % 'Neue Gruppe erstellen')
-        res.append(gruppe_neu_t)
-        res.append(formhiddenvalues_t % hidden)
-        res.append(formhiddennamevalues_t % hiddenid)
-        res.append(formhiddennamevalues_t % hiddengn)
-        res.append(formhiddennamevalues_t % hiddenid2)
-        res.append(gruppe_neu_t2 % {'gn' : gruppennummer})
-        res.append(gruppe_neu_datum_t % today())
-        res.append(gruppe_neu_teilnehmer_t)
-        mksel(res, codeliste_t, teilnehmer)
-        res.append(gruppe_neu_mitarbeiter_t)
-        mksel(res, mitarbeiterliste_t, mitarbeiterliste, 'ben', user)
-        res.append(gruppe_neu_gruppenart_t)
-        mksel(res, codeliste_t, gruppentypen)
-        res.append(gruppe_neu_ende_t)
-        return string.join(res, '')
-        
-        
-class updgruppe(Request.Request):
+        gruppe = Gruppe()
+        gruppe.init(
+            id=Gruppe().getNewId(),
+            gn=getNewGruppennummer(self.stelle['code']),
+            tzahl=None,
+            stzahl=None,
+            teiln=None,
+            grtyp=None,
+            stz=self.stelle['id'],
+            mitarbeiter=[{'mit_id':self.mitarbeiter['id']}],
+            )
+        gruppe.setDate('bg', today())
+        gruppe.setDate('e', Date(0,0,0))
+        return self._display_gruppendaten(file='gruppeeinf',
+                                          title='Neue Gruppe erstellen',
+                                          gruppe=gruppe)
+
+class updgruppe(_gruppe):
     """Gruppe ändern (Tabellen: Gruppe, MitarbeiterGruppe)."""
-    
     permissions = Request.GRUPPENEU_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        
-        if self.form.has_key('gruppeid'):
-            gruppeid = self.form.get('gruppeid')
-            gruppe = Gruppe(int(gruppeid))
+        gruppeid = self.form.get('gruppeid')
+        if gruppeid:
+            gruppe = Gruppe(gruppeid)
         else:
             self.last_error_message = "Keine ID fuer die Gruppe erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-            
-        mitarbeitergruppe =  gruppe['mitarbeiter']
-        gruppentypen = get_codes('grtyp')
-        teilnehmer = get_codes('teiln')
-        gruppentypen.sort('name')
-        teilnehmer.sort('name')
-        hidden ={'file': 'updgr'}
-        hiddenid ={'name': 'gruppeid', 'value': gruppeid}
-        hiddenid2 ={'name': 'stz', 'value': self.stelle['id']}
+        return self._display_gruppendaten(file='updgr',
+                                          title='Gruppendaten bearbeiten',
+                                          gruppe=gruppe)
         
-        # Liste der Templates als String
-        
-        res = []
-        res.append(head_normal_t % 'Gruppe bearbeiten')
-        res.append(gruppe_upd_t % gruppe )
-        res.append(formhiddenvalues_t % hidden)
-        res.append(formhiddennamevalues_t % hiddenid)
-        res.append(formhiddennamevalues_t % hiddenid2)
-        res.append(gruppe_upd_datum_t % gruppe)
-        res.append(gruppe_upd_teilnehmer_t % gruppe)
-        mksel(res, codeliste_t, teilnehmer, 'id', gruppe['teiln'])
-        res.append(gruppe_upd_mitarbeiter_t)
-        for m in mitarbeiterliste:
-            if ist_gruppen_mitarbeiter(gruppe['id'],m['id']):
-                res.append(gruppe_sel_mit_t % m)
-            else:
-                res.append(gruppe_notsel_mit_t % m)
-        res.append(gruppe_neu_gruppenart_t)
-        mksel(res, codeliste_t, gruppentypen, 'id', gruppe['grtyp'])
-        res.append(gruppe_upd_ende_t % gruppe)
-        return string.join(res, '')
-        
-        
-class gruppeteilnausw(Request.Request):
+class gruppeteilnausw(Request.Request, akte_share):
     """Teilnehmerauswahl (Tabellen: FallGruppe, BezugspersonGruppe)."""
-    
     permissions = Request.GRUPPETEILN_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        if self.form.has_key('gruppeid'):
-            gruppeid = self.form.get('gruppeid')
+        gruppeid = self.form.get('gruppeid')
+        if gruppeid:
             gruppe = Gruppe(gruppeid)
         else:
             self.last_error_message = "Keine ID fuer die Gruppe erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-            
-            # Fuer FORM-HIDDEN-VALUES
-            
-        hidden ={'file': 'gruppeteilneinf'}
-        hiddenid ={'name': 'mitid', 'value': self.mitarbeiter['id']}
-        
-        # Liste der Templates als String
-        
-        res = []
-        res.append(head_normal_t %("Teilnehmerauswahl aus der Klientenkartei"))
-        res.append(teilnauswahl_form_t % gruppe)
-        res.append(formhiddenvalues_t % hidden)
-        res.append(formhiddennamevalues_t % hiddenid)
-        
-        if self.mitarbeiter['benr__code'] == 'bearb':
-            zustaendigkeiten = ZustaendigkeitList(where = 'ed = 0 and mit_id = %s'
-                                                  % self.mitarbeiter['id'] )
-            zustaendigkeiten.sort('mit_id__na', 'fall_id__akte_id__na',
-                                  'fall_id__akte_id__vn')
-            res.append(teilnauswahl_t)
-            
-            for z in zustaendigkeiten:
-                if z['fall_id__akte_id__stzak'] == self.stelle['id']:
-                    res.append(teilnauswahl1_t % z)
-            res.append(teilnauswahl2_t)
-            
-            for z in zustaendigkeiten:
-                if z['fall_id__akte_id__stzak'] == self.stelle['id']:
-                    akte = Akte(z['fall_id__akte_id'])
-                    fn = z['fall_id__fn']
-                    bezugspliste = akte['bezugspersonen']
-                    for b in bezugspliste:
-                        b['fn'] = fn
-                        res.append(teilnauswahl3_t % b)
-                        del b['fn']
-            res.append(teilnauswahl4_t % today())
-            
-        elif self.mitarbeiter['benr__code'] == 'verw' or 'admin':
-            zustaendigkeiten = ZustaendigkeitList(where = 'ed = 0' )
-            zustaendigkeiten.sort('mit_id__na', 'fall_id__akte_id__na',
-                                  'fall_id__akte_id__vn')
-            res.append(teilnauswahl_t)
-            
-            for z in zustaendigkeiten:
-                if z['fall_id__akte_id__stzak'] == self.stelle['id']:
-                    res.append(teilnauswahl1_t % z)
-            res.append(teilnauswahl2_t)
-            
-            for z in zustaendigkeiten:
-                if z['fall_id__akte_id__stzak'] == self.stelle['id']:
-                    akte = Akte(z['fall_id__akte_id'])
-                    fn = z['fall_id__fn']
-                    bezugspliste = akte['bezugspersonen']
-                    for b in bezugspliste:
-                        b['fn'] = fn
-                        res.append(teilnauswahl3_t % b)
-                        del b['fn']
-            res.append(teilnauswahl4_t % today())
-        return string.join(res, '')
-        
-        
-class gruppeteiln(Request.Request):
-    """Gruppenteilnehmer eintragen (Tabellen: FallGruppe, BezugspersonGruppe)."""
-    
-    permissions = Request.GRUPPETEILN_PERM
-    
-    def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        
-        if self.form.has_key('gruppeid'):
-            gruppeid = self.form.get('gruppeid')
-            gruppe = Gruppe(gruppeid)
-        else:
-            self.last_error_message = "Keine ID fuer Gruppe erhalten"
-            return self.EBKuSError(REQUEST, RESPONSE)
-            
-        bezugspersonen = gruppe['bezugspersonen']
-        bezugspersonen.sort('bgy','bgm','bgd')
-        faelle = gruppe['faelle']
-        faelle.sort('fall_id__akte_id__na','bgy','bgm','bgd')
-        
-        res = []
-        res.append(head_normal_ohne_help_t %("Teilnehmerliste der Gruppe: " + "%(name)s, %(bgd)s.%(bgm)s.%(bgy)s-%(ed)s.%(em)s.%(ey)s" % gruppe))
-        res.append(teilnehmerliste_t %("%(name)s, %(bgd)s.%(bgm)s.%(bgy)s-%(ed)s.%(em)s.%(ey)s" % gruppe))
-        
-        for f in faelle:
-            fall = Fall(f['fall_id'])
-            akte = Akte(fall['akte_id'])
-            res.append(teilnehmerliste_fall1_t % akte)
-            res.append(teilnehmerliste_fall2_t % f)
-            
-        for b in bezugspersonen:
-            bezugsp = Bezugsperson(b['bezugsp_id'])
-            res.append(teilnehmerliste_bzpers1_t % bezugsp)
-            res.append(teilnehmerliste_bzpers2_t % b)
-            
-        res.append(teilnehmerliste_ende_t)
-        return string.join(res, '')
-        
+        klientenauswahl = h.FieldsetInputTable(
+            legend='Klientenauswahl', 
+            daten=[[h.SelectItem(name='fallid',
+                                 size="10",
+                                 multiple=True,
+                                 class_="listbox220",
+                                 tip="Alle offene Fälle, für die Sie Zugriffsrechte haben",
+                                 options=self.for_klienten(kurz=True),
+                                 nolabel=True,
+                                 ),
+                    ]])
+        bezugspersonenauswahl = h.FieldsetInputTable(
+            legend='Bezugspersonenauswahl', 
+            daten=[[h.SelectItem(name='bezugspid',
+                                 size="10",
+                                 multiple=True,
+                                 class_="listbox220",
+                                 tip="Alle Bezugspersonen von offenen Fällen, für die Sie Zugriffsrechte haben",
+                                 options=self.for_bezugspersonen(),
+                                 nolabel=True,
+                                 ),
+                    ]])
+        datumsetzen = h.FieldsetInputTable(
+            legend = 'Teilnahmezeitraum',
+            daten = [[h.DatumItem(label='Beginndatum',
+                                  name='bg',
+                                  date=today(),
+                                  ),
+                      h.DatumItem(label='Endedatum',
+                                  name='e',
+                                  ),
+                      ]]
+            )
+        res = h.FormPage(
+            title='Teilnehmerauswahl',
+            name='gruppenform',action="grkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Gruppenmenü', 'menu'),
+                           ('Gruppenkarte', 'grkarte?gruppeid=%s' % gruppe['id']),
+                           ),
+            hidden=(("gruppeid", gruppe['id']),
+                    ("file", 'gruppeteilneinf'),
+                    ("mitid", self.mitarbeiter['id']),
+                    ),
+            rows=(h.Pair(left=klientenauswahl,
+                         right=bezugspersonenauswahl),
+                  datumsetzen,
+                  h.SpeichernZuruecksetzenAbbrechen(),
+                  ),
+            )
+        return res.display()
         
 class updteiln(Request.Request):
     """Teilnehmerdaten ändern (Tabellen: FallGruppe, BezugspersonGruppe)."""
-    
     permissions = Request.GRUPPETEILN_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        
-        if self.form.has_key('gruppeid'):
-            gruppeid = self.form.get('gruppeid')
-            gruppe = Gruppe(gruppeid)
-        else:
-            self.last_error_message = "Keine ID fuer die Gruppe erhalten"
+        fallgr_id = self.form.get('fallgrid')
+        bzpgr_id = self.form.get('bzpgrid')
+        if not (fallgr_id or bzpgr_id):
+            self.last_error_message = "Keine ID fuer Teilnehmer erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-            
-        if self.form.has_key('bezugspid'):
-            bezugspgrid = self.form.get('id')
-            teiln = BezugspersonGruppe(int(bezugspgrid))
-            bezugsp = Bezugsperson(teiln['bezugsp_id'])
-        elif self.form.has_key('fallid'):
-            fallgrid = self.form.get('id')
-            teiln = FallGruppe(int(fallgrid))
-            fall = Fall(teiln['fall_id'])
-        else:
-            self.last_error_message = "Keine ID fuer Fall oder Bezugsperson erhalten"
-            return self.EBKuSError(REQUEST, RESPONSE)
-            
-        hidden ={'file': 'updgrteiln'}
-        
-        # Liste der Templates als String
-        
-        res = []
-        res.append(head_normal_t % 'Datum des Gruppenteilnehmers &auml;ndern')
-        res.append(teilnauswahl_form_t % gruppe)
-        res.append(formhiddenvalues_t % hidden)
-        if self.form.has_key('fallid'):
-            res.append(teilnupd_t % teiln)
-            res.append(formhiddennamevalues_t % ({ 'name': 'fallgrid',
-                                                   'value' : teiln['id'] }))
-        elif self.form.has_key('bezugspid'):
-            res.append(formhiddennamevalues_t % ({ 'name': 'bezugspgrid',
-                                                   'value' : teiln['id'] }))
-            res.append(teilnupdb_t % teiln)
-        res.append(teilnupd1_t % teiln)
-        return string.join(res, '')
-        
-        
+        if bzpgr_id:
+            bzpgr = obj = BezugspersonGruppe(bzpgr_id)
+            name = "%(vn)s %(na)s" % bzpgr['bezugsp']
+            hidden_val = ('bzpgrid', bzpgr_id)
+            gruppe = bzpgr['gruppe']
+        elif fallgr_id:
+            fallgr = obj = FallGruppe(fallgr_id)
+            name = "%(vn)s %(na)s" % fallgr['fall__akte']
+            hidden_val = ('fallgrid', fallgr_id)
+            gruppe = fallgr['gruppe']
+        datumsetzen = h.FieldsetInputTable(
+            legend = 'Teilnahmezeitraum für %s' % name,
+            daten = [[h.DatumItem(label='Beginndatum',
+                                  name='bg',
+                                  date = obj.getDate('bg'),
+                                  ),
+                      h.DatumItem(label='Endedatum',
+                                  name='e',
+                                  date = obj.getDate('e'),
+                                  ),
+                      ]]
+            )
+        res = h.FormPage(
+            title='Datum für Beginn und Ende der Gruppenteilnahme ändern',
+            name="teilnform",action="grkarte",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Gruppenmenü', 'menu'),
+                           ('Gruppenkarte', 'grkarte?gruppeid=%s' % gruppe['id'])
+                           ),
+            hidden=(("file", 'updgrteiln'),
+                    ('gruppeid', gruppe['id']),
+                    hidden_val,
+                    ),
+            rows=(datumsetzen,
+                  h.SpeichernZuruecksetzenAbbrechen(),
+                  )
+            )
+        return res.display()
+
 class rmteiln(Request.Request):
     """Teilnehmer löschen (Tabellen: FallGruppe, BezugspersonGruppe)."""
-    
     permissions = Request.RMTEILN_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        
-        if self.form.has_key('gruppeid'):
-            gruppeid = self.form.get('gruppeid')
-            gruppe = Gruppe(gruppeid)
-        else:
-            self.last_error_message = "Keine ID fuer Dokument erhalten"
+        fallgr_id = self.form.get('fallgrid')
+        bzpgr_id = self.form.get('bzpgrid')
+        if not (fallgr_id or bzpgr_id):
+            self.last_error_message = "Keine ID fuer Teilnehmer erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
-            
-        bezugspersonen = gruppe['bezugspersonen']
-        faelle = gruppe['faelle']
-        
-        hidden ={'file': 'removeteiln'}
-        
-        # Liste der Templates als String
-        
-        res = []
-        res.append(head_normal_t % ("Teilnehmer der Gruppe l&ouml;schen"))
-        res.append(teilnauswahl_form_t % gruppe)
-        res.append(formhiddenvalues_t % hidden)
-        res.append(teilnauswahl_loesch_t)
-        for f in faelle:
-            res.append(teilnauswahl1_loesch_t % f)
-        res.append(teilnauswahl2_loesch_t)
-        for b in bezugspersonen:
-            res.append(teilnauswahl3_loesch_t % b)
-        res.append(teilnauswahl4_loesch_t)
-        return string.join(res, '')
-        
+        name = ''
+        if bzpgr_id:
+            bzpgr = BezugspersonGruppe(bzpgr_id)
+            name = "%(vn)s %(na)s" % bzpgr['bezugsp']
+            hidden_val = ('bzpgrid', bzpgr_id)
+            gruppe = bzpgr['gruppe']
+        elif fallgr_id:
+            fallgr = FallGruppe(fallgr_id)
+            name = "%(vn)s %(na)s" % fallgr['fall__akte']
+            hidden_val = ('fallgrid', fallgr_id)
+            gruppe = fallgr['gruppe']
+        return h.SubmitOrBack(
+            legend='Teilnehmer entfernen',
+            action='grkarte',
+            method='post',
+            hidden=(('file', 'removeteiln'),
+                    ('gruppeid', gruppe['id']),
+                    hidden_val,
+                    ),
+            zeilen=('Soll der Teilnehmer %s aus der Gruppe %s(%s) entfernt werden?' %
+                    (name, gruppe['name'], gruppe['gn'],),
+            )
+            ).display()

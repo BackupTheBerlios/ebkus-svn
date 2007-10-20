@@ -6,7 +6,6 @@
 import string
 import os
 import time
-import Cookie
 import re
 import rotor
 
@@ -26,7 +25,8 @@ class admin(Request.Request):
     
     def processForm(self, REQUEST, RESPONSE):
         file = self.form.get('file')
-        
+        view = self.form.get('view') # Wert von view ist ein URL, zu der nach dem Update
+                                     # gegangen wird
         if not file or file == 'admin':
             self.last_error_message = "Keine Dateneingabe erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
@@ -44,6 +44,9 @@ class admin(Request.Request):
             
         if self.einfuege_oder_update_operationen.get(file):
             einfuegen = self.einfuegen_oder_update(file)
+            if view:
+                RESPONSE.redirect(view)
+                return ''
             return self.admin_display()
             
         return self.ebkus.dispatch(file, REQUEST, RESPONSE)
@@ -54,6 +57,8 @@ class admin(Request.Request):
       'codeeinf' : ('codeid', Code),
       'updcode' : ('codeid', Code),
       'removeakten' : ('akid', Akte),
+      'updfskonfig' : (True, True), # der Wert von updfskonfig wird nicht benötigt
+      'updkategorie' : ('katid', Kategorie),
       }
     
     def einfuegen_oder_update(self, file):

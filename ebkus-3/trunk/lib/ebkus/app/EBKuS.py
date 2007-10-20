@@ -25,21 +25,21 @@ class EBKuS:
         update()
         self.functions = getFunctionsToBePublished()
         self.classes = getClassesToBePublished()
-        self.templates = {}
-        template_path = join(config.EBKUS_HOME, 'lib', 'ebkus', 'app_surface')
-        from jinja import Environment, FileSystemLoader
-        self.jinja_environment = Environment(
-            template_charset='latin-1',
-            charset='latin-1',
-            loader=FileSystemLoader(template_path, use_memcache=True)
-            )
-        from mako.lookup import TemplateLookup
-        self.mako_environment = TemplateLookup(directories=[template_path],
-                                               output_encoding='latin-1',
-                                               input_encoding='latin-1',
-                                               encoding_errors='replace',
-                                               default_filters=['decode.latin1'],
-                                               module_directory=template_path)
+##         self.templates = {}
+##         template_path = join(config.EBKUS_HOME, 'lib', 'ebkus', 'app_surface')
+##         from jinja import Environment, FileSystemLoader
+##         self.jinja_environment = Environment(
+##             template_charset='latin-1',
+##             charset='latin-1',
+##             loader=FileSystemLoader(template_path, use_memcache=True)
+##             )
+##         from mako.lookup import TemplateLookup
+##         self.mako_environment = TemplateLookup(directories=[template_path],
+##                                                output_encoding='latin-1',
+##                                                input_encoding='latin-1',
+##                                                encoding_errors='replace',
+##                                                default_filters=['decode.latin1'],
+##                                                module_directory=template_path)
         logging.info("EBKuS Version %s", Version)
         logging.info("EBKuS-Konfigurationsdatei: %s", config.ebkus_conf)
         if config.instance_conf:
@@ -112,13 +112,20 @@ def getClassesToBePublished():
     """publish"""
     from ebkus.html.menu import menu
     from ebkus.html.klientenkarte import klkarte
-    from ebkus.html.gruppenkarte import gruppenkarte
+    from ebkus.html.gruppenkarte import grkarte
+    #from ebkus.html.gruppenakte import gruppenakte
     from ebkus.html.akte import akteneu, waufnneu, updakte, updfall, zda, zdar, rmakten, rmakten2
     from ebkus.html.anmeldung import anmneu, updanm,viewanm
     from ebkus.html.bezugsperson import persneu, updpers,viewpers
     from ebkus.html.einrichtungskontakt import einrneu, updeinr
     from ebkus.html.leistung import leistneu, updleist
-    from ebkus.html.beratungskontakt import bkontneu, updbkont
+    if config.BERATUNGSKONTAKTE_BS:
+        print 'EBKUS:', 'BS'
+        from ebkus.html.beratungskontakt_bs import bkontneu, updbkont, \
+             bkontbsabfrform, bkontbsabfr
+    elif config.BERATUNGSKONTAKTE:
+        print 'EBKUS:', 'NICHT BS'
+        from ebkus.html.beratungskontakt import bkontneu, updbkont
     #from ebkus.html.zustaendigkeit import zustneu, updzust
     from ebkus.html.akte import zustneu, updzust
     # updfs wird auch als updfsform importiert weil es einen Nameclash zwischen
@@ -127,11 +134,11 @@ def getClassesToBePublished():
     from ebkus.html.jghstatistik import jghneu, updjgh, jgh07neu, updjgh07, jgh_check, \
          updjghausw, updjgh as updjghform
     from ebkus.html.aktenvorblatt import vorblatt
-    from ebkus.html.dokumentenkarte import dokkarte
-    from ebkus.html.dokument import vermneu, updverm, updvermausw, upload, updgrverm, rmdok
+    from ebkus.html.dokumentenkarte import kldok,grdok
+    from ebkus.html.dokument import vermneu, updverm, upload, updgrverm, rmdok
     from ebkus.html.viewdokument import dokview, dokview2, print_pdf, printgr_pdf, suchetxt
     from ebkus.html.gruppe import menugruppe, gruppeneu, updgruppe, gruppeteilnausw, \
-         gruppeteiln, updteiln, rmteiln
+         updteiln, rmteiln
     from ebkus.html.abfragen import formabfr2, \
          abfr1, abfr2, formabfr3, abfr3, formabfr4, abfr4, formabfr5, abfr5, \
          jghabfr, jghergebnis, fsabfr, fsergebnis, formabfr6, \
@@ -139,10 +146,12 @@ def getClassesToBePublished():
          formabfr8, formabfr8a, formabfr9, formabfr9a, formabfr10, formabfr10a, \
          formabfr11, formabfr11a, formabfr12a, formabfr12, formabfr13, \
          formabfr13a, formabfr14, formabfr14a
+    from ebkus.html.statistik_abfrage import statabfr, statergebnis
+    from ebkus.html.abfragedef import abfragedef
     from ebkus.html.datenaustausch import formabfrjghexport, jghexportfeedback, jghexportlist, \
          formabfrdbexport, stellenabgleich
     from ebkus.html.mitarbeiter import mitausw, mitneu, updmit
-    from ebkus.html.code import codelist, codetab, codeneu, updcode
+    from ebkus.html.code import codelist, codetab, codeneu, updcode, updkat
     from ebkus.html.administration import admin, feedback, admin_protocol
     from ebkus.html.fskonfig import fskonfig
     # msg neue klassen

@@ -1,14 +1,15 @@
 # coding: latin-1
 
 import sys, os, time, sha
-from ebkus.app.ebapi import cc, cn, getNewFallnummer, Date, today, getDate, setDate, \
+from ebkus.app.ebapi import cc, cn, getNewFallnummer, Date, today, str2date, getDate, setDate, \
      Kategorie, Code, Mitarbeiter, MitarbeiterList, Akte, Fall, FallList, Leistung, \
      Beratungskontakt, \
      Zustaendigkeit, Bezugsperson, Einrichtungskontakt, CodeList, \
-     StrassenkatalogList, Fachstatistik, Jugendhilfestatistik, Jugendhilfestatistik2007
+     StrassenkatalogNeuList, Fachstatistik, Jugendhilfestatistik, Jugendhilfestatistik2007
 from ebkus.app.ebapih import  get_codes
 from ebkus.app.ebupd import akteeinf, fseinf, jgheinf, jgh07einf, miteinf, codeeinf, \
      leisteinf, zdaeinf, waufneinf, perseinf, einreinf
+from ebkus.html.strkat import split_hausnummer
 from random import choice, randrange, sample, random, seed
 
 import logging
@@ -18,10 +19,10 @@ def log(s):
 
 seed(100) # zum Testen besser immer neu, da fallen mehr Fehler auf
 
-N_AKTEN = 20
-N_BEARBEITER = 1
+N_AKTEN = 100
+N_BEARBEITER = 4
 N_STELLEN = 2
-VON_JAHR = Date(2005)
+VON_JAHR = Date(2006)
 BIS_JAHR = None
 #TODAY = (2007,7,1)   # gefaked today, sollte im laufenden Demosystem auch gefaked werden
 TODAY = None          # aktuelles Datum
@@ -64,8 +65,9 @@ def create_demo_daten(iconfig,                    # config Objekt für die entspr
     if TODAY:
         log("Gefaked: heutiges Datum: %s" % today())
     log("Heutiges Datum: %s" % today())
-    if config.BERLINER_VERSION:
-        log("Demodaten für Berliner Version")
+    ort = config.STRASSENKATALOG
+    if ort:
+        log("Demodaten für %s-Version" % ort)
     else:
         log("Demodaten für Standard Version")
     log("Instanz: %s" % config.INSTANCE_NAME)
@@ -84,9 +86,9 @@ def create_demo_daten(iconfig,                    # config Objekt für die entspr
     for i in range(1, n_stellen):
         DemoDaten().fake_stelle(i)
     stellen = DemoDaten.stellen = CodeList(where="kat_code='stzei'")
-    if config.BERLINER_VERSION:
-        DemoDaten.strkat = StrassenkatalogList(where='')
-        DemoDaten.ort = 'Berlin'
+    if ort:
+        DemoDaten.strkat = StrassenkatalogNeuList(where='')
+        DemoDaten.ort = ort.capitalize()
     else:
         DemoDaten.ort = Code(kat_code='kr', sort=1)['name']
     # die beiden protokoll-Berechtigten
@@ -190,26 +192,39 @@ class DemoDaten(object):
                 return date
 
     def fake_adresse(self, obj):
-        if config.BERLINER_VERSION:
+        if config.STRASSENKATALOG:
+            obj['strkat_on'] = 1
             st = choice(self.strkat)
-            obj['strkat'] = st['str_name']
-            obj['hsnr'] = st['hausnr']
-            obj['plz'] = str(st['plz'])
-            log('FAKE ADRESSE: str: %(strkat)s hsnr: %(hsnr)s plz: %(plz)s' % obj)
-            ## planungsr kommt aus dem Strassenkatalog
-            # automatisch zugewiesen
-            ## obj['wohnbez'] = cc('wohnbez', "%02d" % st['bezirk'])
-            ## obj['lage'] = cc('lage', '0') # innerhalb der Geltung des Straßenkatalogs
-            obj['ort'] = 'Berlin'
-            return
-        obj['str'] = choice(self.strassen)
-        obj['hsnr'] = str(randrange(1, 300))
-        obj['plz'] = "%05d" % randrange(16000, 99999)
-        obj['planungsr'] = "%08d" % randrange(60, 61+int(self.n_akten**.35))
-        ## wird automatisch von setAdresse zugewiesen
-        ## obj['wohnbez'] = cc('wohnbez', "13") # sollte egal sein
-        ## obj['lage'] = cc('lage', '1') # außerhalb der Geltung des Straßenkatalogs
-        obj['ort'] = choice(self.orte)
+            obj['strid'] = str(st['id'])
+            obj['str'] = st['name']
+            obj['ort'] = st['ort']
+            von, bis = st['von'], st['bis']
+            if von and bis:
+                vnummer =  split_hausnummer(von)[0]
+                bnummer =  split_hausnummer(bis)[0]
+                if vnummer == bnummer:
+                    obj['hsnr'] = von
+                else:
+                    assert vnummer < bnummer
+                    nr = randrange(vnummer, bnummer+1, 2)
+                    if nr == vnummer:
+                        nr = von
+                    elif nr == bnummer:
+                        nr = bis
+                    obj['hsnr'] = str(nr)
+            else:
+                assert von == bis == None
+                obj['hsnr'] = str(randrange(1, 200))
+            obj['plz'] = st['plz']
+            print 'STRASSENKATALOG:', config.STRASSENKATALOG
+        else:
+            obj['str'] = choice(self.strassen)
+            obj['hsnr'] = str(randrange(1, 200))
+            obj['plz'] = "%05d" % randrange(16000, 99999)
+            obj['planungsr'] = "%08d" % randrange(60, 61+int(self.n_akten**.35))
+            obj['ort'] = choice(self.orte)
+        #print 'FAKE_ADRESSE', obj['hsnr'], type(obj['hsnr'])
+        log('FAKE ADRESSE: ort: %(ort)s str: %(str)s hsnr: %(hsnr)s plz: %(plz)s' % obj)
 
 
     def p_ja_nein(self, zahl, z1=1, p1=.1, z2=36, p2=.9):
@@ -302,12 +317,14 @@ class DemoDaten(object):
         form['lestz'] = mitarbeiter['stz']
         # form benötigt die Adressdaten, sonst wird in ebupd.waufneinf die Adresse gelöscht
         akte = Akte(self.akte_id)
-        for k in ('str', 'plz', 'hsnr'):
+        form['gs'] = akte['gs']
+        setDate(form, 'gb', str2date(akte['gb']))
+        for k in ('ort', 'str', 'plz', 'hsnr'):
             v = akte.get(k)
             if v:
                 form[k] = v
-        if config.BERLINER_VERSION and akte.get('lage') == cc('lage', '0') and akte.get('str'):
-            form['strkat'] = akte['str']
+        if config.STRASSENKATALOG:
+            form['strkat_on'] = 1
         waufneinf(form)
         log("Wiederaufnahme als %s am %s" % (Akte(self.akte_id)['letzter_fall']['fn'],
                                              getDate(form, 'zubg')))
@@ -335,7 +352,9 @@ class DemoDaten(object):
         form['na'] = "Klient%sNa" % akte_id
 ##         form['gb'] = "%s.%s.%s" % (randrange(1, 29), randrange(1, 13),
 ##                                    randrange(self.von_jahr.add_month(-240), self.bis_jahr.add_month(-24)))
-        form['gb'] = "%s" % self.choose_date(self.von_jahr.add_month(-240), self.bis_jahr.add_month(-24))
+        setDate(form, 'gb', self.choose_date(self.von_jahr.add_month(-240),
+                                             self.bis_jahr.add_month(-24)))
+        form['gs'] = self.choose_code_id('gs')
         form['ber'] = "Ausbildung von Nr.: %s" % akte_id
         self.fake_adresse(form)                                                      
         form['tl1'] = str(randrange(20000, 99999999))
@@ -385,7 +404,9 @@ class DemoDaten(object):
         form['akid'] = self.akte_id
         form['vn'] = "Bezugsperson%sVn" % bp_id
         form['na'] = "Bezugsperson%sNa" % bp_id
-        form['gb'] = "%s" % self.choose_date(Date(1910), self.bis_jahr.add_month(-240))
+        setDate(form, 'gb', self.choose_date(Date(1910),
+                                             self.bis_jahr.add_month(-240)))
+        form['gs'] = self.choose_code_id('gs')
         form['ber'] = "Bezugsperson Beruf: %s" % bp_id
         form['no'] = "Notiz für Bezugsperson: %s" % bp_id
         form['tl1'] = str(randrange(20000, 99999999))
@@ -425,7 +446,7 @@ class DemoDaten(object):
         form['jahr'] = ende_datum.year
         form['stz'] = akte['stzak']
         form['plr'] = akte['planungsr']
-        form['gs'] = self.choose_code_id('gs')
+        form['gs'] = akte['gs']
         form['ag'] = self.choose_code_id('fsag')
         form['fs'] = self.choose_code_id('fsfs')
         form['zm'] = self.choose_code_id('fszm')
@@ -455,6 +476,10 @@ class DemoDaten(object):
             form[f] = anzahl
             sum += anzahl
         form['kat'] = sum
+        joker_felder = ('joka1', 'joka2', 'joka3', 'joka4',
+                        'jokf5', 'jokf6', 'jokf7', 'jokf8',)
+        for f in joker_felder:
+            form[f] = self.choose_code_id('fs' + f)
         fseinf(form)
         log("Fachstatistik für %s (akte_id=%s)" % (fall['fn'], self.akte_id))
             
@@ -482,7 +507,7 @@ class DemoDaten(object):
         form['wohnbez'] = akte['wohnbez']
         form['traeg'] = self.choose_code_id('traeg')
         form['bgr'] = self.choose_code_id('bgr')
-        form['gs'] = self.choose_code_id('gs')
+        form['gs'] = akte['gs']
         form['ag'] = self.choose_code_id('ag')
         form['fs'] = self.choose_code_id('fs')
         form['hke'] = self.choose_code_id('hke')

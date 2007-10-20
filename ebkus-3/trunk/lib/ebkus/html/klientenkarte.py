@@ -2,28 +2,20 @@
 
 """Module für die Klientenkarte."""
 # TODO an die Standards anpassen
+import time
 from ebkus.config import config
 from ebkus.app import Request
 from ebkus.app import ebupd
 from ebkus.app import ebapi
-from ebkus.html.htmlgen import Base, Form, FormPage, Fieldset, FieldsetDataTable, Tr, Pair, \
-     FieldsetInputTable, Button, Datum, String, Icon, IconDead, SelectGoto, Klientendaten, \
-     TextItem, DummyItem
-
 import ebkus.html.htmlgen as h
-
-from ebkus.app.ebapih import get_all_codes
-from ebkus.app_surface.klientenkarte_templates import *
-from ebkus.app_surface.standard_templates import *
 
 from ebkus.html.akte_share import akte_share
 
 class klkarte(Request.Request, akte_share):
     """Klientenkarte."""
-    
     permissions = Request.KLKARTE_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
+        #print 'KLIENTENKATE FORM', sorted([i for i in dict(self.form).items()])
         file = self.form.get('file')
         # Fall 1 Klientenkarte direkt darstellen
         if not file or file == 'klkarte':
@@ -42,6 +34,7 @@ class klkarte(Request.Request, akte_share):
                     zeilen=('Es wurde nichts aus dem Men&uuml; ausgew&auml;hlt.',)
                     ).display()
             return self.klkarte_display(akid)
+
             
             # Fall 2 erst einfuegen oder updaten, dann Klientenkarte darstellen
         if self.einfuege_oder_update_operationen.get(file):
@@ -50,7 +43,7 @@ class klkarte(Request.Request, akte_share):
             # dargestellt wird
             RESPONSE.redirect('klkarte?akid=%s' % akid)
             return ''
-            
+
             # Fall 3 Dokumenten- Update- oder Einfuegeformular anzeigen
             # Folgende URLs haben denselben Effekt:
             # 1)  http://localhost/efb/ebs/klkarte?file=akteneu
@@ -58,7 +51,7 @@ class klkarte(Request.Request, akte_share):
             # Variante 1) nützlich wg. Aufruf aus menu.
             # Könnte auch mit redirect gelöst werden.
             
-        if file == 'dokkarte':
+        if file == 'kldok':
             fallid = self.form.get('fallid')
             if fallid:
                     fallid = int(fallid)
@@ -67,15 +60,24 @@ class klkarte(Request.Request, akte_share):
                     legend='Keine Men&uuml;auswahl erhalten!',
                     zeilen=('Es wurde nichts aus dem Men&uuml; ausgew&auml;hlt.',),
                     ).display()
-            RESPONSE.redirect('dokkarte?fallid=%s' % fallid)
+            RESPONSE.redirect('kldok?fallid=%s' % fallid)
             return ''
-        if file == 'updjghform' or file == 'updfsform':
+        # für die Behandlung der Statistiken vom Hauptmenü aus:
+        if file in ('updjghform', 'updfsform'):
             fallid = self.form.get('fallid')
             if not fallid:
                 return h.Meldung(
                     legend='Keine Men&uuml;auswahl erhalten!',
                     zeilen=('Es wurde nichts aus dem Men&uuml; ausgew&auml;hlt.',),
                     ).display()
+            fall = ebapi.Fall(fallid)
+            if file == 'updjghform':
+                jgh = fall['jgh'] # in ebapi definiert
+                if not jgh:
+                    file = 'jgh07neu'
+            elif file == 'updfsform':
+                if not fall['fachstatistiken']:
+                    file = 'fsneu'
         return self.ebkus.dispatch(file, REQUEST, RESPONSE)
         
     einfuege_oder_update_operationen = {
@@ -85,6 +87,7 @@ class klkarte(Request.Request, akte_share):
       'anmeinf': ('fallid', ebapi.Fall),
       'leisteinf': ('fallid', ebapi.Fall),
       'bkonteinf': ('fallid', ebapi.Fall),
+      'bkontbseinf': ('fallid', ebapi.Fall),
       'zusteinf': ('fallid', ebapi.Fall),
       'zdaeinf': ('fallid', ebapi.Fall),
       #'updfall': ('gfall', ebapi.Fall),
@@ -94,6 +97,7 @@ class klkarte(Request.Request, akte_share):
       'updanm': ('anmid', ebapi.Anmeldung),
       'updleist': ('leistid', ebapi.Leistung),
       'updbkont': ('bkontid', ebapi.Beratungskontakt),
+      'updbkontbs': ('bkontid', ebapi.Beratungskontakt_BS),
       'updzust': ('zustid', ebapi.Zustaendigkeit),
       'updfall': ('fallid', ebapi.Fall),
       'waufneinf': ('fallid', ebapi.Fall),
@@ -134,6 +138,7 @@ class klkarte(Request.Request, akte_share):
         leistungen_list = []
         zustaendigkeiten_list = []
         beratungskontakte_list = []
+        beratungskontakte_bs_list = []
         anmeldekontakte_list = []
         fachstatistik_list = []
         jugendhilfestatistik_list = []
@@ -143,6 +148,9 @@ class klkarte(Request.Request, akte_share):
             leistungen_list += f['leistungen']
             zustaendigkeiten_list += f['zustaendigkeiten']
             beratungskontakte_list += f['beratungskontakte']
+            beratungskontakte_bs_list += f['beratungskontakte_bs']
+            beratungskontakte_bs_list += f['beratungskontakte_bs1']
+            beratungskontakte_bs_list += f['beratungskontakte_bs2']
             anmeldekontakte_list += f['anmeldung']
             fachstatistik_list += f['fachstatistiken']
             jugendhilfestatistik_list += f['jgh_statistiken']
@@ -154,60 +162,19 @@ class klkarte(Request.Request, akte_share):
         aktueller_fall = akte['aktueller_fall']
         wiederaufnehmbar =  akte['wiederaufnehmbar']
         
-        menu = h.Fieldset(content=Tr(cells=(
+        menu = h.FieldsetInputTable(daten=[[
             h.Button(value="Hauptmenü",
-                   tip="Zum Hauptmenü",
-                   onClick="go_to_url('menu')",
-                   ),
-            h.Button(value="Gruppenmenü",
-                   tip="Zum Gruppenmenü",
-                   onClick="go_to_url('menugruppe')",
-                   ),
-            (aktueller_fall and
-             h.SelectGoto(name='Auswahl1', options =
-"""<option value="nothing">[ Neu ]</option>
-<option value="akteneu?file=aktene">- Neuaufnahme</option>
-<option value="persneu?akid=%(akte_id)s&fallid=%(id)s">- Familie</option>
-<option value="einrneu?akid=%(akte_id)s&fallid=%(id)s">- Einrichtung</option>
-<option value="anmneu?akid=%(akte_id)s&fallid=%(id)s">- Anmeldung</option>
-<option value="leistneu?akid=%(akte_id)s&fallid=%(id)s">- Leistung</option>
-<option value="bkontneu?akid=%(akte_id)s&fallid=%(id)s">- Beratungskontakt</option>
-<option value="zustneu?akid=%(akte_id)s&fallid=%(id)s">- Bearbeiter</option>
-<option value="vermneu?akid=%(akte_id)s&fallid=%(id)s">- Vermerk</option>
-<option value="upload?akid=%(akte_id)s&fallid=%(id)s">- Dateiimport</option>
-<option value="fsneu?akid=%(akte_id)s&fallid=%(id)s">- Fachstatistik</option>
-<option value="jgh07neu?akid=%(akte_id)s&fallid=%(id)s">- Bundesstatistik</option>
-<option value="zda?akid=%(akte_id)s&fallid=%(id)s">- zu den Akten</option>
-""" % aktueller_fall)
-                  or wiederaufnehmbar and
-                  h.SelectGoto(name='Auswahl1', options =
-"""<option value="nothing">[ Neu ]</option>
-<option value="akteneu?file=aktene">- Neuaufnahme</option>
-<option value="waufnneu?akid=%(akte_id)d&fallid=%(id)d">- Wiederaufnahme</option>
-""" % letzter_fall)
-                  or
-                  h.SelectGoto(name='Auswahl1', options =
-"""<option value="nothing">[ Neu ]</option>
-<option value="akteneu?file=aktene">- Neuaufnahme</option>
-<option value="zdar?akid=%(akte_id)d&fallid=%(id)d">- zdA R&uuml;ckg&auml;ngig</option>
-""" % letzter_fall)),
-
-            (aktueller_fall and
-             h.SelectGoto(name='Auswahl2', options =
-"""<option value="nothing">[ Anzeige ]</option>
-<option value="newXX vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
-<option value="dokkarte?akid=%(akte_id)d&fallid=%(id)d">- Akte</option>
-<option value="formabfr3">- Suche</option>
-<option value="wordexport?akid=%(akte_id)d">- Word-Export</option>
-""" % aktueller_fall)
-             or
-             h.SelectGoto(name='Auswahl2', options =
-"""<option value="nothing">[ Anzeige ]</option>
-<option value="vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
-<option value="dokkarte?akid=%(akte_id)d&fallid=%(id)d">- Akte</option>
-<option value="formabfr3">- Suche</option>
-""" % letzter_fall )),
-            )))
+                     tip="Zum Hauptmenü",
+                     onClick="go_to_url('menu')",
+                     ),
+            h.Button(value="Klientendokumente",
+                     class_='buttonbig',
+                     tip="Klientendokumente ansehen",
+                     onClick="go_to_url('kldok?akid=%(id)s')" % akte,
+                     ),
+            self.get_button_klienten_neu(aktueller_fall, wiederaufnehmbar, letzter_fall),
+            self.get_button_klienten_anzeige(aktueller_fall, letzter_fall),
+            ]])
 
         klientendaten = self.get_klientendaten_readonly(
             akte, 
@@ -216,7 +183,8 @@ class klkarte(Request.Request, akte_share):
                             onClick= "go_to_url('updakte?akid=%(id)s')" % akte)
             )
         bezugspersonen = self.get_bezugspersonen(bezugspersonen_list, aktueller_fall,
-                                                 edit_button=True, view_button=True)
+                                                 edit_button=True, view_button=True,
+                                                 hinzufuegen_button=True)
         leistungen = h.FieldsetDataTable(
             legend= 'Leistungen',
             headers= ('Mitarbeiter', 'Leistung', 'Am', 'Bis'),
@@ -239,30 +207,38 @@ class klkarte(Request.Request, akte_share):
                          onClick= "go_to_url('leistneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" % akte,
                             ) or None),
             )
-        beratungskontakte = h.FieldsetDataTable(
-            legend= 'Beratungskontakte',
-            headers= ('Mitarbeiter', 'Art', 'Datum', 'Dauer', 'Notiz'),
-            daten= [[(aktueller_fall == bkont['fall'] and
-                      h.Icon(href= 'updbkont?fallid=%(fall_id)d&bkontid=%(id)d' % bkont,
-                           icon= "/ebkus/ebkus_icons/edit_button.gif",
-                           tip= 'Beratungskontakt bearbeiten')
-                      or
-                      h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
-                               tip= 'Funktion gesperrt')),
-                       h.String(string= bkont['mit_id__na']),
-                       h.String(string= bkont['art__name']),
-                       h.Datum(day=   bkont['kd'],
-                             month= bkont['km'],
-                             year=  bkont['ky']),
-                       h.String(string= bkont['dauer__name']),
-                       h.String(string= bkont['no'])]
-                    for bkont in beratungskontakte_list],
-            button= (aktueller_fall and
-                     h.Button(value= "Hinzufügen",
-                            tip= "Beratungskontakt hinzufügen",
-                        onClick= "go_to_url('bkontneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" % akte,
-                            ) or None),
-            )
+        if config.BERATUNGSKONTAKTE_BS:
+            beratungskontakte = self.get_beratungskontakte_bs(beratungskontakte_bs_list,
+                                                              aktueller_fall=aktueller_fall,
+                                                              edit_button=True,
+                                                              hinzufuegen_button=True)
+        elif config.BERATUNGSKONTAKTE:
+            beratungskontakte = h.FieldsetDataTable(
+                legend= 'Beratungskontakte',
+                headers= ('Mitarbeiter', 'Art', 'Datum', 'Dauer', 'Notiz'),
+                daten= [[(aktueller_fall == bkont['fall'] and
+                          h.Icon(href= 'updbkont?fallid=%(fall_id)d&bkontid=%(id)d' % bkont,
+                               icon= "/ebkus/ebkus_icons/edit_button.gif",
+                               tip= 'Beratungskontakt bearbeiten')
+                          or
+                          h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
+                                   tip= 'Funktion gesperrt')),
+                           h.String(string= bkont['mit_id__na']),
+                           h.String(string= bkont['art__name']),
+                           h.Datum(day=   bkont['kd'],
+                                 month= bkont['km'],
+                                 year=  bkont['ky']),
+                           h.String(string= bkont['dauer__name']),
+                           h.String(string= bkont['no'])]
+                        for bkont in beratungskontakte_list],
+                button= (aktueller_fall and
+                         h.Button(value= "Hinzufügen",
+                                tip= "Beratungskontakt hinzufügen",
+                            onClick= "go_to_url('bkontneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" % akte,
+                                ) or None),
+                )
+        else:
+            beratungskontakte = None
         stand = h.FieldsetDataTable(
             legend= 'Stand',
             headers= ('Fallnummer', 'Beginn', 'z.d.A.'),
@@ -422,7 +398,7 @@ class klkarte(Request.Request, akte_share):
                      h.String(string= fs['fall_fn']),
                      h.String(string= fs['jahr'])]
                     for fs in fachstatistik_list],
-            button= (aktueller_fall and
+            button= (aktueller_fall and not aktueller_fall['fachstatistiken'] and
                      h.Button(value= "Hinzufügen",
                             tip= "Fachstatistik hinzufügen",
                             onClick=
@@ -450,6 +426,8 @@ class klkarte(Request.Request, akte_share):
                            year=  js['ey'])]
                     for js in jugendhilfestatistik_list],
             button= (aktueller_fall and
+                     not (aktueller_fall['jgh_statistiken'] or
+                          aktueller_fall['jgh07_statistiken']) and
                      h.Button(value= "Hinzufügen",
                             tip= "Jugendhilfestatistik hinzufügen",
                             onClick=
@@ -457,36 +435,14 @@ class klkarte(Request.Request, akte_share):
                             ) or None),
             )
 
-
-
-##         # Alternative Schreibweise
-##         daten = []
-##         for fg in fallgruppen_list:
-##             zeile = []
-##             if aktueller_fall:
-##                 icon = h.Icon(href='gruppenkarte?gruppeid=%(gruppe_id)s' % fg,
-##                             icon="/ebkus/ebkus_icons/edit_grp_button.gif",
-##                             tip='Gruppenkarte bearbeiten')
-##             else:
-##                 icon = h.IconDead(icon="/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
-##                                 tip='Funktion gesperrt'),
-##             zeile.append(icon)
-##             zeile.append(h.String(string=fg['gruppe_id__gn']))
-##             zeile.append(h.String(string="%(fall__akte__vn)s %(fall__akte__na)s" % fg))
-##         fallgruppen = h.FieldsetDataTable(
-##             legend='Gruppenkarten des Falls',
-##             headers=('Gruppennr.', 'Name',),
-##             daten=daten)
-
-
         fallgruppen = h.FieldsetDataTable(
             legend='Gruppenkarten des Falls',
-            headers=('Gruppennr.', 'Name',),
+            headers=('Gruppennummer', 'Name',),
             daten=[[(aktueller_fall
                      and
-                     h.Icon(href='gruppenkarte?gruppeid=%(gruppe_id)s' % fg,
+                     h.Icon(href='grkarte?gruppeid=%(gruppe_id)s' % fg,
                           icon="/ebkus/ebkus_icons/edit_grp_button.gif",
-                          tip='Gruppenkarte bearbeiten')
+                          tip='Gruppenkarte ansehen')
                      or 
                      h.IconDead(icon="/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
                               tip='Funktion gesperrt')),
@@ -496,11 +452,11 @@ class klkarte(Request.Request, akte_share):
             )
         bezugspersongruppen = h.FieldsetDataTable(
             legend= 'Gruppenkarten der Bezugspersonen',
-            headers= ('Gruppennr.', 'Name',),
+            headers= ('Gruppennummer.', 'Name',),
             daten= [[(aktueller_fall and
-                      h.Icon(href= 'gruppenkarte?gruppeid=%(gruppe_id)s' % bg,
+                      h.Icon(href= 'grkarte?gruppeid=%(gruppe_id)s' % bg,
                            icon= "/ebkus/ebkus_icons/edit_grp_button.gif",
-                           tip= 'Gruppenkarte bearbeiten')
+                           tip= 'Gruppenkarte ansehen')
                       or 
                       h.IconDead(icon= "/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
                                tip= 'Funktion gesperrt')),
@@ -512,6 +468,8 @@ class klkarte(Request.Request, akte_share):
             title='Klientenkarte',
             name="",action="",method="",hidden=(),
             help=True,
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ),
             rows=(menu,
                   klientendaten,
                   bezugspersonen,

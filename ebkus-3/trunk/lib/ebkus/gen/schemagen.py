@@ -63,7 +63,7 @@ class Table:
                                                  ',\n  '.join(
             ["%s %s" % (x.fieldname, x.dbtype) for x in self.fields] +
             prim_def))
-        #print sql
+        #print 'SQL_CREATE', sql
         return sql
 ##                 string.join(
 ##                   map(lambda x: "%s %s" % (x.fieldname, x.dbtype),

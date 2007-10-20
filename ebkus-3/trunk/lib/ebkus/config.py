@@ -63,7 +63,12 @@ _params = (
     ('instance', 'ADMIN_EMAIL', 'admin_email', 's', 's:Keine Angabe'),
     ('instance', 'BERLINER_VERSION', 'berliner_version', 'b', 'b:False'),
     ('instance', 'BERATUNGSKONTAKTE', 'beratungskontakte', 'b', 'b:False'),
+    ('instance', 'BERATUNGSKONTAKTE_BS', 'beratungskontakte_bs', 'b', 'b:False'),
     ('instance', 'BERATUNGSKONTAKTE_MINUTEN', 'beratungskontakte_minuten', 'b', 'b:False'),
+    ('instance', 'STRASSENKATALOG', 'strassenkatalog', 's', 's:'),
+    ('instance', 'STRASSENKATALOG_VOLLSTAENDIG', 'strassenkatalog_vollstaendig', 'b', 'b:false'),
+    ('instance', 'STRASSENSUCHE', 'strassensuche', 's', 's:'), # ort ortsteil bezirk samtgemeinde
+    ('instance', 'PLANUNGSRAUMFELD', 'planungsraumfeld', 's', 's:plraum'),
     )
 
 # werden von show/dump nicht angezeigt
@@ -156,9 +161,15 @@ class _Config(object):
                         if not self._is_ident(val):
                             self._error("""Wert '%s' fuer Option '%s' ungueltig.
 Bitte nur kleine Buchstaben (keine Umlaute) und Unterstrich verwenden.""" % (val, o))
-                            
+                if c.has_option(s, 'strassenkatalog'):
+                    if c.get(s, 'strassenkatalog') == 'berlin':
+                        c.set(s, 'berliner_version', 'true')
+##                 if c.get(s, 'berliner_version'):
+##                         self._error("Berliner Version muss Strassenkatalog 'berlin' haben.")
+##                 if c.get(s, 'strassenkatalog') == 'berlin':
+##                     if not c.get(s, ):
+##                         self._error("Strassenkatalog 'berlin' nur in Berliner Version moeglich.")
 
-           
     def _error(self, msg):
         self._errors.append(msg)
 
@@ -197,9 +208,6 @@ Bitte nur kleine Buchstaben (keine Umlaute) und Unterstrich verwenden.""" % (val
                     continue
             try:
                 value = f(section, param)
-##                 try:
-##                     value = value.replace('\\', '/')
-##                 except: pass
             except ConfigParser.NoOptionError:
                 #print param
                 value = self._proc_default(t[4], param_dict, param)

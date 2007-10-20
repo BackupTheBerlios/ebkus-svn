@@ -1,132 +1,4 @@
 
-var DHTML = 0, DOM = 0, MS = 0, NS = 0, OP = 0;
-
-function DHTML_init() {
-
- if (window.opera) {
-     OP = 1;
- }
- if(document.getElementById) {
-   DHTML = 1;
-   DOM = 1;
- }
- if(document.all && !OP) {
-   DHTML = 1;
-   MS = 1;
- }
-if(document.layers && !OP) {
-   DHTML = 1;
-   NS = 1;
- }
-}
-
-function getElem(p1,p2,p3) {
- var Elem;
- if(DOM) {
-   if(p1.toLowerCase()=="id") {
-     if (typeof document.getElementById(p2) == "object")
-     Elem = document.getElementById(p2);
-     else Elem = void(0);
-     return(Elem);
-   }
-   else if(p1.toLowerCase()=="name") {
-     if (typeof document.getElementsByName(p2) == "object")
-     Elem = document.getElementsByName(p2)[p3];
-     else Elem = void(0);
-     return(Elem);
-   }
-   else if(p1.toLowerCase()=="tagname") {
-     if (typeof document.getElementsByTagName(p2) == "object" || (OP && typeof document.getElementsByTagName(p2) == "function"))
-     Elem = document.getElementsByTagName(p2)[p3];
-     else Elem = void(0);
-     return(Elem);
-   }
-   else return void(0);
- }
- else if(MS) {
-   if(p1.toLowerCase()=="id") {
-     if (typeof document.all[p2] == "object")
-     Elem = document.all[p2];
-     else Elem = void(0);
-     return(Elem);
-   }
-   else if(p1.toLowerCase()=="tagname") {
-     if (typeof document.all.tags(p2) == "object")
-     Elem = document.all.tags(p2)[p3];
-     else Elem = void(0);
-     return(Elem);
-   }
-   else if(p1.toLowerCase()=="name") {
-     if (typeof document[p2] == "object")
-     Elem = document[p2];
-     else Elem = void(0);
-     return(Elem);
-   }
-   else return void(0);
- }
- else if(NS) {
-   if(p1.toLowerCase()=="id" || p1.toLowerCase()=="name") {
-   if (typeof document[p2] == "object")
-     Elem = document[p2];
-     else Elem = void(0);
-     return(Elem);
-   }
-   else if(p1.toLowerCase()=="index") {
-    if (typeof document.layers[p2] == "object")
-     Elem = document.layers[p2];
-    else Elem = void(0);
-     return(Elem);
-   }
-   else return void(0);
- }
-}
-
-function getCont(p1,p2,p3) {
-   var Cont;
-   if(DOM && getElem(p1,p2,p3) && getElem(p1,p2,p3).firstChild) {
-     if(getElem(p1,p2,p3).firstChild.nodeType == 3)
-       Cont = getElem(p1,p2,p3).firstChild.nodeValue;
-     else
-       Cont = "";
-     return(Cont);
-   }
-   else if(MS && getElem(p1,p2,p3)) {
-     Cont = getElem(p1,p2,p3).innerText;
-     return(Cont);
-   }
-   else return void(0);
-}
-
-function getAttr(p1,p2,p3,p4) {
-   var Attr;
-   if((DOM || MS) && getElem(p1,p2,p3)) {
-     Attr = getElem(p1,p2,p3).getAttribute(p4);
-     return(Attr);
-   }
-   else if (NS && getElem(p1,p2)) {
-       if (typeof getElem(p1,p2)[p3] == "object")
-        Attr=getElem(p1,p2)[p3][p4]
-       else
-        Attr=getElem(p1,p2)[p4]
-         return Attr;
-       }
-   else return void(0);
-}
-
-function setCont(p1,p2,p3,p4) {
-   if(DOM && getElem(p1,p2,p3) && getElem(p1,p2,p3).firstChild)
-     getElem(p1,p2,p3).firstChild.nodeValue = p4;
-   else if(MS && getElem(p1,p2,p3))
-     getElem(p1,p2,p3).innerText = p4;
-   else if(NS && getElem(p1,p2,p3)) {
-     getElem(p1,p2,p3).document.open();
-     getElem(p1,p2,p3).document.write(p4);
-     getElem(p1,p2,p3).document.close();
-   }
-}
-
-DHTML_init();
-
 function ZeitAnzeigen() {
 var Wochentagname =  new Array("Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag");
 
@@ -147,12 +19,10 @@ var Wochentagname =  new Array("Sonntag","Montag","Dienstag","Mittwoch","Donners
  var Datum = Vortag + Tag + Vormon + Monat  + "." + Jahr;
  var Uhrzeit = Vorstd + Stunden + Vormin + Minuten + Vorsek + Sekunden;
  var Gesamt = Wochentagname[WoTag] + ", " + Datum + ", " + Uhrzeit;
- setCont("id","Uhr",null,Gesamt);
+ document.getElementById("Uhr").firstChild.nodeValue = Gesamt
  window.setTimeout("ZeitAnzeigen()",1000);
 
 }
-
-
 
 function set_term_sum_fachstat(fieldname)
   {
@@ -207,7 +77,7 @@ function go_to_url(url)
   }
   if(url!="nothing")
     {
-    window.location.href = url;
+        window.location.href = url;
     }
   }
 
@@ -215,11 +85,12 @@ function view_details(url)
   {
   if(url!="nothing")
     {
-    var winl = (screen.width-790)/2;
+    var winl = (screen.width-850)/2;
     var wint = (screen.height-250)/2;
 
-    var settings  ='height=250,';
-    settings     +='width=790,';
+    var settings  ='';
+    settings     +='height=250,';
+    settings     +='width=850,';
     settings     +='top='+wint+',';
     settings     +='left='+winl+',';
     settings     +='scrollbars=yes,';
@@ -242,11 +113,6 @@ alert('Der Wert ' + tb.value + ' ist kein gültiges Datum.');
 tb.value='';
 this.focus();
 tb.focus();
-}
-
-function strassen_meldung(meldung)
-{
-alert(meldung);
 }
 
 
@@ -389,69 +255,152 @@ function PruefeDatum(tb,Startjahr,Endjahr,aktMonat,aktTag){
 
 function view_strkat()
   {
-    var winl = (screen.width-740)/2;
-    var wint = (screen.height-345)/2;
-
-    var settings  ='height=345,';
-    settings     +='width=740,';
-    settings     +='top='+wint+',';
-    settings     +='left='+winl+',';
-    settings     +='scrollbars=no,';
-    settings     +='resizable=no';
-
-    DetailWindow = open('strkat',"Strassensuche",settings);
-    DetailWindow.focus();
+    str = _fetch("str");
+    ort = _fetch("ort");
+    plz = _fetch("plz");
+    hsnr = _fetch("hsnr");
+    ortsteil = _fetch("ortsteil");
+    bezirk = _fetch("bezirk");
+    samtgemeinde = _fetch("samtgemeinde");
+    strkat_on = document.getElementsByName("strkat_on")[0];
+    if (strkat_on.checked) 
+    {
+/*        var winl = (screen.width-740)/2;
+        var wint = (screen.height-345)/2;
+        
+        var settings  ='height=345,';
+        settings     +='width=740,';
+        settings     +='top='+wint+',';
+        settings     +='left='+winl+',';
+        settings     +='scrollbars=no,';
+        settings     +='resizable=no';
+        
+        DetailWindow = open('strkat',"Strassensuche",settings);
+*/
+        //ohne Settings einfach ein neues Fenster bzw. im Firefox ein Tab
+        //Übergabe aller Parameter in der URL
+        url = 'strkat?str=' + str + '&ort=' + ort + '&plz=' + plz + '&hsnr=' + hsnr;
+        url += '&ortsteil=' + ortsteil + '&bezirk=' + bezirk + '&samtgemeinde=' + samtgemeinde;
+        DetailWindow = open(url, "Straßensuche");
+        DetailWindow.focus();
+    }
   }
 
-function strkat_hausnr(formname,fieldname)
+function submit_strkat()
 {
-   // 1. ---
-   // 2. xa
-   // 3. x
-
-   var nr;
-   var n_count;
-   nr = document.forms[formname].elements[fieldname].value;
-   n_count = 0;
-   for(n=0;n<nr.length;n++)
+   index = document.getElementsByName("strid")[0].options.selectedIndex;
+   if (index == -1)
    {
-      if (nr.charAt(n) >= "a" && nr.charAt(n) <= "z")
-      {
-         n_count++;
-         if (n < nr.length-1) n_count++;
-      }
-      else if ((nr.charAt(n) < "a" || nr.charAt(n) > "z") && (nr.charAt(n) < "0" || nr.charAt(n) > "9"))
-      {
-         n_count++;n_count++;
-      }
-   }
-
-   if (n_count > 1)
-   {
-      //this.focus();
-      alert ("Bitte gültigen Wert eintragen. z.B. 1, 10,100, 1a, 10a, 100a");
-      document.forms[formname].elements[fieldname].value = "";
-      this.focus();
-      document.forms[formname].elements[fieldname].focus();
+      alert("Bitte Eintrag auswählen", "Fehler");
       return 0;
    }
+   strasse = document.getElementsByName("strid")[0].options[index].value
+   if (!strasse)
+   {
+      //alert("Bitte Eintrag auswählen", "Fehler");
+      return 0;
+   }
+   array = strasse.split("#");
+   _assign('str', array[0]);
+   _assign('hsnr', array[1]);
+   _assign('plz', array[2]);
+   _assign('ort', array[3]);
+   _assign('ortsteil', array[4]);
+   _assign('samtgemeinde', array[5]);
+   _assign('bezirk', array[6]);
+   _assign('strid', array[7]);
+   opener.document.getElementsByName("str")[0].focus();
+   window.close();
+}
 
-   if (isNaN(nr))
+function reset_strkat()
+{
+   _reset('strid');
+   _reset('str');
+   _reset('hsnr');
+   _reset('plz');
+   _reset('ort');
+   _reset('ortsteil');
+   _reset('samtgemeinde');
+   _reset('bezirk');
+}
+function _reset(name)
+{
+   try {
+  document.getElementsByName(name)[0].value = ''
+   } catch(e) {}
+}
+
+function _assign(name, value)
+{
+   try {
+     opener.document.getElementsByName(name)[0].value = value;
+   } catch(e) {}
+}
+function _fetch(name)
+{
+   try {
+     return document.getElementsByName(name)[0].value;
+   } catch(e) {}
+   return '';
+}
+
+function abfrage_bearbeiten(op)
+{
+    if (op == 'del' || op == 'edit')
+    {
+        index = document.getElementsByName("teilm")[0].options.selectedIndex;
+        if (index == -1)
+        {    
+            alert("Bitte Eintrag auswählen", "Fehler");
+            return 0;
+        }
+        abfr_id = document.getElementsByName("teilm")[0].options[index].value;
+        if (!abfr_id)
+        {
+            alert("Bitte Eintrag auswählen", "Fehler");
+            return 0;
+        }
+        url = 'abfragedef?abfrid=' + abfr_id + '&op=' + op;
+    }
+    else if (op == 'new')
+    {
+        url = 'abfragedef?op=new';
+    }
+    window.location.href = url;
+}
+
+function submit_abfragedef()
+{
+/*    
+   index = document.getElementsByName("strid")[0].options.selectedIndex;
+   if (index == -1)
    {
-      n = nr.length;
-      while(n < 4){
-         nr = "0" + nr;
-         n++;
-      }
+      alert("Bitte Eintrag auswählen", "Fehler");
+      return 0;
    }
-   else
+   strasse = document.getElementsByName("strid")[0].options[index].value
+   if (!strasse)
    {
-      if (n == "") return 0;
-      n = nr.length;
-      while(n < 3){
-         nr = "0" + nr;
-         n++;
-      }
+      //alert("Bitte Eintrag auswählen", "Fehler");
+      return 0;
    }
-   document.forms[formname].elements[fieldname].value = nr;
+*/
+    document.abfragedef.submit();
+        //window.close();
+    return 0;
+    
+}
+function del_anzahl_kontakte(ja_id, nein_id)
+{
+    select = document.getElementsByName("hda")[0];
+    sel = select.options[select.selectedIndex].value;
+    if (sel==ja_id)
+    {
+        document.getElementsByName("nbkges")[0].value = ''
+    }
+    else if (sel==nein_id)
+    {
+        document.getElementsByName("nbkakt")[0].value = ''
+    }
 }
