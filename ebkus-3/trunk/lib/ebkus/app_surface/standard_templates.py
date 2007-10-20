@@ -340,7 +340,7 @@ jghstat_menue_t = """
 jghstat_menue_head_t = """
 <tr>
 <td align="center" valign="top" height="61" colspan="2" legend class="legendtext">
-<fieldset><legend class="legendtext"><b>Auswahlmenue</b></legend>
+<fieldset><legend class="legendtext"><b>Auswahlmenü</b></legend>
 <table cellpadding=2 valign="top" border="0" height="36">
 <tr>
 <td valign="top" align="center" height="35">

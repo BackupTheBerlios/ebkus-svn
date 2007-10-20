@@ -133,7 +133,7 @@ fb_select_one_item_t = """
                   %(frage)s:
                   </td>
                   <td align="left" valign="bottom">
-                    <select name="%(name)s" class="listbox" style="width:%(width)s">
+                    <select %(onChange)s name="%(name)s" class="listbox" style="width:%(width)s">
                     %(options)s
                     </select>
                   </td>

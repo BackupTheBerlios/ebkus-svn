@@ -20,16 +20,18 @@ function strkat_hausnr(formname,fieldname)
    n_count = 0;
    for(n=0;n<nr.length;n++)
    {
+      // hoechstens 1 kleiner Buchstabe
       if (nr.charAt(n) >= "a" && nr.charAt(n) <= "z")
       {
          n_count++;
       }
+      // keine Nichtzahl und Nicht-Kleiner-Buchstabe
       else if ((nr.charAt(n) < "a" || nr.charAt(n) > "z") && (nr.charAt(n) < "0" || nr.charAt(n) > "9"))
       {
          n_count++;n_count++;
       }
    }
-
+   // erlaubt ist aber z.B. a20
    if (n_count > 1)
    {
       //this.focus();
@@ -70,13 +72,13 @@ function strkat_submit()
       index = document.strkat.strkat_list.options.selectedIndex;
       if (index == -1)
       {
-         alert("Bitte Eintrag auswählen", "Fehler");
+         alert("NS6 Bitte Eintrag auswählen", "Fehler");
          return 0;
       }
       strasse = document.strkat.strkat_list.options[index].value;
       if (!strasse)
       {
-         alert("Bitte Eintrag auswählen", "Fehler");
+         alert("NS6 Bitte Eintrag auswählen", "Fehler");
          return 0;
       }
    }
@@ -85,13 +87,13 @@ function strkat_submit()
       index = this.strkat.strkat_list.options.selectedIndex;
       if (index == -1)
       {
-         alert("Bitte Eintrag auswählen", "Fehler");
+         alert("IE Bitte Eintrag auswählen", "Fehler");
          return 0;
       }
       strasse = this.strkat.strkat_list.options[index].value;
       if (!strasse)
       {
-         alert("Bitte Eintrag auswählen", "Fehler");
+         alert("IE Bitte Eintrag auswählen", "Fehler");
          return 0;
       }
    }
@@ -100,13 +102,13 @@ function strkat_submit()
       index = document.strkat.strkat_list.options.selectedIndex;
       if (index == -1)
       {
-         alert("Bitte Eintrag auswählen", "Fehler");
+         alert("NS Bitte Eintrag auswählen", "Fehler");
          return 0;
       }
       strasse = document.strkat.strkat_list.options[index].value;
       if (!strasse)
       {
-         alert("Bitte Eintrag auswählen", "Fehler");
+         alert("NS Bitte Eintrag auswählen", "Fehler");
          return 0;
       }
    }

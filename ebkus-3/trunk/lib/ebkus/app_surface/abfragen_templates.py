@@ -244,15 +244,16 @@ fsergebnis_ende_tab_t = """
 efbchart_html_tag="""
   <tr>
     <td align="left" class="legendtext">
-    <a href="#top" alt="Nach oben">
+    <a href="#top" alt="Nach oben" title="Nach oben">
       <img border="0" src="/ebkus/ebkus_icons/button_go_top.gif">
     </a>
     </td>
     <td align="right" class="legendtext">
     <table>
       <tr valign="top">
-        <td align="center" width="40"><A href=%(imagedir1)s target="_new" alt="%(titel1)s"><img  border="0" src="/ebkus/ebkus_icons/printer_button.gif"></A></td>
-        <td align="right" width="40"><A href=%(imagedir2)s target="_new" alt="%(titel2)s"><img border="0" src="/ebkus/ebkus_icons/diagramm_button.gif"></A></td>
+        <td align="center" width="40" title="Daten im CSV-Format für die Tabellenkalkulation exportieren"><A href=%(imagedir0)s target="_new" alt="%(titel0)s"><img  border="0" src="/ebkus/ebkus_icons/upload_button.gif"></A></td>
+        <td align="center" width="40" title="Tabelle drucker-freundlich ausgeben"><A href=%(imagedir1)s target="_new" alt="%(titel1)s"><img  border="0" src="/ebkus/ebkus_icons/printer_button.gif"></A></td>
+        <td align="right" width="40" title="Daten als Balkendiagramm anzeigen"><A href=%(imagedir2)s target="_new" alt="%(titel2)s"><img border="0" src="/ebkus/ebkus_icons/diagramm_button.gif"></A></td>
       </tr>
     </table>
     </td>

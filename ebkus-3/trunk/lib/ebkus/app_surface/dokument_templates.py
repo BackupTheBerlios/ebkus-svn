@@ -2,7 +2,7 @@
 formkopfdokneu_t = """
 </HEAD>
 <body bgcolor="#CCCCCC" link="#CCCCCC" vlink="#CCCCCC" alink="#000000">
-<FORM ACTION="dokkarte" METHOD="post">
+<FORM ACTION="kldok" METHOD="post">
 <table width="735" align="center">
  <tr>
  <td height="465" align="center" valign="top">
@@ -32,7 +32,7 @@ formkopfdokneu_t = """
 formkopfdokgrneu_t = """
 </HEAD>
 <body bgcolor="#CCCCCC" link="#CCCCCC" vlink="#CCCCCC" alink="#000000">
-<FORM ACTION="gruppenkarte" METHOD="post">
+<FORM ACTION="grdok" METHOD="post">
 <table width="735" align="center">
  <tr>
     <td height="465" align="center" valign="top">

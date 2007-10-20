@@ -262,6 +262,8 @@ administration_t="""
     <fieldset><legend class="legendtext">Kategorien</legend>
       <table width="83%%" height="70" border="0">
         <tr>
+      %s
+<!--
           <td align="center" valign="middle" width="174">
             <input type="button" name="Schaltfl&auml;che62" value="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Alle&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" class="button" onClick="go_to_url('codelist')">
           </td>
@@ -276,6 +278,7 @@ administration_t="""
           <td height="24" align="center" valign="middle" width="170">
             <input type="button"  value="&nbsp;&nbsp;&nbsp;&nbsp;Mitarbeiter&nbsp;&nbsp;&nbsp;&nbsp;" class="button" onClick="go_to_url('codetab?tabelle=Mitarbeiter')">
           </td>
+-->
         </tr>
       </table>
       </fieldset>
