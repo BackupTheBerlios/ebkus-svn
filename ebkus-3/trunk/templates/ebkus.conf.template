@@ -102,6 +102,44 @@ port: 50010
 #session_time: 120
 #berliner_version: false
 
+[demo_wolfenbuettel]
+
+instance_name:          demo_wolfenbuettel
+
+#instance_home:          %%(ebkus_home)s/%%(instance_name)s
+
+# Bitte hier was sinnvolles eintragen!
+admin_name:    Demo_Wolfenbuettel Admin
+admin_email:   admin@demo_wolfenbuettel
+admin_tel:     987 654 321
+
+#log_file:      %%(instance_home)s/%%(instance_name)s.log
+# CRITICAL, ERROR, WARNING, INFO, DEBUG
+#log_level:      INFO
+
+# Wichtig! Jede Instanz benoetigt einen eigenen Port.
+port: 50011
+# Muss nur veraendert werden, wenn die Instanz auf einem
+# anderen Rechner laeuft als der Apache Server.
+#host: localhost
+
+database_name: demo_wolf
+#database_host: localhost
+database_user: demo_wolf
+database_password: demo_wolf
+
+#loeschfrist: 36
+#session_time: 120
+berliner_version: false
+beratungskontakte: true
+beratungskontakte_bs: true
+fallunabhaengige_aktivitaeten_bs: true
+beratungskontakte_minuten: false
+strassenkatalog: wolfenbuettel
+# strassenkatalog_vollstaendig: false
+strassensuche: ort ortsteil samtgemeinde
+
+
 [demo_berlin]
 
 instance_name:          demo_berlin
@@ -118,7 +156,7 @@ admin_tel:     987 654 321
 #log_level:      INFO
 
 # Wichtig! Jede Instanz benoetigt einen eigenen Port.
-port: 50011
+port: 50012
 # Muss nur veraendert werden, wenn die Instanz auf einem
 # anderen Rechner laeuft als der Apache Server.
 #host: localhost
@@ -147,7 +185,7 @@ instance_name:          muster_efb
 log_level:      WARNING
 
 # Wichtig! Jede Instanz benoetigt einen eigenen Port.
-port: 50012
+port: 50013
 #host: localhost
 
 #database_name: muster_efb
