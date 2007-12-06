@@ -41,9 +41,9 @@ mitausw_anz = """
           <td colspan="2" class="legendtext" align="center"><fieldset><legend class="legendtext">Mitarbeiterliste</legend>
            <table width="95%">
               <tr>
-                <td class="labeltext" align="left" "bgcolor=#CCCCCC">Vorname:</td>
-                <td class="labeltext" align="left" "bgcolor=#CCCCCC">Name:</td>
                 <td class="labeltext" align="left" "bgcolor=#CCCCCC">Benutzer:</td>
+                <td class="labeltext" align="left" "bgcolor=#CCCCCC">Name:</td>
+                <td class="labeltext" align="left" "bgcolor=#CCCCCC">Vorname:</td>
                 <td class="labeltext" align="left" "bgcolor=#CCCCCC">Status:</td>
                 <td class="labeltext" align="left" "bgcolor=#CCCCCC">Rechte:</td>
                 <td class="labeltext" align="left" "bgcolor=#CCCCCC">Stelle:</td>
@@ -53,9 +53,9 @@ mitausw_anz = """
 mitlistehrefs_t = """
               <tr>
                 <td class="normaltext" bgcolor="#FFFFFF" align="center"><A HREF="updmit?mitid=%(id)s">
-                  %(vn)s</A></td>
+                  %(ben)s</A></td>
                 <td class="normaltext" bgcolor="#FFFFFF" align="center">%(na)s</td>
-                <td class="normaltext" bgcolor="#FFFFFF" align="center">%(ben)s</td>
+                <td class="normaltext" bgcolor="#FFFFFF" align="center">%(vn)s</td>
                 <td class="normaltext" bgcolor="#FFFFFF" align="center">%(stat__name)s</td>
                 <td class="normaltext" bgcolor="#FFFFFF" align="center">%(benr__code)s</td>
                 <td class="normaltext" bgcolor="#FFFFFF" align="center">%(stz__name)s</td>
