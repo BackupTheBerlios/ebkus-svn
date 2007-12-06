@@ -323,6 +323,7 @@ function reset_strkat()
    _reset('ortsteil');
    _reset('samtgemeinde');
    _reset('bezirk');
+   _reset('planungsr');
 }
 function _reset(name)
 {

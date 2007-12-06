@@ -104,11 +104,11 @@ m;Mehrfachkategorie;verwtyp
 23;sonstiges;fsba
 999;keine Angabe;fsba
 1;nicht berufstätig;fsbe
-2;Vollzeit angestellt / ABM;fsbe
-3;Teilzeit angestellt / ABM;fsbe
+2;Vollzeit angestellt;fsbe
+3;Teilzeit angestellt;fsbe
 4;Schichtarbeit;fsbe
 5;selbständig;fsbe
-6;arbeitslos;fsbe
+6;arbeitslos (ALGI/II);fsbe
 7;Sozialhilfe;fsbe
 8;berentet;fsbe
 9;in Ausbildung oder Umschulung;fsbe
@@ -133,6 +133,8 @@ m;Mehrfachkategorie;verwtyp
 5;starke Traumatisierung (Krieg, Folter);fspbe
 6;Überforderung;fspbe
 7;Isolation und Kontaktschwierigkeiten;fspbe
+11;Trennung, Scheidung, Sorge-/Umgangsrecht;fspbe
+12;Beziehungskonflikte;fspbe
 8;Verschuldung;fspbe
 9;unzureichende Wohnverhältnisse;fspbe
 10;sonstige;fspbe
@@ -193,6 +195,10 @@ m;Mehrfachkategorie;verwtyp
 7;Andere Verwandte;teilnbs
 8;Andere Institutionen;teilnbs
 9;sonstige;teilnbs
+0;weniger als 30 Minuten;fuadbs;0;2
+1;30 bis 60 Minuten;fuadbs;3;5
+2;60 bis 120 Minuten;fuadbs;6;11
+3;mehr als 120 Minuten;fuadbs;12;99999
 1;Mutter;fska
 2;Vater;fska
 3;Kind/Jugendlicher;fska
@@ -212,6 +218,13 @@ m;Mehrfachkategorie;verwtyp
 7;E-Mail;kabs
 8;interner Fachkontakt, Fallbesprechung;kabs
 9;fallbezogene Fahrzeit;kabs
+1;ausgefallene Erstgespräche ohne Fall-Nr.;fuabs
+2;offen angebotene Zeiten (Präsenz, Sekretariatsvertretung, Beratungstelefonate mit Nicht-Klienten....);fuabs
+3;Gruppenarbeit (K6);fuabs
+4;gebührenpflichtige Leistungen;fuabs
+5;Vernetzung;fuabs
+6;Familien- und Jugendbildung;fuabs
+7;Fahrzeiten;fuabs
 0;keine Angabe;fskat;0;0
 1;1-5;fskat;1;5
 2;6-10;fskat;6;10
@@ -565,7 +578,7 @@ code_list_str += """
 #
 # Welche Kategorien sind Bereichskategorien?
 #
-bereichs_kategorien_str = "fskat gsa dbsite jghag kdbs"
+bereichs_kategorien_str = "fskat gsa dbsite jghag kdbs fuadbs"
 
 
 #
@@ -581,16 +594,18 @@ fsagel;Altersgruppe Eltern
 fsfs;Lebensmittelpunkt des Kindes
 fszm;Zugangsweg
 fsba;Vorstellungsanlass bei der Anmeldung
-fsbe;Beruf der Eltern
+fsbe;Beschäftigungsverhältnis der Eltern
 fshe;Herkunftsland der Eltern
 fspbe;Problemspektrum Eltern
 fspbk;Problemspektrum Kind, Jugendliche
 fsle;Erbrachte Leistungen
 fskd;Dauer des Kontakts
 kdbs;Dauer des Kontakts in 10Min. Einheiten (BS)
+fuadbs;Dauer der fallunabhängigen Aktivität in 10Min. Einheiten (BS)
 fska;Art des Beratungskontakts
 kabs;Art des Beratungskontakts (BS)
 teilnbs;Teilnehmer am Kontakt (BS)
+fuabs;Art der fallunabhängigen Aktivität (BS)
 fskat;Anzahl der Termine
 fsqualij;sozialer Status Jugendlicher, 14-27
 fsquali;Qualifikation der Eltern

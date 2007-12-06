@@ -56,13 +56,15 @@ div#help {
 
 .smalltext {font-size:7pt;}
 .parenttext {font-size:11pt;}
-.normaltext {font-size:10pt;}
+.normaltext {font-size:10pt;font-weight:normal}
 .childtext {font-size:9pt;}
 .labeltext {font-size:10pt;}
 .legendtext {font-size:10pt;font-weight:bold}
 .titeltext {font-size:12pt;font-weight:bold}
 .strtext11 {  font-family: Courier; font-size: 11pt;}
 .strtext10 {  font-family: Courier; font-size: 10pt;}
+
+.breadcrumb {font-size:7pt;}
 
 fieldset {
            border-width:2;
