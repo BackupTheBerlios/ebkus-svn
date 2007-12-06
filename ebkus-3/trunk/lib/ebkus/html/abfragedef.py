@@ -99,7 +99,7 @@ class abfragedef(Request.Request):
         return res.display()
 
     def processForm(self, REQUEST, RESPONSE):
-        print 'FORM abfragedef', self.form
+        #print 'FORM abfragedef', self.form
         op = self.form.get('op')
         cgi_name = 'query1'
         assert op in (None, 'new', 'edit', 'del', 'Weiter')

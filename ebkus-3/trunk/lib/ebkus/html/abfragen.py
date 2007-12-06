@@ -223,7 +223,10 @@ class abfr1(Request.Request):
         elif mitarbeiter['benr__code'] == 'verw':
             zustaendigkeiten = ZustaendigkeitList(where = 'ed %s %s' %(op, ed)
                                                   , order = 'id')
-            zustaendigkeiten.sort('fall_id__id')
+            # Auch nach Mitarbeiter sortieren
+            zustaendigkeiten.sort('mit_id__na', 'fall_id__akte_id__na',
+                                  'fall_id__akte_id__vn')
+            #zustaendigkeiten.sort('fall_id__id')
             # nur Fälle der Stelle des Mitarbeiters
             # Reihenfolge: Jahr, Fallnummer
             for z in zustaendigkeiten:

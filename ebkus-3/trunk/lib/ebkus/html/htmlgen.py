@@ -539,8 +539,8 @@ class Datum(Item):
         else:
             datum = ''
             if self.day:
-                datum = "%(day)s<B>.</B>" % self
-            datum += "%(month)s<B>.</B>%(year)s" % self
+                datum = "%(day)02d<B>.</B>" % self
+            datum += "%(month)02d<B>.</B>%(year)s" % self
         self.datum = datum
 
 class Button(Item):

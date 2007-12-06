@@ -84,10 +84,10 @@ class auszergebnis(Request.Request):
         frequencies=[i[1] for i in counts]
         percentages=[i[2] for i in counts]
         res = '"%s";Häufigkeit;Prozentsatz\r\n' % (title,)
-        res += '\r\n'.join(['"%s";%s;%s' % t
+        res += '\r\n'.join(['"%s";%s;%s' % (t[0], t[1], ("%.2f" % t[2]).replace('.', ','))
                            for t in zip(names, frequencies, percentages)])
         res += '\r\n'
-        print 'CSV', res
+        #print 'CSV', res
         self.RESPONSE.setHeader('content-type',
                                 #"text/comma-separated-values; charset=iso-8859-1")
                                 "text/csv; charset=iso-8859-1")

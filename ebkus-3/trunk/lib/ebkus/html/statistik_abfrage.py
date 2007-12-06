@@ -183,7 +183,7 @@ class statabfr(_statistik):
         return res.display()
                  
     def processForm(self, REQUEST, RESPONSE):
-        print 'FORM', self.form
+        #print 'FORM', self.form
         file = self.form.get('file')
         op = self.form.get('op')
         abfrop = self.form.get('abfrop')
@@ -548,7 +548,7 @@ class statergebnis(_statistik_ergebnis):
     permissions = Request.ABFR_PERM
 
     def processForm(self, REQUEST, RESPONSE):
-        print 'FORM', self.form
+        #print 'FORM', self.form
         von_jahr = self.form.get('von_jahr')
         bis_jahr = check_int_not_empty(self.form, 'bis_jahr', "Jahr fehlt")
         if not von_jahr or von_jahr > bis_jahr:
@@ -2355,7 +2355,7 @@ class formabfr10(Request.Request):
         for f in feldliste:
             res2.append(abfr10start_t % f[0])
             for k in WertAuszaehlung(fsl, f[1]).get_result():
-                print k[0], k[1], k[2]
+                #print k[0], k[1], k[2]
                 res2.append(abfr10mid_t % (k[0], k[1], k[2]))
             res2.append(abfr10end_t)
         res.append(''.join(res2))

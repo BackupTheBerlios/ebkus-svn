@@ -47,7 +47,13 @@ class menu(Request.Request, akte_share):
                              onClick="go_to_url('menugruppe')",
                              tip="Zum Gruppenmenü",
                              ),
-            ]]
+                    config.FALLUNABHAENGIGE_AKTIVITAETEN_BS and
+                    h.Button(value='Fallunabh. Aktivitäten',
+                             onClick="go_to_url('fua')",
+                             tip="Zu den fallunabhängigen Aktivitäten",
+                             class_='buttonbig',
+                             ) or None,
+                    ]]
             )
         abmelden_pw = h.FieldsetInputTable(
             daten=[[h.Button(value='Abmelden',

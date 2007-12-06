@@ -8,6 +8,9 @@ from ebkus.app import Request
 from ebkus.config import config
 from ebkus.app.ebapi import StrassenkatalogList, Akte, Fall, Zustaendigkeit, today, cc
 
+from ebkus.app_surface.standard_templates import *
+from ebkus.app_surface.akte_templates import *
+
 import ebkus.html.htmlgen as h
 from ebkus.html.akte_share import akte_share
 
@@ -20,6 +23,7 @@ class _akte(Request.Request, akte_share):
                  akte,
                  formname,
                  hidden,
+                 force_strkat=None,
                  ):
         notiz = h.FieldsetInputTable(
             legend='Notiz',
@@ -32,7 +36,7 @@ class _akte(Request.Request, akte_share):
                    ]
             )
         klientendaten = self.get_klientendaten(akte)
-        anschrift = self.get_anschrift(akte)
+        anschrift = self.get_anschrift(akte, force_strkat)
         falldaten = leistung = None
         if file in ('akteeinf', 'waufneinf'):
             falldaten = h.FieldsetInputTable(
@@ -136,6 +140,13 @@ class updakte(_akte):
     """Akte ändern (Tabelle Akte)."""
     permissions = Request.UPDATE_PERM
     def processForm(self, REQUEST, RESPONSE):
+        strkat = self.form.get('strkat')
+        if strkat == '0':
+            force_strkat = False
+        elif strkat == '1':
+            force_strkat = True
+        else:
+            force_strkat = None
         if self.form.has_key('akid'):
             akid = self.form.get('akid')
             akte = Akte(akid)
@@ -148,7 +159,8 @@ class updakte(_akte):
             akte=akte,
             formname='akteform',
             hidden=(('stzbg', akte['stzbg']),
-                    ('stzak', akte['stzak']))
+                    ('stzak', akte['stzak'])),
+            force_strkat=force_strkat,
             )
 
 class updfall(_akte):
@@ -338,7 +350,9 @@ class zustneu(_zust):
             zustaendigkeit=zustaendigkeit,
             hidden=(('zustid', neue_zust['id']),
                     ("aktuellzustid", aktuell_zustaendig['id']),
-                    ('file', 'zusteinf')),
+                    ('file', 'zusteinf'),
+                    ('fallid', fall['id']),
+                    ),
             )
         
 class updzust(_zust):

@@ -156,11 +156,11 @@ class _fachstatistik(Request.Request, akte_share):
                                    options=self.for_kat('fsquali', fs['qualikv']),
                                    ),
                       ],
-                     [h.SelectItem(label='Beruf Mutter',
+                     [h.SelectItem(label='Beschäftigungsverhältnis Mutter',
                                    name='bkm',
                                    options=self.for_kat('fsbe', fs['bkm']),
                                    ),
-                      h.SelectItem(label='Beruf Vater',
+                      h.SelectItem(label='Beschäftigungsverhältnis Vater',
                                    name='bkv',
                                    options=self.for_kat('fsbe', fs['bkv']),
                                    ),
@@ -252,6 +252,18 @@ class _fachstatistik(Request.Request, akte_share):
                                  label_width=label_width,
                                  options=self.for_kat('fspbe', fs['pbe']),
                                  )
+                    ]],
+            )
+        anmprobleme = h.FieldsetInputTable(
+            legend='Problem(e) bei der Anmeldung',
+            daten=[[h.SelectItem(label='',
+                                 name='anmprobleme',
+                                 options=self.for_kat('fsba', fs['anmprobleme']),
+                                 multiple=True,
+                                 class_='listbox310',
+                                 label_width=label_width,
+                                 size=8,
+                                 ),
                     ]],
             )
         kindprobleme = h.FieldsetInputTable(
@@ -385,6 +397,7 @@ class _fachstatistik(Request.Request, akte_share):
             angabenklient,
             ba1, ba2,
             pbk, pbe,
+            anmprobleme,
             kindprobleme,
             elternprobleme,
             jokf5, jokf6, jokf7, jokf8, 
@@ -459,6 +472,7 @@ class fsneu(_fachstatistik):
             gs=akte['gs'],
             ag=altersgruppe(akte['gb'], fall.getDate('bg')),
             fs=akte['fs'],
+            anmprobleme=None,
             kindprobleme=None,
             elternprobleme=None,
             )

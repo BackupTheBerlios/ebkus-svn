@@ -49,7 +49,6 @@ class akte_share(options):
 """<option value="nothing">[ Anzeige ]</option>
 <option value="newXX vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
 <option value="kldok?akid=%(akte_id)d&fallid=%(id)d">- Klientendokumente</option>
-<option value="wordexport?akid=%(akte_id)d">- Word-Export</option>
 """ % aktueller_fall)
              or
              h.SelectGoto(name='Auswahl2', options =
@@ -57,7 +56,10 @@ class akte_share(options):
 <option value="vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
 <option value="kldok?akid=%(akte_id)d&fallid=%(id)d">- Klientendokumente</option>
 """ % letzter_fall ))
-            
+
+# Im aktuellen Fall gab es den Wordexport, der aber unseres Wissens nie
+# verwendet wurde. Ich verstehe es auch nicht. Soll raus.
+# <option value="wordexport?akid=%(akte_id)d">- Word-Export</option>
 
     def _get_ort_zusatz_items(self, data):
         "Optionale, konfigurierbare Felder für Klientendaten readonly"
@@ -227,33 +229,31 @@ class akte_share(options):
             )
         return klientendaten
 
-    def get_anschrift(self, data):
-        if config.STRASSENKATALOG:
-            n_col = 3 # eine Spalte mehr wg. icon
-            such_icon = h.Icon(href="javascript:view_strkat()",
-                               #href="javascript:open('strkat','Strassensuche')",
-                               tip="Passende Einträge im Straßenkatalog suchen",
-                               icon="/ebkus/ebkus_icons/strkatview_button.jpg",
-                               )
-            strkat_ein_aus = h.CheckItem(label='Straßenkatalog verwenden',
-                                         tip='Häkchen entfernen, um Adresse ohne Abgleich mit dem Straßenkatalog einzugeben',
-                                         name='strkat_on',
-                                         value=1,
-                                         checked=(data.get('lage') == cc('lage', '0')),
-                                         n_label=2,
-                                         n_col=n_col,
-                                         )
+    def get_anschrift(self, data, force_strkat=None):
+        if force_strkat != None:
+            strkat_on = force_strkat
         else:
-            icon = None
-            n_col = 2
+            strkat_on = (data.get('lage') == cc('lage', '0'))
+        n_col = 3 # eine Spalte mehr wg. icons
+        such_icon = h.Icon(href="javascript:view_strkat()",
+                           #href="javascript:open('strkat','Strassensuche')",
+                           tip="Passende Einträge im Straßenkatalog suchen",
+                           icon="/ebkus/ebkus_icons/strkatview_button.jpg",
+                           )
+        strkat_ein_aus = h.CheckItem(label='Straßenkatalog verwenden',
+                                     tip='Häkchen entfernen, um Adresse ohne Abgleich mit dem Straßenkatalog einzugeben',
+                                     name='strkat_on',
+                                     value=1,
+                                     checked=strkat_on,
+                                     n_label=2,
+                                     n_col=n_col,
+                                     )
         reset_icon = h.Icon(#href="strkat",
                           href="javascript:reset_strkat()",
                           #href="javascript:open('strkat','Strassensuche')",
                           tip="Adressfelder leeren",
                           icon="/ebkus/ebkus_icons/neu_button.gif",
-            )
-
-        strasse = get_strasse(data)
+                          )
         str = h.TextItem(label='Straße',
                          name='str',
                          value=data['str'],
@@ -278,32 +278,42 @@ class akte_share(options):
                        tip="Wohnort",
                        n_col=n_col,
                        )
-        ortsteil = h.TextItem(label='Ortsteil',
-                       name='ortsteil',
-                       value=strasse.get('ortsteil', ''),
-                       tip="Ortsteil",
-                       n_col=n_col,
-                       )
-        bezirk = h.TextItem(label='Bezirk',
-                       name='bezirk',
-                       value=strasse.get('bezirk', ''),
-                       n_col=n_col,
-                       )
-        samtgemeinde = h.TextItem(label='Samtgemeinde',
-                       name='samtgemeinde',
-                       tip="Samtgemeinde",
-                       value=strasse.get('samtgemeinde', ''),
-                       n_col=n_col,
-                       )
+        if strkat_on:
+            strasse = get_strasse(data)
+            ortsteil = h.TextItem(label='Ortsteil',
+                           name='ortsteil',
+                           value=strasse.get('ortsteil', ''),
+                           tip="Ortsteil",
+                           n_col=n_col,
+                           )
+            bezirk = h.TextItem(label='Bezirk',
+                           name='bezirk',
+                           value=strasse.get('bezirk', ''),
+                           n_col=n_col,
+                           )
+            samtgemeinde = h.TextItem(label='Samtgemeinde',
+                           name='samtgemeinde',
+                           tip="Samtgemeinde",
+                           value=strasse.get('samtgemeinde', ''),
+                           n_col=n_col,
+                           )
+        # TODO klären, ob die 0 nicht ganz weg kann.
+        # wird in setAdresse eingesetzt, wenn kein planungsr angegeben wurde
+        planungsr_value = data.get('planungsr', '')
+        if planungsr_value == '0':
+            planungsr_value = ''
         planungsr = h.TextItem(label='Planungsraum',
                                name='planungsr',
-                               value=data.get('planungsr', ''),
+                               value=planungsr_value,
                                tip="Der Planungsraum des Klienten",
                                n_col=n_col,
                                )
         if config.STRASSENKATALOG:
-            items = (strkat_ein_aus, str, hsnr, plz, ort,)
-            #items = (strkat, str_ausser, hsnr, plz, ort, fs)
+            items = (strkat_ein_aus,)
+        else:
+            items = ()
+        items += (str, hsnr, plz, ort,)
+        if config.STRASSENKATALOG and strkat_on:
             zusatzfelder = [f for f in config.STRASSENSUCHE.split() if f != 'ort']
             for f in zusatzfelder:
                 if f == 'bezirk':
@@ -313,10 +323,11 @@ class akte_share(options):
                 if f == 'samtgemeinde':
                     items += (samtgemeinde,)
         else:
-            items = (str, hsnr, plz, ort, planungsr,)
+            items += (planungsr,)
         # Suche hinter das letzte item
-        items[-1].icon = such_icon
-        items[-1].n_col = 2
+        if config.STRASSENKATALOG:
+            items[-1].icon = such_icon
+            items[-1].n_col = 2
         anschrift = h.FieldsetInputTable(
             # tip überdeckt die tips der einzelnen Elemente in der Statuszeile
 ##             tip="Anfangsbuchstaben in einem oder "
@@ -324,6 +335,105 @@ class akte_share(options):
             legend = 'Anschrift',
             daten = [[i] for i in items])
         return anschrift
+
+##     def get_anschrift(self, data):
+##         strkat_on = (data.get('lage') == cc('lage', '0'))
+##         if config.STRASSENKATALOG:
+##             n_col = 3 # eine Spalte mehr wg. icon
+##             such_icon = h.Icon(href="javascript:view_strkat()",
+##                                #href="javascript:open('strkat','Strassensuche')",
+##                                tip="Passende Einträge im Straßenkatalog suchen",
+##                                icon="/ebkus/ebkus_icons/strkatview_button.jpg",
+##                                )
+##             strkat_ein_aus = h.CheckItem(label='Straßenkatalog verwenden',
+##                                          tip='Häkchen entfernen, um Adresse ohne Abgleich mit dem Straßenkatalog einzugeben',
+##                                          name='strkat_on',
+##                                          value=1,
+##                                          checked=strkat_on,
+##                                          n_label=2,
+##                                          n_col=n_col,
+##                                          )
+##         else:
+##             icon = None
+##             n_col = 2
+##         reset_icon = h.Icon(#href="strkat",
+##                           href="javascript:reset_strkat()",
+##                           #href="javascript:open('strkat','Strassensuche')",
+##                           tip="Adressfelder leeren",
+##                           icon="/ebkus/ebkus_icons/neu_button.gif",
+##             )
+
+##         strasse = get_strasse(data)
+##         str = h.TextItem(label='Straße',
+##                          name='str',
+##                          value=data['str'],
+##                          tip='Straße',
+##                          icon=reset_icon,
+##                          )
+##         hsnr = h.TextItem(label='Hausnummer',
+##                           name='hsnr',
+##                           value=data['hsnr'],
+##                           tip='Hausnummer',
+##                           n_col=n_col,
+##                         )
+##         plz = h.TextItem(label='Postleitzahl',
+##                        name='plz',
+##                        value=data['plz'],
+##                        tip="Postleitzahl",
+##                        n_col=n_col,
+##                        )
+##         ort = h.TextItem(label='Ort',
+##                        name='ort',
+##                        value=data['ort'],
+##                        tip="Wohnort",
+##                        n_col=n_col,
+##                        )
+##         ortsteil = h.TextItem(label='Ortsteil',
+##                        name='ortsteil',
+##                        value=strasse.get('ortsteil', ''),
+##                        tip="Ortsteil",
+##                        n_col=n_col,
+##                        )
+##         bezirk = h.TextItem(label='Bezirk',
+##                        name='bezirk',
+##                        value=strasse.get('bezirk', ''),
+##                        n_col=n_col,
+##                        )
+##         samtgemeinde = h.TextItem(label='Samtgemeinde',
+##                        name='samtgemeinde',
+##                        tip="Samtgemeinde",
+##                        value=strasse.get('samtgemeinde', ''),
+##                        n_col=n_col,
+##                        )
+##         planungsr = h.TextItem(label='Planungsraum',
+##                                name='planungsr',
+##                                value=data.get('planungsr', ''),
+##                                tip="Der Planungsraum des Klienten",
+##                                n_col=n_col,
+##                                )
+##         if config.STRASSENKATALOG and strkat_on:
+##             items = (strkat_ein_aus, str, hsnr, plz, ort,)
+##             #items = (strkat, str_ausser, hsnr, plz, ort, fs)
+##             zusatzfelder = [f for f in config.STRASSENSUCHE.split() if f != 'ort']
+##             for f in zusatzfelder:
+##                 if f == 'bezirk':
+##                     items += (bezirk,)
+##                 if f == 'ortsteil':
+##                     items += (ortsteil,)
+##                 if f == 'samtgemeinde':
+##                     items += (samtgemeinde,)
+##         else:
+##             items = (str, hsnr, plz, ort, planungsr,)
+##         # Suche hinter das letzte item
+##         items[-1].icon = such_icon
+##         items[-1].n_col = 2
+##         anschrift = h.FieldsetInputTable(
+##             # tip überdeckt die tips der einzelnen Elemente in der Statuszeile
+## ##             tip="Anfangsbuchstaben in einem oder "
+## ##             "mehreren Feldern genügen für eine Suche!",
+##             legend = 'Anschrift',
+##             daten = [[i] for i in items])
+##         return anschrift
 
     def get_klientendaten_kurz(self, fall):
         akte = fall['akte']
@@ -645,6 +755,15 @@ class akte_share(options):
                    ],
             )
         return res
+
+    def get_hauptmenu(self):
+        return h.FieldsetInputTable(
+            daten=[[h.Button(value='Hauptmenü',
+                             onClick="go_to_url('menu')",
+                             tip="Hauptmenü",
+                             ),
+            ]]
+            )
 
     def get_auswertungs_menu(self):
         menu = h.FieldsetInputTable(

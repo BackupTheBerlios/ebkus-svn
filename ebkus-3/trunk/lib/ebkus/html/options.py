@@ -19,6 +19,7 @@ class options(object):
             bs =  """
                      <option value="nothing">[ Speziell für Braunschweig ]
                      <option value="bkontbsabfrform">- Beratungskontaktzeiten
+                     <option value="fuabsabfrform">- Fallunabhängige Aktivitäten
                      <option value="nothing">
                      """
         options = ("""

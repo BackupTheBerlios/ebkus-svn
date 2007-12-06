@@ -165,11 +165,15 @@ class strkat(Request.Request):
                 options.append(tmpl % element)
         return '\n'.join(options)
         
-def get_strassen_list(form):
+def get_strassen_list(form, exact=False):
     """Rückgabe: Exception: bei Fehlern in den Suchstrings
                  None: Keine Suchstrings
                  Sonst: die Liste der Ergebnisse, die leer sein kann"""
     #print 'GET_STRASSEN_LIST FORM', form
+    if exact:
+        joker = ''
+    else:
+        joker = '%'
     str_id = form.get('strid')
     str_felder = ('ort', 'plz', 'bezirk', 'samtgemeinde', 'ortsteil')
     where = []
@@ -178,10 +182,10 @@ def get_strassen_list(form):
     for f in str_felder:
         val = form.get(f, '')
         if val:
-            where.append("%s like '%s%%'" % (f, val))
+            where.append("%s like '%s%s'" % (f, val, joker))
     str = check_strasse(form.get('str', ''))
     if str:
-        where.append("name like '%s%%'" % str)
+        where.append("name like '%s%s'" % (str, joker))
     hsnr  = check_hausnr(form.get('hsnr', ''))
     if hsnr.startswith('-'): # ausdrücklich keine Hausnummer
         where.append("von IS NULL and bis IS NULL")
@@ -200,14 +204,14 @@ def get_strassen_list(form):
         return None
 
 def get_strasse(data):
-    """liefert Element aus dem Strassenkatalog, passend zu data,
+    """liefert möglichst genau ein Element aus dem Strassenkatalog, passend zu data,
     oder {}
     """
     strasse = {}
     if (data.get('lage') == cc('lage', '0') and
         data['ort'] and  data['plz']):
         # innerhalb der Geltung des Strassenkatalogs
-        strassen_list = get_strassen_list(data)
+        strassen_list = get_strassen_list(data, exact=True)
         if len(strassen_list) == 1: # sollte immer der Fall sein
             return strassen_list[0]
     return {}

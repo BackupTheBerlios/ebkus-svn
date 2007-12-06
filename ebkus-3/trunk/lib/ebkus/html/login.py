@@ -62,9 +62,9 @@ class login(Request.Request):
             # nicht mit einem logout oder durch Timeout beendet wurde.
             other_session.delete()
         weiterleitung = 'menu'
-##         if mitarbeiter['pass'] == sha.new(username).hexdigest():
-##             # Passwort ist identisch mit dem Benutzernamen
-##             weiterleitung = 'pwchange'
+        if mitarbeiter['pass'] == sha.new(username).hexdigest():
+            # Passwort ist identisch mit dem Benutzernamen
+            weiterleitung = 'pwchange'
         self.session = create_session(username, self.RESPONSE)
         res.append(head_weiterleitung_t % ("Willkommen bei EBKuS",".2", weiterleitung))
         res.append(login_meldung_t % mitarbeiter)

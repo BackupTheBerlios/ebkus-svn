@@ -35,6 +35,37 @@ class jghexportfeedback(Request.Request):
     
     permissions = Request.ADMIN_PERM
     
+##     def _keine_statistik_liste(self, jahr):
+##         """Liste aller Fälle, die in jahr oder davor begonnen haben,
+##         für die keine Jugendhilfestatistik existiert.
+
+##         Wir brauchen nur offene Fälle zu betrachten, da alle geschlossenen
+##         Fälle eine Statistik haben müssen.
+##         """
+##         # zustaendigkeit, mitarbeiter nur zum sortieren
+##         sql = """
+## SELECT fall.id
+## FROM fall, zustaendigkeit, mitarbeiter
+## LEFT JOIN jghstat07 ON fall.id=jghstat07.fall_id
+## LEFT JOIN jghstat on fall.id=jghstat.fall_id
+## WHERE jghstat07.fall_id IS NULL AND
+##       jghstat.fall_id IS NULL AND
+##       fall.bgy<=%d AND
+##       fall.zday=0 AND
+##       zustaendigkeit.fall_id=fall.id AND
+##       mitarbeiter.id=zustaendigkeit.mit_id
+## ORDER BY mitarbeiter.na, fall.bgy, fall.bgm""" % jahr
+##         q = SQL(sql)
+##         faelle_ids_ohne = q.execute()
+##         res = []
+##         res.append(head_normal_ohne_help_t % "Fälle ohne Bundesjugendhilfestatistik")
+##         res.append(thkeinestatistik_t)
+##         for fall_id_t in faelle_ids_ohne:
+##             fall = Fall(fall_id_t[0])
+##             res.append(keinestatistikliste_t % fall)
+##         res.append(jghexportliste_ende_t)
+##         return ''.join(res)
+        
     def _keine_statistik_liste(self, jahr):
         """Liste aller Fälle, die in jahr oder davor begonnen haben,
         für die keine Jugendhilfestatistik existiert.
@@ -45,7 +76,7 @@ class jghexportfeedback(Request.Request):
         # zustaendigkeit, mitarbeiter nur zum sortieren
         sql = """
 SELECT fall.id
-FROM fall, zustaendigkeit, mitarbeiter
+FROM fall JOIN zustaendigkeit JOIN mitarbeiter
 LEFT JOIN jghstat07 ON fall.id=jghstat07.fall_id
 LEFT JOIN jghstat on fall.id=jghstat.fall_id
 WHERE jghstat07.fall_id IS NULL AND

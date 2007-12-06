@@ -435,35 +435,39 @@ class klkarte(Request.Request, akte_share):
                             ) or None),
             )
 
-        fallgruppen = h.FieldsetDataTable(
-            legend='Gruppenkarten des Falls',
-            headers=('Gruppennummer', 'Name',),
-            daten=[[(aktueller_fall
-                     and
-                     h.Icon(href='grkarte?gruppeid=%(gruppe_id)s' % fg,
-                          icon="/ebkus/ebkus_icons/edit_grp_button.gif",
-                          tip='Gruppenkarte ansehen')
-                     or 
-                     h.IconDead(icon="/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
-                              tip='Funktion gesperrt')),
-                    h.String(string=fg['gruppe_id__gn']),
-                    h.String(string="%(fall__akte__vn)s %(fall__akte__na)s" % fg)]
-                   for fg in fallgruppen_list],
-            )
-        bezugspersongruppen = h.FieldsetDataTable(
-            legend= 'Gruppenkarten der Bezugspersonen',
-            headers= ('Gruppennummer.', 'Name',),
-            daten= [[(aktueller_fall and
-                      h.Icon(href= 'grkarte?gruppeid=%(gruppe_id)s' % bg,
-                           icon= "/ebkus/ebkus_icons/edit_grp_button.gif",
-                           tip= 'Gruppenkarte ansehen')
-                      or 
-                      h.IconDead(icon= "/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
-                               tip= 'Funktion gesperrt')),
-                     h.String(string= bg['gruppe_id__gn']),
-                     h.String(string= "%(bezugsp__vn)s %(bezugsp__na)s" % bg)]
-                    for bg in bezugspersongruppen_list],
-            )
+        bezugspersongruppen = fallgruppen = ''
+        if fallgruppen_list:
+            fallgruppen = h.FieldsetDataTable(
+                legend='Gruppenkarten des Falls',
+                headers=('Gruppennummer', 'Name',),
+                daten=[[(aktueller_fall
+                         and
+                         h.Icon(href='grkarte?gruppeid=%(gruppe_id)s' % fg,
+                              icon="/ebkus/ebkus_icons/edit_grp_button.gif",
+                              tip='Gruppenkarte ansehen')
+                         or 
+                         h.IconDead(icon="/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
+                                  tip='Funktion gesperrt')),
+                        h.String(string=fg['gruppe_id__gn']),
+                        h.String(string="%(fall__akte__vn)s %(fall__akte__na)s" % fg)]
+                       for fg in fallgruppen_list],
+                )
+        if bezugspersongruppen_list:
+            bezugspersongruppen = h.FieldsetDataTable(
+                legend= 'Gruppenkarten der Bezugspersonen',
+                headers= ('Gruppennummer.', 'Name',),
+                daten= [[(aktueller_fall and
+                          h.Icon(href= 'grkarte?gruppeid=%(gruppe_id)s' % bg,
+                               icon= "/ebkus/ebkus_icons/edit_grp_button.gif",
+                               tip= 'Gruppenkarte ansehen')
+                          or 
+                          h.IconDead(icon= "/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
+                                   tip= 'Funktion gesperrt')),
+                         h.String(string= bg['gruppe_id__gn']),
+                         h.String(string= "%(bezugsp__vn)s %(bezugsp__na)s" % bg)]
+                        for bg in bezugspersongruppen_list],
+                )
+            
         res = h.FormPage(
             title='Klientenkarte',
             name="",action="",method="",hidden=(),

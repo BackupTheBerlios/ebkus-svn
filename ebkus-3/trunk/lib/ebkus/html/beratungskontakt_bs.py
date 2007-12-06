@@ -3,7 +3,7 @@
 """Modul Beratungskontakte."""
 
 from ebkus.app import Request
-from ebkus.app.ebapi import Code, Fall, Beratungskontakt_BS, Beratungskontakt_BSList, \
+from ebkus.app.ebapi import Code, Fall, MitarbeiterList, Beratungskontakt_BS, Beratungskontakt_BSList, \
      today, cc, cn, check_int_not_empty, check_list
 from ebkus.app.ebapih import get_codes
 from ebkus.config import config
@@ -167,13 +167,19 @@ class bkontneu(_bkont):
             self.last_error_message = "Keine ID für den Fall erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
         fall = Fall(fallid)
+        benr = self.mitarbeiter['benr__code']
+        if benr in ('verw',):
+            # Verwaltungskraft kann Einträge für andere Mitarbeiter machen
+            mit_id = None
+        else:
+            mit_id = self.mitarbeiter['id'],
         bkont = Beratungskontakt_BS()
         bkont.init(
             id=Beratungskontakt_BS().getNewId(),
             fall_id=fall['id'],
             fall1_id=None,
             fall2_id=None,
-            mit_id=self.mitarbeiter['id'],
+            mit_id=mit_id,
             mit1_id=None,
             mit2_id=None,
             teilnehmer=None,
@@ -222,8 +228,8 @@ class bkontbsabfrform(Request.Request, akte_share):
                            ),
             hidden = (),
             rows=(self.get_auswertungs_menu(),
-                  self.grundgesamtheit(),
-                  h.SpeichernZuruecksetzenAbbrechen(),
+                  self.grundgesamtheit(legend='Jahr und Stelle wählen'),
+                  h.SpeichernZuruecksetzenAbbrechen(value='Anzeigen'),
                   ),
             )
         return res.display()
@@ -250,7 +256,7 @@ class bkontbsabfr(Request.Request, akte_share):
             # ausgefallen
             netto[art] += 2
             brutto[art] += 2
-        elif art == '9':
+        elif art in ('3', '7', '9'):
             # Fahrzeiten
             netto[art] += dauer
             brutto[art] += dauer
@@ -303,8 +309,10 @@ class bkontbsabfr(Request.Request, akte_share):
         if benr == 'bearb':
             mitarbeiter = [self.mitarbeiter]
         elif benr == 'verw':
+            bearb_benr_id = cc('benr', 'bearb')
+            status = cc('status', 'i')
             mitarbeiter = MitarbeiterList(
-                where='stz in (%(stellen)s) and benr = %(benr_id)s' % locals(),
+                where='stz in (%(stellen)s) and stat = %(status)s and benr = %(bearb_benr_id)s' % locals(),
                 order='na')
         # für jeden Mitarbeiter einen Zähler mit netto, brutto
         res = {}
@@ -328,7 +336,7 @@ class bkontbsabfr(Request.Request, akte_share):
         return mitarbeiter, res
             
     def processForm(self, REQUEST, RESPONSE):
-        print 'FORM', self.form
+        #print 'FORM', self.form
         von_jahr = self.form.get('von_jahr')
         bis_jahr = check_int_not_empty(self.form, 'bis_jahr', "Jahr fehlt")
         if not von_jahr or von_jahr > bis_jahr:
@@ -366,9 +374,9 @@ class bkontbsabfr(Request.Request, akte_share):
                            ('Abfrage Beratungskontaktzeiten', 'bkontbsabfrform'),
                            ),
             hidden = (),
-            rows=(tabelle_mitarbeiter,
+            rows=(self.get_hauptmenu(),
+                  tabelle_mitarbeiter,
                   tabelle_stellen,
-                  h.SpeichernZuruecksetzenAbbrechen()
                   ),
             )
         return res.display()
@@ -405,12 +413,16 @@ def get_jgh_kontakte_bs(fall):
         k = 0
         code = row['art__code']
         dauer = row['dauer']*1.4*10 # Zeit in Minuten inklusive 40% Vor- und Nachbereitung
-        if code in ('1', '2', '4', '6', '7'):
+        if code in ('1', '2', '3', '4', '6', '7'):
             if dauer >= 30:
                 if dauer <= 60:
                     k = 1
-                else:
+                elif dauer <=120:
                     k = 2
+                elif dauer <=180:
+                    k = 3
+                else:
+                    k = 4
         if row['ky'] == jahr:
             kontakte_im_jahr += k
         kontakte_insgesamt += k

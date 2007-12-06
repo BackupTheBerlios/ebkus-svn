@@ -20,7 +20,7 @@ class CustomizeFachstatistik(object):
     standard_felder = ( # nur die abschaltbaren Felder mit Kategorien
         'gs', 'ag', 'fs', 'zm', 'qualij', 'hkm', 'hkv', 'bkm', 'bkv', 
         'qualikm', 'qualikv', 'agkm', 'agkv', 'ba1', 'ba2', 'pbe', 'pbk',
-        'kindprobleme', 'elternprobleme', 'eleistungen',
+        'anmprobleme', 'kindprobleme', 'elternprobleme', 'eleistungen',
         )
     felder_mit_notiz = {'pbe': 'no3',
                         'pbk': 'no2'}
@@ -64,6 +64,14 @@ class CustomizeFachstatistik(object):
     def jokerfeld_eigenstaendig(self, feld): # item in eigenem Fieldset
         # Name fängt mit jokf an
         return feld.startswith('jokf')
+    def set_status(self, feldname, status):
+        f_obj = self.fd.get(feldname)
+        flag = f_obj['flag']
+        if status:
+            f_obj.update({'flag': flag&~1})
+        else:
+            f_obj.update({'flag': flag|1})
+
 
 fs_customize = CustomizeFachstatistik()
 
