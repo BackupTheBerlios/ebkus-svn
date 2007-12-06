@@ -7,6 +7,35 @@ from ebkus.app import ebapi
 from ebkus.app_surface.abfragen_templates import *
 from ebkus.app_surface.standard_templates import *
 
+def _split_option_name(name, size):
+    """Return list of strings smaller than size.
+
+    Alle Strings außer dem ersten sind mit &nbsp; eingerückt.
+    """
+    assert size > 10 # sonst nicht sinnvoll
+    if len(name) <= size:
+        return [name]
+    words = name.split()
+    res = []
+    curr_size = 0
+    curr_el = []
+    first = True
+    for w in words:
+        new_size = curr_size + len(w)
+        if new_size <= size:
+            curr_el.append(w)
+            curr_size = new_size
+        else:
+            res.append(' '.join(curr_el))
+            curr_size = len(w)
+            curr_el = [('&nbsp;'*4) + w] # einrücken
+            if first:
+                # damit eingerückt werden kann
+                size -= 4
+                first = False
+    res.append(' '.join(curr_el))
+    return res
+
 def make_option_list(elements,              
                      value_field,
                      name_field,
@@ -63,7 +92,7 @@ def make_option_list(elements,
         name = str(el[name_field])
         sel = value in selected_values and select_attr or ''
         if len(name) > max_name_length:
-            name_list = split_option_name(name, max_name_length)
+            name_list = _split_option_name(name, max_name_length)
             for n in name_list:
                 res.append(option % (value, sel, n))
                 # nur erste option-zeile selektieren
@@ -73,35 +102,6 @@ def make_option_list(elements,
             res.append(option % (value, sel, name))
     
     return (' '*indent).join(res)
-
-def _split_option_name(name, size):
-    """Return list of strings smaller than size.
-
-    Alle Strings außer dem ersten sind mit &nbsp; eingerückt.
-    """
-    assert size > 10 # sonst nicht sinnvoll
-    if len(name) <= size:
-        return [name]
-    words = name.split()
-    res = []
-    curr_size = 0
-    curr_el = []
-    first = True
-    for w in words:
-        new_size = curr_size + len(w)
-        if new_size <= size:
-            curr_el.append(w)
-            curr_size = new_size
-        else:
-            res.append(' '.join(curr_el))
-            curr_size = len(w)
-            curr_el = [('&nbsp;'*4) + w] # einrücken
-            if first:
-                # damit eingerückt werden kann
-                size -= 4
-                first = False
-    res.append(' '.join(curr_el))
-    return res
 
 def mksel(result, template, List, field=None, value=None):
     """Automatisiert die Belegung des 'sel'-Feldes.

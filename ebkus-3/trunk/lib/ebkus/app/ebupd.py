@@ -195,9 +195,9 @@ def einreinf(form):
     einr['insta'] = check_code(form, 'insta', 'klinsta',
                                "Fehler in Institution", '999')
     einr['nobed'] = check_code(form, 'nobed', 'notizbed',
-                               "Fehler in Notizbedeutung", 'f')
+                               "Fehler in Notizbedeutung", cc('notizbed', 'f'))
     einr['status'] = check_code(form, 'status', 'einrstat',
-                                "Fehler in Einrichtungsstatus", 'ja')
+                                "Fehler in Einrichtungsstatus", cc('einrstat', 'nein'))
     
     einr.insert(einrid)
     _stamp_akte(einr['akte'])
@@ -206,10 +206,10 @@ def einreinf(form):
 def updeinr(form):
     """Update eines Einrichtungskontaktes."""
     
-    # unsystematische HACK!!
-    fs = form.get('nobed')
-    if not fs:
-        form['nobed'] = cc('notizbed', 'f')
+##     # unsystematische HACK!!
+##     fs = form.get('nobed')
+##     if not fs:
+##         form['nobed'] = cc('notizbed', 'f')
         
     einrold = check_exists(form, 'einrid', Einrichtungskontakt, "Einrichtungskontaktid fehlt")
     einr = Einrichtungskontakt()
@@ -219,9 +219,9 @@ def updeinr(form):
     einr['insta'] = check_code(form, 'insta', 'klinsta',
                                "Fehler in Institution", einrold)
     einr['nobed'] = check_code(form, 'nobed', 'notizbed',
-                               "Fehler in Notizbedeutung", einrold)
+                               "Fehler in Notizbedeutung", cc('notizbed', 'f'))
     einr['status'] = check_code(form, 'status', 'einrstat',
-                                "Fehler in Einrichtungsstatus", einrold)
+                                "Fehler in Einrichtungsstatus", cc('einrstat', 'nein'))
     
     einrold.update(einr)
     _stamp_akte(einrold['akte'])
@@ -385,7 +385,7 @@ def _bkont_bs_check(form, bkont):
     bkont.setDate('k', datum)
     bkont['stz'] = check_code(form, 'stz', 'stzei',
                               "Kein Stellenzeichen für den Beratungskontakt")
-    
+
 def bkonteinf(form):
     """Neuer Beratungskontakt."""
     if not config.BERATUNGSKONTAKTE:
@@ -439,6 +439,45 @@ def updbkontbs(form):
     bkontold.update(bkont)
     _stamp_akte(bkontold['fall__akte'])
     
+    
+# Fallunabhängige Aktivitäten Braunschweig
+def _fua_bs_check(form, fua):
+    #print '_fua_bs_check', form
+    fua['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
+    fua['art'] = check_code(form, 'art', 'fuabs', "Fehler in Aktivitätstart")
+    fua['no'] = check_str_not_empty(form, 'no', 'Keine Notiz', '')
+    if fua['art'] == cc('fuabs', '1'):
+        fua['dauer'] = 2
+    else:
+        fua['dauer'] = check_int_not_empty(form, 'dauer', "Fehler in Dauer")
+    datum = check_date(form, 'k', "Fehler im Aktivitätsdatum")
+    fua.setDate('k', datum)
+    fua['stz'] = check_code(form, 'stz', 'stzei',
+                              "Kein Stellenzeichen für die Aktivität")
+
+def fuabseinf(form):
+    """Neue Aktivität."""
+    if not config.FALLUNABHAENGIGE_AKTIVITAETEN_BS:
+        raise EBUpdateError("Aufruf von fuabseinf ohne config.FALLUNABHAENGIGE_AKTIVITAETEN_BS")
+    fuaid = check_int_not_empty(form, 'fuaid', "Aktivitäts-ID fehlt")
+    check_not_exists(fuaid, Fua_BS,
+                     "Aktivität (id: %(id)s) existiert bereits")
+    fua = Fua_BS()
+    _fua_bs_check(form, fua)
+    try:
+        fua.insert(fuaid)
+    except:
+        try: fua.delete()
+        except: pass
+    
+def updfuabs(form):
+    """Update des Beratungskontakts."""
+    if not config.FALLUNABHAENGIGE_AKTIVITAETEN_BS:
+        raise EBUpdateError("Aufruf von updfuabs ohne config.FALLUNABHAENGIGE_AKTIVITAETEN_BS")
+    fuaold = check_exists(form,'fuaid', Fua_BS, "Keine Aktivitäts-ID")
+    fua = Fua_BS()
+    _fua_bs_check(form, fua)
+    fuaold.update(fua)
     
 def zusteinf(form):
     """Neue Zuständigkeit."""
@@ -2189,6 +2228,8 @@ def updmit(form):
     mit['zeit'] = int(time.time())
     
     mitold.update(mit)
+    from ebkus.db.dbapp import undo_cached_fields
+    undo_cached_fields()
     
     
 def codeeinf(form):
@@ -2356,7 +2397,9 @@ def updkategorie(form):
     name = check_str_not_empty(form, 'name', 'Kein Name', '')
     dok  = check_str_not_empty(form, 'dok', 'Keine Doku', '')
     kat.update({'name': name, 'dok': dok})
-            
+    from ebkus.db.dbapp import undo_cached_fields
+    undo_cached_fields()
+    
 def removeakten(form):
     """Akten und Gruppen löschen."""
     
@@ -2500,7 +2543,9 @@ def setAdresse(obj, form):
     if strkat_on and config.STRASSENKATALOG:
         from ebkus.html.strkat import get_strassen_list
         try:
-            strassen_list = get_strassen_list(form)
+            strassen_list = get_strassen_list(form, exact=False)
+            if len(strassen_list) > 1:
+                strassen_list = get_strassen_list(form, exact=True)
         except Exception, e:
             raise EE(str(e))
         #print 'SETADRESSE', strassen_list
@@ -2537,9 +2582,10 @@ def setAdresse(obj, form):
         else:
             obj['hsnr'] = hsnr
         if 'planungsr' in obj.fields:
-            # Übernahme des Planungsraums aus dem Straßenkatalogs
-            # Was übernommen wird, ist config-abhängig
-            obj['planungsr'] = strasse[config.PLANUNGSRAUMFELD]
+##             # Übernahme des Planungsraums aus dem Straßenkatalogs
+##             # Was übernommen wird, ist config-abhängig
+##             obj['planungsr'] = strasse[config.PLANUNGSRAUMFELD]
+            obj['planungsr'] = strasse['plraum']
         if 'wohnbez' in obj.fields:
             if config.BERLINER_VERSION:
                 # wohnbez aus dem Straßenkatalog übernehmen, nur Berlin

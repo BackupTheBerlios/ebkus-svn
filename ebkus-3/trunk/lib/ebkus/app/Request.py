@@ -34,11 +34,11 @@ DOK_PERM = 'bearb',
 DOKVIEW_PERM = 'bearb',
 RMDOK_PERM = 'bearb',
 RMAKTEN_PERM = 'admin',
-GRUPPENKARTE_PERM = 'bearb',
-MENUGRUPPE_PERM = 'bearb',
-GRUPPETEILN_PERM = 'bearb',
-GRUPPENEU_PERM = 'bearb',
-RMTEILN_PERM = 'bearb',
+GRUPPENKARTE_PERM = 'bearb','verw'
+MENUGRUPPE_PERM = 'bearb','verw'
+GRUPPETEILN_PERM = 'bearb','verw'
+GRUPPENEU_PERM = 'bearb','verw'
+RMTEILN_PERM = 'bearb','verw'
 PROTOCOL_MENU = 'protokol',        #brehmea(msg)
 CHECK_PROTOKOLL_LOGIN = 'protokol'
 

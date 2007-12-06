@@ -120,12 +120,16 @@ def getClassesToBePublished():
     from ebkus.html.einrichtungskontakt import einrneu, updeinr
     from ebkus.html.leistung import leistneu, updleist
     if config.BERATUNGSKONTAKTE_BS:
-        print 'EBKUS:', 'BS'
+        #print 'EBKUS:', 'BS'
         from ebkus.html.beratungskontakt_bs import bkontneu, updbkont, \
              bkontbsabfrform, bkontbsabfr
     elif config.BERATUNGSKONTAKTE:
         print 'EBKUS:', 'NICHT BS'
         from ebkus.html.beratungskontakt import bkontneu, updbkont
+    if config.FALLUNABHAENGIGE_AKTIVITAETEN_BS:
+        #print 'EBKUS:', 'BS'
+        from ebkus.html.fua_bs import fua, fuaneu, updfua, \
+             fuabsabfrform, fuabsabfr
     #from ebkus.html.zustaendigkeit import zustneu, updzust
     from ebkus.html.akte import zustneu, updzust
     # updfs wird auch als updfsform importiert weil es einen Nameclash zwischen

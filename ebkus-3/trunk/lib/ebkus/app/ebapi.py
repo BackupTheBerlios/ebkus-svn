@@ -300,11 +300,13 @@ dbapp.DBObjekt.getNewId = getNewId
 
 def getNewFallnummer(stz_code, jahr):
     """Neue Fallnummer erzeugen."""
-    # TODO: hier könnte doppelte Fallnummer vergeben werden
-    # wenn etwas gelöscht wird
     jahresfallliste = FallList(
-      where = "bgy = %s and fn like '%%%s%%'" % (jahr, stz_code))
-    return "%s-%s%s" % (len(jahresfallliste) + 1, jahr, stz_code)
+      where="bgy = %s and fn like '%%%s%%'" % (jahr, stz_code))
+    if jahresfallliste:
+        groesste_fallnummer = max([ int(f['fn'].split('-')[0]) for f in jahresfallliste])
+    else:
+        groesste_fallnummer = 1
+    return "%s-%s%s" % (groesste_fallnummer + 1, jahr, stz_code)
     
 def getNewGruppennummer(stz_code):
     """Neue Gruppennummer erzeugen."""

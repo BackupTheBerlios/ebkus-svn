@@ -378,6 +378,32 @@ class Beratungskontakt_BSList(Container):
     querySQL = resultClass.querySQL
 
 #####################################
+# Fua_BS  (Tabelle 'fua_bs')
+#####################################
+
+
+class Fua_BS(DBObjekt):
+    table = 'fua_bs'
+    fields =  ['id', 'mit_id', 'art', 'kd', 'km', 'ky', 'dauer', 'no', \
+                       'stz']
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    multikatfieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = 'id'
+    otherkeys = []
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
+
+class Fua_BSList(Container):
+    resultClass = Fua_BS
+    querySQL = resultClass.querySQL
+
+#####################################
 # Zustaendigkeit  (Tabelle 'zustaendigkeit')
 #####################################
 
@@ -568,11 +594,13 @@ class MitarbeiterGruppeList(Container):
 class Fachstatistik(DBObjekt):
     table = 'fachstat'
     fields =  ['id', 'mit_id', 'fall_id', 'fall_fn', 'jahr', 'stz', \
-                       'bz', 'gs', 'ag', 'fs', 'zm', 'qualij', 'hkm', 'hkv', \
-                       'bkm', 'bkv', 'qualikm', 'qualikv', 'agkm', 'agkv', \
-                       'ba1', 'ba2', 'pbe', 'pbk', 'kat', 'kkm', 'kkv', 'kki', \
-                       'kpa', 'kfa', 'ksoz', 'kleh', 'kerz', 'kkonf', 'kson', \
-                       'no', 'no2', 'no3', 'kindprobleme', 'elternprobleme', \
+                       'bz', 'plz', 'ort', 'ortsteil', 'samtgemeinde', \
+                       'bezirk', 'plraum', 'gs', 'ag', 'fs', 'zm', 'qualij', \
+                       'hkm', 'hkv', 'bkm', 'bkv', 'qualikm', 'qualikv', \
+                       'agkm', 'agkv', 'ba1', 'ba2', 'pbe', 'pbk', 'kat', \
+                       'kkm', 'kkv', 'kki', 'kpa', 'kfa', 'ksoz', 'kleh', \
+                       'kerz', 'kkonf', 'kson', 'no', 'no2', 'no3', \
+                       'anmprobleme', 'kindprobleme', 'elternprobleme', \
                        'eleistungen', 'joka1', 'joka2', 'joka3', 'joka4', \
                        'jokf5', 'jokf6', 'jokf7', 'jokf8', 'zeit']
     fieldtypes = {}
@@ -736,7 +764,8 @@ class Jugendhilfestatistik2007List(Container):
 class Code(DBObjekt):
     table = 'code'
     fields =  ['id', 'kat_id', 'kat_code', 'code', 'name', 'sort', \
-                       'mini', 'maxi', 'off', 'dm', 'dy', 'dok', 'zeit']
+                       'mini', 'maxi', 'off', 'dm', 'dy', 'dok', 'flag', \
+                       'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -761,7 +790,7 @@ class CodeList(Container):
 
 class Kategorie(DBObjekt):
     table = 'kategorie'
-    fields =  ['id', 'code', 'name', 'kat_id', 'dok', 'zeit']
+    fields =  ['id', 'code', 'name', 'kat_id', 'dok', 'flag', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -1031,6 +1060,9 @@ Beratungskontakt_BS.foreignfieldtypes['mit2_id'] = (Mitarbeiter, 'beratungskonta
 Beratungskontakt_BS.foreignfieldtypes['art'] = (Code, None)
 Beratungskontakt_BS.foreignfieldtypes['offenespr'] = (Code, None)
 Beratungskontakt_BS.foreignfieldtypes['stz'] = (Code, None)
+Fua_BS.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'beratungskontakte_bs')
+Fua_BS.foreignfieldtypes['art'] = (Code, None)
+Fua_BS.foreignfieldtypes['stz'] = (Code, None)
 Zustaendigkeit.foreignfieldtypes['fall_id'] = (Fall, 'zustaendigkeiten')
 Zustaendigkeit.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'zustaendigkeiten')
 Dokument.foreignfieldtypes['fall_id'] = (Fall, 'dokumente')
@@ -1184,6 +1216,7 @@ Fall.inversefieldtypes['beratungskontakte_bs2'] = (Beratungskontakt_BSList, 'fal
 Mitarbeiter.inversefieldtypes['beratungskontakte_bs'] = (Beratungskontakt_BSList, 'mit_id')
 Mitarbeiter.inversefieldtypes['beratungskontakte_bs1'] = (Beratungskontakt_BSList, 'mit1_id')
 Mitarbeiter.inversefieldtypes['beratungskontakte_bs2'] = (Beratungskontakt_BSList, 'mit2_id')
+Mitarbeiter.inversefieldtypes['beratungskontakte_bs'] = (Fua_BSList, 'mit_id')
 Fall.inversefieldtypes['zustaendigkeiten'] = (ZustaendigkeitList, 'fall_id')
 Mitarbeiter.inversefieldtypes['zustaendigkeiten'] = (ZustaendigkeitList, 'mit_id')
 Fall.inversefieldtypes['dokumente'] = (DokumentList, 'fall_id')
@@ -1225,6 +1258,7 @@ Mitarbeiter.inversefieldtypes[''] = (AbfrageList, 'mit_id')
 # Code-Instanzen ersetzt.
     
 Beratungskontakt_BS.multikatfieldtypes['teilnehmer'] = CodeList
+Fachstatistik.multikatfieldtypes['anmprobleme'] = CodeList
 Fachstatistik.multikatfieldtypes['kindprobleme'] = CodeList
 Fachstatistik.multikatfieldtypes['elternprobleme'] = CodeList
 Fachstatistik.multikatfieldtypes['eleistungen'] = CodeList
