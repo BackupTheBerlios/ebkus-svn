@@ -17,23 +17,31 @@ from os.path import join, split, dirname, basename, exists, isdir, \
                     isfile, normpath, normcase, abspath, splitext, \
                     expanduser
 
+has_readline = False
 # mit dem folgenden hat man eine persistente command history
 # und autocompletion mit der Tab-Taste
-import os, rlcompleter, readline, atexit
-readline.parse_and_bind('tab: complete')
-historyPath = expanduser("~/.python_history")
-#print historyPath
-readline.set_history_length(1000)
-def save_history(historyPath=historyPath):
-   import readline
-   # why can't the next line see the global readline?
-   readline.write_history_file(historyPath)
-   #print 'saving history'
-if os.path.exists(historyPath):
-   readline.read_history_file(historyPath)
-atexit.register(save_history)
-# clean up the namespace
-del atexit, readline, save_history, historyPath, rlcompleter
+import os
+try:
+  import rlcompleter
+  import readline
+  import atexit
+  readline.parse_and_bind('tab: complete')
+  historyPath = expanduser("~/.python_history")
+  #print historyPath
+  readline.set_history_length(1000)
+  def save_history(historyPath=historyPath):
+     import readline
+     # why can't the next line see the global readline?
+     readline.write_history_file(historyPath)
+     #print 'saving history'
+  if os.path.exists(historyPath):
+     readline.read_history_file(historyPath)
+  atexit.register(save_history)
+  # clean up the namespace
+  del atexit, readline, save_history, historyPath, rlcompleter
+  has_readline = True
+except:
+  print 'Kein Readline usw.'
 
 try:
     import init
@@ -57,8 +65,7 @@ print
 print """\
 EBKuS %s interaktiv
 
-Autocompletion mit der Tab-Taste
-History wie in der Shell
+%s
 
 Die EBKuS-API findet sich im Namensraum 'e', z.B.
 >>> l = e.MitarbeiterList(where='')
@@ -67,7 +74,9 @@ Die EBKuS-API findet sich im Namensraum 'e', z.B.
 
 Die Name 'installer' und 'instance' verweisen auf die entsprechenden
 Objekte (siehe Install.py).
-"""  % ebkus.Version
+"""  % (ebkus.Version, 
+        has_readline and "Autocompletion mit der Tab-Taste\nHistory wie in der Shell" or '')
+
 
 
 

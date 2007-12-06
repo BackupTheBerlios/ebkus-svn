@@ -1514,10 +1514,15 @@ class ComponentEbkusInstance(Component):
             pw_arg = pw and "-p%s" % pw or ''
             self.log("SQL-Datei ausgeben: %s" % sql_file_out)
             #os.system("%s -c -u%s %s --default-character-set latin1 %s > %s" %
-            os.system("%s -u%s %s --skip-opt --add-drop-table --default-character-set latin1 %s > %s" %
+            # TODO Das haengt nicht von Windows ab, sondern von der Mysql-Version!!!!!
+            skip_opt = '--skip-opt'
+            if win32:
+                skip_opt = ''
+            os.system("%s -u%s %s %s --add-drop-table --default-character-set latin1 %s > %s" %
                       (join(self.config.MYSQL_DIR, 'mysqldump'),
                        self.config.DATABASE_ADMIN_USER,
                        pw_arg,
+                       skip_opt,          
                        database_name,
                        sql_file_out)
                       )
