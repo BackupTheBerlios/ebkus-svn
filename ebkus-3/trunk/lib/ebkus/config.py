@@ -64,11 +64,12 @@ _params = (
     ('instance', 'BERLINER_VERSION', 'berliner_version', 'b', 'b:False'),
     ('instance', 'BERATUNGSKONTAKTE', 'beratungskontakte', 'b', 'b:False'),
     ('instance', 'BERATUNGSKONTAKTE_BS', 'beratungskontakte_bs', 'b', 'b:False'),
+    ('instance', 'FALLUNABHAENGIGE_AKTIVITAETEN_BS', 'fallunabhaengige_aktivitaeten_bs', 'b', 'b:False'),
     ('instance', 'BERATUNGSKONTAKTE_MINUTEN', 'beratungskontakte_minuten', 'b', 'b:False'),
     ('instance', 'STRASSENKATALOG', 'strassenkatalog', 's', 's:'),
     ('instance', 'STRASSENKATALOG_VOLLSTAENDIG', 'strassenkatalog_vollstaendig', 'b', 'b:false'),
     ('instance', 'STRASSENSUCHE', 'strassensuche', 's', 's:'), # ort ortsteil bezirk samtgemeinde
-    ('instance', 'PLANUNGSRAUMFELD', 'planungsraumfeld', 's', 's:plraum'),
+    ('instance', 'PLANUNGSRAUMFELD', 'planungsraumfeld', 's', 's:plraum'), # deprecated
     )
 
 # werden von show/dump nicht angezeigt
