@@ -156,8 +156,10 @@ def insert_kategorie_codes(merkmale):
     aenderungszeit = int(time())
     for cd in clistdata:
         if katcode != cd[2]:
-          # Neue Kategorie
+            #print 'KATCODE', katcode
+            # Neue Kategorie
             katl = KategorieList(where = "code = '%s'" % cd[2])
+            #print 'KATL', katl
             if len(katl) != 1:
                 raise 'Keine eindeutige Kategorie für code: %s' % cd
             kat = katl[0]

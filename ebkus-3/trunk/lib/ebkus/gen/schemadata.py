@@ -72,39 +72,39 @@ schemainfo = \
 """
 table, mitarbeiter, , Mitarbeiter, Mitarbeiter
 id, INT, id, s,
-vn, CHAR(35), Vorname, p,
-na, CHAR(35), Name, p,
-ben, CHAR(25), Benutzer, p,
-anr, CHAR(20), Anrede, p
-tl1, CHAR(25), Diensttelefon, p
-fax, CHAR(25), Fax, p
-mail, CHAR(50), Mail, p
+vn, VARCHAR(35), Vorname, p,
+na, VARCHAR(35), Name, p,
+ben, VARCHAR(25), Benutzer, p,
+anr, VARCHAR(20), Anrede, p
+tl1, VARCHAR(25), Diensttelefon, p
+fax, VARCHAR(25), Fax, p
+mail, VARCHAR(50), Mail, p
 stat, INT, Status, k, status
 benr, INT, Benutzungsrecht, k, benr
 stz, INT, Hauptdienststelle, k, stzei
 zeit, INT, Änderungszeit, p,
-pass, CHAR(50), Passwort, p,
+pass, VARCHAR(50), Passwort, p,
 
 table, protokoll, , Protokoll, Protokoll
 nr, INT(11), nr, s,
 zeit, VARCHAR(17), zeit, p,
 artdeszugriffs, longtext, artdeszugriffs, p,
 benutzerkennung, VARCHAR(25), benutzerkennung, p,
-ipadresse, CHAR(25), ipadresse, p
+ipadresse, VARCHAR(25), ipadresse, p
 
 table, strassenkat, ,Strassenkatalog
-str_nummer, CHAR(5), Str_nummer, p,
-str_name, CHAR(60), Str_name, p,
-hausnr, CHAR(4), Hausnr, p,
+str_nummer, VARCHAR(5), Str_nummer, p,
+str_name, VARCHAR(60), Str_name, p,
+hausnr, VARCHAR(4), Hausnr, p,
 bezirk, INT, Bezirk, p,
 plz, INT, Plz, p,
-Plraum, CHAR(8), Planungsraum, p
+Plraum, VARCHAR(8), Planungsraum, p
 
 table, strkatalog, ,StrassenkatalogNeu
 id, INT, id, s,
 von, VARCHAR(5), von Hausnummer, p,
 bis, VARCHAR(5), bis Hausnummer, p,
-gu, CHAR(1), gerade (G)  oder ungerade (U) oder NULL, p, 
+gu, VARCHAR(1), gerade (G)  oder ungerade (U) oder NULL, p, 
 name, VARCHAR(60), Strassenname, p,
 plz, VARCHAR(5), Postleitzahl, p,
 ort, VARCHAR(60), Ort, p,
@@ -115,9 +115,9 @@ plraum, VARCHAR(60), Planungsraum, p,
 
 
 table, sessions, ,Session
-session_id, CHAR(50), SessionID, s,
-time, CHAR(16), Time, p,
-user_name, CHAR(25), UserName, p,
+session_id, VARCHAR(50), SessionID, s,
+time, VARCHAR(16), Time, p,
+user_name, VARCHAR(25), UserName, p,
 
 table, mitstelle, mit_id.stz, Zuordnung Mitarbeiter-Dienststelle, MitarbeiterDienststelle
 mit_id, INT, Mitarbeiterid, f, mitarbeiter, neben_stz
@@ -125,22 +125,22 @@ stz, INT, Nebendienststelle, k, stzei
 
 table, akte, , Akte, Akte
 id, INT, id, s
-vn, CHAR(35), Vorname, p,
-na, CHAR(35), Name, p,
-gb, CHAR(10), Geburtsdatum, p,
+vn, VARCHAR(35), Vorname, p,
+na, VARCHAR(35), Name, p,
+gb, VARCHAR(10), Geburtsdatum, p,
 gs, INT, Geschlecht, k, gs
-ber, CHAR(30), Ausbildung, p,
-str, CHAR(35), Strasse, p,
-hsnr, CHAR(5), Hausnummer, p,
-plz, CHAR(9), Postleitzahl, p,
+ber, VARCHAR(30), Ausbildung, p,
+str, VARCHAR(35), Strasse, p,
+hsnr, VARCHAR(5), Hausnummer, p,
+plz, VARCHAR(9), Postleitzahl, p,
 planungsr, VARCHAR(60), Planungsraum, p, wird in das fachstat.bz Feld übernommen
 wohnbez, INT, Wohnbezirk, k, wohnbez, berlinspezifisch
 lage, INT, inBerlin, p,
-ort, CHAR(35), Ort, p,
-tl1, CHAR(25), Telefon, p,
-tl2, CHAR(25), Diensttelefon, p,
+ort, VARCHAR(60), Ort, p,
+tl1, VARCHAR(25), Telefon, p,
+tl2, VARCHAR(25), Diensttelefon, p,
 fs, INT, Familienstatus (lebt bei), k, fsfs,
-no, CHAR(255), Notiz, p,
+no, VARCHAR(255), Notiz, p,
 stzbg, INT, Aufnahmedienststelle, k, stzei
 stzak, INT, Aktuelle Dienststelle, k, stzei
 zeit, INT, Änderungszeit, p,
@@ -148,7 +148,7 @@ zeit, INT, Änderungszeit, p,
 table, fall, , Fall, Fall
 id, INT, id, s,
 akte_id, INT, Aktenid, f, akte, faelle
-fn, CHAR(30), Fallnummer, p,
+fn, VARCHAR(30), Fallnummer, p,
 bgd, INT, Beginn Tag, p,
 bgm, INT, Beginn Monat, p,
 bgy, INT, Beginn Jahr, p,
@@ -160,45 +160,45 @@ status, INT, Fallstand, k, stand
 table, anmeldung, , Anmeldung, Anmeldung
 id, INT, id, s,
 fall_id, INT, Fall_id, f, fall, anmeldung
-von, CHAR(35), angemeldet von, p,
+von, VARCHAR(35), angemeldet von, p,
 ad, INT, Anmeldetag, p,
 am, INT, Anmeldemonat, p,
 ay, INT, Anmeldejahr, p,
-mtl, CHAR(25), Telefon, p,
-me, CHAR(35), auf Empfehlung von, p,
+mtl, VARCHAR(25), Telefon, p,
+me, VARCHAR(35), auf Empfehlung von, p,
 zm, INT, Zugangsart, k, fszm
-mg, CHAR(255), Anmeldegrund, p,
-no, CHAR(255), Notiz, p,
+mg, VARCHAR(255), Anmeldegrund, p,
+no, VARCHAR(255), Notiz, p,
 
 table, bezugsperson, , Bezugsperson, Bezugsperson
 id, INT, id, s,
 akte_id, INT, Aktenid, f, akte, bezugspersonen
-vn, CHAR(35), Vorname, p,
-na, CHAR(35), Name, p,
-gb, CHAR(10), Geburtsdatum, p,
+vn, VARCHAR(35), Vorname, p,
+na, VARCHAR(35), Name, p,
+gb, VARCHAR(10), Geburtsdatum, p,
 gs, INT, Geschlecht, k, gs
-ber, CHAR(30), Beruf, p,
-str, CHAR(35), Strasse, p,
-hsnr, CHAR(5), Hausnummer, p,
+ber, VARCHAR(30), Beruf, p,
+str, VARCHAR(35), Strasse, p,
+hsnr, VARCHAR(5), Hausnummer, p,
 lage, INT, inBerlin, p,
-plz, CHAR(9), Postleitzahl, p,
-ort, CHAR(35), Ort, p,
-tl1, CHAR(25), Telefon, p,
-tl2, CHAR(25), Diensttelefon, p,
+plz, VARCHAR(9), Postleitzahl, p,
+ort, VARCHAR(35), Ort, p,
+tl1, VARCHAR(25), Telefon, p,
+tl2, VARCHAR(25), Diensttelefon, p,
 fs, INT, Familienstatus (lebt bei), k, fsfs
 verw, INT, Verwandschaftsgrad, k, klerv
-no, CHAR(255), Notiz, p,
+no, VARCHAR(255), Notiz, p,
 nobed, INT, Notizbedeutung, k, notizbed
 vrt, INT, im Verteiler, k, vert
 
 table, einrichtung, , Kontakt mit Einrichtung, Einrichtungskontakt
 id, INT, id, s,
 akte_id, INT, Aktenid, f, akte, einrichtungen
-na, CHAR(80), Name, p,
-tl1, CHAR(25), Telefon1, p,
-tl2, CHAR(25), Telefon2, p,
+na, VARCHAR(80), Name, p,
+tl1, VARCHAR(25), Telefon1, p,
+tl2, VARCHAR(25), Telefon2, p,
 insta, INT, Einrichtungsart, k, klinsta
-no, CHAR(255), Notiz, p,
+no, VARCHAR(255), Notiz, p,
 nobed, INT, Notizbedeutung, k, notizbed
 status, INT, Aktueller Kontakt, k, einrstat
 
@@ -228,7 +228,7 @@ ky, INT, Kontakt Jahr, p,
 dauer, INT, Dauer der Kontakte im Sinne der Jugendstatistik, k, fskd
 f2f_min, INT, Face to face Minuten, p,
 vn_min, INT, Vorbereitung/Nachbereitung Minuten, p,
-no, CHAR(255), Notiz, p,
+no, VARCHAR(255), Notiz, p,
 stz, INT, Dienststelle, k, stzei
 
 table, beratungskontakt_bs, , Beratungskontakt_BS, Beratungskontakt_BS
@@ -247,7 +247,18 @@ km, INT, Kontakt Monat, p,
 ky, INT, Kontakt Jahr, p,
 dauer, INT, Dauer der Kontakts in 10-Minuten-Einheiten (ohne Vor- und Nachbereitung), b, kdbs
 offenespr, INT, Beratung in der offenen Sprechstunde, k, ja_nein
-no, CHAR(255), Notiz, p,
+no, VARCHAR(255), Notiz, p,
+stz, INT, Dienststelle, k, stzei
+
+table, fua_bs, , Fallunabhängige Aktivitäten Braunschweig, Fua_BS
+id, INT, id, s,
+mit_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs
+art, INT, Aktivitätsart, k, fuabs
+kd, INT, Aktivität Tag, p,
+km, INT, Aktivität Monat, p,
+ky, INT, Aktivität Jahr, p,
+dauer, INT, Dauer der Aktivität in 10-Minuten-Einheiten (ohne Vor- und Nachbereitung), b, fuadbs
+no, VARCHAR(255), Notiz, p,
 stz, INT, Dienststelle, k, stzei
 
 table, zustaendigkeit, , Zuständigkeit, Zustaendigkeit
@@ -265,8 +276,8 @@ table, dokument, , Dokument, Dokument
 id, INT, id, s,
 fall_id, INT, Fallid, f, fall, dokumente
 mit_id, INT, Mitarbeiterid, f, mitarbeiter, dokumente
-betr, CHAR(255), Betrifft, p,
-fname, CHAR(255), Dateiname, p,
+betr, VARCHAR(255), Betrifft, p,
+fname, VARCHAR(255), Dateiname, p,
 art, INT, Text ist, k, dokart
 vd, INT, Tag, p,
 vm, INT, Monat, p,
@@ -279,8 +290,8 @@ table, gruppendokument, , Zuordnung Gruppe-Dokument, Gruppendokument
 id, INT, id, s,
 gruppe_id, INT, Gruppeid, f, gruppe, gruppendokumente
 mit_id, INT, Mitarbeiterid, f, mitarbeiter, gruppendokumente
-betr, CHAR(254), Betrifft, p,
-fname, CHAR(254), Dateiname, p,
+betr, VARCHAR(254), Betrifft, p,
+fname, VARCHAR(254), Dateiname, p,
 art, INT, Text ist, k, dokart
 vd, INT, Tag, p,
 vm, INT, Monat, p,
@@ -291,9 +302,9 @@ zeit, INT, Änderungszeit, p,
 
 table, gruppe, , Gruppe, Gruppe
 id, INT, id, s,
-gn, CHAR(20), Gruppennummer, p,
-name, CHAR(255), Name, p,
-thema, CHAR(255), Thema, p,
+gn, VARCHAR(20), Gruppennummer, p,
+name, VARCHAR(255), Name, p,
+thema, VARCHAR(255), Thema, p,
 tzahl, INT, Anzahl der Termine, p,
 stzahl, INT, Anzahl der Stunden, p,
 bgd, INT, Tag, p,
@@ -350,10 +361,16 @@ table, fachstat, , Fachstatistik, Fachstatistik
 id, INT, id, s,
 mit_id, INT, Mitarbeiterid, f, mitarbeiter, fachstatistiken
 fall_id, INT, Fallid, f, fall, fachstatistiken
-fall_fn, CHAR(20), Fallnummer, p,
+fall_fn, VARCHAR(60), Fallnummer, p,
 jahr, INT, Jahr, p,
 stz, INT, Dienststelle, k, stzei, default ist aktuelle Dst. des Falles, wird benötigt wegen standalone Funktion der Fachstatistik
 bz, VARCHAR(60), Region, p, (jetzt nicht mehr berlinspezifisch) - das ist der Planungsraum
+plz, VARCHAR(9), Postleitzahl, p,
+ort, VARCHAR(60), Ort, p,
+ortsteil, VARCHAR(60), Ortsteil, p,
+samtgemeinde, VARCHAR(60), Samtgemeinde, p,
+bezirk, VARCHAR(60), Bezirk, p,
+plraum, VARCHAR(60), Planungsraum, p,
 gs, INT, Geschlecht, k, gs
 ag, INT, Altersgruppe Kind, k, fsag
 fs, INT, Familienstatus (lebt bei), k, fsfs
@@ -361,8 +378,8 @@ zm, INT, Zugangsart, k, fszm
 qualij, INT, Qualifikation des/r Jugendlicher/n, k, fsqualij
 hkm, INT, Herkunft der Mutter, k, fshe
 hkv, INT, Herkunft des Vaters, k, fshe
-bkm, INT, Beruf der Mutter, k, fsbe
-bkv, INT, Beruf des Vaters, k, fsbe
+bkm, INT, Beschäftigungsverhältnis der Mutter, k, fsbe
+bkv, INT, Beschäftigungsverhältnis des Vaters, k, fsbe
 qualikm, INT, Qualifikation der Mutter, k, fsquali
 qualikv, INT, Qualifikation des Vater, k, fsquali
 agkm, INT, Altersgruppe der Mutter, k, fsagel
@@ -382,12 +399,13 @@ kleh, INT, Anzahl der Konsultationen Lehrer, b, fskat
 kerz, INT, Anzahl der Konsultationen Erzieher, b, fskat
 kkonf, INT, Anzahl der Konsultationen Hilfebesprechung, b, fskat
 kson, INT, Kontaktanzahl Sonstige, b, fskat
-no, CHAR(255), Notiz, p,
-no2, CHAR(255), anders geartete Problemlagen Kind, p,
-no3, CHAR(255), anders geartete Problemlagen Eltern, p,
-kindprobleme, CHAR(255), Problemspektrum Kind/Jugendliche, m, fspbk
-elternprobleme, CHAR(255), Problemspektrum der Eltern, m, fspbe
-eleistungen, CHAR(255), Erbrachte Leistungen, m, fsle
+no, VARCHAR(255), Notiz, p,
+no2, VARCHAR(255), anders geartete Problemlagen Kind, p,
+no3, VARCHAR(255), anders geartete Problemlagen Eltern, p,
+anmprobleme, VARCHAR(255), Problem(e) bei der Anmeldung, m, fsba
+kindprobleme, VARCHAR(255), Problemspektrum Kind/Jugendliche(r), m, fspbk
+elternprobleme, VARCHAR(255), Problemspektrum Eltern, m, fspbe
+eleistungen, VARCHAR(255), Erbrachte Leistungen, m, fsle
 joka1, INT, Frei definierbar unter Angaben zum Klienten, k, fsjoka1
 joka2, INT, Frei definierbar unter Angaben zum Klienten, k, fsjoka2
 joka3, INT, Frei definierbar unter Angaben zum Klienten, k, fsjoka3
@@ -417,7 +435,7 @@ table, jghstat, , Jugendhilfestatistik, Jugendhilfestatistik
 id, INT, id, s,
 fall_id, INT, Fallid, f, fall, jgh_statistiken
 mit_id, INT, Mitarbeiterid, f, mitarbeiter, jgh_statistiken
-fall_fn, CHAR(20), Fallnummer, p,
+fall_fn, VARCHAR(20), Fallnummer, p,
 gfall, INT, Geschwisterfall, k, gfall
 bezirksnr, INT, Wohnbezirksnummer des Klienten, k, wohnbez, berlinspezifisch
 stz, INT, Dienststelle, k, stzei, default ist aktuelle Dst. des Falles
@@ -459,7 +477,7 @@ zeit, INT, Änderungszeit, p,
 table, jghstat07, , Jugendhilfestatistik ab 2007, Jugendhilfestatistik2007
 id, INT, id, s,
 fall_id, INT, Fallid, f, fall, jgh07_statistiken
-fall_fn, CHAR(20), Fallnummer, p,
+fall_fn, VARCHAR(20), Fallnummer, p,
 mit_id, INT, Mitarbeiterid, f, mitarbeiter, jgh07_statistiken
 stz, INT, Dienststelle, k, stzei, default ist aktuelle Dst. des Falles
 gfall, INT, Geschwisterfall, k, gfall
@@ -470,7 +488,7 @@ einrnr, INT, Einrichtungsnummer, k, einrnr
 lnr, INT, laufende Nummer, p,
 bgm, INT, Beginn der Hilfe Monat, p,
 bgy, INT, Beginn der Hilfe Jahr, p,
-zustw, CHAR(1), Übernahme wegen Zuständigkeitswechsels, p,
+zustw, VARCHAR(1), Übernahme wegen Zuständigkeitswechsels, p,
 hilf_art, INT, Art der Hilfe, k, hilf_art
 hilf_ort, INT, Ort der Hilfe, k, hilf_ort
 traeger, INT, Träger der Einrichtung oder des Dienstes, k, traeger
@@ -501,29 +519,29 @@ unh, INT, Unmittelbar nachfolgende Hilfe, k, unh
 zeit, INT, Änderungszeit, p,
 
 
-
-
 table, code, code.kat_id/code.kat_code/name.kat_id/name.kat_code, Code, Code
 id, INT, id, s,
 kat_id, INT, Kategorienid, f, kategorie, codes
-kat_code, CHAR(8), Kategoriencode, p,
-code, CHAR(8), Code, p, , kann auch als Abkürzung im Interface verwendet werden
-name, CHAR(160), Name, p,
+kat_code, VARCHAR(8), Kategoriencode, p,
+code, VARCHAR(8), Code, p, , kann auch als Abkürzung im Interface verwendet werden
+name, VARCHAR(160), Name, p,
 sort, INT, Sortierreihenfolge, p,
 mini, INT, Bereichsminimum, p,
 maxi, INT, Bereichsmaximum, p,
 off, INT, Ungültig, p,
 dm, INT, Ungültig ab Monat, p,
 dy, INT, Ungültig ab Jahr, p,
-dok, CHAR(255), Erläuterung, p,
+dok, VARCHAR(255), Erläuterung, p,
+flag, INT, Flags, p
 zeit, INT, Änderungszeit, p,
 
 table, kategorie, code/name, Kategorie, Kategorie
 id, INT, id, s,
-code, CHAR(8), Code, p,
-name, CHAR(60), Name, p,
+code, VARCHAR(8), Code, p,
+name, VARCHAR(60), Name, p,
 kat_id, INT, Kategorienart, f, kategorie, kategorien
-dok, CHAR(255), Erläuterung, p,
+dok, VARCHAR(255), Erläuterung, p,
+flag, INT, Flags, p
 zeit, INT, Änderungszeit, p,
 
 table, exportprotokoll, , DB Exportprotokoll, Exportprotokoll
@@ -542,30 +560,30 @@ dbsite, INT, Datenbanksite, k, dbsite,
 table, feld, tab_id.feld, Feld, Feld
 id, INT, id, s,
 tab_id, INT, Tabelle, f, tabelle, felder
-feld, CHAR(30), Feldname, p,
-name, CHAR(60), Langname des Feldes, p,
-inverse, CHAR(60), Name für inverse Beziehung, p,
-typ, CHAR(20), Datenbanktyp, p,
+feld, VARCHAR(30), Feldname, p,
+name, VARCHAR(60), Langname des Feldes, p,
+inverse, VARCHAR(60), Name für inverse Beziehung, p,
+typ, VARCHAR(20), Datenbanktyp, p,
 laenge, INT, Feldlänge, p,
 notnull, INT, Nicht NULL, p,
 verwtyp, INT, Verwendungstyp, k, verwtyp,
 ftab_id, INT, Fremdtabelle, f, tabelle, inverse,
 kat_id, INT, Kategorienid, f, kategorie
-kat_code, CHAR(8), Kategoriencode, p,
+kat_code, VARCHAR(8), Kategoriencode, p,
 flag, INT, Flags, p,
-dok, CHAR(255), Erläuterung, p,
+dok, VARCHAR(255), Erläuterung, p,
 
 table, tabelle, tabelle/name/klasse, Tabelle, Tabelle
 id, INT, id, s,
-tabelle, CHAR(30), Tabellenname, p,
-name, CHAR(60), Langname der Tabelle, p,
-klasse, CHAR(60), Klassenname, p,
+tabelle, VARCHAR(30), Tabellenname, p,
+name, VARCHAR(60), Langname der Tabelle, p,
+klasse, VARCHAR(60), Klassenname, p,
 flag, INT, Flags, p,
-dok, CHAR(255), Erläuterung, p,
+dok, VARCHAR(255), Erläuterung, p,
 
 table, tabid, table_id.dbsite/table_name.dbsite, Zuordnung Tabelle-ID-Bereiche, TabellenID
 table_id, INT, Tabellenid, f, tabelle, iddaten
-table_name, CHAR(30), Tabellenname, p,
+table_name, VARCHAR(30), Tabellenname, p,
 dbsite, INT, Datenbanksite, k, dbsite,
 minid, INT, Minimale ID, p,
 maxid, INT, Maximale ID, p,
