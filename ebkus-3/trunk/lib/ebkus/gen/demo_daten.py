@@ -26,18 +26,26 @@ VON_JAHR = Date(2006)
 BIS_JAHR = None
 #TODAY = (2007,7,1)   # gefaked today, sollte im laufenden Demosystem auch gefaked werden
 TODAY = None          # aktuelles Datum
-    
-def create_demo_daten(iconfig,                    # config Objekt für die entsprechende Instanz
-                      logf=None,
-                      n_akten=N_AKTEN,            # Anzahl von Akten in der demo
-                      n_bearbeiter=N_BEARBEITER,  # Anzahl der Mitarbeiter in der Bearbeiterrolle
-                                                  # ohne explizite Angabe wachsend mit n_akten
-                      n_stellen=N_STELLEN,        # Anzahl der Stellen, default wachsend mit n_akten
-                      von_jahr=VON_JAHR,          # Jahr in dem die ersten Akten angelegt werden
-                                                  # default ist heute vor zwei Jahren
-                      bis_jahr=BIS_JAHR,          # Jahr in dem die letzten Akten angelegt werden,
-                                                  # default ist dieses Jahr
-                      fake_today=TODAY):          # gefaktes heute: (2009,6,6), default das reale heute 
+
+def create_schulungs_daten(iconfig,                    # config Objekt für die entsprechende Instanz
+                           logf=None):
+##                       n_akten=N_AKTEN,            # Anzahl von Akten in der demo
+##                       n_bearbeiter=N_BEARBEITER,  # Anzahl der Mitarbeiter in der Bearbeiterrolle
+##                                                   # ohne explizite Angabe wachsend mit n_akten
+##                       n_stellen=N_STELLEN,        # Anzahl der Stellen, default wachsend mit n_akten
+##                       von_jahr=VON_JAHR,          # Jahr in dem die ersten Akten angelegt werden
+##                                                   # default ist heute vor zwei Jahren
+##                       bis_jahr=BIS_JAHR,          # Jahr in dem die letzten Akten angelegt werden,
+##                                                   # default ist dieses Jahr
+##                       fake_today=TODAY):          # gefaktes heute: (2009,6,6), default das reale heute 
+
+    n_akten = 40
+    n_bearbeiter = 4
+    n_stellen = 2
+    von_jahr = Date(2006)
+    bis_jahr = None
+    fake_today = None
+
     global config
     config = iconfig
     from ebkus.app import protocol
@@ -45,25 +53,9 @@ def create_demo_daten(iconfig,                    # config Objekt für die entspr
     if logf:
         global log
         log = logf
-    if config.BERLINER_VERSION:
-        # In der Berliner Version muss der Kreis, für den die Stelle
-        # zuständig ist, in der Sortierreihenfolge an erster Stelle
-        # stehen. Sonst funktionieren die Planungsräume nicht.
-        Code(kat_code='kr', code='01', name='Mitte').update({'sort': 4})
-        Code(kat_code='kr', code='04',
-             name='Charlottenburg-Wilmersdorf').update({'sort': 1})
-        
+    stellen_codes = ('BS', 'GF', 'WF', 'WOB')
     # umbenennen des vordefinierten Stellenzeichens
-    Code(kat_code='stzei', code='A').update({'name': 'Stelle A', 'code': 'A'})
-##     if fake_today:
-##         today_date = Date(*fake_today)
-##         global today
-##         def today():
-##             return today_date
-##         import ebkus
-##         ebkus.app.ebapi.today = today
-    if TODAY:
-        log("Gefaked: heutiges Datum: %s" % today())
+    Code(kat_code='stzei', code='A').update({'name': 'Stelle BS', 'code': 'BS'})
     log("Heutiges Datum: %s" % today())
     ort = config.STRASSENKATALOG
     if ort:
@@ -84,7 +76,7 @@ def create_demo_daten(iconfig,                    # config Objekt für die entspr
     DemoDaten.bis_jahr = bis_jahr
     DemoDaten.von_jahr = von_jahr
     for i in range(1, n_stellen):
-        DemoDaten().fake_stelle(i)
+        DemoDaten().fake_stelle(i, code=stellen_codes[i])
     stellen = DemoDaten.stellen = CodeList(where="kat_code='stzei'")
     if ort:
         DemoDaten.strkat = StrassenkatalogNeuList(where='')
@@ -94,11 +86,44 @@ def create_demo_daten(iconfig,                    # config Objekt für die entspr
     # die beiden protokoll-Berechtigten
     DemoDaten().fake_mitarbeiter(benr=cc('benr', 'protokol'), ben='pr1')
     DemoDaten().fake_mitarbeiter(benr=cc('benr', 'protokol'), ben='pr2')
-    # Verwaltungskraft
-    DemoDaten().fake_mitarbeiter(benr=cc('benr', 'verw'), ben='verw')
-    # Bearbeiter
-    for i in range(n_bearbeiter):
-        DemoDaten().fake_mitarbeiter(benr=cc('benr', 'bearb'), ben='bearb%s' % (i+1))
+
+    ## gf1 wob1 wf1 bs1
+    ## gf_verw wob_verw
+    ## gf_admin wob_admin
+
+    for i in range(n_stellen):
+        stelle = stellen[i]
+        code = stelle['code'].lower()
+        for j in range(n_bearbeiter/n_stellen):
+            ben = "%s%s" % (code, j+1)
+            vn = "%s_vn" % ben
+            na = "%s_na" % ben
+            DemoDaten().fake_mitarbeiter(
+                stelle=stelle,
+                benr=cc('benr', 'bearb'),
+                ben=ben,
+                vn=vn,
+                na=na,
+                )
+        # verw    
+        ben = "%s_verw" % code
+        DemoDaten().fake_mitarbeiter(
+            stelle=stelle,
+            benr=cc('benr', 'verw'),
+            ben=ben,
+            vn=ben+'_vn',
+            na=ben+'_na',
+            )
+        # admin    
+        ben = "%s_admin" % code
+        DemoDaten().fake_mitarbeiter(
+            stelle=stelle,
+            benr=cc('benr', 'admin'),
+            ben=ben,
+            vn=ben+'_vn',
+            na=ben+'_na',
+            )
+
     # ich
     DemoDaten().fake_mitarbeiter(benr=cc('benr', 'bearb'),
                                  ben='test',
@@ -109,43 +134,150 @@ def create_demo_daten(iconfig,                    # config Objekt für die entspr
     for i in range(1, n_akten+1):
         DemoDaten().fake_akte()
 
+
+def set_default_fachstatistik():
+    from ebkus.html.fskonfig import fs_customize
+    abzuschalten = (
+        'ba1', 'ba2', 'pbe', 'pbk',
+        'joka1', 'joka2', 'joka3', 'joka4', 
+        'jokf5', 'jokf6', 'jokf7', 'jokf8',
+        'no2', 'no3',
+        )
+    for f in abzuschalten:
+        fs_customize.set_status(f, False)
+
+def create_demo_daten(iconfig,                    # config Objekt für die entsprechende Instanz
+                      logf=None,
+                      n_akten=N_AKTEN,            # Anzahl von Akten in der demo
+                      n_bearbeiter=N_BEARBEITER,  # Anzahl der Mitarbeiter in der Bearbeiterrolle
+                                                  # ohne explizite Angabe wachsend mit n_akten
+                      n_stellen=N_STELLEN,        # Anzahl der Stellen, default wachsend mit n_akten
+                      von_jahr=VON_JAHR,          # Jahr in dem die ersten Akten angelegt werden
+                                                  # default ist heute vor zwei Jahren
+                      bis_jahr=BIS_JAHR,          # Jahr in dem die letzten Akten angelegt werden,
+                                                  # default ist dieses Jahr
+                      fake_today=TODAY):          # gefaktes heute: (2009,6,6), default das reale heute 
+    set_default_fachstatistik()
+    create_schulungs_daten(iconfig, logf)
+    
+## def create_demo_daten(iconfig,                    # config Objekt für die entsprechende Instanz
+##                       logf=None,
+##                       n_akten=N_AKTEN,            # Anzahl von Akten in der demo
+##                       n_bearbeiter=N_BEARBEITER,  # Anzahl der Mitarbeiter in der Bearbeiterrolle
+##                                                   # ohne explizite Angabe wachsend mit n_akten
+##                       n_stellen=N_STELLEN,        # Anzahl der Stellen, default wachsend mit n_akten
+##                       von_jahr=VON_JAHR,          # Jahr in dem die ersten Akten angelegt werden
+##                                                   # default ist heute vor zwei Jahren
+##                       bis_jahr=BIS_JAHR,          # Jahr in dem die letzten Akten angelegt werden,
+##                                                   # default ist dieses Jahr
+##                       fake_today=TODAY):          # gefaktes heute: (2009,6,6), default das reale heute 
+##     global config
+##     config = iconfig
+##     from ebkus.app import protocol
+##     #protocol.on()
+##     if logf:
+##         global log
+##         log = logf
+##     if config.BERLINER_VERSION:
+##         # In der Berliner Version muss der Kreis, für den die Stelle
+##         # zuständig ist, in der Sortierreihenfolge an erster Stelle
+##         # stehen. Sonst funktionieren die Planungsräume nicht.
+##         Code(kat_code='kr', code='01', name='Mitte').update({'sort': 4})
+##         Code(kat_code='kr', code='04',
+##              name='Charlottenburg-Wilmersdorf').update({'sort': 1})
+        
+##     # umbenennen des vordefinierten Stellenzeichens
+##     Code(kat_code='stzei', code='A').update({'name': 'Stelle A', 'code': 'A'})
+## ##     if fake_today:
+## ##         today_date = Date(*fake_today)
+## ##         global today
+## ##         def today():
+## ##             return today_date
+## ##         import ebkus
+## ##         ebkus.app.ebapi.today = today
+##     if TODAY:
+##         log("Gefaked: heutiges Datum: %s" % today())
+##     log("Heutiges Datum: %s" % today())
+##     ort = config.STRASSENKATALOG
+##     if ort:
+##         log("Demodaten für %s-Version" % ort)
+##     else:
+##         log("Demodaten für Standard Version")
+##     log("Instanz: %s" % config.INSTANCE_NAME)
+##     DemoDaten.n_akten = n_akten
+##     if not n_stellen:
+##         n_stellen = int(n_akten**.2)
+##     assert n_stellen < 27, "Zuviele Demostellen"
+##     if not n_bearbeiter:
+##         n_bearbeiter = int(n_akten**.3)
+##     if not bis_jahr:
+##         bis_jahr = today()
+##     if not von_jahr:
+##         von_jahr = bis_jahr.add_month(-24)
+##     DemoDaten.bis_jahr = bis_jahr
+##     DemoDaten.von_jahr = von_jahr
+##     for i in range(1, n_stellen):
+##         DemoDaten().fake_stelle(i)
+##     stellen = DemoDaten.stellen = CodeList(where="kat_code='stzei'")
+##     if ort:
+##         DemoDaten.strkat = StrassenkatalogNeuList(where='')
+##         DemoDaten.ort = ort.capitalize()
+##     else:
+##         DemoDaten.ort = Code(kat_code='kr', sort=1)['name']
+##     # die beiden protokoll-Berechtigten
+##     DemoDaten().fake_mitarbeiter(benr=cc('benr', 'protokol'), ben='pr1')
+##     DemoDaten().fake_mitarbeiter(benr=cc('benr', 'protokol'), ben='pr2')
+##     # Verwaltungskraft
+##     DemoDaten().fake_mitarbeiter(benr=cc('benr', 'verw'), ben='verw')
+##     # Bearbeiter
+##     for i in range(n_bearbeiter):
+##         DemoDaten().fake_mitarbeiter(benr=cc('benr', 'bearb'), ben='bearb%s' % (i+1))
+##     # ich
+##     DemoDaten().fake_mitarbeiter(benr=cc('benr', 'bearb'),
+##                                  ben='test',
+##                                  vn='Test', na='Tester',
+##                                  stz=stellen[0]['id']) # immer Stelle A
+##     DemoDaten.mitarbeiter = MitarbeiterList(where = 'stat = %s and benr = %s' %
+##                                             (cc('status', 'i'), cc('benr', 'bearb')))
+##     for i in range(1, n_akten+1):
+##         DemoDaten().fake_akte()
+
+
 class DemoDaten(object):
     strassen = ('Teichweg', 'Müllerstr.', 'Am Rott', 'Karl-Marx-Str.',
                 'Hinterm Markt', 'Rosenweg')
     orte = ('Unterhausen', 'Groß-Lehnau', 'Klein-Magrau')
 
-    def fake_stelle(self, i):
+    def fake_stelle(self, i, **kw):
         """i=1 --> Stelle B
            i=2 --> Stelle C
            ...
         """
         code_id = Code().getNewId()
-        st_code = chr(ord('A') + i)
         form = {}
         form['codeid'] = code_id
         form['katcode'] = Kategorie(code='stzei')['code']
         form['katid'] = Kategorie(code='stzei')['id']
-        form['code'] = st_code
-        form['name'] = 'Stelle %s' % st_code
+        form['code'] = kw.get('code', chr(ord('A') + i))
+        form['name'] = kw.get('name', 'Stelle %s' % form['code'])
         form['sort'] = i + 1
         codeeinf(form)
         log(form['name'])
 
     def fake_mitarbeiter(self, **kw):
-        benr_id = kw.get('benr', cc('benr', 'bearb'))
+        form = {}
+        form['benr'] = benr_id = kw.get('benr', cc('benr', 'bearb'))
         benr = Code(benr_id)
         mit_id = Mitarbeiter().getNewId()
-        form = {}
         form['mitid'] = mit_id
-        form['vn'] = ("%s%sVn" % (benr['code'], mit_id)).capitalize()
-        form['na'] = ("%s%sNa" % (benr['code'], mit_id)).capitalize()
-        form['ben'] = "%s%s" % (benr['code'], mit_id)
-        form['anr'] = choice(('Frau', 'Herr'))
+        form['vn'] = kw.get('vn', ("%s%sVn" % (benr['code'], mit_id)).capitalize())
+        form['na'] = kw.get('na', ("%s%sNa" % (benr['code'], mit_id)).capitalize())
+        form['ben'] = kw.get('ben', "%s%s" % (benr['code'], mit_id))
+        form['anr'] = kw.get('anr', choice(('Frau', 'Herr')))
         form['tl1'] = "54367 %s" % mit_id
         form['fax'] = "54368 %s" % mit_id
         form['stat'] = cc('status', 'i')
-        form['benr'] = benr_id
-        stelle = choice(self.stellen)
+        stelle = kw.get('stelle', choice(self.stellen))
         form['stz'] = stelle['id']
         form.update(kw)
         form['mail'] = '%s@efb.in-%s.de' % (form['ben'], self.ort.lower())
@@ -153,6 +285,10 @@ class DemoDaten(object):
         miteinf(form)
         log("Mitarbeiter ben=%s benr=%s stelle=%s" %
              (form['ben'], benr['code'], stelle['code']))
+
+
+    def choose_mitarbeiter(self, stelle_id):
+        return choice([m for m in self.mitarbeiter if m['stz'] == stelle_id])
 
     def choose_code(self, kat_code):
         """Niemals 'keine Angabe' liefern"""
@@ -365,8 +501,10 @@ class DemoDaten(object):
         form['stzak'] = form['stzbg'] # beim Anlegen die gleiche Stelle
         # Fall
         setDate(form, 'zubg', self.choose_date(min=self.von_jahr))
-        form['zumitid'] = choice(self.mitarbeiter)['id']
-        form['lemitid'] = choice(self.mitarbeiter)['id']
+##         form['zumitid'] = choice(self.mitarbeiter)['id']
+##         form['lemitid'] = choice(self.mitarbeiter)['id']
+        form['zumitid'] = self.choose_mitarbeiter(form['stzbg'])['id']
+        form['lemitid'] = self.choose_mitarbeiter(form['stzbg'])['id']
         form['le'] = self.choose_code_id('fsle')
         setDate(form, 'lebg', getDate(form, 'zubg')) # erste Leistung zu Fallbeginn
         form['lestz'] = Mitarbeiter(form['lemitid'])['stz']
@@ -463,6 +601,7 @@ class DemoDaten(object):
         form['ba2'] = self.choose_code_id('fsba')
         form['pbe'] = self.choose_code_id('fspbe')
         form['pbk'] = self.choose_code_id('fspbk')
+        form['anmprobleme'] = self.choose_code_id_several('fsba', 1, 4, unique=True)
         form['elternprobleme'] = self.choose_code_id_several('fspbe', 1, 4, unique=True)
         form['kindprobleme'] = self.choose_code_id_several('fspbk', 1, 4, unique=True)
         form['eleistungen'] =  self.choose_code_id_several('fsle', 1, 10)
