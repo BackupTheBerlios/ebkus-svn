@@ -248,7 +248,7 @@ class DBObjekt(UserDict):
             table = Tabelle(tabelle=self.table)
             self.__class__._string_fields = [
                 f['feld'] for f in table['felder']
-                if f['typ'].startswith('CHAR')]
+                if f['typ'].startswith('CHAR') or f['typ'].startswith('VARCHAR')]
             return self.__class__._string_fields
 
     def _getKeyValue1(self, ktuple, dict):
