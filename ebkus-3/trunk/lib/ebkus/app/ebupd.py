@@ -2544,7 +2544,7 @@ def setAdresse(obj, form):
         from ebkus.html.strkat import get_strassen_list
         try:
             strassen_list = get_strassen_list(form, exact=False)
-            if len(strassen_list) > 1:
+            if strassen_list != None and len(strassen_list) > 1:
                 strassen_list = get_strassen_list(form, exact=True)
         except Exception, e:
             raise EE(str(e))
