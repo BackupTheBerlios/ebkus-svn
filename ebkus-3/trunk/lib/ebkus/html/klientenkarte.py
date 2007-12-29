@@ -21,18 +21,14 @@ class klkarte(Request.Request, akte_share):
         if not file or file == 'klkarte':
             fallid = self.form.get('fallid')
             akid = self.form.get('akid')
-            mitid = self.mitarbeiter['id']
-            if akid:
-                akid = int(akid)
-            elif fallid:
-                fallid = int(fallid)
-                fall = ebapi.Fall(fallid)
-                akid = fall['akte_id']
-            else:
-                return h.Meldung(
-                    legend='Keine Men&uuml;auswahl erhalten!',
-                    zeilen=('Es wurde nichts aus dem Men&uuml; ausgew&auml;hlt.',)
-                    ).display()
+            if not akid:
+                if not fallid:
+                    return h.Meldung(
+                        legend='Keine Men&uuml;auswahl erhalten!',
+                        zeilen=('Es wurde nichts aus dem Men&uuml; ausgew&auml;hlt.',)
+                        ).display()
+                else:
+                    akid = ebapi.Fall(fallid)['akte_id']
             return self.klkarte_display(akid)
 
             

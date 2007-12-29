@@ -361,7 +361,7 @@ class Condition(object):
             qstr = "%s_%s" % (index, op)
             options.append(tmpl % (qstr, op))
         options += [tmpl % ('', '[Regionen]')]
-        for f in ([('planungsr', 'Planungsraum'),
+        for f in ([('plraum', 'Planungsraum'),
                   ('ort', 'Ort'),
                   ('plz', 'PLZ')] +
                   [(f, f.capitalize())
@@ -623,7 +623,7 @@ class Ortsangabe(Primitive):
         # 03 == index_size
         return "%s%03d_%s" % (self.index, index, value)
     def possible_values(self):
-        # TODO evt. einschränken wenn auch andere Felder des
+        # DONE TODO evt. einschränken wenn auch andere Felder des
         # Straßenkatalogs eingeschränkt sind (PLZ, Planungsräume, Bezirk)
         # --> sind noch andere in der gleich Konjunktion?
         #self.ort_siblings
@@ -660,9 +660,11 @@ class Ortsangabe(Primitive):
                 (self.feldname, self.feldname)).execute()]
             
     def _test(self, element):
-        aktewert = element['fall__akte__' + self.feldname]
+        #aktewert = element['fall__akte__' + self.feldname]
+        fswert = element[self.feldname]
         #akteid = element['fall__akte_id']
         #print 'ORTSANGABE _test', akteid, aktewert, self.values
-        return aktewert in self.values
+        return fswert in self.values
+        #return aktewert in self.values
     def code(self):
         return 'o%s' % self.feldname

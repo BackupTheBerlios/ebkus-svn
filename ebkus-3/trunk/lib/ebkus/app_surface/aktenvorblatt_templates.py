@@ -3,6 +3,16 @@
 # Aktenvorblatt
 #####################
 
+head_normal_ohne_help_t = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<HTML>
+<HEAD>
+<TITLE> %s </TITLE>
+<meta name="robots" content="noindex">
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+<script src="/ebkus/ebkus_javascripte/ebkus_sonstige.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="/ebkus/ebkus_styles/css_styles.css">"""
+
 vkopf_t = """
 </head>
 <body bgcolor="#FFFFFF">

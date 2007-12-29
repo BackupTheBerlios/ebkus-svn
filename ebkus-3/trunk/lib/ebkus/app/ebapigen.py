@@ -65,32 +65,6 @@ class ProtokollList(Container):
     querySQL = resultClass.querySQL
 
 #####################################
-# Strassenkatalog  (Tabelle 'strassenkat')
-#####################################
-
-
-class Strassenkatalog(DBObjekt):
-    table = 'strassenkat'
-    fields =  ['str_nummer', 'str_name', 'hausnr', 'bezirk', 'plz', \
-                       'Plraum']
-    fieldtypes = {}
-    foreignfieldtypes = {}
-    inversefieldtypes = {}
-    multikatfieldtypes = {}
-    attributemethods = {}
-    conditionalfields = {}
-    pathdefinitions = {}
-    attributehandler = None
-    primarykey = None
-    otherkeys = []
-    querySQL  = SimpleSQL(table = table, fields = fields)
-    updateSQL = querySQL
-
-class StrassenkatalogList(Container):
-    resultClass = Strassenkatalog
-    querySQL = resultClass.querySQL
-
-#####################################
 # StrassenkatalogNeu  (Tabelle 'strkatalog')
 #####################################
 
@@ -117,65 +91,15 @@ class StrassenkatalogNeuList(Container):
     querySQL = resultClass.querySQL
 
 #####################################
-# Session  (Tabelle 'sessions')
-#####################################
-
-
-class Session(DBObjekt):
-    table = 'sessions'
-    fields =  ['session_id', 'time', 'user_name']
-    fieldtypes = {}
-    foreignfieldtypes = {}
-    inversefieldtypes = {}
-    multikatfieldtypes = {}
-    attributemethods = {}
-    conditionalfields = {}
-    pathdefinitions = {}
-    attributehandler = None
-    primarykey = 'session_id'
-    otherkeys = []
-    querySQL  = SimpleSQL(table = table, fields = fields)
-    updateSQL = querySQL
-
-class SessionList(Container):
-    resultClass = Session
-    querySQL = resultClass.querySQL
-
-#####################################
-# MitarbeiterDienststelle  (Tabelle 'mitstelle')
-#####################################
-
-
-class MitarbeiterDienststelle(DBObjekt):
-    table = 'mitstelle'
-    fields =  ['mit_id', 'stz']
-    fieldtypes = {}
-    foreignfieldtypes = {}
-    inversefieldtypes = {}
-    multikatfieldtypes = {}
-    attributemethods = {}
-    conditionalfields = {}
-    pathdefinitions = {}
-    attributehandler = None
-    primarykey = None
-    otherkeys = [('mit_id', 'stz')]
-    querySQL  = SimpleSQL(table = table, fields = fields)
-    updateSQL = querySQL
-
-class MitarbeiterDienststelleList(Container):
-    resultClass = MitarbeiterDienststelle
-    querySQL = resultClass.querySQL
-
-#####################################
 # Akte  (Tabelle 'akte')
 #####################################
 
 
 class Akte(DBObjekt):
     table = 'akte'
-    fields =  ['id', 'vn', 'na', 'gb', 'gs', 'ber', 'str', 'hsnr', \
-                       'plz', 'planungsr', 'wohnbez', 'lage', 'ort', 'tl1', \
-                       'tl2', 'fs', 'no', 'stzbg', 'stzak', 'zeit']
+    fields =  ['id', 'vn', 'na', 'gb', 'gs', 'ber', 'aufbew', 'str', \
+                       'hsnr', 'plz', 'planungsr', 'wohnbez', 'lage', 'ort', \
+                       'tl1', 'tl2', 'fs', 'no', 'stzbg', 'stzak', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -621,81 +545,6 @@ class FachstatistikList(Container):
     querySQL = resultClass.querySQL
 
 #####################################
-# Fachstatistikleistung  (Tabelle 'fachstatlei')
-#####################################
-
-
-class Fachstatistikleistung(DBObjekt):
-    table = 'fachstatlei'
-    fields =  ['id', 'fstat_id', 'le']
-    fieldtypes = {}
-    foreignfieldtypes = {}
-    inversefieldtypes = {}
-    multikatfieldtypes = {}
-    attributemethods = {}
-    conditionalfields = {}
-    pathdefinitions = {}
-    attributehandler = None
-    primarykey = 'id'
-    otherkeys = []
-    querySQL  = SimpleSQL(table = table, fields = fields)
-    updateSQL = querySQL
-
-class FachstatistikleistungList(Container):
-    resultClass = Fachstatistikleistung
-    querySQL = resultClass.querySQL
-
-#####################################
-# Fachstatistikkindproblem  (Tabelle 'fachstatkindproblem')
-#####################################
-
-
-class Fachstatistikkindproblem(DBObjekt):
-    table = 'fachstatkindproblem'
-    fields =  ['id', 'fstat_id', 'pbk']
-    fieldtypes = {}
-    foreignfieldtypes = {}
-    inversefieldtypes = {}
-    multikatfieldtypes = {}
-    attributemethods = {}
-    conditionalfields = {}
-    pathdefinitions = {}
-    attributehandler = None
-    primarykey = 'id'
-    otherkeys = []
-    querySQL  = SimpleSQL(table = table, fields = fields)
-    updateSQL = querySQL
-
-class FachstatistikkindproblemList(Container):
-    resultClass = Fachstatistikkindproblem
-    querySQL = resultClass.querySQL
-
-#####################################
-# Fachstatistikelternproblem  (Tabelle 'fachstatelternproblem')
-#####################################
-
-
-class Fachstatistikelternproblem(DBObjekt):
-    table = 'fachstatelternproblem'
-    fields =  ['id', 'fstat_id', 'pbe']
-    fieldtypes = {}
-    foreignfieldtypes = {}
-    inversefieldtypes = {}
-    multikatfieldtypes = {}
-    attributemethods = {}
-    conditionalfields = {}
-    pathdefinitions = {}
-    attributehandler = None
-    primarykey = 'id'
-    otherkeys = []
-    querySQL  = SimpleSQL(table = table, fields = fields)
-    updateSQL = querySQL
-
-class FachstatistikelternproblemList(Container):
-    resultClass = Fachstatistikelternproblem
-    querySQL = resultClass.querySQL
-
-#####################################
 # Jugendhilfestatistik  (Tabelle 'jghstat')
 #####################################
 
@@ -809,56 +658,6 @@ class KategorieList(Container):
     querySQL = resultClass.querySQL
 
 #####################################
-# Exportprotokoll  (Tabelle 'exportprotokoll')
-#####################################
-
-
-class Exportprotokoll(DBObjekt):
-    table = 'exportprotokoll'
-    fields =  ['id', 'mit_id', 'zeit', 'dbsite']
-    fieldtypes = {}
-    foreignfieldtypes = {}
-    inversefieldtypes = {}
-    multikatfieldtypes = {}
-    attributemethods = {}
-    conditionalfields = {}
-    pathdefinitions = {}
-    attributehandler = None
-    primarykey = 'id'
-    otherkeys = []
-    querySQL  = SimpleSQL(table = table, fields = fields)
-    updateSQL = querySQL
-
-class ExportprotokollList(Container):
-    resultClass = Exportprotokoll
-    querySQL = resultClass.querySQL
-
-#####################################
-# Importprotokoll  (Tabelle 'importprotokoll')
-#####################################
-
-
-class Importprotokoll(DBObjekt):
-    table = 'importprotokoll'
-    fields =  ['id', 'exp_id', 'mit_id', 'zeit', 'dbsite']
-    fieldtypes = {}
-    foreignfieldtypes = {}
-    inversefieldtypes = {}
-    multikatfieldtypes = {}
-    attributemethods = {}
-    conditionalfields = {}
-    pathdefinitions = {}
-    attributehandler = None
-    primarykey = 'id'
-    otherkeys = []
-    querySQL  = SimpleSQL(table = table, fields = fields)
-    updateSQL = querySQL
-
-class ImportprotokollList(Container):
-    resultClass = Importprotokoll
-    querySQL = resultClass.querySQL
-
-#####################################
 # Feld  (Tabelle 'feld')
 #####################################
 
@@ -892,7 +691,8 @@ class FeldList(Container):
 
 class Tabelle(DBObjekt):
     table = 'tabelle'
-    fields =  ['id', 'tabelle', 'name', 'klasse', 'flag', 'dok']
+    fields =  ['id', 'tabelle', 'name', 'klasse', 'flag', 'dok', \
+                       'maxist']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -908,57 +708,6 @@ class Tabelle(DBObjekt):
 
 class TabelleList(Container):
     resultClass = Tabelle
-    querySQL = resultClass.querySQL
-
-#####################################
-# TabellenID  (Tabelle 'tabid')
-#####################################
-
-
-class TabellenID(DBObjekt):
-    table = 'tabid'
-    fields =  ['table_id', 'table_name', 'dbsite', 'minid', 'maxid', \
-                       'maxist']
-    fieldtypes = {}
-    foreignfieldtypes = {}
-    inversefieldtypes = {}
-    multikatfieldtypes = {}
-    attributemethods = {}
-    conditionalfields = {}
-    pathdefinitions = {}
-    attributehandler = None
-    primarykey = None
-    otherkeys = [('table_id', 'dbsite'), ('table_name', 'dbsite')]
-    querySQL  = SimpleSQL(table = table, fields = fields)
-    updateSQL = querySQL
-
-class TabellenIDList(Container):
-    resultClass = TabellenID
-    querySQL = resultClass.querySQL
-
-#####################################
-# Schluessel  (Tabelle 'schluessel')
-#####################################
-
-
-class Schluessel(DBObjekt):
-    table = 'schluessel'
-    fields =  ['tab_id', 'feld_id', 'seq']
-    fieldtypes = {}
-    foreignfieldtypes = {}
-    inversefieldtypes = {}
-    multikatfieldtypes = {}
-    attributemethods = {}
-    conditionalfields = {}
-    pathdefinitions = {}
-    attributehandler = None
-    primarykey = None
-    otherkeys = [('tab_id', 'feld_id', 'seq')]
-    querySQL  = SimpleSQL(table = table, fields = fields)
-    updateSQL = querySQL
-
-class SchluesselList(Container):
-    resultClass = Schluessel
     querySQL = resultClass.querySQL
 
 #####################################
@@ -1011,6 +760,34 @@ class AbfrageList(Container):
     resultClass = Abfrage
     querySQL = resultClass.querySQL
 
+#####################################
+# Altdaten  (Tabelle 'altdaten')
+#####################################
+
+
+class Altdaten(DBObjekt):
+    table = 'altdaten'
+    fields =  ['id', 'vorname', 'name', 'geburtsdatum', 'geschlecht', \
+                       'jahr', 'fallnummer', 'mitarbeiter', 'strasse', \
+                       'hausnummer', 'plz', 'ort', 'telefon1', 'telefon2', \
+                       'memo']
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    multikatfieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = 'id'
+    otherkeys = []
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
+
+class AltdatenList(Container):
+    resultClass = Altdaten
+    querySQL = resultClass.querySQL
+
     
 # Die folgenden Einträge ermöglichen die automatische Navigation über
 # Fremdschlüssel. Wird insbesondere von DBObjekt.__getitem__ verwendet.
@@ -1019,9 +796,8 @@ class AbfrageList(Container):
 Mitarbeiter.foreignfieldtypes['stat'] = (Code, None)
 Mitarbeiter.foreignfieldtypes['benr'] = (Code, None)
 Mitarbeiter.foreignfieldtypes['stz'] = (Code, None)
-MitarbeiterDienststelle.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'neben_stz')
-MitarbeiterDienststelle.foreignfieldtypes['stz'] = (Code, None)
 Akte.foreignfieldtypes['gs'] = (Code, None)
+Akte.foreignfieldtypes['aufbew'] = (Code, None)
 Akte.foreignfieldtypes['wohnbez'] = (Code, None)
 Akte.foreignfieldtypes['fs'] = (Code, None)
 Akte.foreignfieldtypes['stzbg'] = (Code, None)
@@ -1110,12 +886,6 @@ Fachstatistik.foreignfieldtypes['jokf5'] = (Code, None)
 Fachstatistik.foreignfieldtypes['jokf6'] = (Code, None)
 Fachstatistik.foreignfieldtypes['jokf7'] = (Code, None)
 Fachstatistik.foreignfieldtypes['jokf8'] = (Code, None)
-Fachstatistikleistung.foreignfieldtypes['fstat_id'] = (Fachstatistik, 'leistungen')
-Fachstatistikleistung.foreignfieldtypes['le'] = (Code, None)
-Fachstatistikkindproblem.foreignfieldtypes['fstat_id'] = (Fachstatistik, 'fachstatkindprobleme')
-Fachstatistikkindproblem.foreignfieldtypes['pbk'] = (Code, None)
-Fachstatistikelternproblem.foreignfieldtypes['fstat_id'] = (Fachstatistik, 'fachstatelternprobleme')
-Fachstatistikelternproblem.foreignfieldtypes['pbe'] = (Code, None)
 Jugendhilfestatistik.foreignfieldtypes['fall_id'] = (Fall, 'jgh_statistiken')
 Jugendhilfestatistik.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'jgh_statistiken')
 Jugendhilfestatistik.foreignfieldtypes['gfall'] = (Code, None)
@@ -1179,19 +949,10 @@ Jugendhilfestatistik2007.foreignfieldtypes['aort_nac'] = (Code, None)
 Jugendhilfestatistik2007.foreignfieldtypes['unh'] = (Code, None)
 Code.foreignfieldtypes['kat_id'] = (Kategorie, 'codes')
 Kategorie.foreignfieldtypes['kat_id'] = (Kategorie, 'kategorien')
-Exportprotokoll.foreignfieldtypes['mit_id'] = (Mitarbeiter, '')
-Exportprotokoll.foreignfieldtypes['dbsite'] = (Code, None)
-Importprotokoll.foreignfieldtypes['exp_id'] = (Exportprotokoll, 'importprotokolle')
-Importprotokoll.foreignfieldtypes['mit_id'] = (Mitarbeiter, '')
-Importprotokoll.foreignfieldtypes['dbsite'] = (Code, None)
 Feld.foreignfieldtypes['tab_id'] = (Tabelle, 'felder')
 Feld.foreignfieldtypes['verwtyp'] = (Code, None)
 Feld.foreignfieldtypes['ftab_id'] = (Tabelle, 'inverse')
 Feld.foreignfieldtypes['kat_id'] = (Kategorie, '')
-TabellenID.foreignfieldtypes['table_id'] = (Tabelle, 'iddaten')
-TabellenID.foreignfieldtypes['dbsite'] = (Code, None)
-Schluessel.foreignfieldtypes['tab_id'] = (Tabelle, 'schluessel')
-Schluessel.foreignfieldtypes['feld_id'] = (Feld, 'schluessel')
 Abfrage.foreignfieldtypes['mit_id'] = (Mitarbeiter, '')
 
     
@@ -1200,7 +961,6 @@ Abfrage.foreignfieldtypes['mit_id'] = (Mitarbeiter, '')
 # verwendet.
 #   fall['leistungen'] kann damit automatisch evaluiert werden.
     
-Mitarbeiter.inversefieldtypes['neben_stz'] = (MitarbeiterDienststelleList, 'mit_id')
 Akte.inversefieldtypes['faelle'] = (FallList, 'akte_id')
 Fall.inversefieldtypes['anmeldung'] = (AnmeldungList, 'fall_id')
 Akte.inversefieldtypes['bezugspersonen'] = (BezugspersonList, 'akte_id')
@@ -1231,24 +991,15 @@ Mitarbeiter.inversefieldtypes['gruppen'] = (MitarbeiterGruppeList, 'mit_id')
 Gruppe.inversefieldtypes['mitarbeiter'] = (MitarbeiterGruppeList, 'gruppe_id')
 Mitarbeiter.inversefieldtypes['fachstatistiken'] = (FachstatistikList, 'mit_id')
 Fall.inversefieldtypes['fachstatistiken'] = (FachstatistikList, 'fall_id')
-Fachstatistik.inversefieldtypes['leistungen'] = (FachstatistikleistungList, 'fstat_id')
-Fachstatistik.inversefieldtypes['fachstatkindprobleme'] = (FachstatistikkindproblemList, 'fstat_id')
-Fachstatistik.inversefieldtypes['fachstatelternprobleme'] = (FachstatistikelternproblemList, 'fstat_id')
 Fall.inversefieldtypes['jgh_statistiken'] = (JugendhilfestatistikList, 'fall_id')
 Mitarbeiter.inversefieldtypes['jgh_statistiken'] = (JugendhilfestatistikList, 'mit_id')
 Fall.inversefieldtypes['jgh07_statistiken'] = (Jugendhilfestatistik2007List, 'fall_id')
 Mitarbeiter.inversefieldtypes['jgh07_statistiken'] = (Jugendhilfestatistik2007List, 'mit_id')
 Kategorie.inversefieldtypes['codes'] = (CodeList, 'kat_id')
 Kategorie.inversefieldtypes['kategorien'] = (KategorieList, 'kat_id')
-Mitarbeiter.inversefieldtypes[''] = (ExportprotokollList, 'mit_id')
-Exportprotokoll.inversefieldtypes['importprotokolle'] = (ImportprotokollList, 'exp_id')
-Mitarbeiter.inversefieldtypes[''] = (ImportprotokollList, 'mit_id')
 Tabelle.inversefieldtypes['felder'] = (FeldList, 'tab_id')
 Tabelle.inversefieldtypes['inverse'] = (FeldList, 'ftab_id')
 Kategorie.inversefieldtypes[''] = (FeldList, 'kat_id')
-Tabelle.inversefieldtypes['iddaten'] = (TabellenIDList, 'table_id')
-Tabelle.inversefieldtypes['schluessel'] = (SchluesselList, 'tab_id')
-Feld.inversefieldtypes['schluessel'] = (SchluesselList, 'feld_id')
 Mitarbeiter.inversefieldtypes[''] = (AbfrageList, 'mit_id')
 
     

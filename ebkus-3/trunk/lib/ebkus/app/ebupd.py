@@ -8,6 +8,7 @@ import os
 from ebkus.app.ebapi import *
 from ebkus.app.ebapih import *
 from ebkus.config import config
+from ebkus.db.dbapp import cache_on, cache_off, cache_is_on, undo_cached_fields
 
 
 def akteeinf(form):
@@ -24,13 +25,14 @@ def akteeinf(form):
 
     akte['gs'] = check_code(form,'gs', 'gs',
                             "Keine Geschlechtsangabe")
+    akte['aufbew'] = check_code(form,'aufbew', 'aufbew',
+                            "Keine Aufbewahrungskategorie")
     akte['gb'] = str(check_date(form, 'gb', 'Fehler im Geburtsdatum'))
 ##     akte['gb'] = check_str_not_empty(form, 'gb', "Kein Geburtsdatum")
     akte['fs'] = check_code(form,'fs', 'fsfs',
                             "Fehler im Familienstatus", '999')
     akte['stzbg'] = check_code(form, 'stzbg',
                                'stzei', "Kein Stellenzeichen für die Akte")
-    akte['stzak'] = akte['stzbg']
     stelle = Code(akte['stzbg'])
     akte['zeit'] = int(time.time())
     
@@ -57,11 +59,11 @@ def akteeinf(form):
                   check_date(form, 'lebg',
                              "Fehler im Datum für den Leistungsbeginn"))
     if leist.getDate('bg') < fall.getDate('bg'):
-        raise EE("Datum des Leistungsbeginn vor Zustaendigkeitsbeginn")
+        raise EE("Datum des Leistungsbeginn vor Fallbeginn")
     leist.setDate('e', Date(0,0,0))
     leist['stz'] = check_code(form, 'lestz', 'stzei',
                               "Kein Stellenzeichen für die Leistung",
-                              akte['stzbg'])
+                              stelle['id'])
     try:
         akte.insert(akid)
         fall['akte_id'] = akte['id']
@@ -91,6 +93,8 @@ def updakte(form):
     akte['na'] = check_str_not_empty(form, 'na', "Kein Name", akteold)
     akte['gs'] = check_code(form,'gs', 'gs',
                             "Keine Geschlechtsangabe")
+    akte['aufbew'] = check_code(form,'aufbew', 'aufbew',
+                            "Keine Aufbewahrungskategorie")
     akte['gb'] = str(check_date(form, 'gb', 'Fehler im Geburtsdatum'))
 ##     akte['gb'] = check_str_not_empty(form, 'gb', "Kein Geburtsdatum", akteold)
     get_string_fields(akte, form,
@@ -100,10 +104,6 @@ def updakte(form):
     setAdresse(akte, form)
     akte['fs'] = check_code(form,'fs', 'fsfs',
                             "Fehler im Familienstatus", akteold)
-    akte['stzbg'] = check_code(form, 'stzbg', 'stzei',
-                               "Kein Stellenzeichen für die Akte")
-    akte['stzak'] = check_code(form, 'stzak', 'stzei',
-                               "Kein aktuelles Stellenzeichen für die Akte")
     # Werte erst dann übernehmen, wenn keine Fehler aufgetreten sind
     akteold.update(akte)
     _stamp_akte(akteold)
@@ -357,7 +357,7 @@ def _bkont_check(form, bkont):
                               "Kein Stellenzeichen für den Beratungskontakt")
 
 def _bkont_bs_check(form, bkont):
-    print '_bkont_bs_check', form
+    #print '_bkont_bs_check', form
     bkont['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
     bkont['fall1_id'] = form.get('fall1id') and \
                         check_fk(form, 'fall1id', Fall, "Kein Fall") or None
@@ -370,7 +370,7 @@ def _bkont_bs_check(form, bkont):
                        check_fk(form, 'mit2id', Mitarbeiter, "Kein Mitarbeiter", '') or None
     bkont['art'] = check_code(form, 'art', 'kabs', "Fehler in Beratungskontaktart")
     mc = check_multi_code(form, 'teilnehmer', 'teilnbs', "Fehler in Teilnehmer")
-    print 'MULTICODE', mc, type(mc)
+    #print 'MULTICODE', mc, type(mc)
     bkont['teilnehmer'] = check_multi_code(form, 'teilnehmer', 'teilnbs', "Fehler in Teilnehmer")
     bkont['offenespr'] = check_code(form, 'offenespr', 'ja_nein', "", cn('ja_nein', 'ja'))
     bkont['no'] = check_str_not_empty(form, 'no', 'Keine Notiz', '')
@@ -481,7 +481,8 @@ def updfuabs(form):
     
 def zusteinf(form):
     """Neue Zuständigkeit."""
-    
+
+    # nicht am selben Tag beginnen wie der vorige
     zustid = check_int_not_empty(form, 'zustid', "Zuständigkeitsid fehlt")
     check_not_exists(zustid, Zustaendigkeit,
       "Zuständigkeit (id: %(id)s) existiert bereits")
@@ -502,7 +503,8 @@ def zusteinf(form):
     aktzustold = check_exists(form, 'aktuellzustid' ,
                               Zustaendigkeit, "Kein aktueller Zustand")
     aktzust_endedatum = aktzustold.getDate('e')
-    
+    if beginndatum < aktzustold.getDate('bg'):
+        raise EE("Zuständigkeitsbeginn vor Beginn der aktuellen Zuständigkeit")
     aktzust = Zustaendigkeit()
     aktzust.setDate('e', beginndatum)
     try:
@@ -522,27 +524,55 @@ def zusteinf(form):
     ## 3. Aelteste Zustaendigkeit sollte mit Fallbeginn identisch sein
     ##    (Rueckmelden).
     
+
+
     
 def updzust(form):
     """Update der Zuständigkeit."""
     
     zustold  = check_exists(form, 'zustid', Zustaendigkeit,
                             "Keine Zustaendigksid")
+    prevold = zustold['prev']
+    nextold = zustold['next']
+    fall = zustold['fall']
     zust = Zustaendigkeit()
-    
+    prev = Zustaendigkeit()
+    next = Zustaendigkeit()
     # Soll tatsächlich der Mitarbeiter für eine Zuständigkeit wechseln können?
     zust['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Fehler in Mitarbeiter", zustold)
     beginndatum = check_date(form, 'bg', "Fehler im Beginndatum", zustold)
+    if prevold:
+        if beginndatum <= prevold.getDate('bg'):
+            raise EE('Beginndatum muss nach dem Beginn der letzten Zuständigkeit sein')
+    else:
+        # erste Zuständigkeit
+        if beginndatum != fall.getDate('bg'):
+            raise EE('Erste Zuständigkeit muss mit dem Fall beginnen')
+    prev.setDate('e', beginndatum)
+    zust.setDate('bg', beginndatum)
     endedatum = check_date(form, 'e', "Fehler im Enddatum",
                            zustold, maybezero = 1)
-    if endedatum < beginndatum:
-        raise EE("Zuständigkeitsende vor Beginn")
+    if endedatum <= beginndatum:
+        raise EE("Zuständigkeitsende muss nach dem Beginn sein")
         # msg-systems ag , brehmea 2002 23.01
         # nicht updatebale, weil sonst grobe fehler passieren koennen. keine zustid
         #zust.setDate('bg', beginndatum)
         #zust.setDate('e', endedatum)
         
+    if nextold:
+        if endedatum >= nextold.getDate('e'):
+            raise EE('Endedatum muss vor dem Ende der folgenden Zuständigkeit sein')
+    else:
+        # erste Zuständigkeit
+        if endedatum != fall.getDate('zda'):
+            raise EE('Letzte Zuständigkeit muss mit dem Fall enden')
+    next.setDate('bg', endedatum)
+    zust.setDate('e', endedatum)
     zustold.update(zust)
+    if prevold:
+        prevold.update(prev)
+    if nextold:
+        nextold.update(next)
     _stamp_akte(zustold['akte'])
     
     
@@ -556,8 +586,8 @@ def dokeinf(form):
       "Dokument-ID (id: %(id)s) existiert bereits")
     dok = Dokument()
     dok['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
-    fall = Fall(dok['fall_id'])
-    akteold = Akte(fall['akte_id'])
+    fall = dok['fall']
+    akteold = fall['akte']
     dok['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
     dok['betr'] = check_str_not_empty(form, 'betr', "Kein Betreff")
     dok['art'] = check_code(form, 'art', 'dokart', "Text ist: fehlt")
@@ -608,7 +638,7 @@ def updvermeinf(form):
         dok['fname'] = '%s.txt' % dokold['id']
         text = check_str_not_empty(form, 'text', "Kein Text")
         fall = Fall(dok['fall_id'])
-        akteold = Akte(fall['akte_id'])
+        akteold = fall['akte']
         fname = os.path.join(get_akte_path(akteold['id']),
                              dok['fname'])
         try:
@@ -631,7 +661,7 @@ def removedoks(form):
         try:
             dok = Dokument(int(d))
             fall = Fall(dok['fall_id'])
-            akteold = Akte(fall['akte_id'])
+            akteold = fall['akte']
             akte_path = get_akte_path(akteold['id'])
             os.remove('%s/%s' % (akte_path, dok['fname']))
             akte = Akte()
@@ -648,14 +678,14 @@ def uploadeinf(form):
     import os
     
     if form.has_key('datei'):
-        print form.items()
+        #print form.items()
         dokid = check_int_not_empty(form, 'dokid', "Dokumentenid fehlt")
         check_not_exists(dokid, Dokument,
                          "Dokument (id: %(id)s) existiert bereits")
         dok = Dokument()
         dok['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
         fall = Fall(dok['fall_id'])
-        akteold = Akte(fall['akte_id'])
+        akteold = fall['akte']
         dok['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
         dok['betr'] = check_str_not_empty(form, 'betr', "Kein Betreff")
         dok['art'] = check_code(form, 'art', 'dokart', "Text ist: fehlt")
@@ -777,45 +807,56 @@ def zdaeinf(form):
     fallold.update(fall)
     _stamp_akte(fallold['akte'])
     
+
+
+def _check_fallbeginn(fall, fallbeginn):
+    faelle = fall['akte__faelle'].sorted('bgy', 'bgm', 'bgd')
+    i = faelle.index(fall)
+    if i > 0:
+        # nicht der erste Fall
+        if fallbeginn < faelle[i-1].getDate('zda'):
+            raise EE('Fallbeginn vor Ende des vorherigen Falls')
+    zustaendigkeiten = fall['zustaendigkeiten'].sorted('bgy', 'bgm', 'bgd')
+    if fallbeginn > zustaendigkeiten[0].getDate('e'):
+            raise EE('Fallbeginn nach Ende der ersten Zuständigkeit')
+    for leist in fall['leistungen']:
+        if leist.getDate('bg') < fallbeginn:
+            raise EE('Fallbeginn nach Beginn der ersten Leistung')
+            
+            
     
 def updfall(form):
     """Update Fall."""
-    
-    
     fallold = check_exists(form, 'fallid', Fall, "Keine Fallid")
+    erste_zustold = fallold['zustaendigkeiten'].sorted('bgy', 'bgm', 'bgd')[0]
     fall = Fall()
+    zust = Zustaendigkeit()
     fallbeginn = check_date(form, 'bg', "Fehler im Fallbeginndatum", fallold)
+    _check_fallbeginn(fallold, fallbeginn)
     fall.setDate('bg', fallbeginn)
-    
+    zust.setDate('bg', fallbeginn)
     # Das soll wohl hier nicht geändert werden
     # fall['status'] = 236
     
     fallold.update(fall)
+    erste_zustold.update(zust)
     _stamp_akte(fallold['akte'])
     
     
 def zdareinf(form):
     """z.d.A. rückgängig machen."""
     
+    # es werden nur das Fallendedatum und das Zuständigkeitsende wieder auf offen
+    # gesetzt. Keine neue Zuständigkeit.
     fallold = check_exists(form, 'fallid', Fall, "Keine Fallid")
+    zustold = fallold['zuletzt_zustaendig']
     fall = Fall()
-    fall.setDate('zda', Date(0,0,0))
-    fall['status'] = cc('stand', 'l')
-    zustid = check_int_not_empty(form, 'zustid', "Zuständigkeitsid fehlt")
-    check_not_exists(zustid, Zustaendigkeit,
-      "Zuständigkeit (id: %(id)s) existiert bereits")
     zust = Zustaendigkeit()
-    zust['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
-    zust['mit_id'] = check_fk(form, 'zumitid', Mitarbeiter, "Kein Mitarbeiter")
-    beginndatum =  check_date(form, 'bg',
-                                "Fehler im Zuständigkeitsbeginndatum")
-    zust.setDate('bg', beginndatum)
+    fall.setDate('zda', Date(0,0,0))
     zust.setDate('e', Date(0,0,0))
-    if fallold.getDate('bg') > zust.getDate('bg'):
-        raise EE("Zustaendigkeitsbeginn liegt vor Fallbeginn")
-        
+    fall['status'] = cc('stand', 'l')
     fallold.update(fall)
-    zust.insert(zustid)
+    zustold.update(zust)
     _stamp_akte(fallold['akte'])
     
     
@@ -823,6 +864,7 @@ def waufneinf(form):
     """Wiederaufnahme der Akte."""
     
     akteold = check_exists(form, 'akid', Akte, "Aktenid fehlt")
+    stelle = Code(akteold['stzbg'])
     akte = Akte()
     akte['na'] = check_str_not_empty(form, 'na', "Kein Name", akteold)
     akte['gs'] = check_code(form,'gs', 'gs',
@@ -835,11 +877,9 @@ def waufneinf(form):
     akte['fs'] = check_code(form,'fs', 'fsfs',
                             "Fehler im Familienstatus", akteold)
     setAdresse(akte, form)
-    akte['stzbg'] = check_code(form, 'stzbg', 'stzei', "Kein Stellenzeichen für die Akte")
-    akte['stzak'] = akte['stzbg']
-    stelle = Code(akte['stzbg'])
     fallid = check_int_not_empty(form, 'fallid', "Fallid fehlt")
     
+    letzter_fall = akteold['letzter_fall']
     fall = Fall()
     fall['akte_id'] = check_fk(form, 'akid', Akte,
                               "Keine Aktenid für Fall")
@@ -847,6 +887,8 @@ def waufneinf(form):
     fall.setDate('bg',
                  check_date(form, 'zubg',
                             "Fehler im Datum für den Zuständigkeitsbeginn"))
+    if fall.getDate('bg') <= letzter_fall.getDate('zda'):
+        raise EE('Fallbeginn muss nach Abschluss des letzten Falls liegen')
     fall.setDate('zda', Date(0,0,0))
     fall['fn'] = getNewFallnummer(stelle['code'], fall['bgy'])
     fall['status'] = cc('stand', 'l')
@@ -869,7 +911,7 @@ def waufneinf(form):
     leist.setDate('e', Date(0,0,0))
     leist['stz'] = check_code(form, 'lestz', 'stzei',
                               "Kein Stellenzeichen für die Leistung",
-                              akte['stzbg'])
+                              stelle['id'])
     
     try:
         akteold.update(akte)
@@ -891,11 +933,28 @@ def waufneinf(form):
     _stamp_akte(akteold)
     
 
-def _fs_check(form, fstat):
+def _fs_check(form, fstat, fstatold=None):
     fstat['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
     fstat['jahr'] = check_int_not_empty(form, 'jahr', "Jahr fehlt")
     fstat['stz'] = check_code(form, 'stz', 'stzei',
                               "Kein Stellenzeichen für die Fachstatistik")
+    # Regionalinfos übernehmen
+    fall_id = fstat['fall_id']
+    if fall_id:
+        fall = Fall(fall_id)
+        akte = fall['akte']
+        if (fstatold and not fstatold['ort']) or not fstatold:
+            # nicht mehrmals übernehmen, Akte kann sich später geändert habe
+            # nur übernehmen, wenn noch nichts eingetragen ist
+            for a in ('ort', 'plz', 'plraum'):
+                fstat[a] = akte[a]
+            if config.STRASSENKATALOG:
+                from ebkus.html.strkat import get_strasse
+                str = get_strasse(akte)
+            else:
+                str = {}
+            for a in ('ortsteil', 'bezirk', 'samtgemeinde'):
+                fstat[a] = str[a]
     # ab hier abschaltbar
     from ebkus.html.fskonfig import fs_customize as fsc
     multicode = cc('verwtyp', 'm')
@@ -921,6 +980,10 @@ def _fs_check(form, fstat):
                     fstat[f] = check_int_not_empty(form, f, "Fehlt: %s" % fobj['name'])
             elif fname in fsc.termin_felder:
                 fstat[fname] = check_int_not_empty(form, fname, "Keine Terminanzahl", 0)
+    if fall_id and akte:
+        akte.akte_undo_cached_fields()
+
+        
 
 def fseinf(form):
     """Neue Fachstatistik."""
@@ -959,7 +1022,7 @@ def updfs(form):
         fstat['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
     fstat['fall_fn'] = check_str_not_empty(form, 'fall_fn', "Fallnummer fehlt")
     #fstat['bz'] kann nicht updatet werden
-    _fs_check(form, fstat)
+    _fs_check(form, fstat, fstatold=fstatold)
     fstat['zeit'] = int(time.time())
     fstatold.update(fstat)
     ## vgl. Kommentar bei updjgh
@@ -1279,7 +1342,9 @@ def _jgh07_check(form, jgh):
         raise_if_int(form, ('nbkakt',),
                      "Nur bei andauernder Hilfe ausfüllen: %s" % item_J)
         jgh['nbkakt'] = None
-    
+    if fall:
+        fall['akte'].akte_undo_cached_fields()
+
 def _jgh07_check_abschnitt_K(form, jgh):
     item_K = "K / Gründe für die Hilfegewährung"
     m1 = "Mehr als ein Hauptgrund"
@@ -2218,7 +2283,29 @@ def updmit(form):
                              "Fehler beim Status", mitold)
     mit['stz'] =  check_code(form, 'stz', 'stzei',
                              "Fehler beim Stellenzeichen", mitold)
-    
+    # TODO: Stellenzeichenänderung nur als Fehlerkorrektur zulassen
+    if mit['stz'] != mitold['stz']:
+        from ebkus.app import ebapi
+        for klassname in (
+            'LeistungList',
+            'BeratungskontaktList',
+            'Beratungskontakt_BSList',
+            'Fua_BSList',
+            'ZustaendigkeitList',
+            'DokumentList',
+            'GruppendokumentList',
+            'MitarbeiterGruppeList',
+            'FachstatistikList',
+            'JugendhilfestatistikList',
+            'Jugendhilfestatistik2007List',
+            'AbfrageList',
+            ):
+            res = getattr(ebapi, klassname)(where='mit_id = %(id)s' % mitold)
+            if res:
+                raise EE(
+                    'Es sind bereits Daten mit diesem Mitarbeiter vorhanden.<br />'
+                    'Ein Stellenwechsel ist nur möglich zur Fehlerkorrektur '
+                    'direkt nachdem der Mitarbeiter in EBKuS angelegt wurde.')
     if (str(form.get('changepassword')) == '1'):
         s = sha.new(check_str_not_empty(form, 'ben', "Kein Benutzername"))
         mit['pass'] = s.hexdigest()
@@ -2228,7 +2315,6 @@ def updmit(form):
     mit['zeit'] = int(time.time())
     
     mitold.update(mit)
-    from ebkus.db.dbapp import undo_cached_fields
     undo_cached_fields()
     
     
@@ -2278,28 +2364,6 @@ def codeeinf(form):
             
     code['zeit'] = int(time.time())
     
-    if code['kat_code'] == 'dbsite':
-        tl = TabellenIDList(where = '', order = 'minid desc'  )
-        minid = int('%(minid)d' % tl[0])
-        if minid > code['mini']:
-            raise EE("Das Bereichsminimum  ist kleiner als bei der Site %(dbsite__name)s"
-                     % tl[0])
-        maxliste = TabellenIDList(where = 'minid = %d' % minid)
-        for m in maxliste:
-            t = TabellenID()
-            t['table_id'] = m['table_id']
-            t['table_name'] = m['table_name']
-            t['dbsite'] = codeid
-            t['minid'] = code['mini']
-            t['maxid'] = code['maxi']
-            t['maxist'] = int(t['minid']) -1
-            try:
-                t.insert()
-            except Exception, args:
-                try: t.delete()
-                except: pass
-                raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
-                
     try:
         code.insert(codeid)
     except Exception, args:
@@ -2382,14 +2446,6 @@ def updcode(form):
                 cneu['sort'] = i
                 c.update(cneu)
                 
-    if codeold['kat_code'] == 'dbsite':
-        tl = TabellenIDList(where = 'dbsite = %s' % codeold['id'] )
-        for m in tl:
-            t = TabellenID()
-            t['minid'] = codeold['mini']
-            t['maxid'] = codeold['maxi']
-            t['maxist'] = int(t['minid']) -1
-            m.update(t)
             
 
 def updkategorie(form):
@@ -2400,127 +2456,132 @@ def updkategorie(form):
     from ebkus.db.dbapp import undo_cached_fields
     undo_cached_fields()
     
-def removeakten(form):
-    """Akten und Gruppen löschen."""
-    
-    import os
-    
-    frist = check_int_not_empty(form, 'frist',
-                                'Keine Monate', config.LOESCHFRIST)
-    
-    rmdatum = get_rm_datum(frist)
-    alle_faelle = FallList(where = 'zday <= %(loeschjahr)s and zdam <= %(loeschmonat)s and zday > 1'
-                           % rmdatum )
-    
-    # Alle Fälle entfernen, die *nicht* der letzte Fall der jeweiligen Akte sind
-    faelle = [f for f in alle_faelle if f == f['akte_id__letzter_fall']]
 
-    #print "## Schema: fallid;akte_id;Fallnummer"
-    zeit = int(time.time())
-    #print "## Unix-Zeit: %s" % zeit
-    
-    #print "## %s Faelle sind " % len(faelle) + "aelter als %(loeschmonat)s.%(loeschjahr)s"  % rmdatum
 
-    # kann sein, dass es weniger Akten sind als Fällte, da eine Akte
-    # mehrere Fälle haben kann, daher ein dict mit akte_id zum Zählen
-    anzahl_akten_geloescht = {}    
-    for f in faelle:
-        #print "********* LOESCHEN: %(id)s;%(akte_id)s;%(fn)s" % f
-        jghstatl = JugendhilfestatistikList(where = 'fall_id = %s' % f['id'])
-        jgh07statl = Jugendhilfestatistik2007List(where = 'fall_id = %s' % f['id'])
-        fachstatl = FachstatistikList(where = 'fall_id = %s' % f['id'])
-        dokl = DokumentList(where = 'fall_id = %s' % f['id'])
-        zustaendigl = ZustaendigkeitList(where = 'fall_id = %s' % f['id'])
-        anmeldungl = AnmeldungList(where = 'fall_id = %s' % f['id'])
-        leistungl = LeistungList(where = 'fall_id = %s' % f['id'])
-        einrl = EinrichtungskontaktList(where = 'akte_id = %s' % f['akte_id'])
-        bezugspl = BezugspersonList(where = 'akte_id = %s' % f['akte_id'])
-        fallgrl = FallGruppeList(where = 'fall_id = %s' % f['id'])
-        akte_path = get_akte_path(f['akte_id'])
-        
-        for j in jghstatl:
+def remove_akte(akte, statistik_auch=False):
+    akte_id = akte['id']
+    for fall in akte['faelle']:
+        remove_fall(fall, statistik_auch)
+    einrl = EinrichtungskontaktList(where = 'akte_id = %s' % akte_id)
+    einrl.deleteall()
+    bezugspl = BezugspersonList(where = 'akte_id = %s' % akte_id)
+    for  b in bezugspl:
+        bezugspgrl = BezugspersonGruppeList(where = 'bezugsp_id = %s' % b['id'])
+        bezugspgrl.deleteall()
+    bezugspl.deleteall()
+    akte_path = get_akte_path(akte_id)
+    try:
+        os.rmdir('%s' % akte_path)
+    except: pass
+    akte.delete()
+    undo_cached_fields()
+    try:
+        a = Akte(akte_id)
+        assert False, 'Akte wurde nicht gelöscht'
+    except:
+        pass # alles OK
+    return True
+
+def remove_fall(fall, statistik_auch=False):
+    assert not fall['aktuell'], 'Aktueller Fall kann nicht gelöscht werden'
+    fall_id = fall['id']
+    #print "********* LOESCHEN: %(id)s;%(akte_id)s;%(fn)s" % fall
+    jghstatl = JugendhilfestatistikList(where = 'fall_id = %s' % fall_id)
+    jgh07statl = Jugendhilfestatistik2007List(where = 'fall_id = %s' % fall_id)
+    fachstatl = FachstatistikList(where = 'fall_id = %s' % fall_id)
+    dokl = DokumentList(where = 'fall_id = %s' % fall_id)
+    zustaendigl = ZustaendigkeitList(where = 'fall_id = %s' % fall_id)
+    anmeldungl = AnmeldungList(where = 'fall_id = %s' % fall_id)
+    leistungl = LeistungList(where = 'fall_id = %s' % fall_id)
+    bkontl = BeratungskontaktList(where = 'fall_id = %s' % fall_id)
+    bkontbsl = Beratungskontakt_BSList(where = 'fall_id = %s' % fall_id)
+    fallgrl = FallGruppeList(where = 'fall_id = %s' % fall_id)
+    akte_path = get_akte_path(fall['akte_id'])
+    for j in jghstatl:
+        if statistik_auch:
+            j.delete()
+        else:
             jghstatold = Jugendhilfestatistik(j['id'])
             jghstat = Jugendhilfestatistik()
             jghstat['fall_id'] = None
             jghstat['zeit'] = int(time.time())
             jghstatold.update(jghstat)
-        for j in jgh07statl:
+    for j in jgh07statl:
+        if statistik_auch:
+            j.delete()
+        else:
             jghstatold = Jugendhilfestatistik2007(j['id'])
             jghstat = Jugendhilfestatistik2007()
             jghstat['fall_id'] = None
             jghstat['zeit'] = int(time.time())
             jghstatold.update(jghstat)
-        for a in fachstatl:
+    for a in fachstatl:
+        if statistik_auch:
+            a.delete()
+        else:
             fachstatold = Fachstatistik(a['id'])
             fachstat = Fachstatistik()
             fachstat['fall_id'] = None
             fachstat['zeit'] = int(time.time())
             fachstatold.update(fachstat)
-        for d in dokl:
-            try:
-                os.remove('%s/%s' % (akte_path, d['fname']))
-            except: pass
+    for d in dokl:
         try:
-            os.rmdir('%s' % akte_path)
-        except: pass
-        anmeldungl.deleteall()
-        leistungl.deleteall()
-        einrl.deleteall()
-        dokl.deleteall()
-        fallgrl.deleteall()
-        zustaendigl.deleteall()
-        for  b in bezugspl:
-            bezugspgrl = BezugspersonGruppeList(where = 'bezugsp_id = %s' % b['id'])
-            bezugspgrl.deleteall()
-        bezugspl.deleteall()
-        fall = Fall(f['id'])
-        try:
-            akte = Akte(f['akte_id'])
-        except: pass
-        try:
-            fall.delete()
-        except: pass
-        try:
-            akte.delete()
-            anzahl_akten_geloescht[akte['id']] = True
-        except: pass
-        #print "Loeschen der Faelle Okay"
-
-    # wir brauch nur die Länge der dict
-    anzahl_akten_geloescht = len(anzahl_akten_geloescht)
-    gruppen = GruppeList(where = 'ey <= %(loeschjahr)s and em <= %(loeschmonat)s and ey > 1'
-                      % rmdatum )
+            os.remove('%s/%s' % (akte_path, d['fname']))
+        except:
+            pass
+    anmeldungl.deleteall()
+    leistungl.deleteall()
+    dokl.deleteall()
+    fallgrl.deleteall()
+    zustaendigl.deleteall()
+    bkontl.deleteall()
+    bkontbsl.deleteall()
+    fall.delete()
+    return True
     
-    #print "## Schema: gruppeid;leer;Gruppenummer"
-    zeit = int(time.time())
-    #print "## Unix-Zeit: %s" % zeit
-    
-    #print "## %s Gruppen sind " % len(gruppen) + "aelter als %(loeschmonat)s.%(loeschjahr)s"  % rmdatum
 
-    anzahl_gruppen_geloescht = 0
-    for g in gruppen:
-        #print "%(id)s;;%(gn)s" % g
-        gruppe_path = get_gruppe_path(g['id'])
-        fallgrl = FallGruppeList(where = 'gruppe_id = %s' % g['id'])
-        bezugspgrl = BezugspersonGruppeList(where = 'gruppe_id = %s' % g['id'])
-        dokl = GruppendokumentList(where = 'gruppe_id = %s' % g['id'])
-        mitgrl = MitarbeiterGruppeList(where = 'gruppe_id = %s' % g['id'])
-        fallgrl.deleteall()
-        bezugspgrl.deleteall()
-        mitgrl.deleteall()
-        for d in dokl:
-            try:
-                os.remove('%s/%s' % (gruppe_path, d['fname']))
-            except: pass
+def remove_gruppe(gruppe):
+    #print "%(id)s;;%(gn)s" % g
+    gruppe_id = gruppe['id']
+    gruppe_path = get_gruppe_path(gruppe_id)
+    fallgrl = FallGruppeList(where = 'gruppe_id = %s' % gruppe_id)
+    bezugspgrl = BezugspersonGruppeList(where = 'gruppe_id = %s' % gruppe_id)
+    dokl = GruppendokumentList(where = 'gruppe_id = %s' % gruppe_id)
+    mitgrl = MitarbeiterGruppeList(where = 'gruppe_id = %s' % gruppe_id)
+    fallgrl.deleteall()
+    bezugspgrl.deleteall()
+    mitgrl.deleteall()
+    for d in dokl:
         try:
-            os.rmdir('%s' % gruppe_path)
-        except: pass
-        dokl.deleteall()
-        gruppeold = Gruppe(g['id'])
-        gruppeold.delete()
-        anzahl_gruppen_geloescht += 1
-    #print "Loeschen der Gruppen Okay"
-    return anzahl_akten_geloescht, anzahl_gruppen_geloescht
+            os.remove('%s/%s' % (gruppe_path, d['fname']))
+        except:
+            pass
+    try:
+        os.rmdir('%s' % gruppe_path)
+    except:
+        pass
+    dokl.deleteall()
+    gruppe.delete()
+    return True
+    
+def removeakten(form):
+    """Akten und Gruppen löschen."""
+    akten_ids = check_list(form, 'rmak', 'Fehler in zu löschenden Akten', [])
+    gruppen_ids = check_list(form, 'rmgr', 'Fehler in zu löschenden Gruppen', [])
+    akten = [Akte(id) for id in akten_ids]
+    gruppen = [Gruppe(id) for id in gruppen_ids]
+    cacheon = cache_is_on()
+    try:
+        if cache_on:
+            cache_off()
+        for a in akten:
+            remove_akte(a, statistik_auch=False)
+        for g in gruppen:
+            remove_gruppe(g)
+    finally:
+        if cacheon:
+            cache_on()
+    return len(akten), len(gruppen)
     
 def _stamp_akte(akteold):
     """Zeitstempel in der Akte setzen und cache zurücksetzen"""
@@ -2613,65 +2674,3 @@ def setAdresse(obj, form):
                 # kein Ort oder Berlin ohne Bezirksangabe mangels Straßenkatalog
                 obj['wohnbez'] = cc('wohnbez', '999')
 
-## def setAdresse(obj, form):
-##     """Wenn strkat einen Wert hat, wird die Ueberpruefung durch den Strassenkatalog
-##     getriggert. Dies ist z.Z. nur in der Berliner Version der Fall.
-
-##     Kann auch fuer Bezugspersonenadressen verwendet werden,
-##     planungsr und wohnbez werden dann nicht beruecksichtigt
-##     """
-##     strasse = form.get('str')
-##     strkat = form.get('strkat')
-##     if strkat:
-##         # Straßenkatalog, nur Berliner Version
-##         if check_strasse(form, 'strkat', 'hsnr', 'plz') != '':
-##             obj['str'] = strkat
-##             if form.get('hsnr') == '':
-##                 obj['hsnr'] = '---'
-##             else:
-##                 obj['hsnr'] = form.get('hsnr')
-##             obj['plz'] = form.get('plz')
-##         # innerhalb der Gültigkeit des Straßenkatalogs
-##         obj['lage'] = cc('lage', '0') 
-##         if 'planungsr' in obj.fields:
-##             # Übernahme des Planungsraums aus dem Straßenkatalogs
-##             # falls Objekt ein planungsr-Feld hat
-##             obj['planungsr'] = plraum_zuweisen(form, 'strkat', 'hsnr',
-##                                                'plz', "Kein Planungsraum gefunden")
-##         if 'wohnbez' in obj.fields:
-##             # wohnbez aus dem Straßenkatalog übernehmen
-##             obj['wohnbez'] = wohnbez_zuordnen(form, 'strkat', 'hsnr',
-##                                               'plz', "Kein Wohnbezirk gefunden")
-##     else:
-##         # Für nicht-Berliner Version kommen wir immer hier durch
-##         # Für Berliner Version nur dann, wenn gar keine Straße angegeben wurde
-##         # oder eine außerhalb Berlins.
-##         if strasse:
-##             # Strassenangabe (immer für nicht-Berliner Version, nur Straßen
-##             # außerhalb von Berlin für Berliner Version)
-##             obj['str'] = strasse
-##             obj['hsnr'] = form.get('hsnr')
-##             obj['plz'] = form.get('plz')
-##             # außerhalb der Gültigkeit des Straßenkatalogs
-##             obj['lage'] = cc('lage', '1')
-##             if 'planungsr' in obj.fields:
-##                 planungs_raum = form.get('planungsr')
-##                 if planungs_raum in ('0',):
-##                     raise EBUpdateDataError("Kein gültiger Planungsraum")
-##                 obj['planungsr'] =  planungs_raum or '0'
-##             if 'wohnbez' in obj.fields:
-##                 # außerhalb Berlins
-##                 obj['wohnbez'] = cc('wohnbez', '13')
-##         else:
-##             # keine Strassenangabe (für Berliner und nicht-Berliner Version)
-##             obj['str'] = ''
-##             obj['hsnr'] = form.get('hsnr', '')
-##             obj['plz'] = form.get('plz', '')
-##             obj['lage'] = cc('lage', '999')
-##             if 'planungsr' in obj.fields:
-##                 planungs_raum = form.get('planungsr')
-##                 if planungs_raum in ('0',):
-##                     raise EBUpdateDataError("Kein gültiger Planungsraum")
-##                 obj['planungsr'] =  planungs_raum or '0'
-##             if 'wohnbez' in obj.fields:
-##                 obj['wohnbez'] = cc('wohnbez', '999')

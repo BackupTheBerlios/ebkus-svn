@@ -254,12 +254,13 @@ def getQuartal(monat):
 def getNewId(self):
     """Standardmethode, um neue Werte für Schlüsselfelder zu erzeugen.
     
-    Verwendet die Tabelle tabid (Klasse TabellenID), um eine neue id zu
-    generieren abhängig von der Datenbankinstallation, die durch
-    die Datenbanksite definiert ist. Die Datenbankinstallation ist in
-    der Konfiguration unter dem Namen config.SITE definiert und kann mit der
-    Funktion getDBSite() ermittelt werden.
+    Verwendet maxist-Feld von Tabelle, um eine neue id zu
+    generieren.
     
+    Es genügt nicht, das Maximum der Spalte zu nehmen, da mehrere Benutzer
+    das gleiche tun können und hinterher alle versuchen, ein Objekt mit derselben
+    ID einzufügen.
+
     Mit der Zeile
     
          DBObjekt.getNewId = getNewId
@@ -281,18 +282,13 @@ def getNewId(self):
     
     if not self.primarykey:
         raise dbapp.DBAppError("Cannot getNewId without primarykey")
-        
-    tid = TabellenID(table_name = self.table, dbsite = cc('dbsite',  getDBSite()))
-    maxist = tid['maxist']
-    max = tid['maxid']
-    min = tid['minid']
-    if maxist:
-        newid = maxist + 1
-    else:
-        newid = 1
-    if newid > max:
-        raise dbapp.DBAppError("No more ids availabe for table '%s'" % self.table)
-    tid.update({'maxist' : newid})
+    maxid = sql.SQL("select max(%s) from %s" % (self.primarykey, self.table)).execute()[0][0]
+    if not maxid:
+        maxid = 0
+    tab = Tabelle(tabelle=self.table)
+    maxist = tab['maxist']
+    newid = max(maxid, maxist) + 1
+    tab.update({'maxist': newid})
     return newid
     
 dbapp.DBObjekt.getNewId = getNewId
@@ -450,9 +446,8 @@ def _zustaendig_fall(self, key):
     return res
     
 def _zuletzt_zustaendig_fall(self, key):
-    zs = self['zustaendigkeiten']
-    zs.sort('bgy', 'bgm', 'bgd')
-    res = zs[0]
+    zs = self['zustaendigkeiten'].sorted('bgy', 'bgm', 'bgd')
+    res = zs[-1]
     self._cache_field('zuletzt_zustaendig', res)
     return res
     
@@ -467,11 +462,52 @@ def _get_jgh(self, key):
     else:
         return None
 
+def _fn_count(self, key):
+    fn = self['fn']
+    return int(fn.split('-')[0])
+
+def _has_fachstatistik(self, key):
+    if self['fachstatistiken']:
+        return 'j'
+    else:
+        return 'n'
+def _has_jghstatistik(self, key):
+    if self['jgh_statistiken'] or self['jgh07_statistiken']:
+        return 'j'
+    else:
+        return 'n'
+
 Fall.attributemethods['name'] = _fall_name
 Fall.attributemethods['aktuell'] = _aktuell_fall
 Fall.attributemethods['zustaendig'] = _zustaendig_fall
 Fall.attributemethods['zuletzt_zustaendig'] = _zuletzt_zustaendig_fall
 Fall.attributemethods['jgh'] = _get_jgh
+Fall.attributemethods['fn_count'] = _fn_count
+Fall.attributemethods['has_fachstatistik'] = _has_fachstatistik
+Fall.attributemethods['has_jghstatistik'] = _has_jghstatistik
+Fall.attributemethods['bg'] = getDate
+Fall.attributemethods['zda'] = getDate
+
+
+def _prev_zust(self, key):
+    zustaendigkeiten = self['fall__zustaendigkeiten'].sorted('bgy', 'bgm', 'bgd')
+    i = zustaendigkeiten.index(self)
+    if i > 0:
+        return zustaendigkeiten[i-1]
+    else:
+        return None
+def _next_zust(self, key):
+    zustaendigkeiten = self['fall__zustaendigkeiten'].sorted('bgy', 'bgm', 'bgd')
+    i = zustaendigkeiten.index(self)
+    if i+1 < len(zustaendigkeiten):
+        return zustaendigkeiten[i+1]
+    else:
+        return None
+    
+
+Zustaendigkeit.attributemethods['prev'] = _prev_zust
+Zustaendigkeit.attributemethods['next'] = _next_zust
+
 
 
 def _alter(self, key):
@@ -489,7 +525,13 @@ Jugendhilfestatistik2007.attributemethods['alter'] = _alter
 # Felder vn, na wie bei Akter
 Mitarbeiter.attributemethods['name'] = _akte_name
 
-
+def _gruppe_mitarbeiternamen(self, key):
+    """Ein String mit komma-getrennten Nachnamen der Mitarbeiter einer Gruppe."""
+    mitarbeiter = self['mitarbeiter'].sorted('mit__na')
+    return ', '.join([m['mit__na'] for m in mitarbeiter])
+Gruppe.attributemethods['mitarbeiternamen'] = _gruppe_mitarbeiternamen
+Gruppe.attributemethods['bg'] = getDate
+Gruppe.attributemethods['e'] = getDate
 ############################
 # Pfaddefinitionen
 ############################
@@ -1110,7 +1152,8 @@ def get_gruppe_path(gruppeid):
         raise ('Kein Gruppenverzeichnis. %s' %(e))
     return gruppe_path
     
-    
+# TODO beseitigen, ist verzockt. Besser Date.add_month benutzen. Funktioniert
+# auch mit negativen Werten.
 def get_rm_datum(frist=None):
     """Ermittelt anhand der Loeschfrist (Aufbewahrungsfrist) das Loeschdatum. """
     

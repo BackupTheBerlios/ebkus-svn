@@ -440,11 +440,13 @@ sonstige;sonstige;grtyp
 2;Ja;gfall
 13;außerhalb;wohnbez
 999;keine Angabe;wohnbez
-A;DBSite A;dbsite;1;1000000000
 0;innerhalb des Geltungsbereichs des Straßenkatalogs;lage
 1;außerhalb des Geltungsbereichs des Straßenkatalogs;lage
 999;keine Angabe;lage
 protocol;off;config
+1;Beratung;aufbew
+2;Therapie;aufbew
+3;Missbrauch;aufbew
 """
 
 # Ergänzungen für die neue Bundesstatistik 2007
@@ -632,6 +634,7 @@ wohnbez;Wohnbezirksnr des Klienten
 dbsite;Datenbank-Site
 lage;Lage innerhalb oder außerhalb des Geltungsbereichs des Straßenkatalogs
 config;Konfigurationseinstellungen
+aufbew;Aufbewahrungskategorie
 """
 
 # Ergänzungen für die neue Bundesstatistik 2007

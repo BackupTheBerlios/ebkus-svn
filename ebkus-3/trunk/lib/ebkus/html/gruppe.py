@@ -17,19 +17,19 @@ class menugruppe(Request.Request, akte_share):
         """Optionen für Gruppenauswahl erstellen"""
         option_t = '<option value="%(gruppe_id)s">%(mit_id__na)s | %(gruppe_id__name)s</option>\n'
         options = ''
+        where = "gruppe.stz=%s" % self.stelle['id']
         if self.mitarbeiter['benr__code'] == 'bearb':
-            mitarbeitergruppenl = MitarbeiterGruppeList(where = 'mit_id = %s'
-                                                  % self.mitarbeiter['id'] )
-            mitarbeitergruppenl.sort('mit_id__na', 'gruppe_id__name')
-            for m in mitarbeitergruppenl:
-                if m['gruppe_id__stz'] == self.stelle['id']:
-                    options += option_t % m
-        elif self.mitarbeiter['benr__code'] == 'verw' or self.mitarbeiter['benr__code'] == 'admin':
-            mitarbeitergruppenl = MitarbeiterGruppeList()
-            mitarbeitergruppenl.sort('mit_id__na', 'gruppe_id__name')
-            for m in mitarbeitergruppenl:
-                if m['gruppe_id__stz'] == self.stelle['id']:
-                    options += option_t % m
+            where += ' and mit_id = %s' % self.mitarbeiter['id']
+        elif self.mitarbeiter['benr__code'] == 'verw':
+            pass
+        else:
+            raise EE('Keine Berechtigung')
+        mitarbeitergruppenl = MitarbeiterGruppeList(
+                where=where,
+                join=[('gruppe', 'mitarbeitergruppe.gruppe_id=gruppe.id')])
+        mitarbeitergruppenl.sort('mit_id__na', 'gruppe_id__name')
+        for m in mitarbeitergruppenl:
+            options += option_t % m
         return options
         
     def processForm(self, REQUEST, RESPONSE):

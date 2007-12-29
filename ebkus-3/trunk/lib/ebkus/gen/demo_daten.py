@@ -3,9 +3,10 @@
 import sys, os, time, sha
 from ebkus.app.ebapi import cc, cn, getNewFallnummer, Date, today, str2date, getDate, setDate, \
      Kategorie, Code, Mitarbeiter, MitarbeiterList, Akte, Fall, FallList, Leistung, \
-     Beratungskontakt, \
+     Beratungskontakt, FeldList, \
      Zustaendigkeit, Bezugsperson, Einrichtungskontakt, CodeList, \
-     StrassenkatalogNeuList, Fachstatistik, Jugendhilfestatistik, Jugendhilfestatistik2007
+     StrassenkatalogNeuList, Fachstatistik, Jugendhilfestatistik, Jugendhilfestatistik2007, \
+     Altdaten
 from ebkus.app.ebapih import  get_codes
 from ebkus.app.ebupd import akteeinf, fseinf, jgheinf, jgh07einf, miteinf, codeeinf, \
      leisteinf, zdaeinf, waufneinf, perseinf, einreinf
@@ -39,7 +40,7 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
 ##                                                   # default ist dieses Jahr
 ##                       fake_today=TODAY):          # gefaktes heute: (2009,6,6), default das reale heute 
 
-    n_akten = 40
+    n_akten = 100
     n_bearbeiter = 4
     n_stellen = 2
     von_jahr = Date(2006)
@@ -133,7 +134,16 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
                                             (cc('status', 'i'), cc('benr', 'bearb')))
     for i in range(1, n_akten+1):
         DemoDaten().fake_akte()
-
+    # ohne feld 'id'
+    fields = [f['feld'] for f in FeldList(
+        where="tabelle.tabelle='altdaten'",
+        join=[('tabelle', 'tabelle.id=feld.tab_id')])][1:]
+    csv_path = os.path.join(config.EBKUS_HOME, 'sql', 'demo_altdaten.csv')
+    csv_file = open(csv_path, 'wb')
+    csv_file.write(';'.join(['"%s"' % f for f in fields]) + '\r\n')
+    for i in range(1, 500):
+        DemoDaten().fake_altdaten(csv_file, fields)
+    log('Altdaten CSV generiert: %s' % csv_path)
 
 def set_default_fachstatistik():
     from ebkus.html.fskonfig import fs_customize
@@ -247,7 +257,8 @@ class DemoDaten(object):
     strassen = ('Teichweg', 'Müllerstr.', 'Am Rott', 'Karl-Marx-Str.',
                 'Hinterm Markt', 'Rosenweg')
     orte = ('Unterhausen', 'Groß-Lehnau', 'Klein-Magrau')
-
+    vornamen = ('Tom', 'Ögür', 'Frieda', 'Magda', 'Hugo', 'Peter', )
+    namen = ('Haß', 'Öhlbrecht', 'Wäderich', 'Schmidt', 'Müller', 'Düsentrieb')
     def fake_stelle(self, i, **kw):
         """i=1 --> Stelle B
            i=2 --> Stelle C
@@ -426,7 +437,9 @@ class DemoDaten(object):
 
 
     def fake_waufn(self, datum=None):
-        letzter_fall = Akte(self.akte_id)['letzter_fall']
+        akte = Akte(self.akte_id)
+        stelle_id = akte['stzbg']
+        letzter_fall = akte['letzter_fall']
         zdadatum = letzter_fall.getDate('zda')
         if zdadatum == Date(0,0,0):
 ##             log(zdadatum)
@@ -444,15 +457,13 @@ class DemoDaten(object):
         if not datum:
             datum = self.choose_date(min=zdadatum.add_month(1))
         setDate(form, 'zubg', datum)
-        mitarbeiter = choice(self.mitarbeiter)
+        mitarbeiter = self.choose_mitarbeiter(stelle_id)
         form['zumitid'] = mitarbeiter['id']
-        form['stzbg'] = mitarbeiter['stz'] # ist das richtig? akte.stzbg wird dadrauf gesetzt
         form['lemitid'] = mitarbeiter['id']
         form['le'] = self.choose_code_id('fsle')
         setDate(form, 'lebg', getDate(form, 'zubg')) # erste Leistung zu Fallbeginn
-        form['lestz'] = mitarbeiter['stz']
+        form['lestz'] = stelle_id
         # form benötigt die Adressdaten, sonst wird in ebupd.waufneinf die Adresse gelöscht
-        akte = Akte(self.akte_id)
         form['gs'] = akte['gs']
         setDate(form, 'gb', str2date(akte['gb']))
         for k in ('ort', 'str', 'plz', 'hsnr'):
@@ -482,6 +493,7 @@ class DemoDaten(object):
     def fake_akte(self):
         """erzeugt Daten für eine Akte"""
         akte_id = self.akte_id = Akte().getNewId()
+        stelle_id = self.choose_code_id('stzei')
         form = {}
         form['akid'] = akte_id
         form['vn'] = "Klient%sVn" % akte_id
@@ -491,23 +503,23 @@ class DemoDaten(object):
         setDate(form, 'gb', self.choose_date(self.von_jahr.add_month(-240),
                                              self.bis_jahr.add_month(-24)))
         form['gs'] = self.choose_code_id('gs')
+        form['aufbew'] = self.choose_code_id('aufbew')
         form['ber'] = "Ausbildung von Nr.: %s" % akte_id
         self.fake_adresse(form)                                                      
         form['tl1'] = str(randrange(20000, 99999999))
         form['tl2'] = ''
         form['fs'] = self.choose_code_id('fsfs')
         form['no'] = 'Das sind alles Beispieldaten für Form %s' % self.akte_id
-        form['stzbg'] = self.choose_code_id('stzei')
-        form['stzak'] = form['stzbg'] # beim Anlegen die gleiche Stelle
+        form['stzbg'] = stelle_id
         # Fall
         setDate(form, 'zubg', self.choose_date(min=self.von_jahr))
 ##         form['zumitid'] = choice(self.mitarbeiter)['id']
 ##         form['lemitid'] = choice(self.mitarbeiter)['id']
-        form['zumitid'] = self.choose_mitarbeiter(form['stzbg'])['id']
-        form['lemitid'] = self.choose_mitarbeiter(form['stzbg'])['id']
+        form['zumitid'] = self.choose_mitarbeiter(stelle_id)['id']
+        form['lemitid'] = self.choose_mitarbeiter(stelle_id)['id']
         form['le'] = self.choose_code_id('fsle')
         setDate(form, 'lebg', getDate(form, 'zubg')) # erste Leistung zu Fallbeginn
-        form['lestz'] = Mitarbeiter(form['lemitid'])['stz']
+        form['lestz'] = stelle_id
         akteeinf(form)
         fall = Akte(self.akte_id)['letzter_fall']
         log("Akte %s" % akte_id)
@@ -582,7 +594,7 @@ class DemoDaten(object):
         form['fall_fn'] = fall['fn']
         form['mitid'] = fall['zustaendig__mit_id']
         form['jahr'] = ende_datum.year
-        form['stz'] = akte['stzak']
+        form['stz'] = akte['stzbg']
         form['plr'] = akte['planungsr']
         form['gs'] = akte['gs']
         form['ag'] = self.choose_code_id('fsag')
@@ -634,7 +646,7 @@ class DemoDaten(object):
         form['fallid'] = fall['id']
         form['fall_fn'] = fall['fn']
         form['mitid'] = fall['zustaendig__mit_id']
-        form['stz'] = akte['stzak']
+        form['stz'] = akte['stzbg']
         form['gfall'] = self.choose_code_id('gfall')
         setDate(form, 'bg', fall.getDate('bg'))
         setDate(form, 'e', ende_datum)
@@ -680,7 +692,7 @@ class DemoDaten(object):
         form['fallid'] = fall['id']
         form['fall_fn'] = fall['fn']
         form['mitid'] = fall['zustaendig__mit_id']
-        form['stz'] = akte['stzak']
+        form['stz'] = akte['stzbg']
         form['gfall'] = self.choose_code_id('gfall')
         form['wohnbez'] = akte['wohnbez']
         form['land'] = Code(kat_code='land', sort=1)['id']
@@ -722,3 +734,32 @@ class DemoDaten(object):
         #print 'Fake jgh07: ', form
         jgh07einf(form)
         log("Jugendhilfestatistik 2007 für %s (akte_id=%s)" % (fall['fn'], self.akte_id))
+
+    def fake_altdaten(self, csv_file, fields):
+        id=Altdaten().getNewId()
+        jahr=str(self.choose_date(Date(1999), Date(2006)).year)
+        altd = Altdaten()
+        altd.init(
+            id=id,
+            vorname=choice(self.vornamen),
+            name=choice(self.namen),
+            geburtsdatum=str(self.choose_date(Date(1989,3,1), today().add_month(-24))),
+            geschlecht=choice(('m', 'w')),
+            jahr=jahr,
+            fallnummer=("%s%03d" % (jahr, choice(range(1,1000)))),
+            mitarbeiter="Mitarb%s" % id,
+            strasse=choice(self.strassen),
+            hausnummer=str(randrange(1, 200)),
+            plz=str(randrange(10000, 99999)),
+            ort=choice(self.orte),
+            telefon1=str(randrange(10001, 99999999)),
+            telefon2=str(randrange(10001, 99999999)),
+            memo=("Memo für Altdaten id=%s. "
+            "äöüÄÖÜß Hier kann man noch eine Menge über den alten Fall reinschreiben. "
+            "Auch längere Texte. " % id)[:randrange(25,150)]
+            )
+        csv = ';'.join([('"%%(%s)s"' % a) % altd for a in fields])
+        csv_file.write(csv + '\r\n')
+        altd.insert()
+        log("Altdaten %s" % id)
+        return altd

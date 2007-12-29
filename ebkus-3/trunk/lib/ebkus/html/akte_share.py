@@ -7,7 +7,6 @@ from ebkus.app.ebapi import today, str2date, cc, Akte, Bezugsperson, Beratungsko
 from ebkus.app.ebapih import get_codes, make_option_list
 import ebkus.html.htmlgen as h
 from ebkus.html.options import options
-from ebkus.html.strkat import get_strassen_list, get_strasse
 
 class akte_share(options):
     """Html-Elemente, die an verschiedenen Stellen gebraucht werden
@@ -63,6 +62,7 @@ class akte_share(options):
 
     def _get_ort_zusatz_items(self, data):
         "Optionale, konfigurierbare Felder für Klientendaten readonly"
+        from ebkus.html.strkat import get_strasse
         items = [h.DummyItem(), h.DummyItem()]
         strasse = get_strasse(data)
         if strasse:
@@ -168,6 +168,16 @@ class akte_share(options):
                               readonly=True,
                               ),
                     ],
+                   [h.TextItem(label='Aufbewahrungs-<br />kategorie',
+                               name='aufbew',
+                               value=data['aufbew__name'],
+                               readonly=True,
+                               tip="Bestimmt den Zeitraum, für den die Akte aufbewahrt werden muss",
+                               n_col=4,
+                               ),
+                    h.DummyItem(),
+                    h.DummyItem(),
+                    ],
                    ],
             button=button,
             )
@@ -225,11 +235,18 @@ class akte_share(options):
                                value=data['ber'],
                                tip='Die Ausbildung %s' % bezug,
                                )],
+                   isinstance(data, Akte) and
+                   [h.SelectItem(label='Aufbewahrungs-<br />kategorie',
+                                 name='aufbew',
+                                 options=self.for_kat('aufbew', sel=data['aufbew']),
+                                 tip="Bestimmt den Zeitraum, für den die Akte aufbewahrt werden muss",
+                                 )] or None,
                    ],
             )
         return klientendaten
 
     def get_anschrift(self, data, force_strkat=None):
+        from ebkus.html.strkat import get_strasse
         if force_strkat != None:
             strkat_on = force_strkat
         else:
@@ -475,9 +492,9 @@ class akte_share(options):
             )
         return zustaendigkeiten
 
-    def get_bisherige_zustaendigkeit(self, aktuell_zustaendig):
+    def get_bisherige_zustaendigkeit(self, aktuell_zustaendig, legend):
         bisherige_zustaendigkeit = h.FieldsetDataTable(
-            legend='Bisherige Zuständigkeit wird ausgetragen',
+            legend=legend,
             headers= ('Bearbeiter', 'Beginn'),
             daten=[[h.String(string= "%(mit__vn)s %(mit__na)s" % aktuell_zustaendig),
                     h.Datum(date=aktuell_zustaendig.getDate('bg')),
@@ -761,6 +778,15 @@ class akte_share(options):
             daten=[[h.Button(value='Hauptmenü',
                              onClick="go_to_url('menu')",
                              tip="Hauptmenü",
+                             ),
+            ]]
+            )
+
+    def get_zurueck(self):
+        return h.FieldsetInputTable(
+            daten=[[h.Button(value='Zurück',
+                             onClick="history.back()",
+                             tip="Zurück",
                              ),
             ]]
             )

@@ -4,10 +4,11 @@
 
 import string,time
 
+from ebkus.db.sql import SQL
 from ebkus.app import Request
 from ebkus.config import config
-from ebkus.app.ebapi import StrassenkatalogList, Akte, Fall, Zustaendigkeit, today, cc
-
+from ebkus.app.ebapi import Akte, Fall, FallList, Altdaten, \
+     Zustaendigkeit, today, cc, check_list, check_code, check_int_not_empty, EE
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.akte_templates import *
 
@@ -37,7 +38,7 @@ class _akte(Request.Request, akte_share):
             )
         klientendaten = self.get_klientendaten(akte)
         anschrift = self.get_anschrift(akte, force_strkat)
-        falldaten = leistung = None
+        falldaten = leistung = altdaten = None
         if file in ('akteeinf', 'waufneinf'):
             falldaten = h.FieldsetInputTable(
                 legend='Falldaten',
@@ -69,6 +70,19 @@ class _akte(Request.Request, akte_share):
                                        date=today()),
                            ]],
                 )
+
+        if file=='akteeinf' and \
+               SQL("select count(*) from altdaten").execute()[0][0] > 0:
+            # Altdaten vorhanden
+            altdaten = h.FieldsetInputTable(
+                legend='Nach Altdaten suchen',
+                tip="Bitte zuerst nach Altdaten suchen, dann erst weitere Daten eingeben",
+                button=h.Button(value='Altdaten',
+                                name='xxx',
+                                onClick="go_to_url('altlist')",
+                                tip="Suche in den Altdaten aus früheren EDV-Systemen",
+                                ),
+                )
         res = h.FormPage(
             title=title,
             name=formname,action="klkarte",method="post",
@@ -82,7 +96,7 @@ class _akte(Request.Request, akte_share):
                     ("strid", ""), # wird nur von strkat mit javascript gesetzt
                     ) + hidden,
             rows=(h.Pair(left=klientendaten,
-                         right=anschrift,
+                         right=(altdaten, anschrift),
                          ),
                   notiz,
                   falldaten,
@@ -96,11 +110,44 @@ class akteneu(_akte):
     """Neue Fallakte anlegen (Tabellen: Akte, Fall, Zuständigkeit, Leistung)."""
     permissions = Request.UPDATE_PERM
     def processForm(self, REQUEST, RESPONSE):
+        alt_ids = check_list(self.form, 'uebern', 'Fehler in Altdaten', [])
+        if len(alt_ids) > 1:
+            raise EE("Bitte nur einen Eintrag zur Übernahme markieren!")
+        if alt_ids:
+            alt = Altdaten(alt_ids[0])
+        else:
+            alt = {}
+        gs_alt = alt.get('geschlecht')
+        if gs_alt:
+            gs = (gs_alt=='w' and cc('gs', '2')) or (gs_alt=='m' and cc('gs', '1'))
+        else:
+            gs = ' '
+        if alt:
+            no = "Alte Fallnummer: %(fallnummer)s, Jahr: %(jahr)s, Früherer Mitarbeiter: %(mitarbeiter)s" % alt
+        else:
+            no = ''
+        str = alt.get('strasse', '')
+        if str:
+            for end in ('trasse', 'traße'):
+                if str.endswith(end):
+                    i = str.index(end)
+                    str = str[:i] + 'tr.'
         akte = Akte()
         akte.init(
             id=Akte().getNewId(),
             fs=cc('fsfs', '999'),
-            gs=' ',
+            vn=alt.get('vorname', ''),
+            na=alt.get('name', ''),
+            gb=alt.get('geburtsdatum', ''),
+            ort=alt.get('ort', ''),
+            plz=alt.get('plz', ''),
+            str=str,
+            hsnr=alt.get('hausnummer', '').upper(),
+            gs=gs,
+            tl1=alt.get('telefon1', ''),
+            tl2=alt.get('telefon2', ''),
+            no=no,
+            aufbew=cc('aufbew', '1'),
             stzbg=self.stelle['id'],
             lage=(config.STRASSENKATALOG and  cc('lage', '0') or
                   cc('lage', '1')),
@@ -119,11 +166,9 @@ class waufnneu(_akte):
     (Tabellen: Akte, Fall, Zuständigkeit, Leistung)."""
     permissions = Request.UPDATE_PERM
     def processForm(self, REQUEST, RESPONSE):
-        if self.form.get('akid'):
-            akid = self.form.get('akid')
-        else:
-            self.last_error_message = "Keine ID fuer die Akte erhalten"
-            return self.EBKuSError(REQUEST, RESPONSE)
+        akid = self.form.get('akid')
+        if not akid:
+            raise EE("Keine ID fuer die Akte erhalten")
         akte = Akte(akid)
         return self._process(
                  title="Wiederaufnahme des Klienten",
@@ -132,7 +177,6 @@ class waufnneu(_akte):
                  formname='akteform',
                  hidden=(('fallid', Fall().getNewId()),
                          ('status', cc('stand', 'l')),
-                         ('stzbg', self.stelle['id']),
                          ),
                  )
         
@@ -158,8 +202,7 @@ class updakte(_akte):
             file='updakte',
             akte=akte,
             formname='akteform',
-            hidden=(('stzbg', akte['stzbg']),
-                    ('stzak', akte['stzak'])),
+            hidden=(),
             force_strkat=force_strkat,
             )
 
@@ -235,7 +278,9 @@ class zda(_akte):
                     ("aktuellmitid", aktuell_zustaendig['mit_id__id']),
                     ),
             rows=(falldaten,
-                  self.get_bisherige_zustaendigkeit(aktuell_zustaendig),
+                  self.get_bisherige_zustaendigkeit(
+            aktuell_zustaendig,
+            legend='Bisherige Zuständigkeit wird ausgetragen'),
                   self.get_zustaendigkeiten(zustaendigkeiten_list),
                   h.SpeichernZuruecksetzenAbbrechen(),
                   ),
@@ -243,28 +288,15 @@ class zda(_akte):
         return res.display()
         
 class zdar(_akte):
-    """Fallabschluss rückgängig machen und neue Zustaendigkeit eintragen
+    """Fallabschluss rückgängig machen und letzte Zustaendigkeit wiederherstellen
     (Tabellen: Fall und Zuständigkeit)."""
     permissions = Request.UPDATE_PERM
     def processForm(self, REQUEST, RESPONSE):
-        if self.form.has_key('fallid'):
-            fallid = self.form.get('fallid')
-        else:
-            self.last_error_message = "Keine ID fuer den Fall erhalten"
-            return self.EBKuSError(REQUEST, RESPONSE)
+        fallid = self.form.get('fallid')
+        if not fallid:
+            raise EE("Keine ID fuer den Fall erhalten")
         fall = Fall(fallid)
-        zustid = Zustaendigkeit().getNewId()
-        beginndatum = h.FieldsetInputTable(
-            daten=[[h.SelectItem(label='Mitarbeiter',
-                                 name='zumitid',
-                                 tip='Fallbearbeiter auswählen',
-                                 options=self.for_mitarbeiter(sel=self.mitarbeiter['id'])),
-                    h.DatumItem(label='Beginn',
-                                name='bg',
-                                tip='Datum des Fallbeginns',
-                                date=today()),
-                    ]],
-            )
+        zuletzt_zustaendig = fall['zuletzt_zustaendig']
         res = h.FormPage(
             title='Abschlussdatum rückgängig machen',
             name='zdarform',action="klkarte",method="post",
@@ -273,9 +305,11 @@ class zdar(_akte):
                            ),
             hidden=(("fallid", fallid),
                     ("file", 'zdareinf'),
-                    ("zustid", Zustaendigkeit().getNewId()),
                     ),
-            rows=(beginndatum,
+            rows=(self.get_bisherige_zustaendigkeit(
+            zuletzt_zustaendig,
+            legend='Letzte Zuständigkeit wird wiederhergestellt',
+            ),
                   h.SpeichernZuruecksetzenAbbrechen(),
                   ),
             )
@@ -293,7 +327,10 @@ class _zust(_akte):
         zustaendigkeiten_list = fall['zustaendigkeiten']
         zustaendigkeiten_list.sort('bgy', 'bgm', 'bgd')
         if file == 'zusteinf':
-            bisherige_zustaendigkeit = self.get_bisherige_zustaendigkeit(aktuell_zustaendig)
+            bisherige_zustaendigkeit = self.get_bisherige_zustaendigkeit(
+                aktuell_zustaendig,
+                legend='Bisherige Zuständigkeit wird ausgetragen',
+                )
         elif file == 'updzust':
             bisherige_zustaendigkeit = None
         res = h.FormPage(
@@ -393,56 +430,212 @@ class updzust(_zust):
                     ),
             )
 
-class rmakten(Request.Request):
+
+class rmaktenf(Request.Request, akte_share):
     """Abfrageformular zum Löschen von Akten."""
-    
     permissions = Request.ADMIN_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        
-        # Liste der Templates als String
-        
-        res = []
-        res.append(head_normal_ohne_help_t %('Einstellungen f&uuml;r den L&ouml;schvorgang'))
-        res.append(rmakten_t % int(config.LOESCHFRIST))
-        return string.join(res, '')
-        
-        
-class rmakten2(Request.Request):
-    """Löscht die Akten, welche älter als die Löschfrist sind.
-    Die Statistiktabellen bleiben erhalten. Die fall_id wird auf NULL gesetzt.
-    """
-    
+        return "Noch nicht implementiert"
+
+
+class rmakten(Request.Request, akte_share):
+    """Abfrageformular zum Löschen von Akten."""
     permissions = Request.ADMIN_PERM
-    
     def processForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        if self.form.has_key('frist'):
-            frist = self.form.get('frist')
+        #print self.form
+        alter = self.form.get('alter')
+        if alter == None:
+            alter = config.LOESCHFRIST
         else:
-            self.last_error_message = "Keine Frist erhalten"
-            return self.EBKuSError(REQUEST, RESPONSE)
+            alter = check_int_not_empty(
+            self.form, 'alter', 'Fehler im Alter in Monaten')
+            if alter < config.LOESCHFRIST:
+                raise EE('Löschfrist beträgt mindestens %s Monate' % config.LOESCHFRIST)
+        aufbew = self.form.get('aufbew')
+        if aufbew == None:
+            aufbew = cc('aufbew', '1')
+        else:
+            aufbew = check_code(self.form, 'aufbew', 'aufbew',
+                                'Fehler in Aufbewahrungskategorie')
+        op = self.form.get('op')
+        rm = check_list(self.form, 'rmak', 'Fehler in markierten Akten', '')
+        if op == 'Endgültig löschen' and rm:
+            hidden = [('rmak', r) for r in rm] + [('op', 'loeschen_confirmed')]
+            return h.SubmitOrBack(
+                legend='Endgültig löschen',
+                action='rmakten2',
+                method='post',
+                hidden=hidden,
+                zeilen=("Sollen die markierten Akten endgültig gelöscht werden?",
+                        )
+                ).display()
+        alter_und_kategorie = h.FieldsetFormInputTable(
+            name="rmaktenanzeigen",
+            action="rmakten",
+            method="post",
+            hidden = (),
+            legend='Alter und Kategorie der zu löschenden Akten wählen',
+            daten=[[h.SelectItem(label='Aufbewahrungskategorie',
+                                 name='aufbew',
+                                 options=self.for_kat('aufbew',
+                                                      sel=aufbew or cc('aufbew', '1')),
+                                 ),
+                    h.TextItem(label='Monate seit Abschluss des letzten Falls',
+                               name='alter',
+                               value=alter or '',
+                               class_='textboxsmall',
+                               maxlength=3,
+                               tip='Mindesanzahl der Monate seit Abschluss des letzten Falls'
+                               ),
+                    ],
+                   [h.Dummy(n_col=4)],
+                   [h.Button(value="Anzeigen",
+                             name='op',
+                             tip="Akten der gewählten Kategorie und des gewählten Alters anzeigen",
+                             type='submit',
+                             n_col=4,
+                             ),
+                    ],
+                   ],
+            )
+        if alter and aufbew:
+            rmdatum = today().add_month(-(alter+1)) # damit immer mindestens die Anzahl Monate
+                                                    # dazwischen liegt
+            #print 'LOESCHDATUM', rmdatum
+            alle_faelle = FallList(
+                where = 'zday <= %(year)s and zdam <= %(month)s and zday > 0'
+                % rmdatum)
+            faelle = [f for f in alle_faelle
+                      if f == f['akte__letzter_fall'] and aufbew == f['akte__aufbew']]
+            akten = h.FieldsetFormDataTable(
+                name="rmakten",
+                #action="abfragedef",
+                action="rmakten",
+                method="post",
+                hidden = (),
+                legend='Akten zum löschen auswählen (Statistiken bleiben erhalten)',
+                headers=('Name', 'Vorname', 'Geburtsdatum', 'Letzter Fallabschluss', '', 'Löschen'),
+                daten=[[h.String(string=fall['akte__na']),
+                        h.String(string=fall['akte__vn']),
+                        h.String(string=fall['akte__gb']),
+                        h.Datum(date=fall.getDate('zda')),
+                        h.CheckItem(label='',
+                                    name='rmak',
+                                    value=fall['akte_id'],
+                                    checked=False,
+                                    tip='Hier markieren, um die Akte endgültig zu löschen',
+                                    ),
+                        ] for fall in faelle],
+                no_button_if_empty=True,
+                button=h.Button(value="Endgültig löschen",
+                           name='op',
+                           tip="Markierte endgültig Akten löschen",
+                           type='submit',
+                           class_='buttonbig',
+                           n_col=6,
+                     ),
+                empty_msg="Keine Akten gefunden.",
+                )
             
-        jahr = today().year
-        monat = today().month
-        heute = int(jahr)*12 + int(monat)
-        loeschzeitm = int(heute)-int(frist)
-        loeschjahr = int(loeschzeitm) / int(12)
-        loeschmonat = int(loeschzeitm) - (int(loeschjahr) * int(12))
+        else:
+            akten = None
+    
+##         buttons = h.FieldsetInputTable(
+##             daten=[[
+##             h.Button(value="Endgültig löschen",
+##                      name='op',
+##                      tip="Markierte Akten löschen",
+##                      type='button',
+##                      onClick="confirm_submit('Markierte Akten endgültig löschen?', 'rmakten')",
+##                      class_='buttonbig',
+##                      ),
+##             h.Button(value="Abbrechen",
+##                      name='op',
+##                      tip="Zurück zum Hauptmenü ohne zu löschen",
+##                      type='button',
+##                      onClick="go_to_url('menu')",
+##                      ),
+##             ]])
+        res = h.Page(
+            title='Akten löschen',
+            breadcrumbs = (('Aministratorhauptmenü', 'menu'),
+                           ),
+            rows=(self.get_hauptmenu(),
+                  alter_und_kategorie,
+                  akten,
+                  ),
+            )
+        return res.display()
         
-        hidden ={'file': 'removeakten'}
+class rmakten2(Request.Request, akte_share):
+    """Löscht die Akten, deren ID im Parameter rmak steht.
+    """
+    permissions = Request.ADMIN_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        from ebkus.app.ebapi import check_list
+        print self.form
+        op = self.form.get('op')
+        rm = check_list(self.form, 'rmak', 'Fehler in markierten Akten', '')
+        if op == 'loeschen_confirmed' and rm:
+            if rm:
+                akten = [Akte(r) for r in rm]
+                for a in akten:
+                    # vor dem Löschen holen!
+                    a['zda'] = a['letzter_fall'].getDate('zda')
+                    assert not a['aktueller_fall']
+                from ebkus.app.ebupd import removeakten
+                anzahl_akten_geloescht, anzahl_gruppen_geloescht = removeakten(self.form)
+                assert anzahl_akten_geloescht == len(akten), 'Fehler beim Löschen von Akten'
+            else:
+                raise EE('Keine Akten zum löschen markiert')
+            geloeschte_akten = h.FieldsetDataTable(
+                legend='Endgültig gelöschte Akten (Statistik bleibt erhalten)',
+                headers=('Name', 'Vorname', 'Geburtsdatum', 'Letzter Fallabschluss'),
+                daten=[[h.String(string=akte['na']),
+                        h.String(string=akte['vn']),
+                        h.String(string=akte['gb']),
+                        h.Datum(date=akte['zda']),
+                        ] for akte in akten],
+                )
+            
+        else:
+            geloeschte_akten = None
+        res = h.Page(
+            title='Akten gelöscht',
+            breadcrumbs = (('Aministratorhauptmenü', 'menu'),
+                           ('Akten löschen', None),
+                           ),
+            rows=(self.get_hauptmenu(),
+                  geloeschte_akten,
+                  ),
+            )
+        return res.display()
+##     def processForm(self, REQUEST, RESPONSE):
+##         mitarbeiterliste = self.getMitarbeiterliste()
+##         user = self.user
+##         if self.form.has_key('frist'):
+##             frist = self.form.get('frist')
+##         else:
+##             self.last_error_message = "Keine Frist erhalten"
+##             return self.EBKuSError(REQUEST, RESPONSE)
+            
+##         jahr = today().year
+##         monat = today().month
+##         heute = int(jahr)*12 + int(monat)
+##         loeschzeitm = int(heute)-int(frist)
+##         loeschjahr = int(loeschzeitm) / int(12)
+##         loeschmonat = int(loeschzeitm) - (int(loeschjahr) * int(12))
         
-        res = []
-        res.append(head_normal_ohne_help_t %("Akten und Gruppen löschen"))
-        res.append(rmakten2a_t)
-        res.append(formhiddenvalues_t % hidden)
-        res.append(formhiddennamevalues_t % ({'value': frist, 'name': 'frist'}))
-        res.append(formhiddennamevalues_t % ({'value': loeschjahr,
-                                              'name': 'loeschjahr'}))
-        res.append(formhiddennamevalues_t % ({'value': loeschmonat,
-                                              'name': 'loeschmonat'}))
-        res.append(rmakten2b_t % (frist, loeschmonat, loeschjahr ))
-        return string.join(res, '')
+##         hidden ={'file': 'removeakten'}
+        
+##         res = []
+##         res.append(head_normal_ohne_help_t %("Akten und Gruppen löschen"))
+##         res.append(rmakten2a_t)
+##         res.append(formhiddenvalues_t % hidden)
+##         res.append(formhiddennamevalues_t % ({'value': frist, 'name': 'frist'}))
+##         res.append(formhiddennamevalues_t % ({'value': loeschjahr,
+##                                               'name': 'loeschjahr'}))
+##         res.append(formhiddennamevalues_t % ({'value': loeschmonat,
+##                                               'name': 'loeschmonat'}))
+##         res.append(rmakten2b_t % (frist, loeschmonat, loeschjahr ))
+##         return string.join(res, '')

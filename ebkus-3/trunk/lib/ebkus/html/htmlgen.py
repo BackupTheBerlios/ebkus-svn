@@ -105,24 +105,67 @@ class Base(_HTML):
     width = 760
     weiterleitung_t = """<meta http-equiv="refresh" content="%(delay)s; URL=%(url)s">\n"""
     #help_t = """<script src="/ebkus/ebkus_javascripte/ebkus_help.js" type="text/javascript"></script>\n"""
-    help_t = """<div id="help")s><a href="/ebkus/doc/EBKuS_Handbuch.html#%(help)s" target="_blank">Hilfe</a></div>\n"""
-    #help_t = """<a href="/ebkus/doc/EBKuS_Handbuch.html#%(help)s" target="_blank">Hilfe</a>"""
-    breadcrumbs_t = """<tr><td class="breadcrumb" align="left">%s</td></tr>"""
+    #help_t = """<div id="help")s><a href="/ebkus/doc/EBKuS_Handbuch.html#%(help)s" target="_blank">Hilfe</a></div>\n"""
+    help_t = """<a href="/ebkus/doc/EBKuS_Handbuch.html#%(help)s" target="_blank">Hilfe</a>"""
+    #breadcrumbs_t = """<tr><td class="breadcrumb" align="left">%s</td></tr>"""
+    #breadcrumbs_t = """<tr><td>
+    #                    <table><tr><td class="breadcrumb" align="left">%s</td>
+    #                               <td class="breadcrumb" align="right">%s</td>
+    #                    </tr></table></td></tr>"""
+    xstatuszeile_t = """
+<div id="help">%(help)s</div>
+<div id="breadcrumb">%(breadcrumb)s</div>
+<div id="instanz">%(instanz)s</div>
+<div id="login">%(login)s</div>
+<div id="logout"><a href="logout">Abmelden</a></div>
+"""
+    xstatuszeile_t = """
+<table class="breadcrumb" width="100%%"><tr>
+<td align="left">%(help)s</tdd>
+<td>%(breadcrumb)s</tdd>
+<td>%(instanz)s</tdd>
+<td>%(login)s</tdd>
+<td align="right"><a href="logout">Abmelden</a></td>
+"""
+    statuszeile_t = """
+<table class="breadcrumb" width="100%%"><tr valign="top">
+<td width="5%%" align="left">%(help)s</td>
+<td width="35%%">%(breadcrumb)s</td>
+<td width="25%%">%(instanz)s</td>
+<td width="30%%">%(login)s</td>
+<td width="8%%" align="right"><a href="logout">Abmelden</a></td>
+</tr></table>
+"""
+    
+
+
     def _init(self):
         super(Base, self)._init()
         self.expand_attr('onload')
         if self.weiterleitung:
             self.weiterleitung = self.weiterleitung_t % self
-        if self.help:
-            self.help = self.help_t % self
-        else:
-            self.help = ''
+##         if self.help:
+##             self.help = self.help_t % self
+##         else:
+##             self.help = ''
+        self.help = self.help_t % self
         if self.breadcrumbs:
-            # name, url
-            crumbs = ' > '.join(['<a href="%s">%s</a>' % (entry[1], entry[0]) 
-                                 for entry in self.breadcrumbs if entry])
-            crumbs += ' > %s' % self.title
-            self.breadcrumb = self.breadcrumbs_t % crumbs
+            # name, url, falls keine url, nur der Name ohne link
+            crumbs = [(entry[1] and '<a href="%s">%s</a>' %
+                       (entry[1], entry[0])) or entry[0]
+                      for entry in self.breadcrumbs if entry]
+            crumbs += [self.title]
+            crumbs = ' > '.join(crumbs)
+##             crumbs = ' > '.join([(entry[1] and '<a href="%s">%s</a>' %
+##                                   (entry[1], entry[0])) or entry[0]
+##                                  for entry in self.breadcrumbs if entry])
+##             crumbs += ' > %s' % self.title
+            # TODO user daten übernehmen
+            #self.login = "Albrecht Schmiedel (atms, Fallberater)"
+            #self.breadcrumb = self.breadcrumbs_t % (crumbs, login)
+            self.breadcrumb = crumbs
+            self.instanz = "EBKuS 4.0 demo_wolfenbüttel"
+            self.statuszeile = self.statuszeile_t % self
     tmpl = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -134,8 +177,8 @@ class Base(_HTML):
 <link rel="stylesheet" type="text/css" href="/ebkus/ebkus_styles/css_styles.css">
 </head>
 <body%(onload_attr)s><a name="top"></a>
-%(help)s<table class="pageframe" width="%(width)s" align="center" valign="top">
-%(breadcrumb)s
+%(statuszeile)s
+<table class="pageframe">
   <tr>
       <td align="center" valign="top">
 %(form_begin)s%(content)s%(form_end)s
@@ -257,6 +300,7 @@ class DataTable(object):
     """oblig: daten oder button oder buttons oder empty_msg
     optional: daten_before_headers - Zeilen, die vor headers eingefügt werden
               headers - Spaltenüberschriften, strings
+              no_button_if_empty
     erwartet in headers: Seq von string
     erwartet in daten: Seq von Seq von <td>
     liefert string mit ein oder mehrere <tr>
@@ -276,6 +320,10 @@ class DataTable(object):
                  # Damit kann colspan für button gesetzt werden.
         # TODO cols wird nicht in allen Fällen richtig gesetzt
         # (keine header, keine daten)
+        has_button = (self.button or self.buttons)
+        if not self.daten:
+            # Kein button wenn leer und no_button_if_empty gesetzt
+            has_button = not self.no_button_if_empty
         buf = StringIO()
         pr = buf.write
         if self.daten_before_headers:
@@ -320,24 +368,25 @@ class DataTable(object):
                             pr(str(spalte))
                     pr("</tr>\n")
                     max_cols = max(max_cols, cols)
-        if self.button:
-            #self.button.set_n_col(cols)
-            self.button.n_col = max(self.button.n_col, max_cols)
-            pr("<tr>")
-            pr(str(self.button))
-            pr("</tr>\n")
-        elif self.buttons:
-            # Wenn mehrere Button reinsollen, besser eine eigene Tabelle
-            class _TableDataTable(Table, DataTable):
-                def _init(self):
-                    super(_TableDataTable, self)._init()
-                    self.set_rows()
-            button_zeile = _TableDataTable(
-                daten=[self.buttons],
-                colspan=max(1, max_cols),
-                )
-            pr(str(button_zeile))
-        elif not self.daten and self.empty_msg:
+        if has_button:
+            if self.button:
+                #self.button.set_n_col(cols)
+                self.button.n_col = max(self.button.n_col, max_cols)
+                pr("<tr>")
+                pr(str(self.button))
+                pr("</tr>\n")
+            elif self.buttons:
+                # Wenn mehrere Button reinsollen, besser eine eigene Tabelle
+                class _TableDataTable(Table, DataTable):
+                    def _init(self):
+                        super(_TableDataTable, self)._init()
+                        self.set_rows()
+                button_zeile = _TableDataTable(
+                    daten=[self.buttons],
+                    colspan=max(1, max_cols),
+                    )
+                pr(str(button_zeile))
+        if not self.daten and self.empty_msg and not has_button:
             self.colspan = max(1, max_cols)
             pr("<tr>")
             pr("""<td colspan="%(colspan)s">%(empty_msg)s</td>""" % self)
@@ -393,6 +442,14 @@ class FieldsetFormInputTable(FieldsetForm, InputTable):
     """
     def _init(self):
         super(FieldsetFormInputTable, self)._init()
+        self.set_rows()
+
+class FieldsetFormDataTable(FieldsetForm, DataTable):
+    """liefert ein Fieldset dessen Inhalt von einer DataTable aufgefüllt wird
+    und von einer Form umgeben ist.
+    """
+    def _init(self):
+        super(FieldsetFormDataTable, self)._init()
         self.set_rows()
 
 class Meldung(FormPage):
@@ -645,12 +702,10 @@ class TextareaItem(InputItem):
 class UploadItem(InputItem):
     """obligatorisch: label,name
     """
-    class_ = 'textbox120'
     tmpl = """<td align="right" class="%(label_class)s"%(label_width_attr)s%(rowspan_attr)s%(label_colspan_attr)s>
     <label for="%(id)s">%(label)s</label></td>
-    <td align="left"%(colspan_attr)s%(tip)s%(rowspan_attr)s>
-    <input type="file" name="%(name)s" id="%(id)s"
-    class="%(class_)s"%(onBlur_attr)s>
+    <td %(colspan_attr)s%(tip)s%(rowspan_attr)s>
+    <input type="file" name="%(name)s" id="%(id)s" class="%(class_)s"%(onBlur_attr)s>
     </td>
 """
 

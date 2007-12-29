@@ -371,6 +371,15 @@ function abfrage_bearbeiten(op)
     window.location.href = url;
 }
 
+function confirm_submit(msg, formname)
+{
+   res = window.confirm(msg);
+   if (res)
+   {
+        document.getElementsByName("op")[0].value = "loeschen";
+        document.forms[formname].submit();
+   }       
+}
 function submit_abfragedef()
 {
 /*    

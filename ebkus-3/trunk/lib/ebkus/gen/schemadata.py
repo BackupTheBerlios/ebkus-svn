@@ -92,14 +92,6 @@ artdeszugriffs, longtext, artdeszugriffs, p,
 benutzerkennung, VARCHAR(25), benutzerkennung, p,
 ipadresse, VARCHAR(25), ipadresse, p
 
-table, strassenkat, ,Strassenkatalog
-str_nummer, VARCHAR(5), Str_nummer, p,
-str_name, VARCHAR(60), Str_name, p,
-hausnr, VARCHAR(4), Hausnr, p,
-bezirk, INT, Bezirk, p,
-plz, INT, Plz, p,
-Plraum, VARCHAR(8), Planungsraum, p
-
 table, strkatalog, ,StrassenkatalogNeu
 id, INT, id, s,
 von, VARCHAR(5), von Hausnummer, p,
@@ -113,16 +105,6 @@ samtgemeinde, VARCHAR(60), Samtgemeinde, p,
 bezirk, VARCHAR(60), Bezirk, p,
 plraum, VARCHAR(60), Planungsraum, p,
 
-
-table, sessions, ,Session
-session_id, VARCHAR(50), SessionID, s,
-time, VARCHAR(16), Time, p,
-user_name, VARCHAR(25), UserName, p,
-
-table, mitstelle, mit_id.stz, Zuordnung Mitarbeiter-Dienststelle, MitarbeiterDienststelle
-mit_id, INT, Mitarbeiterid, f, mitarbeiter, neben_stz
-stz, INT, Nebendienststelle, k, stzei
-
 table, akte, , Akte, Akte
 id, INT, id, s
 vn, VARCHAR(35), Vorname, p,
@@ -130,6 +112,7 @@ na, VARCHAR(35), Name, p,
 gb, VARCHAR(10), Geburtsdatum, p,
 gs, INT, Geschlecht, k, gs
 ber, VARCHAR(30), Ausbildung, p,
+aufbew, INT, Aufbewahrungskategorie, k, aufbew
 str, VARCHAR(35), Strasse, p,
 hsnr, VARCHAR(5), Hausnummer, p,
 plz, VARCHAR(9), Postleitzahl, p,
@@ -142,7 +125,7 @@ tl2, VARCHAR(25), Diensttelefon, p,
 fs, INT, Familienstatus (lebt bei), k, fsfs,
 no, VARCHAR(255), Notiz, p,
 stzbg, INT, Aufnahmedienststelle, k, stzei
-stzak, INT, Aktuelle Dienststelle, k, stzei
+stzak, INT, Aktuelle Dienststelle (obsolet), k, stzei
 zeit, INT, Änderungszeit, p,
 
 table, fall, , Fall, Fall
@@ -416,21 +399,6 @@ jokf7, INT, Frei definierbar eigenständig, k, fsjokf7
 jokf8, INT, Frei definierbar eigenständig, k, fsjokf8
 zeit, INT, Änderungszeit, p,
 
-table, fachstatlei, , Zuordnung Fachstatistik-Leistung, Fachstatistikleistung
-id, INT, id, s,
-fstat_id, INT, Fachstatistikid, f, fachstat, leistungen
-le, INT, Leistungsart, k, fsle
-
-table, fachstatkindproblem, , Zuordnung Fachstatistik-Problemspektrum Kind, Fachstatistikkindproblem
-id, INT, id, s,
-fstat_id, INT, Fachstatistikid, f, fachstat, fachstatkindprobleme
-pbk, INT, Problemspektrum Kind, k, fspbk
-
-table, fachstatelternproblem, , Zuordnung Fachstatistik-Problemspektrum Eltern, Fachstatistikelternproblem
-id, INT, id, s,
-fstat_id, INT, Fachstatistikid, f, fachstat, fachstatelternprobleme
-pbe, INT, Problemspektrum Eltern, k, fspbe
-
 table, jghstat, , Jugendhilfestatistik, Jugendhilfestatistik
 id, INT, id, s,
 fall_id, INT, Fallid, f, fall, jgh_statistiken
@@ -544,19 +512,6 @@ dok, VARCHAR(255), Erläuterung, p,
 flag, INT, Flags, p
 zeit, INT, Änderungszeit, p,
 
-table, exportprotokoll, , DB Exportprotokoll, Exportprotokoll
-id, INT, id, s,
-mit_id, INT, Mitarbeiterid, f, mitarbeiter,
-zeit, INT, Exportzeitpunkt, p,
-dbsite, INT, Datenbanksite, k, dbsite,
-
-table, importprotokoll, , DB Importprotokoll, Importprotokoll
-id, INT, id, s,
-exp_id, INT, Exportprotokollid, f, exportprotokoll, importprotokolle
-mit_id, INT, Mitarbeiterid, f, mitarbeiter,
-zeit, INT, Importzeitpunkt, p,
-dbsite, INT, Datenbanksite, k, dbsite,
-
 table, feld, tab_id.feld, Feld, Feld
 id, INT, id, s,
 tab_id, INT, Tabelle, f, tabelle, felder
@@ -580,19 +535,7 @@ name, VARCHAR(60), Langname der Tabelle, p,
 klasse, VARCHAR(60), Klassenname, p,
 flag, INT, Flags, p,
 dok, VARCHAR(255), Erläuterung, p,
-
-table, tabid, table_id.dbsite/table_name.dbsite, Zuordnung Tabelle-ID-Bereiche, TabellenID
-table_id, INT, Tabellenid, f, tabelle, iddaten
-table_name, VARCHAR(30), Tabellenname, p,
-dbsite, INT, Datenbanksite, k, dbsite,
-minid, INT, Minimale ID, p,
-maxid, INT, Maximale ID, p,
 maxist, INT, Maximale verwendete ID, p,
-
-table, schluessel, tab_id.feld_id.seq, Schlüssel, Schluessel
-tab_id, INT, Tabelle, f, tabelle, schluessel
-feld_id, INT, Feld, f, feld, schluessel
-seq, INT, Laufende Nummer, p,
 
 table, register, regkey, Register, Register
 id, INT, id, s,
@@ -608,6 +551,22 @@ value, TEXT, Wert, p,
 typ, VARCHAR(255), Typ der Abfrage, p,
 zeit, INT, Änderungszeit, p,
 
+table, altdaten, , Altdaten zur Übernahme, Altdaten
+id, INT, id, s,
+vorname, VARCHAR(35), Vorname, p,
+name, VARCHAR(35), Name, p,
+geburtsdatum, VARCHAR(10), Geburtsdatum, p,
+geschlecht, VARCHAR(10), Geschlecht (m oder w), p,
+jahr, INT, Jahr des letzten Kontakts, p,
+fallnummer, VARCHAR(20), Fallnummer, p,
+mitarbeiter, VARCHAR(60), Mitarbeiter, p,
+strasse, VARCHAR(35), Strasse, p,
+hausnummer, VARCHAR(5), Hausnummer, p,
+plz, VARCHAR(9), Postleitzahl, p,
+ort, VARCHAR(60), Ort, p,
+telefon1, VARCHAR(25), Telefon, p,
+telefon2, VARCHAR(25), Diensttelefon, p,
+memo, TEXT, Memo, p,
 
 """
 

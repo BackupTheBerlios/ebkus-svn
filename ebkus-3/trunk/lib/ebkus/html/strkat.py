@@ -1,11 +1,15 @@
 # coding: latin-1
 import re
+import csv
+import os
 from ebkus.app import Request
-from ebkus.app.ebapi import StrassenkatalogList, StrassenkatalogNeuList, EE, cc
+from ebkus.app.ebapi import StrassenkatalogNeuList, \
+     StrassenkatalogNeu, FeldList, EE, cc, check_list, SQL
 from ebkus.app_surface.strkat_templates import *
 from ebkus.config import config
 
 import ebkus.html.htmlgen as h
+from ebkus.html.akte_share import akte_share 
 
 class strkat(Request.Request):
     permissions = Request.MENU_PERM
@@ -288,3 +292,417 @@ def split_hausnummer(hsnr):
     gu = (nummer % 2 and 'U' or 'G')
     return nummer, buchstabe, gu
 
+def get_strkat_felder():
+    return [f['feld'] for f in FeldList(
+        where="tabelle.tabelle='strkatalog'",
+        join=[('tabelle', 'tabelle.id=feld.tab_id')])]
+
+class strkatcheck(Request.Request):
+    """Abfrageformular zum Löschen von Akten."""
+    permissions = Request.ADMIN_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        return "Noch nicht implementiert"
+
+
+class strkatexport(Request.Request, akte_share):
+    permissions = Request.ADMIN_PERM
+    def csv_gen(self, where=''):
+        import cStringIO
+        out = cStringIO.StringIO()
+        writer = csv.writer(out,
+                            delimiter=';',
+                            doublequote=True,
+                            quotechar='"',
+                            lineterminator='\r\n',
+                            )
+        
+        felder = get_strkat_felder()[1:]
+        strkat_list = StrassenkatalogNeuList(where=where)
+        strkat_list.sort('name')
+        writer.writerow(felder)
+        rows = []
+        for s in strkat_list:
+            vals = []
+            for f in felder:
+                v = s[f]
+                if f in ('von', 'bis') and v:
+                    n,b,_ = split_hausnummer(v)
+                    v = "%s%s" % (n, b)
+                vals.append(v)
+            rows.append(vals)
+        writer.writerows(rows)
+        return out.getvalue()
+    def processForm(self, REQUEST, RESPONSE):
+        download = self.form.get('download')
+        plz = check_list(self.form, 'plz', 'Keine PLZ', [])
+        if download == '1':
+            if plz:
+                where = "plz in (%s)" % ','.join([("'%s'" % p) for p in plz])
+            else:
+                where = ''
+            content = self.csv_gen(where)
+            self.RESPONSE.setHeader('content-type', "text/csv; charset=iso-8859-1")
+            self.RESPONSE.setHeader('content-disposition',
+                                    'attachment; filename=%s' % 'strassenkatalog.csv')
+            self.RESPONSE.setBody(content)
+            return
+        strexport = h.FieldsetFormInputTable(
+            name='strkatexport',action='strkatexport',method='post',
+            hidden=(('download', '1'),
+                    ),
+            legend='Straßenkatalog exportieren',
+            daten=[[h.SelectItem(label='Postleitzahlen',
+                                 name='plz',
+                                 multiple=True,
+                                 size=20,
+                                 options=self.for_plz(),
+                                 tip="Einträge für gewählte PLZ, oder alle Einträge",
+                                 ),
+                    ]],
+            button=h.Button(value="Herunterladen",
+                            name='op',
+                            tip="Straßenkatalog für gewählte PLZ bzw. insgesamt herunterladen",
+                            type='submit',
+                            n_col=2,
+                            ),
+            )
+        res = h.Page(
+            title='Straßenkatalog exportieren',
+            breadcrumbs = (('Administratorhauptmenü', 'menu'),
+                           ),
+            rows=(self.get_hauptmenu(),
+                  strexport,
+                  ),
+            )
+        return res.display()
+    
+class strkatimport(Request.Request, akte_share):
+    permissions = Request.ADMIN_PERM
+        
+    def read_data(self, f):
+        #print 'FILE: ', f, type(f)
+        data = []
+        feldnamen = get_strkat_felder()[1:]
+        size = len(feldnamen)
+        reader = csv.reader(f.readlines(),
+                            delimiter=';',
+                            doublequote=True,
+                            quotechar='"',
+                            lineterminator='\r\n',
+                            )
+        try:
+            erste_zeile = reader.next()
+        except StopIteration:
+            self.csv_lese_fehler("Keine Daten gefunden")
+            
+        #print 'ERSTE_ZEILE: ', erste_zeile
+        if size != len(erste_zeile):
+            self.csv_lese_fehler("Anzahl der Feldnamen in der ersten Zeile stimmt nicht", 1,
+                                 erste_zeile)
+        for ist, soll in zip(erste_zeile, feldnamen):
+            if ist != soll:
+                self.csv_lese_fehler("Erste Zeile mit den Feldnamen stimmt nicht "
+                                     "mit Feldnamen überein", 1, erste_zeile)
+        for i, row in enumerate(reader):
+            #print 'ZEILE: ', row
+            if size != len(row):
+                self.csv_lese_fehler("Anzahl der Felder in Zeile %(znr)s stimmt nicht",
+                                     i+2, row)
+            dic = dict(zip(erste_zeile, row))
+            dic = self.validate_normalize_strkat(dic, i+2, row)
+            strk = StrassenkatalogNeu()
+            strk.init(**dic)
+            data.append(strk)
+        return data
+
+
+    def validate_eindeutig(self, strkat_list):
+        plzs = []
+        strkat_list.sort('plz')
+        kombiset = {}
+        old_plz = None
+        for s in strkat_list:
+            plz = s['plz']
+            if plz != old_plz:
+                kombiset = {}
+                old_plz = plz
+                plzs.append(plz)
+            kombi = (s['plz'], s['ort'], s['name'], s['von'], s['bis'], s['gu']) 
+            if kombi in kombiset:
+                self.csv_lese_fehler("Kombination (plz, ort, name, von, bis, gu) nicht eindeutig: "
+                                     "<br /><br />%s" % (kombi,))
+            kombiset[kombi] = True
+        return plzs
+
+    def validate_zusatz_info(self, strkat_list):
+        "gibt Liste der Zusatzfelder zurück, die teilweise vorhanden sind"
+        " (also weder immer noch nie)"
+        teilweise = []
+        for f in ('bezirk', 'ortsteil', 'samtgemeinde', 'plraum'):
+            strkat_list.sort(f)
+            if not strkat_list[0][f] and strkat_list[-1][f]:
+                teilweise.append(f)
+        return teilweise
+                
+
+    def validate_normalize_strkat(self, dic, znr, daten):
+        strasse = dic.get('name')
+        if strasse:
+            for end in ('trasse', 'traße'):
+                if strasse.endswith(end):
+                    i = strasse.index(end)
+                    strasse = strasse[:i] + 'tr.'
+            dic['name'] = strasse
+        else:
+            self.csv_lese_fehler('Straßenname fehlt', znr, daten)
+        ort = dic.get('ort')
+        if not ort:
+            self.csv_lese_fehler('Ort fehlt', znr, daten)
+        plz = dic.get('plz')
+        if plz:
+            try:
+                assert int(plz)
+                assert len(plz) == 5
+            except:
+                self.csv_lese_fehler("Fehler im Feld 'plz': %s" % plz, znr, daten)
+        else:
+            self.csv_lese_fehler('Postleitzahl fehlt', znr, daten)
+        von = dic.get('von')
+        bis = dic.get('bis')
+        if von or bis:
+            if not (von and bis):
+                self.csv_lese_fehler("Es muss entweder für 'von' und für 'bis' einen Wert geben, "
+                                     'oder beide müssen leer sein', znr, daten)
+            try:
+                vn, vb, vg = split_hausnummer(von)
+                bn, bb, bg = split_hausnummer(bis)
+            except:
+                self.csv_lese_fehler('Fehler in Hausnummer', znr, daten)
+            if (vn == bn and not vb.upper() <=  bb.upper()) or vn > bn:
+                self.csv_lese_fehler("Hausnummer 'von' muss größer sein als 'bis'", znr, daten)
+            dic['von'] = "%s%s" % (vn, vb.upper())
+            dic['bis'] = "%s%s" % (bn, bb.upper())
+        else:
+            dic['von'] = None
+            dic['bis'] = None
+        gu = dic.get('gu')
+        if gu:
+            try:
+                assert gu in ('G', 'U', 'g', 'u')
+            except:
+                self.csv_lese_fehler("Fehler in Feld 'gu': %s (muss g, G, u, U oder leer sein)"
+                                     % gu, znr, daten)
+            try:
+                assert dic.get('von')
+            except:
+                self.csv_lese_fehler("'gu' darf nur dann einen Wert haben, "
+                                     "wenn auch 'von' und 'bis' einen Wert haben.",
+                                     znr, daten)
+            dic['gu'] = gu.upper()
+        else:
+            dic['gu'] = None
+        return dic
+    
+    def csv_lese_fehler(self, msg, znr='', zeile=''):
+        if znr:
+            werte = ''.join([("%s: %s<br />" % (k,v))
+                      for k,v in zip(get_strkat_felder()[1:],
+                                      zeile)])
+        #raise
+        message = 'Fehler beim Lesen der CSV-Datei: <br /><br />' + (msg%locals())
+        if znr:
+            message += (' <br /><br />Zeilennummer: %(znr)s<br /><br />'
+            'Zeilendaten:<br />%(werte)s') % locals()
+        raise EE(message)
+
+    def processForm(self, REQUEST, RESPONSE):
+        example = self.form.get('example')
+        datei = self.form.get('datei')
+        if datei:
+            data = self.read_data(datei)
+            strkat_list = StrassenkatalogNeuList(data)
+            plzs = self.validate_eindeutig(strkat_list)
+            self.session.data['strkat'] = strkat_list
+            self.session.data['plzs'] = plzs
+            return  h.SubmitOrBack(
+                legend='Straßenkatalog übernehmen',
+                action='strkatimport',
+                method='post',
+                hidden=(('strkat_validiert', '1'),
+                        ),
+                zeilen=("Kein Fehler gefunden. ",
+                        "%s Datensätze" % len(strkat_list),
+                        "Es gibt Datensätze für die folgenden Postleitzahlen:",) +
+                tuple([str(plz) for plz in plzs]) +
+                ("Für diese Postleitzahlen werden die Einträge "
+                 "im Straßenkatalog ersetzt.", "",
+                 "Datensätze übernehmen?",)
+                ).display()
+        strkat_validiert = self.form.get('strkat_validiert')
+        if strkat_validiert:
+            strkat_list = self.session.data['strkat']
+            plzs = self.session.data['plzs']
+            where = "plz in (%s)" % ','.join([("'%s'" % p) for p in plzs])
+            StrassenkatalogNeuList(where=where).deleteall()
+            maxid = SQL("select max(id) from strkatalog").execute()[0][0]
+            if not maxid:
+                maxid = 0
+            for i,s in enumerate(strkat_list):
+                s.insert(maxid + i +1)
+            for s in strkat_list:
+                s.new()
+                s.insert()
+            res = h.Meldung(
+                legend="Straßenkatalog erfolgreich importiert",
+                zeilen=("Für die genannten Postleitzahlen wurde die Einträge "
+                        "im Straßenkatalog erfolgreich ersetzt.",
+                      "%s Datensätze übernommen" % len(strkat_list)),
+                onClick="go_to_url('menu')",
+                )
+            return res.display()
+        if self.session.data.get('strkat'):
+            del self.session.data['strkat']
+            del self.session.data['plzs']
+        fname = 'demo_strkatalog.csv'
+        demo_strkatalog = os.path.join(config.EBKUS_HOME, 'sql', fname)
+        if example == '1':
+            f = open(demo_strkatalog)
+            content = f.read()
+            f.close()
+            self.RESPONSE.setHeader('content-type', 'text/plain; charset=iso-8859-1')
+            #self.RESPONSE.setHeader('content-disposition', 'attachment; filename=%s' % fname)
+            self.RESPONSE.setBody(content)
+            return
+        elif example == '2':
+            f = open(demo_strkatalog)
+            content = f.read()
+            f.close()
+            self.RESPONSE.setHeader('content-type', "text/csv; charset=iso-8859-1")
+            self.RESPONSE.setHeader('content-disposition',
+                                    'attachment; filename=%s' % fname)
+            self.RESPONSE.setBody(content)
+            return
+        erste_zeile = ';'.join(['%s' % f for f in get_strkat_felder()][1:])
+        hinweise_csv = h.FieldsetDataTable(
+            legend='Hinweise zur CSV-Datei',
+            daten=[[h.String(string="Die CSV-Datei muss genauso aufgebaut sein wie die " +
+                      '<a href="altimport?example=1">Beispieldatei</a>.<br /> ' +
+                      "Dieses Format kann direkt mit Open Office oder MS Excel " +
+                      "geöffnet und geschrieben werden " +
+                      '(<a href="altimport?example=2">Beispiel</a>).',
+                      n_col=2,
+                      )
+                    ],
+                   [h.String(string='Erste Zeile:'
+                             ),
+                    h.String(string=
+                             "In der ersten Zeile müssen in jeder Spalte "
+                             " die entsprechenden Feldnamen stehen: "
+                             "%s<em>&lt;Umbruch wg. Lesbarkeit&gt;</em> %s" %
+                             (erste_zeile[:60],
+                             erste_zeile[60:])
+                             ),
+                    ],
+                   [h.String(string='Feldtrennzeichen:'
+                             ),
+                    h.String(string=';'
+                             ),
+                    ],
+                   [h.String(string='Texttrennzeichen:'
+                             ),
+                    h.String(string='"'
+                             ),
+                    ],
+                   [h.String(string='Texttrennzeichen im Text:'
+                             ),
+                    h.String(string='"" (Verdoppelung)'
+                             ),
+                    ],
+                   [h.String(string='Zeilenumbrüche in einem Feld:'
+                             ),
+                    h.String(string='zulässig'
+                             ),
+                    ],
+                   [h.String(string='Kodierung:'
+                             ),
+                    h.String(string='iso-8859-1, iso-8859-15, latin-1, WinLatin1 '
+                             '(Kein Unicode; das ist das, '
+                             'was im großen und ganzen '
+                             'standardmäßig von Open Office und MS Excel erzeugt wird, zumindest '
+                             'was die Umlaute und das EssZett betrifft) '
+                             ),
+                    ],
+                   ],
+            )
+        hinweise_felder = h.FieldsetDataTable(
+            legend='Hinweise zu den Feldern',
+            daten=[[h.String(string="Felder können leer sein, die entsprechenden "
+                      'Daten stehen dann nicht für eine Übernahme zur Verfügung.',
+                      n_col=2,
+                      )
+                    ],
+                   [h.String(string='geburtsdatum:'
+                             ),
+                    h.String(string=
+                             "Tag . Monat . Jahr <br /> "
+                             "Das Jahr muss vierstellig sein, Tag und Monat ein- oder zweistellig, <br /> "
+                             "z.B. 1.1.2002, 10.01.1999"
+                             ),
+                    ],
+                   [h.String(string='geschlecht:'
+                             ),
+                    h.String(string='m oder w, alles andere ist ungültig'
+                             ),
+                    ],
+                   [h.String(string='jahr:'
+                             ),
+                    h.String(string='eine vierstellige Zahl'
+                             ),
+                    ],
+                   [h.String(string='strasse:'
+                             ),
+                    h.String(string='Endung mit <em>strasse, Strasse, straße, Straße</em> '
+                             'werden zu <em>str.</em> bzw. <em>Str.</em> normalisiert.'
+                             ),
+                    ],
+                   [h.String(string='hausnummer:'
+                             ),
+                    h.String(string='ein- bis dreistellige Zahl und evt. ein Buchstabe als '
+                             'Zusatz, der zum großgeschriebenen Buchstaben normalisiert wird.'
+                             ),
+                    ],
+                   [h.String(string='plz:'
+                             ),
+                    h.String(string='fünfstellige Zahl'
+                             ),
+                    ],
+                   ],
+            )
+        strkatimport = h.FieldsetFormInputTable(
+            legend='Straßenkatalog importieren',
+            name='strkatimport',action="strkatimport",method="post",
+            daten=[[h.UploadItem(label='Lokaler Dateiname',
+                                 name='datei',
+                                 tip='CSV-Datei mit Straßenkatalog',
+                                 class_="textboxverylarge",
+                                 ),
+                    ]],
+                button=h.Button(value="Hochladen",
+                                name='op',
+                                tip="Gewählte Datei mit Straßenkatalog hochladen",
+                                type='submit',
+                                n_col=2,
+                                ),
+            )
+        res = h.Page(
+            title='Straßenkatalog importieren',
+            breadcrumbs = (('Administratorhauptmenü', 'menu'),
+                           ),
+            hidden=(),
+            rows=(self.get_hauptmenu(),
+                  strkatimport,
+                  #hinweise_csv,
+                  #hinweise_felder,
+                  ),
+            )
+        return res.display()

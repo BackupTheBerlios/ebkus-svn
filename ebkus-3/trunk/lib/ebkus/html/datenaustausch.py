@@ -7,7 +7,7 @@ import time, os
 
 from ebkus.app import Request
 from ebkus.config import config
-from ebkus.app.ebapi import Code, JugendhilfestatistikList, ExportprotokollList, ImportprotokollList, today, cc, getDBSite, EE, Fall
+from ebkus.app.ebapi import Code, JugendhilfestatistikList, today, cc, EE, Fall
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.datenaustausch_templates import *
 from ebkus.app.jghexport import jghexport, get_export_datei_name
@@ -204,65 +204,4 @@ def _ordne_dateinamen(liste):
     log.sort()
     abgeschlossen = zip(daten, log)
     return abgeschlossen, andauernd
-        
-class formabfrdbexport(Request.Request):
-    """Auswahlformular für den Ex- bzw. Import von Daten."""
-    
-    permissions = Request.ADMIN_PERM
-    
-    def processForm(self, REQUEST, RESPONSE):
-        site = Code(cc('dbsite', '%s' % getDBSite() ) )
-        
-        res = []
-        res.append(head_normal_ohne_help_t %('Stellenabgleich: Ex- und Import von Daten in die Datenbank der ' + site['name']))
-        res.append(formexport_t)
-        return ''.join(res)
-        
-        
-class stellenabgleich(Request.Request):
-    """Aufruf der Datei für den Ex- bzw. Import von Daten."""
-    
-    permissions = Request.ADMIN_PERM
-    
-    def processForm(self, REQUEST, RESPONSE):
-        import os
-        site = Code(cc('dbsite', '%s' % getDBSite()))
-        if self.form.has_key('dbexport'):
-            arg = self.form.get('dbexport')
-        else:
-            self.last_error_message = "Kein Jahr erhalten"
-            return self.EBKuSError(REQUEST, RESPONSE)
-            
-        if arg == 'i' or arg == 'e':
-            try:
-                # TBD: dbexport importieren!
-                os.system('python %s/ebkus/app/dbexport.py -%s %s ' % (config.INSTANCE_HOME,
-                                                   arg, self.mitarbeiter['ben']))
-            except Exception, e:
-                raise EE("Fehler beim Exportieren: %s") % str(e)
-        exportliste = ExportprotokollList(where = 'id > 0',
-                                          order = 'dbsite,zeit desc')
-        importliste = ImportprotokollList(where = 'id > 0',
-                                          order = 'dbsite,zeit desc')
-        
-        res = []
-        res.append(head_normal_ohne_help_t %("Stellenabgleich: Protokoll zum Ex- und Import von Daten in die Datenbank der %s" % site['name']))
-        res.append(thexport_start_t)
-        if exportliste:
-            res.append(thexport_t % 'Export - Protokolldaten')
-            for e in exportliste:
-                datum = time.strftime('%d.%m.%y / %H:%M:%S', time.localtime(e['zeit']))
-                e['datum'] = datum
-                res.append(export_t % e)
-                del e['datum']
-        if importliste:
-            res.append(thexport_t % 'Import - Protokolldaten')
-            for i in importliste:
-                datum = time.strftime('%d.%m.%y / %H:%M:%S', time.localtime(i['zeit']))
-                i['datum'] = datum
-                res.append(export_t % i)
-                del i['datum']
-        res.append(thexport_ende_t)
-        return ''.join(res)
-        
         

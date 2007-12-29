@@ -248,7 +248,9 @@ class DBObjekt(UserDict):
             table = Tabelle(tabelle=self.table)
             self.__class__._string_fields = [
                 f['feld'] for f in table['felder']
-                if f['typ'].startswith('CHAR') or f['typ'].startswith('VARCHAR')]
+                if (f['typ'].startswith('CHAR') or
+                    f['typ'].startswith('VARCHAR') or
+                    f['typ'].startswith('TEXT'))]
             return self.__class__._string_fields
 
     def _getKeyValue1(self, ktuple, dict):
@@ -540,10 +542,15 @@ class DBObjekt(UserDict):
         """
         if not self.primarykey:
             raise DBAppError("Cannot getNewId without primarykey")
-        max = self._max(self.primarykey)
-        if type(max) in (type(1L), type(1)):
-            return max + 1
-        raise DBAppError("Could not assign key value for new dbobject")
+        maxid = SQL("select max(%(primarykey)s) from %(table)s" % self).execute()[0][0]
+        if maxid:
+            return maxid + 1
+        else:
+            return 1
+##         max = self._max(self.primarykey)
+##         if type(max) in (type(1L), type(1)):
+##             return max + 1
+##         raise DBAppError("Could not assign key value for new dbobject")
         
         # Für die referentielle Integrität im Cache müssen die Inversen
         # updatet werden

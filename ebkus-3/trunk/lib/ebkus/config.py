@@ -61,13 +61,13 @@ _params = (
     ('instance', 'ADMIN_NAME', 'admin_name', 's', 's:Keine Angabe'),
     ('instance', 'ADMIN_TEL', 'admin_tel', 's', 's:Keine Angabe'),
     ('instance', 'ADMIN_EMAIL', 'admin_email', 's', 's:Keine Angabe'),
-    ('instance', 'BERLINER_VERSION', 'berliner_version', 'b', 'b:False'),
-    ('instance', 'BERATUNGSKONTAKTE', 'beratungskontakte', 'b', 'b:False'),
-    ('instance', 'BERATUNGSKONTAKTE_BS', 'beratungskontakte_bs', 'b', 'b:False'),
-    ('instance', 'FALLUNABHAENGIGE_AKTIVITAETEN_BS', 'fallunabhaengige_aktivitaeten_bs', 'b', 'b:False'),
-    ('instance', 'BERATUNGSKONTAKTE_MINUTEN', 'beratungskontakte_minuten', 'b', 'b:False'),
+    ('instance', 'BERLINER_VERSION', 'berliner_version', 'b', 'e:False'),
+    ('instance', 'BERATUNGSKONTAKTE', 'beratungskontakte', 'b', 'e:False'),
+    ('instance', 'BERATUNGSKONTAKTE_BS', 'beratungskontakte_bs', 'b', 'e:False'),
+    ('instance', 'FALLUNABHAENGIGE_AKTIVITAETEN_BS', 'fallunabhaengige_aktivitaeten_bs', 'b', 'e:False'),
+    ('instance', 'BERATUNGSKONTAKTE_MINUTEN', 'beratungskontakte_minuten', 'b', 'e:False'),
     ('instance', 'STRASSENKATALOG', 'strassenkatalog', 's', 's:'),
-    ('instance', 'STRASSENKATALOG_VOLLSTAENDIG', 'strassenkatalog_vollstaendig', 'b', 'b:false'),
+    ('instance', 'STRASSENKATALOG_VOLLSTAENDIG', 'strassenkatalog_vollstaendig', 'b', 'e:False'),
     ('instance', 'STRASSENSUCHE', 'strassensuche', 's', 's:'), # ort ortsteil bezirk samtgemeinde
     ('instance', 'PLANUNGSRAUMFELD', 'planungsraumfeld', 's', 's:plraum'), # deprecated
     )
@@ -210,8 +210,10 @@ Bitte nur kleine Buchstaben (keine Umlaute) und Unterstrich verwenden.""" % (val
             try:
                 value = f(section, param)
             except ConfigParser.NoOptionError:
-                #print param
+                #print t
                 value = self._proc_default(t[4], param_dict, param)
+                if typ == 'i':
+                    value = int(value)
             # value darf nicht leer sein, sonst macht normpath '.' draus
             if value and typ in ('p',): 
                 value = normpath(value)

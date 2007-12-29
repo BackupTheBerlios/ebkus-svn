@@ -33,25 +33,25 @@ from time import time
 #  pass
 
 
-class IdGen:
-    def __init__(self):
-        self.A = 1
-        self.B = 3000001
+## class IdGen:
+##     def __init__(self):
+##         self.A = 1
+##         self.B = 3000001
         
-    def get(self, dbsite):
-        if dbsite == 'A': return self.getA()
-        if dbsite == 'B': return self.getB()
-        raise 'FALSCHE DBSITE'
+##     def get(self, dbsite):
+##         if dbsite == 'A': return self.getA()
+##         if dbsite == 'B': return self.getB()
+##         raise 'FALSCHE DBSITE'
         
-    def getA(self):
-        res = self.A
-        self.A = self.A + 1
-        return res
+##     def getA(self):
+##         res = self.A
+##         self.A = self.A + 1
+##         return res
         
-    def getB(self):
-        res = self.B
-        self.B = self.B + 1
-        return res
+##     def getB(self):
+##         res = self.B
+##         self.B = self.B + 1
+##         return res
         
         
 def parse_code_list(str):
@@ -133,11 +133,12 @@ def insert_kategorien(merkmale):
         kl.deleteall()
     #print 'Kategorien einfügen'
     klistdata = parse_kategorie_list(merkmale['kategorie_list_str'])
-    idgen = IdGen()
+    #idgen = IdGen()
     aenderungszeit = int(time())
     for kd in klistdata:
         k = Kategorie()
-        k.new(idgen.getA())
+        #k.new(idgen.getA())
+        k.new()
         k['code'] = kd[0]
         k['name'] = kd[1]
         k['zeit'] = aenderungszeit
@@ -151,7 +152,7 @@ def insert_kategorie_codes(merkmale):
     #print 'Codes einfügen'
     clistdata = parse_code_list(merkmale['code_list_str'])
     bereichslist = string.split(merkmale['bereichs_kategorien_str'])
-    idgen = IdGen()
+    #idgen = IdGen()
     katcode = None
     aenderungszeit = int(time())
     for cd in clistdata:
@@ -167,7 +168,8 @@ def insert_kategorie_codes(merkmale):
             sort = 1
             #print "Code für '%s' einfügen" % kat['name']
         c = Code()
-        c.new(idgen.getA())
+        #c.new(idgen.getA())
+        c.new()
         c['code'] = cd[0]
         c['name'] = cd[1]
         c['kat_id'] = kat['id']
@@ -221,11 +223,12 @@ def insert_mitarbeiter(merkmale):
         mitl.deleteall()
     #print 'Mitarbeiter einfügen'
     mlistdata = parse_mitarbeiter_list(merkmale['mitarbeiter_list_str'])
-    idgen = IdGen()
+    #idgen = IdGen()
     aenderungszeit = int(time())
     for ml in mlistdata:
         m = Mitarbeiter()
-        m.new(idgen.getA())
+        #m.new(idgen.getA())
+        m.new()
         m['vn'] = ml[0]
         m['na'] = ml[1]
         m['ben'] = ml[2]
@@ -236,36 +239,17 @@ def insert_mitarbeiter(merkmale):
         m['pass'] = ml[6]
         m.insert()
         
-def init_tabid():
-    kl = TabellenIDList(where = '')
-    #print "================================================================="
-    #print 'Tabelle tabid (Klasse TabellenID) einrichten'
-    if kl:
-        #print '*** Einträge schon vorhanden, werden gelöscht'
-        kl.deleteall()
-    #print "================================================================="
-    
-    tl = TabelleList(where = '', order = 'id')
-    site = Code(cc('dbsite', config.SITE))
-    for n in tl:
-        feldl = FeldList(where = 'tab_id = %d and verwtyp = %d'
-                          % (n['id'], cc('verwtyp', 's')))
-        if feldl:
-            t = TabellenID()
-            t['table_id'] = n['id']
-            t['table_name'] = n['tabelle']
-            t['dbsite'] = site['id']
-            t['minid'] = site['mini']
-            t['maxid'] = site['maxi']
-            obj = eval(n['klasse'])()
-            idfield = obj.primarykey
-            idmax =  obj._max(idfield, where = "%s < %s" % (idfield, t['maxid']))
-            if not idmax:
-                idmax = 1
-            t['maxist'] = max((int(t['minid']) -1), idmax)
-##             print '%18s: realmax %3s (dbsite/min/max/ist: %2s %6s %6s %s)' \
-##                   % ( t['table_name'], idmax, t['dbsite'], t['minid'], t['maxid'], t['maxist'])
-            t.insert()
+def init_maxist():
+    for tab in TabelleList(where='', order='id'):
+        feld_list = FeldList(where='tab_id=%d and verwtyp=%d'
+                             % (tab['id'], cc('verwtyp', 's')))
+        if feld_list:
+            primarykey = feld_list[0]['feld']
+            maxid = sql.SQL("select max(%s) from %s" %
+                            (primarykey, tab['tabelle'])).execute()[0][0]
+            if not maxid:
+                maxid = 0
+            tab.update({'maxist': maxid})
             
 def migrate(file_name):
     import ebkus.app.protocol
@@ -282,7 +266,7 @@ def migrate(file_name):
         insert_kategorie_codes(merkmale)
         insert_mitarbeiter(merkmale)
         update_feld()
-        init_tabid()
+        init_maxist()
     finally:
         ebkus.app.protocol.temp_on()
     
@@ -291,8 +275,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         merkmals_def = sys.argv[1]
     else:
-        # default
-        merkmals_def = 'migrdata_berlin.py'
+        raise Exception("keine Merkmalsdefinition")
     dbapp.cache_off()
     opendb()
     migrate(merkmals_def)

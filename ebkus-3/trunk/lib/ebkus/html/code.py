@@ -34,7 +34,7 @@ class codelist(Request.Request, akte_share):
                 join=[('feld', 'kategorie.id=feld.kat_id and feld.tab_id=%s' % tab_id)]) 
             title = "Kategorien und Merkmalslisten für %s" % klass
 
-        nicht_anzeigen = ('dbsite', 'verwtyp', 'config',)
+        nicht_anzeigen = ('verwtyp', 'config',)
         kats = kats.filter(lambda x: x['code'] not in nicht_anzeigen) 
         kats.sort('name')
         for k in kats:
@@ -81,7 +81,7 @@ class codelist(Request.Request, akte_share):
             title=title,
             help=False,
             name="",action="",method="",
-            breadcrumbs = (('Hauptmenü', 'menu'),
+            breadcrumbs = (('Administratorhauptmenü', 'menu'),
                            ),
             rows=(menu,
                   uebersicht,) +
@@ -269,12 +269,12 @@ class _code(Request.Request, akte_share):
             )
 
         if view.startswith('updkat'):
-            breadcrumbs = (('Hauptmenü', 'menu'),
+            breadcrumbs = (('Administratorhauptmenü', 'menu'),
                            ('Fachstatistik konfigurieren', 'fskonfig'),
                            ('Kategorie bearbeiten', view),
                            )
         elif view.startswith('codelist'):
-            breadcrumbs = (('Hauptmenü', 'menu'),
+            breadcrumbs = (('Administratorhauptmenü', 'menu'),
                            ('Kategorien und Merkmalslisten', view),
                            )
         res = h.FormPage(
@@ -430,7 +430,7 @@ class updkat(Request.Request, akte_share):
             title='Kategorie bearbeiten',
             help=False,
             name="katform",action="admin",method="post",
-            breadcrumbs = (('Hauptmenü', 'menu'),
+            breadcrumbs = (('Administratorhauptmenü', 'menu'),
                            ('Fachstatistik konfigurieren', 'fskonfig'),
                            ),
             rows=(kategorie_edit,

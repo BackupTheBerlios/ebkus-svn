@@ -25,21 +25,6 @@ class EBKuS:
         update()
         self.functions = getFunctionsToBePublished()
         self.classes = getClassesToBePublished()
-##         self.templates = {}
-##         template_path = join(config.EBKUS_HOME, 'lib', 'ebkus', 'app_surface')
-##         from jinja import Environment, FileSystemLoader
-##         self.jinja_environment = Environment(
-##             template_charset='latin-1',
-##             charset='latin-1',
-##             loader=FileSystemLoader(template_path, use_memcache=True)
-##             )
-##         from mako.lookup import TemplateLookup
-##         self.mako_environment = TemplateLookup(directories=[template_path],
-##                                                output_encoding='latin-1',
-##                                                input_encoding='latin-1',
-##                                                encoding_errors='replace',
-##                                                default_filters=['decode.latin1'],
-##                                                module_directory=template_path)
         logging.info("EBKuS Version %s", Version)
         logging.info("EBKuS-Konfigurationsdatei: %s", config.ebkus_conf)
         if config.instance_conf:
@@ -114,7 +99,8 @@ def getClassesToBePublished():
     from ebkus.html.klientenkarte import klkarte
     from ebkus.html.gruppenkarte import grkarte
     #from ebkus.html.gruppenakte import gruppenakte
-    from ebkus.html.akte import akteneu, waufnneu, updakte, updfall, zda, zdar, rmakten, rmakten2
+    from ebkus.html.akte import akteneu, waufnneu, updakte, updfall, \
+         zda, zdar, rmakten, rmaktenf, rmakten2
     from ebkus.html.anmeldung import anmneu, updanm,viewanm
     from ebkus.html.bezugsperson import persneu, updpers,viewpers
     from ebkus.html.einrichtungskontakt import einrneu, updeinr
@@ -143,17 +129,12 @@ def getClassesToBePublished():
     from ebkus.html.viewdokument import dokview, dokview2, print_pdf, printgr_pdf, suchetxt
     from ebkus.html.gruppe import menugruppe, gruppeneu, updgruppe, gruppeteilnausw, \
          updteiln, rmteiln
-    from ebkus.html.abfragen import formabfr2, \
-         abfr1, abfr2, formabfr3, abfr3, formabfr4, abfr4, formabfr5, abfr5, \
-         jghabfr, jghergebnis, fsabfr, fsergebnis, formabfr6, \
-         formabfr6a, formabfr6b, abfr6b, abfr6a, fsabfr_plraum, fsergebnis_plraum, \
-         formabfr8, formabfr8a, formabfr9, formabfr9a, formabfr10, formabfr10a, \
-         formabfr11, formabfr11a, formabfr12a, formabfr12, formabfr13, \
-         formabfr13a, formabfr14, formabfr14a
+    from ebkus.html.abfragen import \
+         abfr1, abfr3, abfr4, abfr5, \
+         formabfr8, formabfr8a
     from ebkus.html.statistik_abfrage import statabfr, statergebnis
     from ebkus.html.abfragedef import abfragedef
-    from ebkus.html.datenaustausch import formabfrjghexport, jghexportfeedback, jghexportlist, \
-         formabfrdbexport, stellenabgleich
+    from ebkus.html.datenaustausch import formabfrjghexport, jghexportfeedback, jghexportlist
     from ebkus.html.mitarbeiter import mitausw, mitneu, updmit
     from ebkus.html.code import codelist, codetab, codeneu, updcode, updkat
     from ebkus.html.administration import admin, feedback, admin_protocol
@@ -166,8 +147,9 @@ def getClassesToBePublished():
     from ebkus.html.protokoll_login import login_formular
     from ebkus.html.protokoll_login import check_protokoll_login
     from ebkus.html.ebkushilfe import ebkus_help_document, ebkus_help_tree, ebkus_help
-    from ebkus.html.strkat import strkat
+    from ebkus.html.strkat import strkat, strkatimport, strkatexport
     from ebkus.html.statistik_ergebnis import auszergebnis
+    from ebkus.html.altdaten import altlist, altimport
     return makeObject(locals())
     
     

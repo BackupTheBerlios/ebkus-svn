@@ -2,7 +2,7 @@
 
 #äöü
 
-from ebkus.app.ebapih import get_codes, make_option_list
+from ebkus.app.ebapih import get_codes, get_all_codes, make_option_list
 from ebkus.app.ebapi import KategorieList, ZustaendigkeitList, today, AbfrageList
 from ebkus.db.sql import SQL
 from ebkus.config import config
@@ -13,6 +13,10 @@ class options(object):
     option_tmpl = '<option value="%s"%s>%s</option>'
 
 
+    def for_plz(self):
+        "Alle Postleitzahlen im Straßenkatalog"
+        plzs = SQL("select distinct plz from strkatalog").execute()
+        return '\n'.join([(self.option_tmpl % (p[0],'',p[0])) for p in plzs])
     def for_auswertungen(self, sel=None):
         bs = ''
         if config.BERATUNGSKONTAKTE_BS:
@@ -24,16 +28,15 @@ class options(object):
                      """
         options = ("""
                       <option value="nothing">[ Beratungen ]
-                      <option value="abfr1?o=alle&ed=0">- alle Beratungen
-                      <option value="abfr1?o=laufend&ed=0">- laufende Beratungen
-                      <option value="abfr1?o=zda&ed=0">- abgeschlossene Beratungen
-                      <option value="formabfr2">- ab Fallnummer?
+                      <option value="abfr1?w=alle">- alle Beratungen
+                      <option value="abfr1?w=laufend">- laufende Beratungen
+                      <option value="abfr1?w=abgeschlossen">- abgeschlossene Beratungen
                       <option value="nothing">
 """                      + bs +
 """
                       <option value="nothing">[ Klientenzahl ]
-                      <option value="formabfr4">- Neumeldungen u. Abschl&uuml;sse
-                      <option value="formabfr5">- Klienten pro Mitarbeiter
+                      <option value="abfr4">- Neumeldungen u. Abschl&uuml;sse
+                      <option value="abfr5">- Klienten pro Mitarbeiter
                       <option value="nothing">
                       <option value="nothing">[ Gruppen ]
                       <option value="formabfr8a">- Gruppen&uuml;berblick
@@ -94,7 +97,7 @@ class options(object):
                     for j in jahre]
         return '\n'.join(options)
 
-    def for_kat(self, kat, sel=None):
+    def for_kat(self, kat, sel=None, all=False):
         if sel in ('', ' ',):
             empty_option = True
         else:
@@ -103,7 +106,11 @@ class options(object):
         # Ist aber ein String von Zahlen, zB "233 44 444"
         if isinstance(sel, basestring):
             sel = [int(x) for x in sel.split()]
-        return  make_option_list(get_codes(kat),
+        if all:
+            codes = get_all_codes(kat)
+        else:
+            codes = get_codes(kat)
+        return  make_option_list(codes,
                                  'id', 'name',
                                  selected=sel,
                                  empty_option=empty_option)
@@ -140,7 +147,7 @@ class options(object):
             zustaendigkeiten.sort('mit_id__na', 'fall_id__akte_id__na',
                                   'fall_id__akte_id__vn')
             for z in zustaendigkeiten:
-                if z['fall_id__akte_id__stzak'] == self.stelle['id']:
+                if z['fall_id__akte_id__stzbg'] == self.stelle['id']:
                     yield z
 
     def get_aktuelle_bezugspersonen(self):
@@ -155,7 +162,9 @@ class options(object):
         selected = ' selected="selected" '
         if not sel:
             sel = ''
-        sel = [int(s) for s in sel.split()]
+        # sel kann so "123 432 543" (str) oder so 133 (int) aussehen, je nach
+        # single oder multiple kat item
+        sel = [int(s) for s in str(sel).split()]
         tmpl = """<option value="%(fall_id)s"%(xxsel)s>%(mit__na)s | %(fall__akte__vn)s %(fall__akte__na)s, %(fall__akte__gb)s | %(fall__fn)s </option>"""
         tmpl_kurz = """<option value="%(fall_id)s"%(xxsel)s>%(fall__akte__vn)s %(fall__akte__na)s | %(fall__fn)s</option>"""
         if kurz:

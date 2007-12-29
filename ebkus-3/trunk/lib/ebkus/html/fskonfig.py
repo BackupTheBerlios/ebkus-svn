@@ -8,7 +8,7 @@ import os
 from ebkus.app import Request
 from ebkus.app import ebupd
 from ebkus.app.ebapi import Akte, Fachstatistik, Jugendhilfestatistik, Code, Mitarbeiter, Kategorie
-from ebkus.app.ebapi import ProtokollList, TabellenID, Code, cc
+from ebkus.app.ebapi import Code, cc
 from ebkus.app_surface.standard_templates import *
 from ebkus.config import config
 
@@ -194,7 +194,7 @@ class fskonfig(Request.Request, akte_share):
             title="Fachstatistik konfigurieren",
             help=False,
             name="fskonfigform",action="admin",method="post",
-            breadcrumbs = (('Hauptmenü', 'menu'),
+            breadcrumbs = (('Aministratorhauptmenü', 'menu'),
                            ),
             rows=(standard_items,
                   joker_items_klient,

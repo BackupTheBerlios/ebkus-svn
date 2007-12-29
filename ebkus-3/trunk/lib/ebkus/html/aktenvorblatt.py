@@ -7,7 +7,6 @@ import string
 from ebkus.app import Request
 from ebkus.app.ebapi import Fall, FallGruppeList, BezugspersonGruppeList, today, cc
 from ebkus.app_surface.aktenvorblatt_templates import *
-from ebkus.app_surface.standard_templates import *
 
 
 class vorblatt(Request.Request):

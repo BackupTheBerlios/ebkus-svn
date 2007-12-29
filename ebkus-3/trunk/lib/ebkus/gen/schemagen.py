@@ -73,7 +73,7 @@ class Table:
     def sql_insert(self, id):
         self.id = id
         return "INSERT INTO tabelle values \
-              (%d,'%s','%s','%s',%d,NULL)" % \
+              (%d,'%s','%s','%s',%d,NULL,NULL)" % \
               (self.id, self.tablename, self.lname, self.classname, self.flag)
         
     def __str__(self):

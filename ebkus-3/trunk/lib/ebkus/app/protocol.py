@@ -1,6 +1,6 @@
 # coding: latin-1
 
-KEIN_PROTOKOLL = ('feld', 'tabelle' 'tabid', 'protokoll', 'sessions')
+KEIN_PROTOKOLL = ('feld', 'tabelle' 'protokoll', 'sessions')
 KEIN_PROTOKOLL_VON_SELECT = ('code', 'kategorie')
 
 ## Standardimporte
@@ -10,7 +10,10 @@ import os
 import re
 import rotor
 
-from ebkus.app.ebapi import cc, Protokoll, ProtokollList, Code, TabellenID
+from ebkus.db.dbapp import DBObjekt
+from ebkus.app.ebapi import cc, EE, Protokoll, ProtokollList, Code, \
+     register_get, register_set, Tabelle
+
 from ebkus.app.Request import getRequest
 from ebkus.config import config
 
@@ -228,10 +231,9 @@ Die Protokolltabellen wurden am %s von %s geloescht
 und in die Datei %s archiviert.
 <br>****************************<br>""" % (zeitstempel2, user, pfad)))
     fdatei.close()
-    # Maxist in tabid für protokolltabelle wird gesetzt
-    prottabid = TabellenID(table_name = 'protokoll',
-                           dbsite = cc('dbsite',  config.SITE))
-    prottabid.update({'maxist': 0})
+    # Maxist protokolltabelle wird gesetzt
+    tab = Tabelle(tabelle='protokoll')
+    tab.update({'maxist': 0})
     # protokolltabelle wird gelöscht
     protokolleintraege2 = ProtokollList(where = '')
     protokolleintraege2.deleteall()
@@ -241,32 +243,25 @@ def set_protocol_limit(limit):
     """Setzte die maximale Anzahl der Einträge in die Protokolltabelle.
     Wenn diese Anzal überschritten wird, wird automatisch archiviert.
     """
-    try:
-        temp_off()
-        limit = min(int(limit), 200000)
-        prottabid = TabellenID(table_name = 'protokoll',
-                               dbsite = cc('dbsite',  config.SITE))
-        prottabid.update({'maxid': limit})
-    finally:
-        temp_on()
+    limit = int(limit)
+    if limit < 100000 or limit > 100000000:
+        raise EE('Füllgrenze muss zwischen 100.000 und 100.000.000 liegen')
+    register_set('protokoll_fuellgrenze', limit)
+
+def get_protocol_limit():
+    """Holt die maximale Anzahl der Einträge in die Protokolltabelle.
+    Wenn diese Anzal überschritten wird, wird automatisch archiviert.
+    """
+    return register_get('protokoll_fuellgrenze', default=200000)
 
 def _getNewId(self):
     """Überschreibt die Standardmethode, um neue Werte für
     Schlüsselfelder zu erzeugen, für die Protokolltabelle.
     """
-    tid = TabellenID(table_name = self.table,
-                     dbsite = cc('dbsite',  config.SITE))
-    maxist = tid['maxist']
-    max = tid['maxid']
-    min = tid['minid']
-    if maxist:
-        newid = maxist + 1
-    else:
-        newid = 1
-    if newid > max:
+    newid = DBObjekt.getNewId(self)
+    if newid > get_protocol_limit():
         raise ProtokolltabelleVoll(
             "Die Protokolltabelle hat den gesetzten Füllstand erreicht: %s" % max)
-    tid.update({'maxist' : newid})
     return newid
 
 Protokoll.getNewId = _getNewId

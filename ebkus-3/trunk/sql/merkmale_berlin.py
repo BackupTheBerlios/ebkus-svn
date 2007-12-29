@@ -463,11 +463,13 @@ sonstige;sonstige;grtyp
 12;Reinickendorf;wohnbez
 13;auﬂerhalb Berlins;wohnbez
 999;keine Angabe;wohnbez
-A;DBSite A;dbsite;1;1000000000
 0;innerhalb des Geltungsbereichs des Straﬂenkatalogs;lage
 1;auﬂerhalb des Geltungsbereichs des Straﬂenkatalogs;lage
 999;keine Angabe;lage
 protocol;off;config
+1;Beratung;aufbew
+2;Therapie;aufbew
+3;Missbrauch;aufbew
 """
 
 # Erg‰nzungen f¸r die neue Bundesstatistik 2007
@@ -655,6 +657,7 @@ wohnbez;Wohnbezirksnr des Klienten
 dbsite;Datenbank-Site
 lage;Lage innerhalb oder auﬂerhalb des Geltungsbereichs des Straﬂenkatalogs
 config;Konfigurationseinstellungen
+aufbew;Aufbewahrungskategorie
 """
 
 

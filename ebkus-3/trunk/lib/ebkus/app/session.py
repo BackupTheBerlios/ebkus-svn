@@ -6,7 +6,6 @@
 import time, sha, logging
 
 from ebkus.config import config
-from ebkus.app.ebapi import Session, SessionList
 
 def get_session(REQUEST, RESPONSE):
     """Gibt eine gültige Session zurück oder None""" 

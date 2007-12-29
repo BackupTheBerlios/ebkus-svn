@@ -8,7 +8,7 @@ from ebkus.db.sql import opendb, closedb, getDBHandle, SQL
 from ebkus.gen.schemagen import get_schema_info
 from ebkus.gen.schemadata import schemainfo
 from ebkus.gen.genEb import generate_ebapi
-from ebkus.app.ebapi import Tabelle, Feld, FeldList, TabellenID, Kategorie, KategorieList, Code
+from ebkus.app.ebapi import Tabelle, Feld, FeldList, Kategorie, KategorieList, Code
     
 # public
 def update():
@@ -210,15 +210,15 @@ def create_new_table():
         feld = Feld(feld=f.fieldname, tab_id=j07['id'])
         feld.update(fupd)
 
-    site = Code(kat_code='dbsite', code=config.SITE)
-    t = TabellenID()
-    t['table_id'] = j07['id']
-    t['table_name'] = j07['tabelle']
-    t['dbsite'] = site['id']
-    t['minid'] = site['mini']
-    t['maxid'] = site['maxi']
-    t['maxist'] = 1
-    t.insert()
+##     site = Code(kat_code='dbsite', code=config.SITE)
+##     t = TabellenID()
+##     t['table_id'] = j07['id']
+##     t['table_name'] = j07['tabelle']
+##     t['dbsite'] = site['id']
+##     t['minid'] = site['mini']
+##     t['maxid'] = site['maxi']
+##     t['maxist'] = 1
+##     t.insert()
     return True
 
 def create_new_kategorien(new_table, merkmals_datei):
