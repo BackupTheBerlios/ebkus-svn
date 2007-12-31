@@ -39,7 +39,7 @@ class options(object):
                       <option value="abfr5">- Klienten pro Mitarbeiter
                       <option value="nothing">
                       <option value="nothing">[ Gruppen ]
-                      <option value="formabfr8a">- Gruppen&uuml;berblick
+                      <option value="abfr8">- Gruppen&uuml;berblick
                       <option value="nothing">
                       <option value="nothing">[ Fach- und Bundesstatistik ]
                       <option value="statabfr">- Statistik
@@ -140,7 +140,7 @@ class options(object):
         """Generiert alle Zuständigkeiten für den angemeldeten Mitarbeiter"""
         wherestr = 'ed = 0'
         benr = self.mitarbeiter['benr__code']
-        if benr in ('bearb', 'verw', 'admin'):
+        if benr in ('bearb', 'verw'):
             if benr == 'bearb':
                 wherestr += ' and mit_id = %s' % self.mitarbeiter['id']
             zustaendigkeiten = ZustaendigkeitList(where=wherestr)

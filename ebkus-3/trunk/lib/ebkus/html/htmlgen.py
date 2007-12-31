@@ -161,7 +161,7 @@ class Base(_HTML):
 ##                                  for entry in self.breadcrumbs if entry])
 ##             crumbs += ' > %s' % self.title
             # TODO user daten übernehmen
-            #self.login = "Albrecht Schmiedel (atms, Fallberater)"
+            self.login = "Albrecht Schmiedel (atms, Fallberater)"
             #self.breadcrumb = self.breadcrumbs_t % (crumbs, login)
             self.breadcrumb = crumbs
             self.instanz = "EBKuS 4.0 demo_wolfenbüttel"

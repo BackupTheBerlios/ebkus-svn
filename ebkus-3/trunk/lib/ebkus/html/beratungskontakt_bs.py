@@ -107,29 +107,6 @@ class _bkont(Request.Request, akte_share):
                        ],
                       ],
             )
-##         bisherige_kontakte = h.FieldsetDataTable(
-##             legend = 'Liste der bisherigen Kontakte',
-##             empty_msg = "Bisher keine Kontakte eingetragen.",
-##             headers = ('Datum', 'Mitarbeiter', 'Klienten', 'Art',
-##                        'Teilnehmer', 'Dauer (x10min)', 'Notiz'),
-##             daten =  [[h.Datum(date =  b.getDate('k')),
-##                        h.String(string=', '.join([b['mit%s__na'] % i
-##                                                   for i in ('', '1', '2')
-##                                                   if b['mit%s_id'] % i]),
-##                                 ),
-##                        h.String(string=', '.join([b['fall%s__name'] % i
-##                                                   for i in ('', '1', '2')
-##                                                   if b['fall%s_id'] % i]),
-##                                 ),
-##                        h.String(string=b['art__name']),
-##                        h.String(string=', '.join([Code(i)['name']
-##                                                   for i in b['teilnehmer'].split()]),
-##                                 ),
-##                        h.String(string=b['dauer']),
-##                        h.String(string=b['no']),
-##                        ]
-##                       for b in self.get_beratungskontakte()],
-##             )
         beratungskontakte = fall['beratungskontakte_bs']
         beratungskontakte += fall['beratungskontakte_bs1']
         beratungskontakte += fall['beratungskontakte_bs2']

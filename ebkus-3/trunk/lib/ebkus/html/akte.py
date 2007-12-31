@@ -539,23 +539,6 @@ class rmakten(Request.Request, akte_share):
             
         else:
             akten = None
-    
-##         buttons = h.FieldsetInputTable(
-##             daten=[[
-##             h.Button(value="Endgültig löschen",
-##                      name='op',
-##                      tip="Markierte Akten löschen",
-##                      type='button',
-##                      onClick="confirm_submit('Markierte Akten endgültig löschen?', 'rmakten')",
-##                      class_='buttonbig',
-##                      ),
-##             h.Button(value="Abbrechen",
-##                      name='op',
-##                      tip="Zurück zum Hauptmenü ohne zu löschen",
-##                      type='button',
-##                      onClick="go_to_url('menu')",
-##                      ),
-##             ]])
         res = h.Page(
             title='Akten löschen',
             breadcrumbs = (('Aministratorhauptmenü', 'menu'),
@@ -610,32 +593,3 @@ class rmakten2(Request.Request, akte_share):
                   ),
             )
         return res.display()
-##     def processForm(self, REQUEST, RESPONSE):
-##         mitarbeiterliste = self.getMitarbeiterliste()
-##         user = self.user
-##         if self.form.has_key('frist'):
-##             frist = self.form.get('frist')
-##         else:
-##             self.last_error_message = "Keine Frist erhalten"
-##             return self.EBKuSError(REQUEST, RESPONSE)
-            
-##         jahr = today().year
-##         monat = today().month
-##         heute = int(jahr)*12 + int(monat)
-##         loeschzeitm = int(heute)-int(frist)
-##         loeschjahr = int(loeschzeitm) / int(12)
-##         loeschmonat = int(loeschzeitm) - (int(loeschjahr) * int(12))
-        
-##         hidden ={'file': 'removeakten'}
-        
-##         res = []
-##         res.append(head_normal_ohne_help_t %("Akten und Gruppen löschen"))
-##         res.append(rmakten2a_t)
-##         res.append(formhiddenvalues_t % hidden)
-##         res.append(formhiddennamevalues_t % ({'value': frist, 'name': 'frist'}))
-##         res.append(formhiddennamevalues_t % ({'value': loeschjahr,
-##                                               'name': 'loeschjahr'}))
-##         res.append(formhiddennamevalues_t % ({'value': loeschmonat,
-##                                               'name': 'loeschmonat'}))
-##         res.append(rmakten2b_t % (frist, loeschmonat, loeschjahr ))
-##         return string.join(res, '')

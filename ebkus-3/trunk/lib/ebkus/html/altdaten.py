@@ -208,10 +208,10 @@ class altimport(Request.Request, akte_share):
                    [h.String(string='Kodierung:'
                              ),
                     h.String(string='iso-8859-1, iso-8859-15, latin-1, WinLatin1 '
-                             '(Kein Unicode; das ist das, '
+                             '(Das ist das, '
                              'was im großen und ganzen '
                              'standardmäßig von Open Office und MS Excel erzeugt wird, zumindest '
-                             'was die Umlaute und das EssZett betrifft) '
+                             'was die Umlaute und das EssZett betrifft. Es ist nicht Unicode oder utf8) '
                              ),
                     ],
                    ],
@@ -385,23 +385,6 @@ class altlist(Request.Request, akte_share):
             headers=('Vorname', 'Name', 'Geb.', 'm/w', 'Jahr', 'Fallnr.', 'Mitarbeiter',
                      'Adresse', 'Telefon', '', 'Übern.'),
             daten=daten,
-##             daten=[[h.String(string=altd['na']),
-##                     h.String(string=altd['vn']),
-##                     h.String(string=altd['gb']),
-##                     h.String(string=altd['gs']),
-##                     h.String(string=altd['jahr']),
-##                     h.String(string=altd['fn']),
-##                     h.String(string=altd['mitarbeiter']),
-##                     h.String(string="%(str)s %(hsnr)s, %(plz)s %(ort)s" % altd),
-##                     h.String(string="%(tl1)s, %(tl2)s" % altd),
-##                     h.String(string=altd['memo']),
-##                     h.CheckItem(label='',
-##                                 name='uebern',
-##                                 value=altd['id'],
-##                                 checked=False,
-##                                 tip='Hier markieren, um die Daten in die Neuaufnahme zu übernehmen',
-##                                 ),
-##                     ] for altd in altdaten],
             no_button_if_empty=False,
             buttons=[daten and h.Button(value="Übernehmen",
                               name='op',

@@ -52,8 +52,6 @@ class admin(Request.Request):
         return self.ebkus.dispatch(file, REQUEST, RESPONSE)
         
     einfuege_oder_update_operationen = {
-      'miteinf' : ('mitid', Mitarbeiter),
-      'updmit' : ('mitid', Mitarbeiter),
       'codeeinf' : ('codeid', Code),
       'updcode' : ('codeid', Code),
       'removeakten' : ('akid', Akte),

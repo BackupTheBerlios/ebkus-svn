@@ -89,11 +89,6 @@ class abfragedef(Request.Request):
                   anzeige,
                   define_query,
                   buttons,
-##                   h.SpeichernZuruecksetzenAbbrechen(name='op',
-##                                                     value='Speichern',
-##                                                     onclick_abbrechen=
-##                                                     "opener.location.reload();window.close();",
-##                                                     ),
                   ),
             )
         return res.display()
@@ -126,12 +121,6 @@ class abfragedef(Request.Request):
                     zeilen=("Soll Teilmengendefinition '%s' gelöscht werden?" % name,
                             )
                     ).display()
-##             elif op == 'del_immed':
-##                 abfrold.delete()
-##                 return h.Meldung(legend='Teilmengendefinition gelöscht',
-##                                  zeilen=("Die Teilmengendefinition '%s' wurde gelöscht." % name,),
-##                                  onClick="opener.location.reload();history.back();",
-##                                  ).display()
             else:
                 #op == 'edit':
                 return self._process(abfrold, cgi_name)
@@ -172,16 +161,6 @@ class abfragedef(Request.Request):
                       value=q.get_query_string(),
                       typ='statistik_teilmengen_definition',
                       )
-##         if op == 'Speichern':
-##             if abfrold:
-##                 file = 'updabfr'
-## ##                 abfrold.update(abfr)
-## ##                 abfr = abfrold
-##             else:
-##                 file = 'abfreinf'
-## ##                 abfr.new()
-## ##                 abfr.insert()
-        #print 'ABFR vor HTML', abfr
         return self._process(abfr, cgi_name)
 
 class Query(object):
@@ -198,11 +177,6 @@ class Query(object):
                                     # String, zB aus der Abfrage-Instanz
                  name=None,
                  cgi_name='query1', # nur für HTML Generierung
-
-##                  query_list=None,   # Liste von form, evt. nur ein String, evt. leere
-##                                     # Strings als Elemente
-##                  query_string=None, # Gespeicherter String, syntaktisch korrekt, kann leer sein
-##                  abfrage=None,      # Abfrage-Datenbankobjekt
         ):
         if not arg:
             arg = []
@@ -232,9 +206,6 @@ class Query(object):
         # Wird von Primitivknoten gesetzt um zu registrieren, ob Fachstatistik.
         # Bundesstatistik oder Ortsangaben in der Query verwendet werden.
         self.uses = [False,False,False] 
-        #self.maxdepth = max([len(k) for k in self.raw_query_map.keys()]) / 2
-        #print 'QUERY MAP vor dem build', self.raw_query_map
-        #self.root = Condition.build_query(self, '00')
         self.root = build_query(self, '00')
         if not self.root:
             # wurde abgwählt
@@ -259,13 +230,6 @@ class Query(object):
         for row in data:
             n_cells = sum([item.n_col for item in row])
             row[-1].n_col = max_colspan - n_cells + row[-1].n_col
-##     def _test(self, data):
-##         "Jede Zeile überspannt max_colspan Zellen"
-##         max_colspan = max([sum([item.n_col for item in row]) for row in data])
-##         print 'ZELLEN NACH:', max_colspan
-##         for row in data:
-##             n_cells = sum([item.n_col for item in row])
-##             assert n_cells == max_colspan
     def get_anzeige(self):
         anzeige = self.root.get_anzeige().strip()
         #print 'QUERY anzeige', anzeige
@@ -335,8 +299,6 @@ class Condition(object):
     def get_children_values(self):
         """Liste von Kindern:  nur die Wert"""
         map = self.query.raw_query_map
-##         keys_for_values = [k for k in map.keys()
-##                            if k.startswith(self.index) and k != self.index]
         return [map[k] for k in self.get_children_indexes()]
     def get_children_indexes(self):
         """Liste von Kindern:  nur die Indexe"""

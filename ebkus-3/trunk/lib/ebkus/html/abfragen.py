@@ -1,51 +1,72 @@
 # coding: latin-1
 """Module für die Abfragen."""
 
-# TODO: nicht gebrauchte Abfragen entfernen: formabfr3, abfr3, formabfr8 - 14 (ohne 'a')
-
 import sys
 from ebkus.config import config
-CLIKE = 'like' # gibts andere DBs wo das nicht geht?
 from ebkus.app import Request
-from ebkus.app.ebapi import nfc, Fachstatistik, FachstatistikList, \
-     JugendhilfestatistikList, Jugendhilfestatistik2007List, \
+from ebkus.app.ebapi import JugendhilfestatistikList, Jugendhilfestatistik2007List, \
      ZustaendigkeitList, AkteList, BezugspersonList, FallList, GruppeList, \
      Tabelle, Code, Feld, Mitarbeiter, MitarbeiterList, MitarbeiterGruppeList, \
      today, cc, check_int_not_empty, \
      check_str_not_empty, EBUpdateDataError, EE, getQuartal, get_rm_datum, Date
-from ebkus.app.ebapih import get_codes, mksel, get_all_codes
-from ebkus.html.statistik_ergebnis import auszergebnis
-from ebkus.app.statistik import CodeAuszaehlung, WertAuszaehlung
-from ebkus.app_surface.standard_templates import *
-from ebkus.app_surface.abfragen_templates import *
         
 import ebkus.html.htmlgen as h
 from ebkus.html.akte_share import akte_share
 
 
+class _abfr(Request.Request, akte_share):
+    "Superklasse für Abfragen"
+    def get_table_daten(self, elems, fields):
+        "Element von fields kann ein Tupel sein: string, url"
+        "Dann wird ein verlinkter Text angezeigt."
+        daten = []
+        for e in elems:
+            zeile = []
+            for f in fields:
+                if isinstance(f, tuple):
+                    acc, tmpl = f
+                    zeile.append(h.Link(string=e[acc], url=tmpl % e))
+                elif e.get(f+'y') != None:
+                    # TODO very dirty hack!!!!
+                    zeile.append(h.Datum(date=e[f]))
+                else:
+                    zeile.append(h.String(string=e[f]))
+            daten.append(zeile)
+        return daten
 
-## # ab Fallnummer        
-## class formabfr2(Request.Request):
-##     """Suchformular (Tabellen: Fall, Akte, Zuständigkeit)."""
+    def beratungen_gruppe(self,
+                          welche=None,
+                          mitarbeiter=None,
+                          stelle=None,
+                          ab_jahr=None,
+                          grname=None):
+        join=[('mitarbeitergruppe', 'gruppe.id=mitarbeitergruppe.gruppe_id'),
+              ('mitarbeiter', 'mitarbeitergruppe.mit_id=mitarbeiter.id')]
+        # nur die eigene Stelle
+        where = []
+        if stelle:
+            where.append("gruppe.stz=%s" % stelle['id'])
+        if ab_jahr:
+            where.append("gruppe.bgy>=%s" % ab_jahr)
+        if mitarbeiter:
+            where.append("mitarbeiter.id=%s" % mitarbeiter['id'])
+        if grname:
+            where.append("(gruppe.name like '%%%s%%' or gruppe.thema like '%%%s%%')" % \
+                     (grname, grname))
+        if welche=='laufend':
+            where.append('gruppe.ey=0')
+        elif welche=='abgeschlossen':
+            where.append('gruppe.ey>0')
+        gruppe_list = GruppeList(
+            where=' and '.join(where),
+            join=join,
+            )
+        sort = ('bgy', 'bgm', 'bgd', 'name')
+        gruppe_list.sort(*sort)
+        return gruppe_list
     
-##     permissions = Request.ABFR_PERM
-    
-##     def processForm(self, REQUEST, RESPONSE):
-##         mitarbeiterliste = self.getMitarbeiterliste()
-##         user = self.user
-##         stellen = get_all_codes('stzei')
-        
-##         res = []
-##         res.append(head_normal_t %("Suche alle Beratungen ab Fallnummer"))
-##         res.append(suchefallnummer_t)
-##         mksel(res, codeliste_t, stellen, 'id', self.stelle['id'])
-##         res.append(suchefallnummer2_t)
-##         return ''.join(res)
-        
-        
 
-
-class abfr1(Request.Request, akte_share):
+class abfr1(_abfr):
     """Ergebnis der Abfrage aller Klienten, Beratungen
     (Tabellen: Fall, Akte, Zuständigkeit)."""
     permissions = Request.ABFR_PERM
@@ -171,7 +192,7 @@ class abfr1(Request.Request, akte_share):
                                name='fnc',
                                class_='textboxmid',
                                value=fn_count,
-                               tip='Nur Fälle ab der laufenden Nummer des gewählten Jahres zeigen',
+                               tip='z.B. 9, 23, etc.',
                                ),
                     ],
                     [self.mitarbeiter['benr__code'] == 'verw' and
@@ -233,296 +254,8 @@ class abfr1(Request.Request, akte_share):
             )
         return res.display()
         
-##     def processForm(self, REQUEST, RESPONSE):
-##         mitarbeiterliste = self.getMitarbeiterliste()
-##         user = self.user
-##         mitarbeiter = self.mitarbeiter
-##         stelle = self.stelle
-        
-##         try:
-##             o = check_str_not_empty(self.form, 'o', "Kein Operator")
-##             ed = check_int_not_empty(self.form, 'ed', "Kein Datum", 0)
-##         except EBUpdateDataError, e:
-##             meldung = {'titel':'Fehler',
-##                        'legende':'Fehlerbeschreibung',
-##                        'zeile1': str(e),
-##                        'zeile2':'Versuchen Sie es bitte erneut.'}
-##             return (meldung_t %meldung)
-            
-##         if o == 'laufend':
-##             ber = 'Laufende'
-##             op = '='
-##         elif o == 'alle':
-##             ber = 'Alle'
-##             op = '>='
-##         elif o == 'zda':
-##             ber = 'Abgeschlossene'
-##             op = '>'
-            
-            
-##         res = []
-##         res.append(head_normal_t %("%s Beratungen" %ber))
-##         res.append(thabfr1_t)
-##         if mitarbeiter['benr__code'] == 'bearb':
-##             zustaendigkeiten = ZustaendigkeitList(where = 'ed %s %s and mit_id = %s'
-##                                                   % (op, ed, mitarbeiter['id'] ))
-##             zustaendigkeiten.sort('mit_id__na', 'fall_id__akte_id__na',
-##                                   'fall_id__akte_id__vn')
-##             for z in zustaendigkeiten:
-##                 if z['fall_id__akte_id__stzak'] == stelle['id']:
-##                     res.append(abfr1_t % z)
-                    
-##         elif mitarbeiter['benr__code'] == 'verw':
-##             zustaendigkeiten = ZustaendigkeitList(where = 'ed %s %s' %(op, ed)
-##                                                   , order = 'id')
-##             # Auch nach Mitarbeiter sortieren
-##             zustaendigkeiten.sort('mit_id__na', 'fall_id__akte_id__na',
-##                                   'fall_id__akte_id__vn')
-##             #zustaendigkeiten.sort('fall_id__id')
-##             # nur Fälle der Stelle des Mitarbeiters
-##             # Reihenfolge: Jahr, Fallnummer
-##             for z in zustaendigkeiten:
-##                 if z['fall_id__akte_id__stzak'] == stelle['id']:
-##                     res.append(abfr1_t % z)
-                    
-##         elif mitarbeiter['benr__code'] == 'admin':
-##             zustaendigkeiten = ZustaendigkeitList(where = 'ed %s %s' %(op, ed)
-##                                                   , order = 'id')
-##             zustaendigkeiten.sort('fall_id__id')
-##             for z in zustaendigkeiten:
-##                 if z['fall_id__akte_id__stzak'] == stelle['id']:
-##                     res.append(abfr1_t % z)
-##         res.append(abfr1b_t)
-##         return ''.join(res)
-        
-        
-        
-## class abfr2(Request.Request):
-##     """Ergebnis der Suche in der Klienten- oder Gruppenkartei."""
-    
-##     permissions = Request.ABFR_PERM
-    
-##     def processForm(self, REQUEST, RESPONSE):
-##         mitarbeiterliste = self.getMitarbeiterliste()
-##         user = self.user
-##         mitarbeiter = self.mitarbeiter
-##         stelle = self.stelle
-        
-##         try:
-##             fn = check_str_not_empty(self.form, 'expr', "Keine Fallnummer")
-##             stzid = check_int_not_empty(self.form, 'stz', "Kein Stellenzeichen")
-##         except EBUpdateDataError, e:
-##             meldung = {'titel':'Fehler',
-##                        'legende':'Fehlerbeschreibung',
-##                        'zeile1': str(e),
-##                        'zeile2':'Versuchen Sie es bitte erneut.'}
-##             return (meldung_t %meldung)
-            
-##         op = '>='
-##         ed = 0
-##         if op == '=':
-##             ber = 'Laufende'
-##         elif op == '>=':
-##             ber = 'Alle'
-##         elif op == '>':
-##             ber = 'Abgeschlossene'
-            
-##         stelle = Code(id=stzid)
-##         faelle = FallList(where = "fn = '%s' " % fn )
-##         if len(faelle) == 1:
-##             fall = faelle[0]
-##         else:
-##             res = []
-##             meldung = {'titel':'Suche nicht erfolgreich.',
-##                      'legende':'Suche nicht erfolgreich',
-##                      'zeile1':'Es konnte kein Fall eindeutig identifiziert werden!',
-##                      'zeile2':'Versuchen Sie es bitte erneut.'}
-##             res.append(meldung_t % meldung)
-##             return ''.join(res)
-            
-##             # Headerblock, Menue u. Überschrift fuer das HTML-Template
-            
-##         res = []
-##         res.append(head_normal_t %("Alle Beratungen ab Fallnummer"))
-##         res.append(thabfr1_t)
-        
-##         if mitarbeiter['benr__code'] == 'bearb':
-##             zustaendigkeiten = ZustaendigkeitList(where = 'ed %s %s and mit_id = %s and fall_id >= %s'
-##                        % (op, ed, mitarbeiter['id'], fall['id'] ))
-##             zustaendigkeiten.sort('mit_id__na', 'fall_id__akte_id__na',
-##                                   'fall_id__akte_id__vn')
-##             for z in zustaendigkeiten:
-##                 if z['fall_id__akte_id__stzbg'] == stelle['id']:
-##                     res.append(abfr1_t % z)
-                    
-##         elif mitarbeiter['benr__code'] == 'verw':
-##             zustaendigkeiten = ZustaendigkeitList(where = 'ed %s %s and fall_id >= %s'
-##                                               % (op, ed, fall['id']) , order = 'id')
-##             zustaendigkeiten.sort('fall_id__id')
-##             for z in zustaendigkeiten:
-##                 if z['fall_id__akte_id__stzbg'] == stelle['id']:
-##                     res.append(abfr1_t % z)
-                    
-##         elif mitarbeiter['benr__code'] == 'admin':
-##             zustaendigkeiten = ZustaendigkeitList(where = 'ed %s %s and fall_id >= %s'
-##                                                  % (op, ed, fall['id']), order = 'id')
-##             zustaendigkeiten.sort('fall_id__id')
-##             for z in zustaendigkeiten:
-##                 if z['fall_id__akte_id__stzbg'] == stelle['id']:
-##                     res.append(abfr1_t % z)
-                    
-##         res.append(abfr1b_t)
-##         return ''.join(res)
-        
-        
-## class formabfr3(Request.Request):
-##     """Suchformular Gruppenkarte(Tabellen: Fall, Akte, Gruppe, Zuständigkeit)."""
-    
-##     permissions = Request.ABFR_PERM
-    
-##     def processForm(self, REQUEST, RESPONSE):
-##         mitarbeiterliste = self.getMitarbeiterliste()
-##         user = self.user
-##         stellen = get_all_codes('stzei')
-##         stelle = self.stelle
-        
-##         res = []
-##         res.append(head_normal_t %("Suche in der Kartei nach Vorname oder Nachname oder Fallnummer oder Gruppe"))
-##         res.append(suchwort_t)
-##         res.append(menuefs_t)
-##         res.append(suchwort2a_t)
-##         # nicht mehr nach der Stelle fragen
-##         #mksel(res, codeliste_t, stellen, 'id', stelle['id'])
-##         res.append(suchwort2b_t)
-##         return ''.join(res)
-        
-        
-## class abfr3(Request.Request):
-##     """Ergebnis der Suche in der Klienten- oder Gruppenkartei."""
-    
-##     permissions = Request.ABFR_PERM
-    
-##     def processForm(self, REQUEST, RESPONSE):
-##         mitarbeiterliste = self.getMitarbeiterliste()
-##         user = self.user
-##         mitarbeiter = self.mitarbeiter
-##         stelle = self.stelle
-        
-##         try:
-##             expr = check_str_not_empty(self.form, 'expr', "Kein Suchausdruck")
-##             table = check_str_not_empty(self.form, 'table', "Keine Suchklasse")
-##         except EBUpdateDataError, e:
-##             meldung = {'titel':'Fehler',
-##                        'legende':'Fehlerbeschreibung',
-##                        'zeile1': str(e),
-##                        'zeile2':'Versuchen Sie es bitte erneut.'}
-##             return (meldung_t %meldung)
-##         stzid = stelle['id']
-        
-##         expr1 = "%" + expr + "%"
-##         if table == "akte":
-##             akten = AkteList(where = "stzbg = %s and (vn %s '%s' or na %s '%s')"
-##                              % (stzid, CLIKE, expr1, CLIKE, expr1),
-##                              order = 'na,vn')
-            
-##         elif table == "fall":
-##             faelle = FallList(where = "fn %s '%s'" % (CLIKE, expr1),
-##                               order = 'fn' )
-            
-##         elif table == "bezugsperson":
-##             bezugspersonen = BezugspersonList(where = "vn %s '%s' or na %s '%s'"
-##                                               % (CLIKE, expr1, CLIKE,
-##                                                  expr1),
-##                                               order = 'na,vn')
-            
-##         elif table == 'gruppe':
-##             gruppen = GruppeList(where = "stz = '%s' and name %s '%s' or thema %s '%s'"
-##                               % (stzid, CLIKE, expr1, CLIKE, expr1))
-            
-##         res = []
-##         res.append(head_normal_t %("Resultat der Karteiabfrage nach %s" % expr))
-##         res.append(thabfr3_start_t)
-##         if table == "akte" and mitarbeiter['benr__code'] == 'bearb':
-##             res.append(thabfr3_header_t)
-##             for a in akten:
-##                 letzter_fall = a['letzter_fall']
-##                 zustaendigkeit = letzter_fall['zuletzt_zustaendig']
-##                 if zustaendigkeit['mit_id'] == mitarbeiter['id']:
-##                     res.append(abfr2_item_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "akte" and (mitarbeiter['benr__code'] == 'verw' or mitarbeiter['benr__code'] == 'admin'):
-##             res.append(thabfr3_header_t)
-##             for a in akten:
-##                 letzter_fall = a['letzter_fall']
-##                 zustaendigkeit = letzter_fall['zuletzt_zustaendig']
-##                 if zustaendigkeit['fall_id__akte_id__stzbg'] == stzid:
-##                     res.append(abfr2_item_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "bezugsperson" and mitarbeiter['benr__code'] == 'bearb':
-##             res.append(thabfr3_header_t)
-##             for b in bezugspersonen:
-##                 if b['akte_id__stzbg'] == stzid:
-##                     letzter_fall = b['akte_id__letzter_fall']
-##                     zustaendigkeit = letzter_fall['zuletzt_zustaendig']
-##                     if zustaendigkeit['mit_id'] == mitarbeiter['id']:
-##                         res.append(abfr3a_t % zustaendigkeit)
-##                         res.append(abfr3b_t % b)
-##                         res.append(abfr3c_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "bezugsperson" and (mitarbeiter['benr__code'] == 'verw' or mitarbeiter['benr__code'] == 'admin'):
-##             res.append(thabfr3_header_t)
-##             for b in bezugspersonen:
-##                 if b['akte_id__stzbg'] == stzid:
-##                     letzter_fall = b['akte_id__letzter_fall']
-##                     zustaendigkeit = letzter_fall['zuletzt_zustaendig']
-##                     if zustaendigkeit['fall_id__akte_id__stzbg'] == stzid:
-##                         res.append(abfr3a_t % zustaendigkeit)
-##                         res.append(abfr3b_t % b)
-##                         res.append(abfr3c_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "fall" and mitarbeiter['benr__code'] == 'bearb':
-##             res.append(thabfr3_header_t)
-##             for f in faelle:
-##                 if f['akte_id__stzbg'] == stzid:
-##                     zustaendigkeit = f['zuletzt_zustaendig']
-##                     if zustaendigkeit['mit_id'] == mitarbeiter['id']:
-##                         res.append(abfr2_item_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "fall" and (mitarbeiter['benr__code'] == 'verw' or mitarbeiter['benr__code'] == 'admin'):
-##             res.append(thabfr3_header_t)
-##             for f in faelle:
-##                 if f['akte_id__stzbg'] == stzid:
-##                     zustaendigkeit = f['zuletzt_zustaendig']
-##                     if zustaendigkeit['fall_id__akte_id__stzbg'] == stzid:
-##                         res.append(abfr2_item_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "gruppe" and mitarbeiter['benr__code'] == 'bearb':
-##             res.append(thabfrgr_t)
-##             for g in gruppen:
-##                 mitgruppen = mitarbeiter['gruppen']
-##                 for m in mitgruppen:
-##                     if m['gruppe_id'] == g['id']:
-##                         res.append(abfrgr_t % g)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "gruppe" and (mitarbeiter['benr__code'] == 'verw' or mitarbeiter['benr__code'] == 'admin'):
-##             res.append(thabfrgr_t)
-##             for g in gruppen:
-##                 if g['stz'] == stzid:
-##                     res.append(abfrgr_t % g)
-##             res.append(abfr_tab_ende_t)
-            
-##         res.append(abfr3_ende_t)
-##         return ''.join(res)
 
-
-class abfr3(Request.Request, akte_share):
+class abfr3(_abfr):
     """Ergebnis der Suche in der Klienten- oder Gruppenkartei."""
     permissions = Request.ABFR_PERM
 
@@ -579,42 +312,9 @@ class abfr3(Request.Request, akte_share):
         bezugsperson_list.sort(*sort)
         return bezugsperson_list
         
-    def beratungen_gruppe(self, mitarbeiter=None, grname=None):
-        join=[('mitarbeitergruppe', 'gruppe.id=mitarbeitergruppe.gruppe_id'),
-              ('mitarbeiter', 'mitarbeitergruppe.mit_id=mitarbeiter.id')]
-        # nur die eigene Stelle
-        where = "gruppe.stz=%s" % self.stelle['id']
-        if mitarbeiter:
-            where += " and mitarbeiter.id = %s" % mitarbeiter['id']
-        if grname:
-            where += " and (gruppe.name like '%%%s%%' or gruppe.thema like '%%%s%%')" % \
-                     (grname, grname)
-        gruppe_list = GruppeList(
-            where=where,
-            join=join,
-            )
-        sort = ('name', 'bgy', 'bgm', 'bgd')
-        gruppe_list.sort(*sort)
-        return gruppe_list
         
 
 
-    def get_table_daten(self, elems, fields):
-        daten = []
-        for e in elems:
-            zeile = []
-            for f in fields:
-                if isinstance(f, tuple):
-                    acc, tmpl = f
-                    zeile.append(h.Link(string=e[acc], url=tmpl % e))
-                elif e.get(f+'y') != None:
-                    # TODO very dirty hack!!!!
-                    zeile.append(h.Datum(date=e[f]))
-                else:
-                    zeile.append(h.String(string=e[f]))
-            daten.append(zeile)
-        return daten
-                    
                 
     def processForm(self, REQUEST, RESPONSE):
         expr = check_str_not_empty(self.form, 'expr', "Kein Suchausdruck")
@@ -660,12 +360,15 @@ class abfr3(Request.Request, akte_share):
                                          )
             legend="Suchergebnisse für: Bezugspersonname enthält '%s'" % expr
         elif table == "gruppe":
-            headers=('Gruppennr.', 'Name', 'Thema', 'Art', 'Beginn', 'Ende', 'Mitarbeiter')
-            gruppen = self.beratungen_gruppe(mitarbeiter, grname=expr)
-            daten = self.get_table_daten(gruppen,
+            headers=('Gruppennr.', 'Mitarbeiter', 'Name',
+                     'Thema', 'Art', 'Teilnehmer', '-zahl', 'Beginn', 'Ende')
+
+            gruppe_list = self.beratungen_gruppe(mitarbeiter=mitarbeiter, grname=expr)
+            daten = self.get_table_daten(gruppe_list,
                                          (('gn', 'grkarte?gruppeid=%(id)s'),
-                                          'name', 'thema', 'grtyp__name',
-                                          'bg', 'e', 'mitarbeiternamen'
+                                          'mitarbeiternamen', 'name', 'thema',
+                                          'grtyp__name', 'teiln__name', 'tzahl',
+                                          'bg', 'e',
                                           ),
                                          )
             legend = "Suchergebnisse für: Gruppenname oder -thema enthält '%s'" % expr
@@ -684,124 +387,8 @@ class abfr3(Request.Request, akte_share):
             )
         return res.display()
                                          
-##             akten = AkteList(where = "stzbg = %s and (vn %s '%s' or na %s '%s')"
-##                              % (stzid, CLIKE, expr1, CLIKE, expr1),
-##                              order = 'na,vn')
-            
-##         elif table == "fall":
-##             faelle = FallList(where = "fn %s '%s'" % (CLIKE, expr1),
-##                               order = 'fn' )
-            
-##         elif table == "bezugsperson":
-##             bezugspersonen = BezugspersonList(where = "vn %s '%s' or na %s '%s'"
-##                                               % (CLIKE, expr1, CLIKE,
-##                                                  expr1),
-##                                               order = 'na,vn')
-            
-##         elif table == 'gruppe':
-##             gruppen = GruppeList(where = "stz = '%s' and name %s '%s' or thema %s '%s'"
-##                               % (stzid, CLIKE, expr1, CLIKE, expr1))
-            
-##         res = []
-##         res.append(head_normal_t %("Resultat der Karteiabfrage nach %s" % expr))
-##         res.append(thabfr3_start_t)
-##         if table == "akte" and mitarbeiter['benr__code'] == 'bearb':
-##             res.append(thabfr3_header_t)
-##             for a in akten:
-##                 letzter_fall = a['letzter_fall']
-##                 zustaendigkeit = letzter_fall['zuletzt_zustaendig']
-##                 if zustaendigkeit['mit_id'] == mitarbeiter['id']:
-##                     res.append(abfr2_item_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "akte" and (mitarbeiter['benr__code'] == 'verw' or mitarbeiter['benr__code'] == 'admin'):
-##             res.append(thabfr3_header_t)
-##             for a in akten:
-##                 letzter_fall = a['letzter_fall']
-##                 zustaendigkeit = letzter_fall['zuletzt_zustaendig']
-##                 if zustaendigkeit['fall_id__akte_id__stzbg'] == stzid:
-##                     res.append(abfr2_item_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "bezugsperson" and mitarbeiter['benr__code'] == 'bearb':
-##             res.append(thabfr3_header_t)
-##             for b in bezugspersonen:
-##                 if b['akte_id__stzbg'] == stzid:
-##                     letzter_fall = b['akte_id__letzter_fall']
-##                     zustaendigkeit = letzter_fall['zuletzt_zustaendig']
-##                     if zustaendigkeit['mit_id'] == mitarbeiter['id']:
-##                         res.append(abfr3a_t % zustaendigkeit)
-##                         res.append(abfr3b_t % b)
-##                         res.append(abfr3c_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "bezugsperson" and (mitarbeiter['benr__code'] == 'verw' or mitarbeiter['benr__code'] == 'admin'):
-##             res.append(thabfr3_header_t)
-##             for b in bezugspersonen:
-##                 if b['akte_id__stzbg'] == stzid:
-##                     letzter_fall = b['akte_id__letzter_fall']
-##                     zustaendigkeit = letzter_fall['zuletzt_zustaendig']
-##                     if zustaendigkeit['fall_id__akte_id__stzbg'] == stzid:
-##                         res.append(abfr3a_t % zustaendigkeit)
-##                         res.append(abfr3b_t % b)
-##                         res.append(abfr3c_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "fall" and mitarbeiter['benr__code'] == 'bearb':
-##             res.append(thabfr3_header_t)
-##             for f in faelle:
-##                 if f['akte_id__stzbg'] == stzid:
-##                     zustaendigkeit = f['zuletzt_zustaendig']
-##                     if zustaendigkeit['mit_id'] == mitarbeiter['id']:
-##                         res.append(abfr2_item_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "fall" and (mitarbeiter['benr__code'] == 'verw' or mitarbeiter['benr__code'] == 'admin'):
-##             res.append(thabfr3_header_t)
-##             for f in faelle:
-##                 if f['akte_id__stzbg'] == stzid:
-##                     zustaendigkeit = f['zuletzt_zustaendig']
-##                     if zustaendigkeit['fall_id__akte_id__stzbg'] == stzid:
-##                         res.append(abfr2_item_t % zustaendigkeit)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "gruppe" and mitarbeiter['benr__code'] == 'bearb':
-##             res.append(thabfrgr_t)
-##             for g in gruppen:
-##                 mitgruppen = mitarbeiter['gruppen']
-##                 for m in mitgruppen:
-##                     if m['gruppe_id'] == g['id']:
-##                         res.append(abfrgr_t % g)
-##             res.append(abfr_tab_ende_t)
-            
-##         elif table == "gruppe" and (mitarbeiter['benr__code'] == 'verw' or mitarbeiter['benr__code'] == 'admin'):
-##             res.append(thabfrgr_t)
-##             for g in gruppen:
-##                 if g['stz'] == stzid:
-##                     res.append(abfrgr_t % g)
-##             res.append(abfr_tab_ende_t)
-            
-##         res.append(abfr3_ende_t)
-##         return ''.join(res)
         
-        
-## class formabfr4(Request.Request):
-##     """Suchformular für die Anzahl der Neumeldungen und zdA's pro Jahr."""
-    
-##     permissions = Request.ABFR_PERM
-    
-##     def processForm(self, REQUEST, RESPONSE):
-##         mitarbeiterliste = self.getMitarbeiterliste()
-##         user = self.user
-##         stelle = self.stelle
-##         res = []
-##         res.append(head_normal_t %("Neumelde- und Abschlusszahlen"))
-##         res.append(thformabfr_kopf_t %("abfr4"))
-##         res.append(formabfr_jahr_t % ('Neumelde- und Abschlusszahl',today().year) )
-##         res.append(formabfr_ende_t)
-##         return ''.join(res)
-        
-class abfr4(Request.Request, akte_share):
+class abfr4(_abfr):
     """Anzahl der Neumeldungen u. Abschlüsse pro Jahr und Quartal."""
     permissions = Request.ABFR_PERM
     def get_neumelde_abschluss_daten(self, jahr):
@@ -971,7 +558,7 @@ class abfr4(Request.Request, akte_share):
         
         
 
-class abfr5(Request.Request, akte_share):
+class abfr5(_abfr):
     """Klientenzahl pro Mitarbeiter u. Jahr."""
     permissions = Request.ABFR_PERM
     def get_mitarbeiter_ergebnisse(self, jahr):
@@ -1044,150 +631,59 @@ class abfr5(Request.Request, akte_share):
             )
         return res.display()
 
-        
-    def xprocessForm(self, REQUEST, RESPONSE):
-        mitarbeiterliste = self.getMitarbeiterliste()
-        user = self.user
-        stelle = self.stelle
-        try:
-            jahr = check_int_not_empty(self.form, "jahr", "Keine Jahreszahl eingeben")
-        except EBUpdateDataError, e:
-            meldung = {'titel':'Fehler',
-                       'legende':'Fehlerbeschreibung',
-                       'zeile1': str(e),
-                       'zeile2':'Versuchen Sie es bitte erneut.'}
-            return (meldung_t %meldung)
-        loeschfrist = get_rm_datum()
-        lauf_jahr = '%(year)d' % today()
-        if jahr > loeschfrist['loeschjahr'] or jahr <= int(lauf_jahr):
-            pass
-        else:
-            self.last_error_message = "Die Jahreszahl ist kleiner als das eingestellte Löschdatum (Jahr) oder grösser als das laufende Jahr"
-            return self.EBKuSError(REQUEST, RESPONSE)
-            
-        res = []
-        res.append(head_normal_t %("Klientenzahl pro Mitarbeiter"))
-        res.append(thabfr5_t % jahr)
-        
-        
 
-##*************************************************************************
-## Ueberblicksliste zu den Gruppen, fuer einen bestimmten Zeitraum
-##
-##
-## Heller 02.10.2001
-##*************************************************************************
-        
-class formabfr8(Request.Request):
-
+class abfr8(_abfr):
+    "Gruppenübersicht"
     permissions = Request.ABFR_PERM
     def processForm(self, REQUEST, RESPONSE):
-        stelle = self.stelle
-        lauf_jahr = '%(year)d' % today()
-        monat_von = self.form.get('monatvon')
-        jahr_von = self.form.get('jahrvon')
-        monat_bis = self.form.get('monatbis')
-        jahr_bis = self.form.get('jahrbis')
-        seite = { 'seite':'./formabfr8a'}
-        
-        ##***************************************************************
-        ## Fehlerausgabe bei falschem Datum oder unvollstaendigen Daten
-        ## Heller 02.10.2001
-        ##***************************************************************
-        res = []
-        if jahr_von == '' or jahr_bis =='':
-            meldung = {'titel':'Daten unvollst&auml;ndig!',
-                       'legende':'Hinweis!',
-                       'zeile1':'Die angegebenen Daten waren unvollst&auml;ndig!',
-                       'zeile2':'Versuchen Sie es bitte erneut.'}
-            res.append(meldung_t % meldung)
-            return ''.join(res)
-            
-        if jahr_von > jahr_bis :
-            meldung = {'titel':'Jahreszahl ist nicht korrekt!',
-                       'legende':'Hinweis!',
-                       'zeile1':'Das Von-Datum liegt nach Bis-Datum!',
-                       'zeile2':'Versuchen Sie es bitte erneut.'}
-            res.append(meldung_t % meldung)
-            return ''.join(res)
-            
-        if jahr_von < '1970' or jahr_von >'2030':
-            meldung = {'titel':'Jahreszahl ist nicht korrekt!',
-                       'legende':'Hinweis!',
-                       'zeile1':'Das Von-Datum liegt vor 1970 oder nach 2030!',
-                       'zeile2':'Versuchen Sie es bitte erneut.'}
-            res.append(meldung_t % meldung)
-            return ''.join(res)
-            
-        if jahr_bis > lauf_jahr:
-            meldung = {'titel':'Jahreszahl ist nicht korrekt!',
-                       'legende':'Hinweis!',
-                       'zeile1':'Das Bis-Datum liegt hinter dem heutigem!',
-                       'zeile2':'Versuchen Sie es bitte erneut.'}
-            res.append(meldung_t % meldung)
-            return ''.join(res)
-            
-        if monat_von > monat_bis and jahr_von == jahr_bis:
-            meldung = {'titel':'Monatsangabe ist nicht korrekt!',
-                     'legende':'Hinweis!',
-                     'zeile1':'Von-Monat ist gr&ouml;sser als Bis-Monat!',
-                     'zeile2':'Versuchen Sie es bitte erneut.'}
-            res.append(meldung_t % meldung)
-            return ''.join(res)
-            
-        alle = GruppeList( where = ' ((bgy = %s' % jahr_von + ' and bgm >= %s' % monat_von
-                                    + ') or ( bgy > %s))' % jahr_von
-                                    + ' and ((bgy = %s' % jahr_bis
-                                    + ' and bgm <= %s)' % monat_bis
-                                    + ' or ( bgy < %s)) ' % jahr_bis
-                                      , order = 'bgy,bgm,bgd desc' )
-        
-        if len(alle):
-            pass
-        else:
-            meldung = {'titel':'Fehler',
-                       'legende':'Fehlerbeschreibung',
-                       'zeile1': 'Keine Datens&auml;tze gefunden',
-                       'zeile2':'Versuchen Sie es bitte erneut.'}
-            res.append(meldung_t %meldung)
-            return ''.join(res)
-            
-        res.append(head_normal_t %("Gruppen&uuml;berblick"))
-        res.append(thabfr8_t)
-        
-        for i in alle:
-            mitarbeiterl = MitarbeiterGruppeList(where = 'gruppe_id = %d' % i['id'])
-            mitarbeiter = ' '
-            for m in mitarbeiterl:
-                mitarbeiter = mitarbeiter + '%s ' % m['mit_id__na']
-            res.append(abfr8ges_t % (i['gn'],i['name'],nfc(i['grtyp']),nfc(i['teiln']),
-                                     i['tzahl'],i['bgd'],i['bgm'],i['bgy'],i['ed'],i['em'],
-                                     i['ey'], mitarbeiter))
-        res.append(abfr8ges_ende_t)
-        return ''.join(res)
-        
-        
-        ##*************************************************************************
-        ## Zeitraumauswahl fuer eine Gruppenuebersicht
-        ##
-        ##
-        ## Heller 26.09.2001
-        ##*************************************************************************
-        
-class formabfr8a(Request.Request):
-
-
-    permissions = Request.ABFR_PERM
-    
-    def processForm(self, REQUEST, RESPONSE):
-    
-    
-        stelle = self.stelle
-        res = []
-        res.append(head_normal_t %("Auswahl des Zeitraumes für die Gruppenuebersicht"))
-        res.append(abfr8ages_t)
-        return ''.join(res)
-        
-
-        
+        jahr = check_int_not_empty(self.form, 'jahr', "Fehler im Jahr", '')
+        anzeige = h.FieldsetInputTable(
+            legend='Jahr wählen',
+            daten=[[h.SelectItem(label='Ab Jahr',
+                                 name='jahr',
+                                 class_='listbox45',
+                                 tip='Gruppenbeginn ab dem gewählten Jahr',
+                                 options=self.for_jahre(sel=jahr,
+                                                        erster_eintrag='Alle'),
+                                 ),
+                    h.Button(value="Anzeigen",
+                             name='op',
+                             tip="Gruppen anzeigen",
+                             type='submit',
+                             n_col=2,
+                             ),
+                    ],
+                   ],
+            )
+        mitarbeiter = welche = stelle = None
+        gruppe_list = self.beratungen_gruppe(ab_jahr=jahr,
+                                             mitarbeiter=mitarbeiter,
+                                             welche=welche,
+                                             stelle=stelle)
+        headers=('Gruppennr.', 'Mitarbeiter', 'Name',
+                 'Thema', 'Art', 'Teilnehmer', '-zahl', 'Beginn', 'Ende')
+        daten = self.get_table_daten(gruppe_list,
+                                     (('gn', 'grkarte?gruppeid=%(id)s'),
+                                      'mitarbeiternamen', 'name', 'thema',
+                                      'grtyp__name', 'teiln__name', 'tzahl',
+                                      'bg', 'e',
+                                      ),
+                                     )
+        report = h.FieldsetDataTable(
+            legend='Gruppenüberblick',
+            headers=headers,
+            daten=daten,
+            )
+        res = h.FormPage(
+            title='Gruppenüberblick',
+            name='gruppenue',action="abfr8",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ),
+            hidden=(),
+            rows=(self.get_auswertungs_menu(),
+                  anzeige,
+                  report,
+                  ),
+            )
+        return res.display()
         

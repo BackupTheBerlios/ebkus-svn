@@ -326,33 +326,6 @@ class codeneu(_code):
                              code=code,
                              view=view,
                              )
-##         # Liste der Templates als String
-        
-##         res = []
-##         res.append(head_normal_ohne_help_t %("Neues Merkmal der Kategorie '%(name)s' eintragen" % (kat)))
-##         res.append(code_neu_start)
-##         res.append(formhiddenvalues_t % hidden)
-##         for h in hiddenlist:
-##             res.append(formhiddennamevalues_t % h)
-##         last = len(codeliste)
-##         res.append(thcodeneu_t % kat)
-##         res.append(codeneu1_t )
-##         i = 1
-##         while i < len(codeliste) + 2:
-##             if i == len(codeliste) + 1:
-##                 sel = "selected"
-##             else:
-##                 sel = ''
-##             res.append(codeneu2_t % (i, sel, i))
-##             i = i + 1
-##         res.append(codeneu3_t)
-##         res.append(codeneu4_t)
-##         res.append(thkat1_t % kat)
-##         res.append(thcodeliste1_t)
-##         mk_ausgabe_codeliste(res, codelisten1_t, codeliste)
-##         res.append(code_neu_ende)
-##         return string.join(res, '')
-        
         
 
 class updcode(_code):
@@ -370,29 +343,6 @@ class updcode(_code):
                              code=code,
                              view=view,
                              )
-##         res = []
-##         res.append(head_normal_ohne_help_t %("Merkmal '%(name)s' der Kategorie '%(kat_id__name)s' &auml;ndern" % (code)))
-##         res.append(code_bearb_start)
-##         res.append(formhiddenvalues_t % hidden)
-##         for h in hiddenlist:
-##             res.append(formhiddennamevalues_t % h)
-##         res.append(thupdcode_t % kat)
-##         res.append(updcode1_t % code)
-##         mksel(res, updcode2_t, codeliste, 'sort', code['sort'])
-##         mk_ausgabe_codeliste(res, updcode3_t, code)
-##         if code['off'] == 1:
-##             check = 'checked'
-##         else:
-##             check = ''
-##         res.append(updcode4_t % {'check' : check} )
-##         mk_ausgabe_codeliste(res, updcode5_t, code)
-##         mk_ausgabe_codeliste(res, updcode6_t, code)
-##         res.append(thupdkat1_t % kat)
-##         res.append(thupdcodeliste_t)
-##         mk_ausgabe_codeliste(res, updcodeliste_t, codeliste)
-##         res.append(code_bearb_ende)
-##         return string.join(res, '')
-
 
 class updkat(Request.Request, akte_share):
     """Wird sowohl mit GET und id als auch mit POST und Daten
