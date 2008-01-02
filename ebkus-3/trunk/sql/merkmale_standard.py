@@ -186,6 +186,7 @@ m;Mehrfachkategorie;verwtyp
 1;30 bis 60 Minuten;kdbs;3;5
 2;60 bis 120 Minuten;kdbs;6;11
 3;mehr als 120 Minuten;kdbs;12;99999
+0;keine;teilnbs
 1;Mutter;teilnbs
 2;Vater;teilnbs
 3;Stiefmutter;teilnbs
@@ -438,8 +439,6 @@ Superv;Supervision;grtyp
 sonstige;sonstige;grtyp
 1;Nein;gfall
 2;Ja;gfall
-13;auﬂerhalb;wohnbez
-999;keine Angabe;wohnbez
 0;innerhalb des Geltungsbereichs des Straﬂenkatalogs;lage
 1;auﬂerhalb des Geltungsbereichs des Straﬂenkatalogs;lage
 999;keine Angabe;lage
@@ -557,7 +556,7 @@ code_list_str += """
 #
 # Welche Kategorien sind Bereichskategorien?
 #
-bereichs_kategorien_str = "fskat gsa dbsite jghag kdbs fuadbs"
+bereichs_kategorien_str = "fskat gsa dbsite jghag fskd kdbs fuadbs"
 
 
 #
@@ -630,8 +629,6 @@ dokart;Der Eintrag ist
 teiln;Teilnehmer/innnen
 grtyp;Gruppentyp
 gfall;Geschwisterfall
-wohnbez;Wohnbezirksnr des Klienten
-dbsite;Datenbank-Site
 lage;Lage innerhalb oder auﬂerhalb des Geltungsbereichs des Straﬂenkatalogs
 config;Konfigurationseinstellungen
 aufbew;Aufbewahrungskategorie

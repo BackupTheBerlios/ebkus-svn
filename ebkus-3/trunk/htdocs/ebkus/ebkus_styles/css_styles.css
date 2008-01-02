@@ -22,9 +22,10 @@ a:hover { text-decoration:none; font-weight:bold; background-color:#CCCCCC; }
 a:active { text-decoration:none; font-weight:bold; background-color:#CCCCCC; }
 
 
-.textbox12 {  font-weight: normal; width: 12pt; }
+.textbox13 {  font-weight: normal; width: 13pt; }
 .textboxsmall {  font-weight: normal; width: 20pt; }
 .textbox52 {  font-weight: normal; width: 52pt; }
+.textbox30 {  width: 30pt;}
 .textboxmid {  width: 40pt; clip:  rect(   )}
 .textbox80 {  width: 80pt; }
 .textbox {  width: 120pt; }

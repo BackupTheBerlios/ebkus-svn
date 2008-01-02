@@ -1258,7 +1258,6 @@ class ComponentEbkusInstance(Component):
                     if self.config.INSTANCE_NAME.startswith('demo'):
                         demo_daten = 'demo_daten.py'
                     if ort == 'berlin':
-                        merkmale_file_in = 'merkmale_berlin.py'
                         if demo_daten:
                             str_kat = 'strkatalog_berlin_ausschnitt.sql.gz'
                         else:
