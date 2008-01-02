@@ -200,38 +200,39 @@ stz, INT, Dienststelle, k, stzei
 
 table, beratungskontakt, , Beratungskontakt, Beratungskontakt
 id, INT, id, s,
-fall_id, INT, Fallid, f, fall, beratungskontakte
-mit_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte
+gruppe_id, INT, Gruppeid, f, gruppe, termine
 le_id, INT, Leistungsid, f, leistung, beratungskontakte
 art, INT, Kontaktart, k, fska
-jgh, INT, Kontakt im Sinne der Jugendstatistik, k, ja_nein
-kd, INT, Kontakt Tag, p,
-km, INT, Kontakt Monat, p,
-ky, INT, Kontakt Jahr, p,
-dauer, INT, Dauer der Kontakte im Sinne der Jugendstatistik, k, fskd
-f2f_min, INT, Face to face Minuten, p,
-vn_min, INT, Vorbereitung/Nachbereitung Minuten, p,
-no, VARCHAR(255), Notiz, p,
-stz, INT, Dienststelle, k, stzei
-
-table, beratungskontakt_bs, , Beratungskontakt_BS, Beratungskontakt_BS
-id, INT, id, s,
-fall_id, INT, Fallid, f, fall, beratungskontakte_bs
-fall1_id, INT, Fallid, f, fall, beratungskontakte_bs1
-fall2_id, INT, Fallid, f, fall, beratungskontakte_bs2
-mit_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs
-mit1_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs1
-mit2_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs2
-teilnehmer, VARCHAR(60), Teilnehmer am Kontakt, m, teilnbs
+art_bs, INT, Kontaktart, k, kabs
+teilnehmer, VARCHAR(255), Teilnehmer am Kontakt, m, teilnbs
+teilnehmer_bs, VARCHAR(255), Teilnehmer am Kontakt, m, teilnbs
 anzahl, INT, Anzahl der Teilnehmer, p
-art, INT, Kontaktart, k, kabs
 kd, INT, Kontakt Tag, p,
 km, INT, Kontakt Monat, p,
 ky, INT, Kontakt Jahr, p,
-dauer, INT, Dauer der Kontakts in 10-Minuten-Einheiten (ohne Vor- und Nachbereitung), b, kdbs
+kh, INT, Kontakt Stunde, p,
+kmin, INT, Kontakt Minute, p,
+jgh, INT, Kontakt im Sinne der Jugendstatistik, k, ja_nein
+dauer, INT, Dauer in Minuten, k, fskd
+dauer_f2f, INT, Face to face Minuten, p,
+dauer_vornach, INT, Vorbereitung/Nachbereitung Minuten, p,
+faktor, VARCHAR(255), offenes Merkmal zur Verrechnung, p
 offenespr, INT, Beratung in der offenen Sprechstunde, k, ja_nein
 no, VARCHAR(255), Notiz, p,
 stz, INT, Dienststelle, k, stzei
+
+table, mitarbeiterberatungskontakt, ,Mitarbeiterberatungskontakt, Mitarbeiterberatungskontakt
+id, INT, id, s
+mit_id, INT, Mitarbeiterid, f, mitarbeiter, mitarbeiterberatungskontakte
+bkont_id, INT, Beratungskontaktid, f, beratungskontakt, mitarbeiterberatungskontakte
+zeit, INT, Änderungszeit, p,
+
+table, fallberatungskontakt, , Fallberatungskontakt, Fallberatungskontakt
+id, INT, id, s
+fall_id, INT, Fallid, f, fall, fallberatungskontakte
+bezugsp_id, INT, Bezugspersonid, f, bezugsperson, fallberatungskontakte
+bkont_id, INT, Beratungskontaktid, f, beratungskontakt, fallberatungskontakte
+zeit, INT, Änderungszeit, p,
 
 table, fua_bs, , Fallunabhängige Aktivitäten Braunschweig, Fua_BS
 id, INT, id, s,
@@ -584,4 +585,23 @@ memo, TEXT, Memo, p,
 
 
 
-
+"""
+table, beratungskontakt_bs, , Beratungskontakt_BS, Beratungskontakt_BS
+id, INT, id, s,
+fall_id, INT, Fallid, f, fall, beratungskontakte_bs
+fall1_id, INT, Fallid, f, fall, beratungskontakte_bs1
+fall2_id, INT, Fallid, f, fall, beratungskontakte_bs2
+mit_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs
+mit1_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs1
+mit2_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs2
+teilnehmer, VARCHAR(60), Teilnehmer am Kontakt, m, teilnbs
+anzahl, INT, Anzahl der Teilnehmer, p
+art, INT, Kontaktart, k, kabs
+kd, INT, Kontakt Tag, p,
+km, INT, Kontakt Monat, p,
+ky, INT, Kontakt Jahr, p,
+dauer, INT, Dauer der Kontakts in 10-Minuten-Einheiten (ohne Vor- und Nachbereitung), b, kdbs
+offenespr, INT, Beratung in der offenen Sprechstunde, k, ja_nein
+no, VARCHAR(255), Notiz, p,
+stz, INT, Dienststelle, k, stzei
+"""

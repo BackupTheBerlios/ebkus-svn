@@ -83,9 +83,5 @@ class logout(Request.Request):
             username=self.user, ip=self.ip)
         if self.session:
             self.session.expire(RESPONSE)
-        meldung = {
-            'titel':'Abmeldung vom EBKuS System','legende':'Abmeldung',
-            'zeile1':'Sie wurden vom EBKuS System abgemeldet','url':'login',
-            'zeile2': ''
-            }
-        return meldung_weiterleitung_t % meldung
+        RESPONSE.redirect('login')
+        return ''

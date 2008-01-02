@@ -13,6 +13,7 @@ import datetime
 from ebkus.app.ebapigen import *
 from ebkus.db import dbapp, sql
 from ebkus.config import config
+import traceback
 
 ####################
 # utility Funktionen
@@ -68,6 +69,28 @@ def cn(kat_code, name):
         raise dbapp.DBAppError("Code '%s' für Kategorie '%s' existiert nicht" % (name, kat_code))
     return id
 
+def bcode(kat_code, value,
+          default=None # default für value!
+          ):
+    "liefert das Code-Objekt der Bereichskategorie, in deren "
+    "Bereich value fällt."
+    from ebkus.app.ebapih import get_codes
+    if value or value==0:
+        value = int(value)
+    else:
+        if default != None:
+            value = default
+        else:
+            raise EE('Kein Wert für Bereichskategorie')
+    code_list = get_codes(kat_code)
+    for c in code_list:
+        if value >= c['mini'] and value <= c['maxi']:
+            return c
+    raise EE('Keine Bereichskategorie für Wert')
+    
+    
+
+
 def get_feld(feldname, tabelle=None, klasse=None):
     "Liefert das entsprechende Feldobjekt."
     if tabelle:
@@ -87,6 +110,13 @@ class Date(object):
         if month is None: month = 1
         if day is None: day = 1
         self.year, self.month, self.day = year, month, day
+        self.years = self.months = self.days = ''
+        for a in ('month', 'day'):
+            v = getattr(self, a)
+            if isinstance(v, (int, long)):
+                setattr(self, a+'s', "%02d" % v)
+        if isinstance(self.year, (int, long)):
+                self.years = "%04d" % self.year
         
     def to_py_date(self):
         """Throws an exception if its not a correct date."""
@@ -240,6 +270,45 @@ def setDate(self, key, date):
     
 dbapp.DBObjekt.getDate = getDate
 dbapp.DBObjekt.setDate = setDate
+
+
+class Time(object):
+    def __init__(self, hour=None, minute=None):
+        "Ohne hour und minute --> leeres Zeitobjekt"
+        "Falls hour einen Wert hat und minute nicht, wird minute auf 0"
+        "gesetzt"
+        if hour or hour == 0: # muss Ziffer sein
+            if not minute:    # wenn leer --> 0
+                minute = 0
+            self.hour = int(hour)
+            self.hours = "%02d" % self.hour
+            self.minute = int(minute)
+            self.minutes = "%02d" % self.minute
+        else:
+            self.hours = self.minutes = ''
+            self.hour = self.minute = None
+        self.empty = (self.hour == None)
+    def __str__(self):
+        if self.empty:
+            return ''
+        else:
+            return "%s:%s" % (self.hours, self.minutes)
+    def check(self):
+        if self.empty or ((0 <= self.hour <= 23) and (0 <= self.minute <= 59)):
+            return True
+        return False
+        
+            
+def getTime(self, key):
+    h,min = key + 'h', key + 'min'
+    return Time(self.get(h), self.get(min))
+    
+def setTime(self, key, time):
+    h,min = key + 'h', key + 'min'
+    self[h], self[min] = time.hour, time.minute
+    
+dbapp.DBObjekt.getTime = getTime
+dbapp.DBObjekt.setTime = setTime
 
 
 def getQuartal(monat):
@@ -477,6 +546,13 @@ def _has_jghstatistik(self, key):
     else:
         return 'n'
 
+def _fall_beratungskontakte(self, key):
+    bkont_list = BeratungskontaktList(
+        where='fallberatungskontakt.fall_id=%s' % self['id'],
+        join=[('fallberatungskontakt',
+               'fallberatungskontakt.bkont_id=beratungskontakt.id')])
+    bkont_list.sort('ky', 'km', 'kd')
+    return bkont_list
 Fall.attributemethods['name'] = _fall_name
 Fall.attributemethods['aktuell'] = _aktuell_fall
 Fall.attributemethods['zustaendig'] = _zustaendig_fall
@@ -487,6 +563,7 @@ Fall.attributemethods['has_fachstatistik'] = _has_fachstatistik
 Fall.attributemethods['has_jghstatistik'] = _has_jghstatistik
 Fall.attributemethods['bg'] = getDate
 Fall.attributemethods['zda'] = getDate
+Fall.attributemethods['beratungskontakte'] = _fall_beratungskontakte
 
 
 def _prev_zust(self, key):
@@ -532,6 +609,26 @@ def _gruppe_mitarbeiternamen(self, key):
 Gruppe.attributemethods['mitarbeiternamen'] = _gruppe_mitarbeiternamen
 Gruppe.attributemethods['bg'] = getDate
 Gruppe.attributemethods['e'] = getDate
+
+
+def _bkont_mitarbeiter(self, key):
+    mitarbeiter_list = MitarbeiterList(
+        where='mitarbeiterberatungskontakt.bkont_id=%s' % self['id'],
+        join=[('mitarbeiterberatungskontakt',
+               'mitarbeiterberatungskontakt.mit_id=mitarbeiter.id')])
+    mitarbeiter_list.sort('na')
+    return mitarbeiter_list
+def _bkont_faelle(self, key):
+    fall_list = FallList(
+        where='fallberatungskontakt.bkont_id=%s' % self['id'],
+        join=[('fallberatungskontakt',
+               'fallberatungskontakt.fall_id=fall.id')])
+    fall_list.sort('akte__na')
+    return fall_list
+Beratungskontakt.attributemethods['mitarbeiter'] = _bkont_mitarbeiter
+Beratungskontakt.attributemethods['faelle'] = _bkont_faelle
+
+
 ############################
 # Pfaddefinitionen
 ############################
@@ -548,9 +645,6 @@ Leistung.pathdefinitions = {
   'akte': 'fall_id__akte'
 }
 Beratungskontakt.pathdefinitions = {
-  'akte': 'fall_id__akte'
-}
-Beratungskontakt_BS.pathdefinitions = {
   'akte': 'fall_id__akte'
 }
 Zustaendigkeit.pathdefinitions = {
@@ -598,6 +692,7 @@ def akte_undo_cached_fields(self):
     for f in self['faelle']:
         for l in f['leistungen']: l.undo_cached_fields()
         for b in f['beratungskontakte']: b.undo_cached_fields()
+        for b in f['fallberatungskontakte']: b.undo_cached_fields()
         for z in f['zustaendigkeiten']: z.undo_cached_fields()
         for a in f['anmeldung']: a.undo_cached_fields()
         for fs in f['fachstatistiken']: fs.undo_cached_fields()
@@ -700,175 +795,15 @@ def check_list(dict, key, errorstring, default=None):
             assert isinstance(val, list)
         # keine leeren strings
         val = [v for v in val if v]
+        #print 'VAL', val
         return val
     else:
+        #print 'VAL EMPTY', val
         if default == None:
             raise EE(errorstring)
         else:
             return default
     
-    
-##     ##****************************************************************
-##     ## Hsnr und Plz aus Tabelle Strassenkatalog auslesen
-##     ##
-##     ## HeS 25.10.2001
-##     ## ABR 31.12.2002
-##     ##****************************************************************
-    
-## def read_hsnr(stra, plz):
-##     res = []
-##     res.append("<br>")
-    
-##     for el in plz:
-##         res.append("<br><b>Plz. " +  str(el[0]) + " : </b><br>")
-##         sql_query = "SELECT DISTINCT hausnr FROM strassenkat WHERE str_name = '%s' and plz = '%s'" % (stra,str(el[0]))
-##         hsnr = sql.execute(sql_query)
-##         n=0
-##         g=0
-##         for el in hsnr:
-##             if n == 11:
-##                 res.append("<br>")
-##                 n = 0
-##             res.append(str(el[0]))
-##             if g != (len(hsnr)-1):
-##                 res.append(", ")
-##             n = n + 1
-##             g = g + 1
-##         res.append("<br>")
-##     return string.join(res, '')
-    
-    
-## def read_plz(stra):
-##     sql_query = "SELECT DISTINCT plz FROM strassenkat WHERE str_name = '%s'" % stra
-##     Plz = sql.execute(sql_query)
-##     return Plz
-##     ##****************************************************************
-##     ## Check ob Strasse mit Hsnr und Plz im Strassenkatalog vorhanden
-##     ##
-##     ## HeS 25.10.2001
-##     ## ABR 31.12.2002
-##     ##****************************************************************
-
-## def get_strassen_list(ort, plz, name, hsnr, strkat_id=None):
-##     """Hier geht es nur darum, die Richtigkeit der Angaben
-##     zu überprüfen. Die Parameter ort,plz,name, hsnr sollten immer
-##     zu einem eindeutigen Eintrag im Strassenkatalog    führen.
-##     """
-##     # fuer den Abgleich mit der DB fuehrende Nullen einsetzen
-##     if not config.STRASSENKATALOG:
-##         raise EE("Kein Strassenkatalog konfiguriert")
-##     from ebkus.html.strkat import hausnr_fuellen, split_hausnummer
-##     where = []
-##     if hsnr:
-##         gu = split_hausnummer(hsnr)[2]
-##         hsnr_check = hausnr_fuellen(hsnr)
-##         where.append("(von <= '%s' or von IS NULL)" % hsnr_check)
-##         where.append("(bis >= '%s' or bis IS NULL)" % hsnr_check)
-##         where.append("(gu = '%s' or gu IS NULL)" % gu)
-##     if ort:
-##         where.append("ort = '%s'" % ort)
-##     if plz:
-##         where.append("plz = '%s'" % plz)
-##     if name:
-##         where.append("name = '%s'" % name)
-##     if strkat_id:
-##         where.append("id = %s" % strkat_id)
-##     return StrassenkatalogNeuList(where=' and '.join(where))
-
-## def check_strasse(dict, key1, key2, key3):
-##     stra = dict.get(key1)
-##     if dict.get(key2) == '':
-##         hsnr = '"---"'
-##     else:
-##         hsnr = dict.get(key2)
-##     if dict.get(key3) == '':
-##         Plz = '"00000"'
-##     else:
-##         Plz = dict.get(key3)
-        
-##     strasse = get_strassen_list(stra, hsnr, Plz)
-##     if len(strasse) == 0:
-##         plz_liste = read_plz(stra)
-##         hsnr_liste = read_hsnr(stra, plz_liste)
-##         errorstring = "Angabe zur Strasse <b>(" + str(stra) + ")</b> nicht korrekt: <br> Es sind folgende Postleitzahlen mit den dazu genannten Hausnummern verf&uuml;gbar:  " +  str(hsnr_liste)
-##         raise  EE(errorstring)
-##     else:
-##         return stra
-        
-        ##****************************************************************
-        ## Planungsraum zuweisen
-        ##
-        ## HeS 29.10.2001
-        ##****************************************************************
-        
-## def plraum_zuweisen(dict, key1, key2, key3, errorstring):
-##     stra = dict.get(key1)
-##     if dict.get(key2) == '':
-##         hsnr = '"---"'
-##     else:
-##         hsnr = dict.get(key2)
-##     Plz = dict.get(key3)
-    
-##     strasse = get_strassen_list(stra, hsnr, Plz)
-    
-##     if len(strasse) == 0:
-##         raise EE(errorstring)
-##     else:
-##         for i in strasse:
-##             plr = i['Plraum']
-##             return plr
-            
-            
-##             ##*****************************************************************
-##             ## Wohnbezirk zuordnen
-##             ##
-##             ## HeS
-##             ##*****************************************************************
-            
-## def wohnbez_zuordnen(dict, key1, key2, key3, errorstring):
-##     stra = dict.get(key1)
-##     if dict.get(key2) == '':
-##         hsnr = '"---"'
-##     else:
-##         hsnr = dict.get(key2)
-##     Plz = dict.get(key3)
-    
-##     strasse = get_strassen_list(stra, hsnr, Plz)
-    
-##     if len(strasse) == 0:
-##         raise EE(errorstring)
-##     else:
-##         for i in strasse:
-##             bezirk = i['bezirk']
-##             if bezirk == 1:
-##                 wohnbezirk = cc('wohnbez', '01')
-##             elif bezirk == 2:
-##                 wohnbezirk = cc('wohnbez', '02')
-##             elif bezirk == 3:
-##                 wohnbezirk = cc('wohnbez', '03')
-##             elif bezirk == 4:
-##                 wohnbezirk = cc('wohnbez', '04')
-##             elif bezirk == 5:
-##                 wohnbezirk = cc('wohnbez', '05')
-##             elif bezirk == 6:
-##                 wohnbezirk = cc('wohnbez', '06')
-##             elif bezirk == 7:
-##                 wohnbezirk = cc('wohnbez', '07')
-##             elif bezirk == 8:
-##                 wohnbezirk = cc('wohnbez', '08')
-##             elif bezirk == 9:
-##                 wohnbezirk = cc('wohnbez', '09')
-##             elif bezirk == 10:
-##                 wohnbezirk = cc('wohnbez', '10')
-##             elif bezirk == 11:
-##                 wohnbezirk = cc('wohnbez', '11')
-##             elif bezirk == 12:
-##                 wohnbezirk = cc('wohnbez', '12')
-##             elif bezirk == 13:
-##                 wohnbezirk = cc('wohnbez', '13')
-##             return wohnbezirk
-            
-            
             
 def check_int_not_empty(dict, key, errorstring, default = None):
     val = dict.get(key)
@@ -894,6 +829,26 @@ def check_fk(dict, key, klass, errorstring, default = None):
     return fk
     
     
+
+def check_time(dict, key, errorstring, default=None):
+    if type(key) == type(()):
+        h, min = key[0], key[1]
+    else:
+        h, min = key + 'h', key + 'min'
+    h, min = dict.get(h), dict.get(min)
+    try:
+        t = Time(h, min)
+        assert t.check()
+    except:
+        traceback.print_exc()
+        raise EE(errorstring)
+    if t.empty:
+        if default != None:
+            return default
+        else:
+            traceback.print_exc()
+            raise EE(errorstring)
+    return t
     
 def check_date(dict, key, errorstring, default = None,
                maybezero = None,    # darf 0 sein

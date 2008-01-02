@@ -43,29 +43,14 @@ class options(object):
                       <option value="nothing">
                       <option value="nothing">[ Fach- und Bundesstatistik ]
                       <option value="statabfr">- Statistik
-                      <option value="nothing">
-                      <option value="nothing">***Nicht mehr benötigt:
-                      <option value="nothing">
-                      <option value="nothing">[ Bundesstatistik ]
-                      <option value="jghabfr">- Bundesstatistik
-                      <option value="nothing">
-                      <option value="nothing">[ Fachstatistik ]
-                      <option value="fsabfr">- Fachstatistik
-                      <option value="formabfr6?file=abfritem">- Itemauswahl
-                      <option value="formabfr6?file=abfrkat">- Kategorienauswahl
-                      <option value="fsabfr_plraum">- Planungs- und Sozialraum
-                      <option value="formabfr10a">- Konsultationszahl
-                      <option value="formabfr9a">- Konsultationssumme
-                      <option value="formabfr11a">- Beratungsdauer
-                      <option value="formabfr12a">- Beratungsdauer - Leistung
-<!-----               <option value="formabfr13a">- Eltern - Merkmal x gleich
-                      <option value="formabfr14a">- Elternteil - Merkmal x gleich //--->
                       """)
         return options
 
 
 
     def for_mitarbeiter(self, sel=None, empty_option=False):
+        if sel and isinstance(sel, basestring):
+            sel = [int(x) for x in sel.split()]
         return make_option_list(self.getMitarbeiterliste(),
                                 'id', 'na',
                                 selected=sel, empty_option=empty_option)
@@ -164,7 +149,10 @@ class options(object):
             sel = ''
         # sel kann so "123 432 543" (str) oder so 133 (int) aussehen, je nach
         # single oder multiple kat item
-        sel = [int(s) for s in str(sel).split()]
+        if isinstance(sel, basestring):
+            sel = [int(s) for s in str(sel).split()]
+        elif isinstance(sel, (int, long)):
+            sel = [sel]
         tmpl = """<option value="%(fall_id)s"%(xxsel)s>%(mit__na)s | %(fall__akte__vn)s %(fall__akte__na)s, %(fall__akte__gb)s | %(fall__fn)s </option>"""
         tmpl_kurz = """<option value="%(fall_id)s"%(xxsel)s>%(fall__akte__vn)s %(fall__akte__na)s | %(fall__fn)s</option>"""
         if kurz:

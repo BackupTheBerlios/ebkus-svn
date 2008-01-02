@@ -255,8 +255,10 @@ class LeistungList(Container):
 
 class Beratungskontakt(DBObjekt):
     table = 'beratungskontakt'
-    fields =  ['id', 'fall_id', 'mit_id', 'le_id', 'art', 'jgh', 'kd', \
-                       'km', 'ky', 'dauer', 'f2f_min', 'vn_min', 'no', 'stz']
+    fields =  ['id', 'gruppe_id', 'le_id', 'art', 'art_bs', \
+                       'teilnehmer', 'teilnehmer_bs', 'anzahl', 'kd', 'km', \
+                       'ky', 'kh', 'kmin', 'jgh', 'dauer', 'dauer_f2f', \
+                       'dauer_vornach', 'faktor', 'offenespr', 'no', 'stz']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -275,15 +277,13 @@ class BeratungskontaktList(Container):
     querySQL = resultClass.querySQL
 
 #####################################
-# Beratungskontakt_BS  (Tabelle 'beratungskontakt_bs')
+# Mitarbeiterberatungskontakt  (Tabelle 'mitarbeiterberatungskontakt')
 #####################################
 
 
-class Beratungskontakt_BS(DBObjekt):
-    table = 'beratungskontakt_bs'
-    fields =  ['id', 'fall_id', 'fall1_id', 'fall2_id', 'mit_id', \
-                       'mit1_id', 'mit2_id', 'teilnehmer', 'anzahl', 'art', \
-                       'kd', 'km', 'ky', 'dauer', 'offenespr', 'no', 'stz']
+class Mitarbeiterberatungskontakt(DBObjekt):
+    table = 'mitarbeiterberatungskontakt'
+    fields =  ['id', 'mit_id', 'bkont_id', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -297,8 +297,33 @@ class Beratungskontakt_BS(DBObjekt):
     querySQL  = SimpleSQL(table = table, fields = fields)
     updateSQL = querySQL
 
-class Beratungskontakt_BSList(Container):
-    resultClass = Beratungskontakt_BS
+class MitarbeiterberatungskontaktList(Container):
+    resultClass = Mitarbeiterberatungskontakt
+    querySQL = resultClass.querySQL
+
+#####################################
+# Fallberatungskontakt  (Tabelle 'fallberatungskontakt')
+#####################################
+
+
+class Fallberatungskontakt(DBObjekt):
+    table = 'fallberatungskontakt'
+    fields =  ['id', 'fall_id', 'bezugsp_id', 'bkont_id', 'zeit']
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    multikatfieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = 'id'
+    otherkeys = []
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
+
+class FallberatungskontaktList(Container):
+    resultClass = Fallberatungskontakt
     querySQL = resultClass.querySQL
 
 #####################################
@@ -820,22 +845,19 @@ Leistung.foreignfieldtypes['fall_id'] = (Fall, 'leistungen')
 Leistung.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'leistungen')
 Leistung.foreignfieldtypes['le'] = (Code, None)
 Leistung.foreignfieldtypes['stz'] = (Code, None)
-Beratungskontakt.foreignfieldtypes['fall_id'] = (Fall, 'beratungskontakte')
-Beratungskontakt.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'beratungskontakte')
+Beratungskontakt.foreignfieldtypes['gruppe_id'] = (Gruppe, 'termine')
 Beratungskontakt.foreignfieldtypes['le_id'] = (Leistung, 'beratungskontakte')
 Beratungskontakt.foreignfieldtypes['art'] = (Code, None)
+Beratungskontakt.foreignfieldtypes['art_bs'] = (Code, None)
 Beratungskontakt.foreignfieldtypes['jgh'] = (Code, None)
 Beratungskontakt.foreignfieldtypes['dauer'] = (Code, None)
+Beratungskontakt.foreignfieldtypes['offenespr'] = (Code, None)
 Beratungskontakt.foreignfieldtypes['stz'] = (Code, None)
-Beratungskontakt_BS.foreignfieldtypes['fall_id'] = (Fall, 'beratungskontakte_bs')
-Beratungskontakt_BS.foreignfieldtypes['fall1_id'] = (Fall, 'beratungskontakte_bs1')
-Beratungskontakt_BS.foreignfieldtypes['fall2_id'] = (Fall, 'beratungskontakte_bs2')
-Beratungskontakt_BS.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'beratungskontakte_bs')
-Beratungskontakt_BS.foreignfieldtypes['mit1_id'] = (Mitarbeiter, 'beratungskontakte_bs1')
-Beratungskontakt_BS.foreignfieldtypes['mit2_id'] = (Mitarbeiter, 'beratungskontakte_bs2')
-Beratungskontakt_BS.foreignfieldtypes['art'] = (Code, None)
-Beratungskontakt_BS.foreignfieldtypes['offenespr'] = (Code, None)
-Beratungskontakt_BS.foreignfieldtypes['stz'] = (Code, None)
+Mitarbeiterberatungskontakt.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'mitarbeiterberatungskontakte')
+Mitarbeiterberatungskontakt.foreignfieldtypes['bkont_id'] = (Beratungskontakt, 'mitarbeiterberatungskontakte')
+Fallberatungskontakt.foreignfieldtypes['fall_id'] = (Fall, 'fallberatungskontakte')
+Fallberatungskontakt.foreignfieldtypes['bezugsp_id'] = (Bezugsperson, 'fallberatungskontakte')
+Fallberatungskontakt.foreignfieldtypes['bkont_id'] = (Beratungskontakt, 'fallberatungskontakte')
 Fua_BS.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'beratungskontakte_bs')
 Fua_BS.foreignfieldtypes['art'] = (Code, None)
 Fua_BS.foreignfieldtypes['stz'] = (Code, None)
@@ -967,15 +989,13 @@ Akte.inversefieldtypes['bezugspersonen'] = (BezugspersonList, 'akte_id')
 Akte.inversefieldtypes['einrichtungen'] = (EinrichtungskontaktList, 'akte_id')
 Fall.inversefieldtypes['leistungen'] = (LeistungList, 'fall_id')
 Mitarbeiter.inversefieldtypes['leistungen'] = (LeistungList, 'mit_id')
-Fall.inversefieldtypes['beratungskontakte'] = (BeratungskontaktList, 'fall_id')
-Mitarbeiter.inversefieldtypes['beratungskontakte'] = (BeratungskontaktList, 'mit_id')
+Gruppe.inversefieldtypes['termine'] = (BeratungskontaktList, 'gruppe_id')
 Leistung.inversefieldtypes['beratungskontakte'] = (BeratungskontaktList, 'le_id')
-Fall.inversefieldtypes['beratungskontakte_bs'] = (Beratungskontakt_BSList, 'fall_id')
-Fall.inversefieldtypes['beratungskontakte_bs1'] = (Beratungskontakt_BSList, 'fall1_id')
-Fall.inversefieldtypes['beratungskontakte_bs2'] = (Beratungskontakt_BSList, 'fall2_id')
-Mitarbeiter.inversefieldtypes['beratungskontakte_bs'] = (Beratungskontakt_BSList, 'mit_id')
-Mitarbeiter.inversefieldtypes['beratungskontakte_bs1'] = (Beratungskontakt_BSList, 'mit1_id')
-Mitarbeiter.inversefieldtypes['beratungskontakte_bs2'] = (Beratungskontakt_BSList, 'mit2_id')
+Mitarbeiter.inversefieldtypes['mitarbeiterberatungskontakte'] = (MitarbeiterberatungskontaktList, 'mit_id')
+Beratungskontakt.inversefieldtypes['mitarbeiterberatungskontakte'] = (MitarbeiterberatungskontaktList, 'bkont_id')
+Fall.inversefieldtypes['fallberatungskontakte'] = (FallberatungskontaktList, 'fall_id')
+Bezugsperson.inversefieldtypes['fallberatungskontakte'] = (FallberatungskontaktList, 'bezugsp_id')
+Beratungskontakt.inversefieldtypes['fallberatungskontakte'] = (FallberatungskontaktList, 'bkont_id')
 Mitarbeiter.inversefieldtypes['beratungskontakte_bs'] = (Fua_BSList, 'mit_id')
 Fall.inversefieldtypes['zustaendigkeiten'] = (ZustaendigkeitList, 'fall_id')
 Mitarbeiter.inversefieldtypes['zustaendigkeiten'] = (ZustaendigkeitList, 'mit_id')
@@ -1008,7 +1028,8 @@ Mitarbeiter.inversefieldtypes[''] = (AbfrageList, 'mit_id')
 # geschrieben. Beim Aufruf über __getitem__ werden die durch
 # Code-Instanzen ersetzt.
     
-Beratungskontakt_BS.multikatfieldtypes['teilnehmer'] = CodeList
+Beratungskontakt.multikatfieldtypes['teilnehmer'] = CodeList
+Beratungskontakt.multikatfieldtypes['teilnehmer_bs'] = CodeList
 Fachstatistik.multikatfieldtypes['anmprobleme'] = CodeList
 Fachstatistik.multikatfieldtypes['kindprobleme'] = CodeList
 Fachstatistik.multikatfieldtypes['elternprobleme'] = CodeList

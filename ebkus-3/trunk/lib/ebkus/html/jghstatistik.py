@@ -895,9 +895,9 @@ class jgh07neu(_jgh07):
         jgh['gem'] = geburtsdatum.month
         jgh['gs'] = fall['akte__gs']
         jgh['bezirksnr'] = fall['akte__wohnbez']
-        if config.BERATUNGSKONTAKTE_BS:
-            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte_bs
-            jgh['nbkakt'], jgh['nbkges'] = get_jgh_kontakte_bs(fall)
+        if config.BERATUNGSKONTAKTE:
+            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte
+            jgh['nbkakt'], jgh['nbkges'] = get_jgh_kontakte(fall)
         return self._formular(jgh)
         
 

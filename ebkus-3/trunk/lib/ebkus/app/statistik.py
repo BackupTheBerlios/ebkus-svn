@@ -304,7 +304,10 @@ def xcountbereich(kat_code, d_list, d_item):
     anzahltermine = xcountbereich('fskat', fachstatliste, 'kat') """
     x = []
     res = []
-    codelist = get_all_codes(kat_code)
+    # TODO get_all_codes hier oder nicht?
+    # Ich glaube nicht, da alte Bereiche neue überlappen könnten, etc.
+    # das gibt keinen Sinn
+    codelist = get_codes(kat_code)
     for d in d_list:
         bereichs_code = None
         value = d[d_item]

@@ -591,6 +591,9 @@ class Datum(Item):
             self.year = self.date.year
             self.month = self.date.month
             self.day = self.date.day
+        if self.time and not self.time.empty:
+            self.hours = self.time.hours
+            self.minutes = self.time.minutes
         if not self.year:
             datum = "offen"
         else:
@@ -598,6 +601,8 @@ class Datum(Item):
             if self.day:
                 datum = "%(day)02d<B>.</B>" % self
             datum += "%(month)02d<B>.</B>%(year)s" % self
+            if self.hours:
+                datum += "&nbsp;%(hours)s<B>:</B>%(minutes)s" % self
         self.datum = datum
 
 class Button(Item):
@@ -771,36 +776,49 @@ class SelectItem(InputItem):
 class DatumItem(InputItem):
     """label,name,(year,month,day oder date)
     optional: noday - Kein input-Feld für den Tag
+              time, hour, minute
     """
     def _init(self):
         super(DatumItem, self)._init()
         if self.date:
-            self.year = self.date.year or ''
-            self.month = self.date.month or ''
-            self.day = self.date.day or ''
+            if self.date.year == 0:
+                self.year = self.month = self.day = ''
+            else:
+                self.year = self.date.years
+                self.month = self.date.months
+                self.day = self.date.days
+        if self.time:
+            self.hour = self.time.hours
+            self.minute = self.time.minutes
         self.dname = self.name + 'd'
         self.mname = self.name + 'm'
         self.yname = self.name + 'y'
+        self.hname = self.name + 'h'
+        self.minname = self.name + 'min'
     def display(self):
         self._init()
         if self.noday:
             self.day_input = ''
         else:
             self.day_input = self.day_t % self
+        if self.time:
+            self.time_input = self.uhrzeit_t % self
         return self.tmpl % self
-    day_t = """
-       <input id="%(name)s" type="text" value="%(day)s" class="textboxsmall"
-             size=2 maxlength=2 name="%(dname)s"%(readonly_attr)s>
-      <b>.</b>
+    day_t = """<input id="%(name)s" type="text" value="%(day)s" class="textbox13"
+             size=2 maxlength=2 name="%(dname)s"%(readonly_attr)s><b>.</b>"""
+    uhrzeit_t = """&nbsp;
+       <input id="%(name)s" type="text" value="%(hour)s" class="textbox13"
+             size=2 maxlength=2 name="%(hname)s"%(readonly_attr)s><b>:</b><input
+             id="%(name)s" type="text" value="%(minute)s" class="textbox13"
+             size=2 maxlength=2 name="%(minname)s"%(readonly_attr)s>
       """
     tmpl = """    <td align="right" class="%(label_class)s"%(label_width_attr)s%(label_colspan_attr)s>
     <label for="%(id)s">%(label)s</label></td>
-    <td align="left"%(tip)s%(colspan_attr)s>%(day_input)s
-      <input type="text" value="%(month)s" class="textboxsmall" size=2 maxlength=2
-             name="%(mname)s"%(readonly_attr)s>
-      <b>.</b>
-      <input type="text" value="%(year)s" class="textboxmid" size=4 maxlength=4
-             name="%(yname)s"%(readonly_attr)s>
+    <td align="left"%(tip)s%(colspan_attr)s>%(day_input)s<input
+    type="text" value="%(month)s" class="textbox13" size=2 maxlength=2
+             name="%(mname)s"%(readonly_attr)s><b>.</b><input
+             type="text" value="%(year)s" class="textbox30" size=4 maxlength=4
+             name="%(yname)s"%(readonly_attr)s>%(time_input)s
     </td>
 """
 

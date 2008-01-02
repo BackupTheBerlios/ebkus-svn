@@ -3,7 +3,8 @@
 """Gemeinsame HTML Elemente."""
 
 from ebkus.config import config
-from ebkus.app.ebapi import today, str2date, cc, Akte, Bezugsperson, Beratungskontakt_BSList, Code
+from ebkus.app.ebapi import today, str2date, cc, bcode, \
+     Akte, Bezugsperson, BeratungskontaktList, Code
 from ebkus.app.ebapih import get_codes, make_option_list
 import ebkus.html.htmlgen as h
 from ebkus.html.options import options
@@ -168,13 +169,14 @@ class akte_share(options):
                               readonly=True,
                               ),
                     ],
-                   [h.TextItem(label='Aufbewahrungs-<br />kategorie',
+                   [isinstance(data, Akte) and
+                    h.TextItem(label='Aufbewahrungs-<br />kategorie',
                                name='aufbew',
                                value=data['aufbew__name'],
                                readonly=True,
                                tip="Bestimmt den Zeitraum, für den die Akte aufbewahrt werden muss",
                                n_col=4,
-                               ),
+                               ) or h.DummyItem(n_col=4),
                     h.DummyItem(),
                     h.DummyItem(),
                     ],
@@ -189,10 +191,12 @@ class akte_share(options):
             bezug = 'des Klienten'
             bezug_n = 'der Klient'
             legend = 'Klientendaten'
+            gs_tip = 'Geschlecht %s' % bezug
         elif isinstance(data, Bezugsperson):
             bezug = 'der Bezugsperson'
             bezug_n = 'die Bezugsperson'
             legend = 'Bezugspersondaten'
+            gs_tip = 'Geschlecht %s (Nicht nötig bei -mutter bzw. -vater in Verwandtschaftsart)' % bezug
         klientendaten = h.FieldsetInputTable(
             legend=legend,
             daten=[[h.TextItem(label='Vorname',
@@ -214,7 +218,7 @@ class akte_share(options):
                                  name='gs',
                                  options=self.for_kat('gs', sel=(not data['gs'] and ' '
                                                                  or data['gs'])),
-                                 tip='Geschlecht %s' % bezug,
+                                 tip=gs_tip,
                                  class_='listbox30',
                                  )],
                    [h.SelectItem(label='Wohnt bei',
@@ -460,38 +464,59 @@ class akte_share(options):
         return bezugspersonen
 
 
-    def get_beratungskontakte_bs(self, beratungskontakte,
+        bisherige_kontakte = h.FieldsetDataTable(
+            legend = 'Liste der bisherigen Kontakte',
+            empty_msg = "Bisher keine Kontakte eingetragen.",
+            headers = ('Mitarbeiter', 'Art', 'Datum', 'Dauer', 'Notiz'),
+            daten =  [[h.String(string = b['mit_id__na']),
+                       h.String(string = b['art__name']),
+                       h.Datum(date =  b.getDate('k')),
+                       h.String(string = b['dauer__name']),
+                       h.String(string = b['no']),]
+                      for b in beratungskontakte],
+            )
+    def get_beratungskontakte(self, beratungskontakte,
                                  aktueller_fall=None, # falls False, kein Hinzufügen-Button, inaktive edit/view buttons
                                  edit_button=False, # falls False, kein edit button
                                  hinzufuegen_button=False, # falls False, kein hinzufügen button
                                  ):
+        BS = config.BERATUNGSKONTAKTE_BS
+        if BS:
+            art_feld = 'art_bs'
+            headers=('Datum', 'Mitarbeiter', 'Klienten', 'Art',
+                       'Teilnehmer', 'Dauer in Minuten', 'Notiz')
+        else:
+            art_feld = 'art'
+            headers=('Datum', 'Mitarbeiter', 'Klienten', 'Art',
+                     'Dauer', 'Notiz')
         beratungskontakte.sort('ky', 'km', 'kd')
+        if aktueller_fall:
+            updurl = 'updbkont?bkontid=%%(id)d&fallid=%s' % aktueller_fall['id']
         bisherige_kontakte = h.FieldsetDataTable(
             legend='Beratungskontakte',
             empty_msg="Bisher keine Kontakte eingetragen.",
-            headers=('Datum', 'Mitarbeiter', 'Klienten', 'Art',
-                       'Teilnehmer', 'Dauer (x10min)', 'Notiz'),
+            headers=headers,
             daten=[[(edit_button and (aktueller_fall and 
-                                      h.Icon(href= 'updbkont?bkontid=%(id)d' % b,
+                                      h.Icon(href= updurl % b,
                                              icon= "/ebkus/ebkus_icons/edit_button.gif",
                                              tip= 'Beratungskontakt bearbeiten')
                                       or
                                       h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
                                                  tip= 'Funktion gesperrt'))) or None,
-                    h.Datum(date =  b.getDate('k')),
-                    h.String(string=', '.join([b['mit%s__na' % i] 
-                                               for i in ('', '1', '2')
-                                               if b['mit%s_id' % i]]),
+                    h.Datum(date=b.getDate('k'),
+                            time=b.getTime('k')),
+                    h.String(string=', '.join([m['na']
+                                               for m in b['mitarbeiter']]),
                              ),
-                    h.String(string=', '.join([b['fall%s__name' % i]
-                                               for i in ('', '1', '2')
-                                               if b['fall%s_id' % i]]),
+                    h.String(string=', '.join([f['akte__na']
+                                               for f in b['faelle']]),
                              ),
-                    h.String(string=b['art__name']),
-                    h.String(string=', '.join([Code(i)['name']
-                                               for i in b['teilnehmer'].split()]),
-                             ),
-                    h.String(string=b['dauer']),
+                    h.String(string=b['%s__name'% art_feld]),
+                    BS and h.String(string=', '.join([Code(i)['name']
+                                                      for i in b['teilnehmer_bs'].split()]),
+                                    ) or None,
+                    BS and h.String(string=b['dauer']) or
+                    h.String(string=bcode('fskd', b['dauer'])['name']),
                     h.String(string=b['no']),
                     ]
                    for b in beratungskontakte],
@@ -504,6 +529,51 @@ class akte_share(options):
                              ) or None),
             )
         return bisherige_kontakte
+
+##     def get_beratungskontakte_bs(self, beratungskontakte,
+##                                  aktueller_fall=None, # falls False, kein Hinzufügen-Button, inaktive edit/view buttons
+##                                  edit_button=False, # falls False, kein edit button
+##                                  hinzufuegen_button=False, # falls False, kein hinzufügen button
+##                                  ):
+##         beratungskontakte.sort('ky', 'km', 'kd')
+##         if aktueller_fall:
+##             updurl = 'updbkont?bkontid=%%(id)d&fallid=%s' % aktueller_fall['id']
+##         bisherige_kontakte = h.FieldsetDataTable(
+##             legend='Beratungskontakte',
+##             empty_msg="Bisher keine Kontakte eingetragen.",
+##             headers=('Datum', 'Mitarbeiter', 'Klienten', 'Art',
+##                        'Teilnehmer', 'Dauer in Minuten', 'Notiz'),
+##             daten=[[(edit_button and (aktueller_fall and 
+##                                       h.Icon(href= updurl % b,
+##                                              icon= "/ebkus/ebkus_icons/edit_button.gif",
+##                                              tip= 'Beratungskontakt bearbeiten')
+##                                       or
+##                                       h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
+##                                                  tip= 'Funktion gesperrt'))) or None,
+##                     h.Datum(date =  b.getDate('k')),
+##                     h.String(string=', '.join([m['na']
+##                                                for m in b['mitarbeiter']]),
+##                              ),
+##                     h.String(string=', '.join([f['akte__na']
+##                                                for f in b['faelle']]),
+##                              ),
+##                     h.String(string=b['art_bs__name']),
+##                     h.String(string=', '.join([Code(i)['name']
+##                                                for i in b['teilnehmer'].split()]),
+##                              ),
+##                     h.String(string=b['dauer']),
+##                     h.String(string=b['no']),
+##                     ]
+##                    for b in beratungskontakte],
+##             button=(aktueller_fall and hinzufuegen_button and
+##                     h.Button(value="Hinzufügen",
+##                              tip="Beratungskontakt hinzufügen",
+##                              onClick=
+##                              "go_to_url('bkontneu?akid=%(akte_id)s&fallid=%(id)s')" %
+##                              aktueller_fall,
+##                              ) or None),
+##             )
+##         return bisherige_kontakte
     
 
 

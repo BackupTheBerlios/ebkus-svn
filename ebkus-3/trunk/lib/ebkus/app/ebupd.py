@@ -120,16 +120,25 @@ def perseinf(form):
                       ['vn', 'na', 'ber', 'tl1', 'tl2', 'no'],'')
     if pers['vn'] == '' and pers['na'] == '':
         raise EE("Kein Name")
-    gs = check_code(form,'gs', 'gs',
-                    "Keine Geschlechtsangabe", '')
-    if gs:
-        pers['gs'] = gs
+    pers['verw'] = check_code(form, 'verw', 'klerv',
+                              "Fehler im Verwandtschaftsgrad", '999')
+    gs = form.get('gs')
+    if gs and not gs == ' ':
+        gs = check_code(form,'gs', 'gs',
+                        "Keine Geschlechtsangabe", '')
+    else:
+        verwname = Code(pers['verw'])['name'].lower()
+        if 'vater' in verwname:
+            gs = cc('gs', '1')
+        elif 'mutter' in verwname:
+            gs = cc('gs', '2')
+        else:
+            gs = None
+    pers['gs'] = gs
     gb = check_date(form, 'gb', 'Fehler im Geburtsdatum', (0,0,0),
                     alle_jahrgaenge_akzeptieren=True)
     pers['gb'] = gb.year != 0 and str(gb) or ''
     setAdresse(pers, form)
-    pers['verw'] = check_code(form, 'verw', 'klerv',
-                              "Fehler im Verwandtschaftsgrad", '999')
     pers['fs'] = check_code(form,'fs', 'fsfs',
                             "Fehler im Familienstatus", '999')
     pers['nobed'] = check_code(form, 'nobed', 'notizbed',
@@ -160,16 +169,25 @@ def updpers(form):
                       persold)
     if pers['vn'] == '' and pers['na'] == '':
         raise EE("Kein Name")
-    gs = check_code(form,'gs', 'gs',
-                    "Keine Geschlechtsangabe", '')
+    pers['verw'] = check_code(form, 'verw', 'klerv',
+                              "Fehler im Verwandtschaftsgrad", persold)
+    gs = form.get('gs').strip()
     if gs:
-        pers['gs'] = gs
+        gs = check_code(form,'gs', 'gs',
+                        "Keine Geschlechtsangabe", '')
+    else:
+        verwname = Code(pers['verw'])['name'].lower()
+        if 'vater' in verwname:
+            gs = cc('gs', '1')
+        elif 'mutter' in verwname:
+            gs = cc('gs', '2')
+        else:
+            gs = None
+    pers['gs'] = gs
     gb = check_date(form, 'gb', 'Fehler im Geburtsdatum', (0,0,0),
                     alle_jahrgaenge_akzeptieren=True)
     pers['gb'] = gb.year != 0 and str(gb) or ''
     setAdresse(pers, form)
-    pers['verw'] = check_code(form, 'verw', 'klerv',
-                              "Fehler im Verwandtschaftsgrad", persold)
     pers['fs'] = check_code(form,'fs', 'fsfs',
                             "Fehler im Familienstatus", persold)
     pers['nobed'] = check_code(form, 'nobed', 'notizbed',
@@ -336,108 +354,134 @@ def updleist(form):
     leistold.update(leist)
     _stamp_akte(leistold['akte'])
 
-def _bkont_check(form, bkont):
-    bkont['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
-    bkont['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
-    bkont['art'] = check_code(form, 'art', 'fska', "Fehler in Beratungskontaktart")
-    bkont['no'] = check_str_not_empty(form, 'no', 'Keine Notiz', '')
-    if config.BERATUNGSKONTAKTE_MINUTEN:
-        bkont['f2f_min'] = check_int_not_empty(form, 'f2f_min', "Fehler in Face-2-Face Minuten")
-        bkont['vn_min'] = check_int_not_empty(form, 'vn_min', "Fehler in Vor/Nachbereitung Minuten")
-    else:
-        bkont['dauer'] = check_code(form, 'dauer', 'fskd', "Fehler in Beratungskontaktdauer")
-    datum = check_date(form, 'k', "Fehler im Beratungskontaktdatum")
-    fall = Fall(bkont['fall_id'])
-    if datum < fall.getDate('bg'):
-        raise EE("Datum vor Fallbeginn")
-    if fall.get('ey') and datum > fall.getDate('e'):
-        raise EE("Datum nach Fallende")
-    bkont.setDate('k', datum)
-    bkont['stz'] = check_code(form, 'stz', 'stzei',
-                              "Kein Stellenzeichen für den Beratungskontakt")
+## def _bkont_check(form, bkont):
+##     bkont['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
+##     bkont['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
+##     bkont['art'] = check_code(form, 'art', 'fska', "Fehler in Beratungskontaktart")
+##     bkont['no'] = check_str_not_empty(form, 'no', 'Keine Notiz', '')
+##     if config.BERATUNGSKONTAKTE_MINUTEN:
+##         bkont['f2f_min'] = check_int_not_empty(form, 'f2f_min', "Fehler in Face-2-Face Minuten")
+##         bkont['vn_min'] = check_int_not_empty(form, 'vn_min', "Fehler in Vor/Nachbereitung Minuten")
+##     else:
+##         bkont['dauer'] = check_code(form, 'dauer', 'fskd', "Fehler in Beratungskontaktdauer")
+##     datum = check_date(form, 'k', "Fehler im Beratungskontaktdatum")
+##     fall = Fall(bkont['fall_id'])
+##     if datum < fall.getDate('bg'):
+##         raise EE("Datum vor Fallbeginn")
+##     if fall.get('ey') and datum > fall.getDate('e'):
+##         raise EE("Datum nach Fallende")
+##     bkont.setDate('k', datum)
+##     bkont['stz'] = check_code(form, 'stz', 'stzei',
+##                             "Kein Stellenzeichen für den Beratungskontakt")
 
-def _bkont_bs_check(form, bkont):
+def _bkont_check(form, bkont):
     #print '_bkont_bs_check', form
-    bkont['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
-    bkont['fall1_id'] = form.get('fall1id') and \
-                        check_fk(form, 'fall1id', Fall, "Kein Fall") or None
-    bkont['fall2_id'] = form.get('fall2id') and \
-                        check_fk(form, 'fall2id', Fall, "Kein Fall") or None
-    bkont['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
-    bkont['mit1_id'] = form.get('mit1id') and \
-                       check_fk(form, 'mit1id', Mitarbeiter, "Kein Mitarbeiter", '') or None
-    bkont['mit2_id'] = form.get('mit2id') and \
-                       check_fk(form, 'mit2id', Mitarbeiter, "Kein Mitarbeiter", '') or None
-    bkont['art'] = check_code(form, 'art', 'kabs', "Fehler in Beratungskontaktart")
-    mc = check_multi_code(form, 'teilnehmer', 'teilnbs', "Fehler in Teilnehmer")
-    #print 'MULTICODE', mc, type(mc)
-    bkont['teilnehmer'] = check_multi_code(form, 'teilnehmer', 'teilnbs', "Fehler in Teilnehmer")
-    bkont['offenespr'] = check_code(form, 'offenespr', 'ja_nein', "", cn('ja_nein', 'ja'))
+    fall_ids = check_list(form, 'bkfallid', 'Keine Fälle')
+    mit_ids = check_list(form, 'mitid', 'Keine Mitarbeiter')
+    faelle = [Fall(id) for id in fall_ids]
+    mitarbeiter = [Mitarbeiter(id) for id in mit_ids]
+    if config.BERATUNGSKONTAKTE_BS:
+        zeit = check_time(form, 'k', "Fehler in Uhrzeit", Time())
+        bkont.setTime('k', zeit)
+        bkont['art_bs'] = check_code(form, 'art_bs', 'kabs', "Fehler in Beratungskontaktart")
+        mc = check_multi_code(form, 'teilnehmer_bs', 'teilnbs',
+                              "Fehler in Teilnehmer",
+                              default='9') # TODO auf 0 stellen nach neuer DB
+        #print 'MULTICODE', mc, type(mc)
+        bkont['teilnehmer_bs'] = mc
+        bkont['offenespr'] = check_code(form, 'offenespr', 'ja_nein', "", cn('ja_nein', 'ja'))
+        bkont['dauer'] = check_int_not_empty(form, 'dauer', "Fehler in Dauer", 0)
+        if not (bkont['dauer'] % 10) == 0:
+            raise EE("Bitte Kontaktdauer nur in 10-er Schritten angeben, z.B. 20, 30, 60.")
+        bkont['anzahl'] = check_int_not_empty(form, 'anzahl', "Fehler in Anzahl der Teilnehmer", 0)
+    else:
+        bkont['art'] = check_code(form, 'art', 'fska', "Fehler in Beratungskontaktart")
+        dauer_kat = check_code(form, 'dauer_kat', 'fskd', "Fehler in Kontaktdauer")
+        # wir tragen einfach den Mittelwert zwischen den Bereichsgrenzen ein
+        bkont['dauer'] = int((Code(dauer_kat)['mini'] + Code(dauer_kat)['maxi'])/2.)
     bkont['no'] = check_str_not_empty(form, 'no', 'Keine Notiz', '')
-    bkont['dauer'] = check_int_not_empty(form, 'dauer', "Fehler in Dauer")
-    bkont['anzahl'] = check_int_not_empty(form, 'anzahl', "Fehler in Anzahl der Teilnehmer")
     datum = check_date(form, 'k', "Fehler im Beratungskontaktdatum")
-    fall = Fall(bkont['fall_id'])
-    if datum < fall.getDate('bg'):
-        raise EE("Datum vor Fallbeginn")
-    if fall.get('ey') and datum > fall.getDate('e'):
-        raise EE("Datum nach Fallende")
+    for fall in faelle:
+        if datum < fall.getDate('bg'):
+            raise EE("Datum vor Fallbeginn von %(akte__vn)s %(akte__na)s" % fall )
+        if fall.get('ey') and datum > fall.getDate('e'):
+            raise EE("Datum nach Fallende von %(akte__vn)s %(akte__na)s" % fall)
     bkont.setDate('k', datum)
     bkont['stz'] = check_code(form, 'stz', 'stzei',
                               "Kein Stellenzeichen für den Beratungskontakt")
+    return mitarbeiter, faelle
+
+def _bkont_upd_mitarbeiter_faelle(bkont, mitarbeiter, faelle):
+    MitarbeiterberatungskontaktList(where='bkont_id=%(id)s' % bkont).deleteall()
+    FallberatungskontaktList(where='bkont_id=%(id)s' % bkont).deleteall()
+    for m in mitarbeiter:
+        mb = Mitarbeiterberatungskontakt()
+        mb.init(
+            mit_id=m['id'],
+            bkont_id=bkont['id'],
+            )
+        mb.new()
+        mb.insert()
+    for f in faelle:
+        fb = Fallberatungskontakt()
+        fb.init(
+            fall_id=f['id'],
+            bkont_id=bkont['id'],
+            )
+        fb.new()
+        fb.insert()
+
+## def bkonteinf(form):
+##     """Neuer Beratungskontakt."""
+##     if not config.BERATUNGSKONTAKTE:
+##         raise EBUpdateError("Aufruf von bkonteinf ohne config.BERATUNGSKONTAKTE")
+##     bkontid = check_int_not_empty(form, 'bkontid', "Beratungskontaktid fehlt")
+##     check_not_exists(bkontid, Beratungskontakt,
+##                      "Beratungskontakt (id: %(id)s) existiert bereits")
+##     bkont = Beratungskontakt()
+##     _bkont_check(form, bkont)
+##     try:
+##         bkont.insert(bkontid)
+##     except:
+##         try: bkont.delete()
+##         except: pass
+##     _stamp_akte(bkont['fall__akte'])
 
 def bkonteinf(form):
     """Neuer Beratungskontakt."""
-    if not config.BERATUNGSKONTAKTE:
-        raise EBUpdateError("Aufruf von bkonteinf ohne config.BERATUNGSKONTAKTE")
     bkontid = check_int_not_empty(form, 'bkontid', "Beratungskontaktid fehlt")
     check_not_exists(bkontid, Beratungskontakt,
                      "Beratungskontakt (id: %(id)s) existiert bereits")
     bkont = Beratungskontakt()
-    _bkont_check(form, bkont)
+    mitarbeiter, faelle = _bkont_check(form, bkont)
     try:
         bkont.insert(bkontid)
+        _bkont_upd_mitarbeiter_faelle(bkont, mitarbeiter, faelle)
     except:
         try: bkont.delete()
         except: pass
-    _stamp_akte(bkont['fall__akte'])
-
-def bkontbseinf(form):
-    """Neuer Beratungskontakt."""
-    if not config.BERATUNGSKONTAKTE_BS:
-        raise EBUpdateError("Aufruf von bkontbseinf ohne config.BERATUNGSKONTAKTE_BS")
-    bkontid = check_int_not_empty(form, 'bkontid', "Beratungskontaktid fehlt")
-    check_not_exists(bkontid, Beratungskontakt_BS,
-                     "Beratungskontakt (id: %(id)s) existiert bereits")
-    bkont = Beratungskontakt_BS()
-    _bkont_bs_check(form, bkont)
-    try:
-        bkont.insert(bkontid)
-    except:
-        try: bkont.delete()
-        except: pass
-    _stamp_akte(bkont['fall__akte'])
+    for f in bkont['faelle']:
+        _stamp_akte(f['akte'])
     
-
+## def updbkont(form):
+##     """Update des Beratungskontakts."""
+##     if not config.BERATUNGSKONTAKTE:
+##         raise EBUpdateError("Aufruf von updbkont ohne config.BERATUNGSKONTAKTE")
+##     bkontold = check_exists(form,'bkontid', Beratungskontakt, "Keine Beratungskontaktid")
+##     bkont = Beratungskontakt()
+##     _bkont_check(form, bkont)
+##     bkontold.update(bkont)
+##     _stamp_akte(bkontold['fall__akte'])
+    
 def updbkont(form):
     """Update des Beratungskontakts."""
-    if not config.BERATUNGSKONTAKTE:
-        raise EBUpdateError("Aufruf von updbkont ohne config.BERATUNGSKONTAKTE")
     bkontold = check_exists(form,'bkontid', Beratungskontakt, "Keine Beratungskontaktid")
     bkont = Beratungskontakt()
-    _bkont_check(form, bkont)
+    mitarbeiter, faelle = _bkont_check(form, bkont)
     bkontold.update(bkont)
-    _stamp_akte(bkontold['fall__akte'])
-    
-def updbkontbs(form):
-    """Update des Beratungskontakts."""
-    if not config.BERATUNGSKONTAKTE_BS:
-        raise EBUpdateError("Aufruf von updbkontbs ohne config.BERATUNGSKONTAKTE_BS")
-    bkontold = check_exists(form,'bkontid', Beratungskontakt_BS, "Keine Beratungskontaktid")
-    bkont = Beratungskontakt_BS()
-    _bkont_bs_check(form, bkont)
-    bkontold.update(bkont)
-    _stamp_akte(bkontold['fall__akte'])
+    _bkont_upd_mitarbeiter_faelle(bkontold, mitarbeiter, faelle)
+    for f in bkontold['faelle']:
+        _stamp_akte(f['akte'])
     
     
 # Fallunabhängige Aktivitäten Braunschweig
@@ -954,7 +998,7 @@ def _fs_check(form, fstat, fstatold=None):
             else:
                 str = {}
             for a in ('ortsteil', 'bezirk', 'samtgemeinde'):
-                fstat[a] = str[a]
+                fstat[a] = str.get(a, '')
     # ab hier abschaltbar
     from ebkus.html.fskonfig import fs_customize as fsc
     multicode = cc('verwtyp', 'm')
@@ -1321,22 +1365,22 @@ def _jgh07_check(form, jgh):
     item_J = "J / Intensität / Zahl der Beratungskontakte"
     item_M = "M / Betreuungsintensität / Zahl der Beratungskontakte"
     if hilfe_dauert_an:
-        if config.BERATUNGSKONTAKTE_BS:
+        if config.BERATUNGSKONTAKTE:
             # falls leer Übernahm aus Beratungskontakten
-            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte_bs
+            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte
             if not form.get('nbkakt'):
-                form['nbkakt'], _ = get_jgh_kontakte_bs(fall)
+                form['nbkakt'], _ = get_jgh_kontakte(fall)
         jgh['nbkakt'] = check_int_not_empty(form, 'nbkakt',
                             "Fehlt: %s" % item_J)
         raise_if_int(form, ('nbkges',),
                      "Nur bei beendeter Hilfe ausfüllen: %s" % item_M)
         jgh['nbkges'] = None
     else:
-        if config.BERATUNGSKONTAKTE_BS:
+        if config.BERATUNGSKONTAKTE:
             # falls leer Übernahm aus Beratungskontakten
-            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte_bs
+            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte
             if not form.get('nbkges'):
-                _, form['nbkges'] = get_jgh_kontakte_bs(fall)
+                _, form['nbkges'] = get_jgh_kontakte(fall)
         jgh['nbkges'] = check_int_not_empty(form, 'nbkges',
                             "Fehlt: %s" % item_M)
         raise_if_int(form, ('nbkakt',),
@@ -2289,7 +2333,6 @@ def updmit(form):
         for klassname in (
             'LeistungList',
             'BeratungskontaktList',
-            'Beratungskontakt_BSList',
             'Fua_BSList',
             'ZustaendigkeitList',
             'DokumentList',
@@ -2482,8 +2525,10 @@ def remove_akte(akte, statistik_auch=False):
         pass # alles OK
     return True
 
-def remove_fall(fall, statistik_auch=False):
-    assert not fall['aktuell'], 'Aktueller Fall kann nicht gelöscht werden'
+
+def remove_fall(fall, statistik_auch=False, aktuell_auch=False):
+    if not aktuell_auch:
+        assert not fall['aktuell'], 'Aktueller Fall kann nicht gelöscht werden'
     fall_id = fall['id']
     #print "********* LOESCHEN: %(id)s;%(akte_id)s;%(fn)s" % fall
     jghstatl = JugendhilfestatistikList(where = 'fall_id = %s' % fall_id)
@@ -2494,7 +2539,6 @@ def remove_fall(fall, statistik_auch=False):
     anmeldungl = AnmeldungList(where = 'fall_id = %s' % fall_id)
     leistungl = LeistungList(where = 'fall_id = %s' % fall_id)
     bkontl = BeratungskontaktList(where = 'fall_id = %s' % fall_id)
-    bkontbsl = Beratungskontakt_BSList(where = 'fall_id = %s' % fall_id)
     fallgrl = FallGruppeList(where = 'fall_id = %s' % fall_id)
     akte_path = get_akte_path(fall['akte_id'])
     for j in jghstatl:
@@ -2534,6 +2578,9 @@ def remove_fall(fall, statistik_auch=False):
     dokl.deleteall()
     fallgrl.deleteall()
     zustaendigl.deleteall()
+    for b in bkontl:
+        b['fallberatungskontakte'].deleteall()
+        b['mitarbeiterberatungskontakte'].deleteall()
     bkontl.deleteall()
     bkontbsl.deleteall()
     fall.delete()

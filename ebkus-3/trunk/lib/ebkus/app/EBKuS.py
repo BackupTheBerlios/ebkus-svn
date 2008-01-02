@@ -105,13 +105,10 @@ def getClassesToBePublished():
     from ebkus.html.bezugsperson import persneu, updpers,viewpers
     from ebkus.html.einrichtungskontakt import einrneu, updeinr
     from ebkus.html.leistung import leistneu, updleist
-    if config.BERATUNGSKONTAKTE_BS:
-        #print 'EBKUS:', 'BS'
-        from ebkus.html.beratungskontakt_bs import bkontneu, updbkont, \
-             bkontbsabfrform, bkontbsabfr
-    elif config.BERATUNGSKONTAKTE:
-        print 'EBKUS:', 'NICHT BS'
+    if config.BERATUNGSKONTAKTE:
         from ebkus.html.beratungskontakt import bkontneu, updbkont
+        if config.BERATUNGSKONTAKTE_BS:
+            from ebkus.html.beratungskontakt import bkontbsabfrform, bkontbsabfr
     if config.FALLUNABHAENGIGE_AKTIVITAETEN_BS:
         #print 'EBKUS:', 'BS'
         from ebkus.html.fua_bs import fua, fuaneu, updfua, \

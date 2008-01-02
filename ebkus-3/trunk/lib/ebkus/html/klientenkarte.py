@@ -92,8 +92,8 @@ class klkarte(Request.Request, akte_share):
       'updeinr': ('einrid', ebapi.Einrichtungskontakt),
       'updanm': ('anmid', ebapi.Anmeldung),
       'updleist': ('leistid', ebapi.Leistung),
-      'updbkont': ('bkontid', ebapi.Beratungskontakt),
-      'updbkontbs': ('bkontid', ebapi.Beratungskontakt_BS),
+      'updbkont': ('fallid', ebapi.Fall),
+      'updbkontbs': ('fallid', ebapi.Fall),
       'updzust': ('zustid', ebapi.Zustaendigkeit),
       'updfall': ('fallid', ebapi.Fall),
       'waufneinf': ('fallid', ebapi.Fall),
@@ -144,9 +144,6 @@ class klkarte(Request.Request, akte_share):
             leistungen_list += f['leistungen']
             zustaendigkeiten_list += f['zustaendigkeiten']
             beratungskontakte_list += f['beratungskontakte']
-            beratungskontakte_bs_list += f['beratungskontakte_bs']
-            beratungskontakte_bs_list += f['beratungskontakte_bs1']
-            beratungskontakte_bs_list += f['beratungskontakte_bs2']
             anmeldekontakte_list += f['anmeldung']
             fachstatistik_list += f['fachstatistiken']
             jugendhilfestatistik_list += f['jgh_statistiken']
@@ -203,36 +200,39 @@ class klkarte(Request.Request, akte_share):
                          onClick= "go_to_url('leistneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" % akte,
                             ) or None),
             )
-        if config.BERATUNGSKONTAKTE_BS:
-            beratungskontakte = self.get_beratungskontakte_bs(beratungskontakte_bs_list,
-                                                              aktueller_fall=aktueller_fall,
-                                                              edit_button=True,
-                                                              hinzufuegen_button=True)
-        elif config.BERATUNGSKONTAKTE:
-            beratungskontakte = h.FieldsetDataTable(
-                legend= 'Beratungskontakte',
-                headers= ('Mitarbeiter', 'Art', 'Datum', 'Dauer', 'Notiz'),
-                daten= [[(aktueller_fall == bkont['fall'] and
-                          h.Icon(href= 'updbkont?fallid=%(fall_id)d&bkontid=%(id)d' % bkont,
-                               icon= "/ebkus/ebkus_icons/edit_button.gif",
-                               tip= 'Beratungskontakt bearbeiten')
-                          or
-                          h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
-                                   tip= 'Funktion gesperrt')),
-                           h.String(string= bkont['mit_id__na']),
-                           h.String(string= bkont['art__name']),
-                           h.Datum(day=   bkont['kd'],
-                                 month= bkont['km'],
-                                 year=  bkont['ky']),
-                           h.String(string= bkont['dauer__name']),
-                           h.String(string= bkont['no'])]
-                        for bkont in beratungskontakte_list],
-                button= (aktueller_fall and
-                         h.Button(value= "Hinzufügen",
-                                tip= "Beratungskontakt hinzufügen",
-                            onClick= "go_to_url('bkontneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" % akte,
-                                ) or None),
-                )
+
+        if config.BERATUNGSKONTAKTE:
+            # auch für Braunschweig
+            beratungskontakte = self.get_beratungskontakte(beratungskontakte_list,
+                                                           aktueller_fall=aktueller_fall,
+                                                           edit_button=True,
+                                                           hinzufuegen_button=True)
+##            
+##         elif config.BERATUNGSKONTAKTE:
+##             beratungskontakte = h.FieldsetDataTable(
+##                 legend= 'Beratungskontakte',
+##                 headers= ('Mitarbeiter', 'Art', 'Datum', 'Dauer', 'Notiz'),
+##                 daten= [[(aktueller_fall == bkont['fall'] and
+##                           h.Icon(href= 'updbkont?fallid=%(fall_id)d&bkontid=%(id)d' % bkont,
+##                                icon= "/ebkus/ebkus_icons/edit_button.gif",
+##                                tip= 'Beratungskontakt bearbeiten')
+##                           or
+##                           h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
+##                                    tip= 'Funktion gesperrt')),
+##                            h.String(string= bkont['mit_id__na']),
+##                            h.String(string= bkont['art__name']),
+##                            h.Datum(day=   bkont['kd'],
+##                                  month= bkont['km'],
+##                                  year=  bkont['ky']),
+##                            h.String(string= bkont['dauer__name']),
+##                            h.String(string= bkont['no'])]
+##                         for bkont in beratungskontakte_list],
+##                 button= (aktueller_fall and
+##                          h.Button(value= "Hinzufügen",
+##                                 tip= "Beratungskontakt hinzufügen",
+##                             onClick= "go_to_url('bkontneu?akid=%(id)d&fallid=%(aktueller_fall__id)d')" % akte,
+##                                 ) or None),
+##                 )
         else:
             beratungskontakte = None
         stand = h.FieldsetDataTable(

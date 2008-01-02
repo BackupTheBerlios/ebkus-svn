@@ -40,9 +40,9 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
 ##                                                   # default ist dieses Jahr
 ##                       fake_today=TODAY):          # gefaktes heute: (2009,6,6), default das reale heute 
 
-    n_akten = 100
-    n_bearbeiter = 4
-    n_stellen = 2
+    n_akten = 400
+    n_bearbeiter = 16
+    n_stellen = 4
     von_jahr = Date(2006)
     bis_jahr = None
     fake_today = None

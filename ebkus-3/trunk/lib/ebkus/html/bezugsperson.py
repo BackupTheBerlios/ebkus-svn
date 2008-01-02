@@ -59,8 +59,8 @@ class _pers(Request.Request, akte_share):
             rows=(h.Pair(left=self.get_klientendaten(bzp),
                          right=self.get_anschrift(bzp),
                          ),
-                  notiz_wichtig,
                   verwandtschaftsart,
+                  notiz_wichtig,
                   self.get_bezugspersonen(bezugspersonen_list, aktueller_fall,
                                           edit_button=False, view_button=True,
                                           hinzufuegen_button=False),
@@ -81,20 +81,20 @@ class persneu(_pers):
                                      'Sie werden zum Hauptmen&uuml; weitergeleitet.'),
                              ).display()
         fall = Fall(fallid)
+        akte = fall['akte']
         bzp = Bezugsperson()
         bzp.init(
             id=Bezugsperson().getNewId(),
             akte_id=fall['akte_id'],
-            #lage=cc('lage', '999'),
             no='',
             nobed=cc('notizbed', 't'),
             vrt=cc('vert', 'f'),
             fs=cc('fsfs', '999'),
             verw=cc('klerv', '999'),
             gs=' ',
-            lage=((config.STRASSENKATALOG) and cc('lage', '0')
-                  or cc('lage', '1'))
             )
+        for f in ('na', 'plz', 'ort', 'str', 'hsnr', 'lage', 'tl1', 'tl2'):
+            bzp[f] = akte[f]
         return self._process(title='Neue Bezugsperson eintragen',
                              bzp=bzp,
                              hidden=(('bpid', bzp['id']),
