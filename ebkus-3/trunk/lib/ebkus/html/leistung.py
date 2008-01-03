@@ -3,7 +3,7 @@
 """Module für die Leistung."""
 
 from ebkus.app import Request
-from ebkus.app.ebapi import cc, Fall, Leistung, today
+from ebkus.app.ebapi import cc, Fall, Leistung, today, EE
 from ebkus.config import config
 
 import ebkus.html.htmlgen as h
@@ -116,4 +116,29 @@ class updleist(_leist):
                              leistung=leistung,
                              file='updleist',
                              )
+
+class rmleist(Request.Request):
+    """Beratungskontakt löschen."""
+    permissions = Request.UPDATE_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        if self.form.has_key('leistid'):
+            id = self.form.get('leistid')
+        else:
+            self.last_error_message = "Keine ID für die Leistung erhalten"
+            return self.EBKuSError(REQUEST, RESPONSE)
+        leistung = Leistung(id)
+        if len(leistung['fall']['leistungen']) < 2:
+            raise EE('Es muss immer mindestens eine Leistung geben')
+        if leistung['beratungskontakte']:
+            raise EE('Leistung in einem Beratungskontakt kann nicht gelöscht werden')
+        return h.SubmitOrBack(
+            legend='Leistung löschen',
+            action='klkarte',
+            method='post',
+            hidden=(('file', 'removeleist'),
+                    ('leistid', leistung['id']),
+                    ),
+            zeilen=('Soll die Leistung vom %s endgültig gelöscht werden?' % leistung.getDate('bg'),
+                    ),
+            ).display()
 

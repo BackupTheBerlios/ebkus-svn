@@ -71,7 +71,10 @@ class DBCache:
         data = object.data
         otherkeys = object.otherkeys
         if id:
-            del cache[(klass, id)]
+            try:
+                del cache[(klass, id)]
+            except:
+                pass # wenn nichts zu del'en gibt, ists auch nicht schlimme (hoffentlich :-)
             if update_inverses:
                 for field, (klass, inversefield) in object.foreignfieldtypes.items():
                     fk = object.data.get(field)

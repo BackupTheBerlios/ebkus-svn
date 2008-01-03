@@ -10,6 +10,11 @@ login_interface_t = """
     <a href="%(index_url)s"><img border="0" src="/ebkus/ebkus_icons/ebkus_logo.gif"></a>
     </td>
   </tr>
+  <tr>
+    <td align="center" height="40">
+    <h2>%(title)s</h2>
+    </td>
+  </tr>
   <form name="logindaten" method="post" action="login">
     <tr>
       <td height="153" class="legendtext"><fieldset><b><legend>Benutzeranmeldung</legend></b>

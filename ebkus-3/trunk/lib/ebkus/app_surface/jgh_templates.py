@@ -70,8 +70,8 @@ jghstatneuwbz_t = """
                   </td>
                 </tr>
                 <tr height="33">
-                  <td colspan="3" width="50%%" height="33" >&nbsp;
-                  <input type="hidden" value="%d" name="wohnbez"></td>"""
+                  <td colspan="3" width="50%" height="33" >&nbsp;
+                  </td>"""
 
 jghstatneugfall_t = """
                   <td width="16%" align="right" class="labeltext" height="33">Geschwisterfall:</td>
@@ -83,12 +83,11 @@ jghstatneuwbz_berlin_t = """
                   </td>
                 </tr>
                 <tr height="40">
-                  <td width="16%" align="right" class="labeltext" height="33" >Wohnbezirk:</td>
+                  <td width="16%" align="right" class="labeltext" height="33" ></td>
                   <td width="34%" align="left" colspan="2" height="33">
-                    <select name="wohnbez" class="listbox" style="width:150">"""
+                  """
 
 jghstatneugfall_berlin_t = """
-                    </select>
                   </td>
                   <td width="16%" align="right" class="labeltext" height="33">Geschwisterfall:</td>
                   <td width="34%" align="left" height="33">
@@ -350,9 +349,9 @@ jghstateditwbz_t = """
                     </select>
                   </td>
                 </tr>
-                <tr height="66" width="100%%">
-                  <td colspan="3" width="50%%" height="66" >&nbsp;
-                  <input type="hidden" value="%d" name="wohnbez"></td>"""
+                <tr height="66" width="100%">
+                  <td colspan="3" width="50%" height="66" >&nbsp;
+                  </td>"""
 
 jghstateditgfall_t = """
                   <td width="16%" align="right" class="labeltext" height="33">Geschwisterfall:</td>
@@ -364,12 +363,11 @@ jghstateditwbz_berlin_t = """
                   </td>
                 </tr>
                 <tr height="40">
-                  <td width="16%" align="right" class="labeltext" height="33" >Wohnbezirk:</td>
+                  <td width="16%" align="right" class="labeltext" height="33" ></td>
                   <td width="34%" align="left" colspan="2" height="33">
-                    <select name="wohnbez" class="listbox" style="width:150">"""
+                   """
 
 jghstateditgfall_berlin_t = """
-                    </select>
                   </td>
                   <td width="16%" align="right" class="labeltext" height="33">Geschwisterfall:</td>
                   <td width="34%" align="left" height="33">

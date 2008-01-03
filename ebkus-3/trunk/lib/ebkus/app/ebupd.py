@@ -198,6 +198,15 @@ def updpers(form):
     persold.update(pers)
     _stamp_akte(persold['akte'])
     
+
+def removepers(form):
+    pers = check_exists(form, 'bpid', Bezugsperson, "Bezugspersonid fehlt")
+    if pers['gruppen']:
+        raise EE('Mitglied einer Gruppe kann nicht gelöscht werden')
+    if pers['fallberatungskontakte']:
+        raise EE('Teilnehmer/in an Beratungskontakt kann nicht gelöscht werden')
+    pers.delete()
+
     
 def einreinf(form):
     """Neuer Einrichtungskontakt."""
@@ -244,6 +253,10 @@ def updeinr(form):
     einrold.update(einr)
     _stamp_akte(einrold['akte'])
     
+
+def removeeinr(form):
+    einr = check_exists(form, 'einrid', Einrichtungskontakt, "Einrichtungskontaktid fehlt")
+    einr.delete()
     
 def anmeinf(form):
     """Neue Anmeldung."""
@@ -374,6 +387,15 @@ def updleist(form):
 ##     bkont['stz'] = check_code(form, 'stz', 'stzei',
 ##                             "Kein Stellenzeichen für den Beratungskontakt")
 
+def removeleist(form):
+    """Löschen der Leistung."""
+    leist = check_exists(form,'leistid', Leistung, "Keine Leistungsid")
+    if len(leist['fall']['leistungen']) < 2:
+        raise EE('Es muss immer mindestens eine Leistung geben')
+    if leist['beratungskontakte']:
+        raise EE('Leistung in einem Beratungskontakt kann nicht gelöscht werden')
+    leist.delete()
+        
 def _bkont_check(form, bkont):
     #print '_bkont_bs_check', form
     fall_ids = check_list(form, 'bkfallid', 'Keine Fälle')
@@ -483,6 +505,16 @@ def updbkont(form):
     for f in bkontold['faelle']:
         _stamp_akte(f['akte'])
     
+
+def removebkont(form):
+    bkont = check_exists(form,'bkontid', Beratungskontakt, "Keine Beratungskontaktid")
+    faelle = bkont['faelle']
+    MitarbeiterberatungskontaktList(where='bkont_id=%(id)s' % bkont).deleteall()
+    FallberatungskontaktList(where='bkont_id=%(id)s' % bkont).deleteall()
+    #print 'BKONT ID', bkont['id']
+    bkont.delete()
+    for f in faelle:
+        _stamp_akte(f['akte'])
     
 # Fallunabhängige Aktivitäten Braunschweig
 def _fua_bs_check(form, fua):
@@ -491,9 +523,11 @@ def _fua_bs_check(form, fua):
     fua['art'] = check_code(form, 'art', 'fuabs', "Fehler in Aktivitätstart")
     fua['no'] = check_str_not_empty(form, 'no', 'Keine Notiz', '')
     if fua['art'] == cc('fuabs', '1'):
-        fua['dauer'] = 2
+        fua['dauer'] = 20
     else:
         fua['dauer'] = check_int_not_empty(form, 'dauer', "Fehler in Dauer")
+        if not (fua['dauer'] % 10) == 0:
+            raise EE("Bitte Aktivitätsdauer nur in 10-er Schritten angeben, z.B. 20, 30, 60, etc.")
     datum = check_date(form, 'k', "Fehler im Aktivitätsdatum")
     fua.setDate('k', datum)
     fua['stz'] = check_code(form, 'stz', 'stzei',
@@ -515,13 +549,19 @@ def fuabseinf(form):
         except: pass
     
 def updfuabs(form):
-    """Update des Beratungskontakts."""
+    """Update der fallunabhängigen Aktivität."""
     if not config.FALLUNABHAENGIGE_AKTIVITAETEN_BS:
         raise EBUpdateError("Aufruf von updfuabs ohne config.FALLUNABHAENGIGE_AKTIVITAETEN_BS")
     fuaold = check_exists(form,'fuaid', Fua_BS, "Keine Aktivitäts-ID")
     fua = Fua_BS()
     _fua_bs_check(form, fua)
     fuaold.update(fua)
+
+def removefuabs(form):
+    if not config.FALLUNABHAENGIGE_AKTIVITAETEN_BS:
+        raise EBUpdateError("Aufruf von updfuabs ohne config.FALLUNABHAENGIGE_AKTIVITAETEN_BS")
+    fua = check_exists(form,'fuaid', Fua_BS, "Keine Aktivitäts-ID")
+    fua.delete()
     
 def zusteinf(form):
     """Neue Zuständigkeit."""
@@ -1162,8 +1202,6 @@ def jgheinf(form):
                               "Keine Gemeinde")
     jghstat['gmt'] = check_code(form, 'gmt', 'gmt',
                               "Kein Gemeindeteil")
-    jghstat['bezirksnr'] = check_code(form, 'wohnbez', 'wohnbez',
-                                          "Kein Wohnbezirk")
     jghstat['traeg'] = check_code(form, 'traeg', 'traeg',
                               "Kein Traeger" )
     jghstat['bgr'] = check_code(form, 'bgr', 'bgr',
@@ -1304,8 +1342,6 @@ def _jgh07_check(form, jgh):
                             "Keine Einrichtungsnummer")
     jgh['gfall'] = check_code(form, 'gfall', 'gfall',
                                   "Angabe, ob der Fall ein Geschwisterfall ist, fehlt")
-    jgh['bezirksnr'] = check_code(form, 'wohnbez', 'wohnbez',
-                                          "Kein Wohnbezirk")
     # wird auf True gesetzt, wenn das entsprechende item mit ja beantwortet wurde    
     hilfe_dauert_an = False 
     # Kategorienitems werden über die Daten in jghstatistik._fb_data abgehandelt
@@ -1364,25 +1400,20 @@ def _jgh07_check(form, jgh):
     # Beratungskontakte direkt abhandeln
     item_J = "J / Intensität / Zahl der Beratungskontakte"
     item_M = "M / Betreuungsintensität / Zahl der Beratungskontakte"
+    nbkakt = nbkges = None
+    if config.BERATUNGSKONTAKTE:
+        from ebkus.html.beratungskontakt import get_jgh_kontakte
+        nbkakt, nbkges = get_jgh_kontakte(fall)
+    print 'DEFAULTS', nbkakt, nbkges
     if hilfe_dauert_an:
-        if config.BERATUNGSKONTAKTE:
-            # falls leer Übernahm aus Beratungskontakten
-            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte
-            if not form.get('nbkakt'):
-                form['nbkakt'], _ = get_jgh_kontakte(fall)
         jgh['nbkakt'] = check_int_not_empty(form, 'nbkakt',
-                            "Fehlt: %s" % item_J)
+                            "Fehlt: %s" % item_J, default=nbkakt)
         raise_if_int(form, ('nbkges',),
                      "Nur bei beendeter Hilfe ausfüllen: %s" % item_M)
         jgh['nbkges'] = None
     else:
-        if config.BERATUNGSKONTAKTE:
-            # falls leer Übernahm aus Beratungskontakten
-            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte
-            if not form.get('nbkges'):
-                _, form['nbkges'] = get_jgh_kontakte(fall)
         jgh['nbkges'] = check_int_not_empty(form, 'nbkges',
-                            "Fehlt: %s" % item_M)
+                            "Fehlt: %s" % item_M, default=nbkges)
         raise_if_int(form, ('nbkakt',),
                      "Nur bei andauernder Hilfe ausfüllen: %s" % item_J)
         jgh['nbkakt'] = None
@@ -1563,8 +1594,6 @@ def updjgh(form):
                               "Kein Stellenzeichen für die Jugendhilfestatistik")
     jghstat['gfall'] = check_code(form, 'gfall', 'gfall',
                                   "Angabe, ob der Fall ein Geschwisterfall ist, fehlt")
-    jghstat['bezirksnr'] = check_code(form, 'wohnbez', 'wohnbez',
-                                      "Kein Wohnbezirk")
     jghstat.setDate('bg', check_date(form, 'bg',
                             "Fehler im Datum für den Beginn", nodayallowed = 1 ) )
     if form['fallid'] != None and form['fallid'] != '':
@@ -2643,7 +2672,7 @@ def setAdresse(obj, form):
     getriggert.
 
     Kann auch fuer Bezugspersonenadressen verwendet werden,
-    planungsr und wohnbez werden dann nicht beruecksichtigt
+    plraum wird dann nicht beruecksichtigt
     """
     #print 'SETADRESSE', form
     from ebkus.html.strkat import fuehrende_nullen_ersetzen
@@ -2689,17 +2718,11 @@ def setAdresse(obj, form):
             obj['hsnr'] = '' # erfolgreicher Abgleich ohne Hausnummer
         else:
             obj['hsnr'] = hsnr
-        if 'planungsr' in obj.fields:
+        if 'plraum' in obj.fields:
 ##             # Übernahme des Planungsraums aus dem Straßenkatalogs
 ##             # Was übernommen wird, ist config-abhängig
 ##             obj['planungsr'] = strasse[config.PLANUNGSRAUMFELD]
-            obj['planungsr'] = strasse['plraum']
-        if 'wohnbez' in obj.fields:
-            if config.BERLINER_VERSION:
-                # wohnbez aus dem Straßenkatalog übernehmen, nur Berlin
-                obj['wohnbez'] = Code(kat_code='wohnbez', name=strasse['bezirk'])['id']
-            else:
-                obj['wohnbez'] = cc('wohnbez', '13')
+            obj['plraum'] = strasse['plraum']
     else:
         # Ohne Abgleich mit Straßenkatalog
         obj['lage'] = cc('lage', '1')
@@ -2708,16 +2731,9 @@ def setAdresse(obj, form):
         obj['str'] = form.get('str', '')
         obj['hsnr'] = form.get('hsnr', '')
         obj['plz'] = form.get('plz', '')
-        if 'planungsr' in obj.fields:
-            planungs_raum = form.get('planungsr')
+        if 'plraum' in obj.fields:
+            planungs_raum = form.get('plraum')
             if planungs_raum in ('0',):
                 raise EBUpdateDataError("Kein gültiger Planungsraum")
-            obj['planungsr'] =  planungs_raum or '0'
-        if 'wohnbez' in obj.fields:
-            if ort and not ort.startswith('Berlin'):
-                # außerhalb Berlins
-                obj['wohnbez'] = cc('wohnbez', '13')
-            else:
-                # kein Ort oder Berlin ohne Bezirksangabe mangels Straßenkatalog
-                obj['wohnbez'] = cc('wohnbez', '999')
+            obj['plraum'] =  planungs_raum or '0'
 

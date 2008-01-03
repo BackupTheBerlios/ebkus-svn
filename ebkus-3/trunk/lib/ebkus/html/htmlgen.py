@@ -2,6 +2,8 @@
 
 
 from  cStringIO import StringIO
+from ebkus.app.Request import getRequest
+from ebkus.config import config
 
 def join(seq):
     #print 'JOIN', seq
@@ -161,10 +163,12 @@ class Base(_HTML):
 ##                                  for entry in self.breadcrumbs if entry])
 ##             crumbs += ' > %s' % self.title
             # TODO user daten übernehmen
-            self.login = "Albrecht Schmiedel (atms, Fallberater)"
+
+            mitarbeiter = getRequest().mitarbeiter
+            self.login = "%(vn)s %(na)s (%(ben)s, %(benr__name)s)" % mitarbeiter
             #self.breadcrumb = self.breadcrumbs_t % (crumbs, login)
             self.breadcrumb = crumbs
-            self.instanz = "EBKuS 4.0 demo_wolfenbüttel"
+            self.instanz = "EBKuS 4.0: %s" % config.INSTANCE_TITLE
             self.statuszeile = self.statuszeile_t % self
     tmpl = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">

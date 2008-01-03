@@ -75,7 +75,8 @@ openssl_executable: %(OPENSSL_EXECUTABLE)s
 
 # Name muss identisch sein mit Namen der Sektion (hier: 'demo')
 instance_name:          demo
-
+# Langname, Leer- und Sonderzeichen moeglich
+#instance_title:        Demo
 #instance_home:          %%(ebkus_home)s/%%(instance_name)s
 
 # Bitte hier was sinnvolles eintragen!
@@ -105,6 +106,8 @@ port: 50010
 [demo_wolfenbuettel]
 
 instance_name:          demo_wolfenbuettel
+# Langname, Leer- und Sonderzeichen moeglich
+#instance_title:        Demo Wolfenbüttel
 
 #instance_home:          %%(ebkus_home)s/%%(instance_name)s
 
@@ -143,6 +146,8 @@ strassensuche: ort ortsteil samtgemeinde
 [demo_berlin]
 
 instance_name:          demo_berlin
+# Langname, Leer- und Sonderzeichen moeglich
+#instance_title:        Demo Berlin
 
 #instance_home:          %%(ebkus_home)s/%%(instance_name)s
 
@@ -174,6 +179,8 @@ berliner_version: true
 [muster_efb]
 
 instance_name:          muster_efb
+# Langname, Leer- und Sonderzeichen moeglich
+#instance_title:        Muster Efb
 #instance_home:          %%(ebkus_home)s/%%(instance_name)s
 
 #admin_name:   Vorname Nachname

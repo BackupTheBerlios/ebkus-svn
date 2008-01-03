@@ -27,7 +27,7 @@ class menu(Request.Request, akte_share):
             )
     def _hauptmenu_klienten(self):
         logo_mitarbeiter_uhr = h.Table(
-            rows=(h.Tr(cells=
+            rows=(
 ##                        (h.Icon(href="/ebkus/%s/index.html" % config.INSTANCE_NAME,
 ##                                      icon="/ebkus/ebkus_icons/ebkus_logo.gif",
 ##                                      tip='Zur Zugangsseite und dem Handbuch',
@@ -35,11 +35,11 @@ class menu(Request.Request, akte_share):
 ##                                      n_col=2),
 ##                               ),
                        
-                  h.Tr(cells=(h.String(string="Angemeldet als: %(na)s, %(vn)s (%(ben)s)" %
-                                       self.mitarbeiter,
-                                       class_='normaltext',
-                                       align='left',
-                                       ),
+            h.Tr(cells=(h.String(string=("%(vn)s, %(na)s (%(ben)s, %(benr__name)s)<br />%%s" %
+                                         self.mitarbeiter) % config.INSTANCE_TITLE,
+                                 class_='normaltext',
+                                 align='left',
+                                 ),
                               h.Icon(href="/ebkus/%s/index.html" % config.INSTANCE_NAME,
                                      icon="/ebkus/ebkus_icons/ebkus_logo.gif",
                                      tip='Zur Zugangsseite und dem Handbuch',
@@ -51,8 +51,8 @@ class menu(Request.Request, akte_share):
                                        ),
                               ),
                        ),
-                  ),
-            )
+                  
+            ),
             )
         gruppenmenu = h.FieldsetInputTable(
             daten=[[h.Button(value='Gruppenmenü',

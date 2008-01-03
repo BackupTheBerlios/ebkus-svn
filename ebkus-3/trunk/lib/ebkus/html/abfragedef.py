@@ -596,7 +596,7 @@ class Ortsangabe(Primitive):
         # eingschränkt auf die mit der Bedinung kompatiblen.
         if config.STRASSENKATALOG:
             where = ''
-            if self.feldname in ('plz', 'planungsr'):
+            if self.feldname in ('plz', 'plraum'):
                 sibls = [s for s in self.ort_siblings
                          if s.feldname in ('ort', 'bezirk', 'samtgemeinde') and
                          s.feldname != self.feldname and
@@ -607,16 +607,13 @@ class Ortsangabe(Primitive):
                                       for s in sibls])
                 if where:
                     where = 'where %s' % where
-            if self.feldname == 'planungsr':
-                feld = 'plraum'
-            else:
-                feld = self.feldname
+            feld = self.feldname
             return [t[0] for t in SQL(
                 "select distinct %s from strkatalog %s order by %s" %
                 (feld, where, feld)).execute()]
         else:
             # Einschränkungen ohne Strkat: nein
-            assert self.feldname in ('ort', 'plz', 'planungsr')
+            assert self.feldname in ('ort', 'plz', 'plraum')
             return [t[0] for t in SQL(
                 "select distinct %s from akte order by %s" %
                 (self.feldname, self.feldname)).execute()]

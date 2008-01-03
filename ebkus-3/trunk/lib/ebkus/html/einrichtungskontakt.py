@@ -142,3 +142,22 @@ class updeinr(_einr):
                              file,
                              )
 
+class rmeinr(Request.Request):
+    permissions = Request.UPDATE_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        if self.form.has_key('einrid'):
+            id = self.form.get('einrid')
+        else:
+            self.last_error_message = "Keine ID für die Einrichtung erhalten"
+            return self.EBKuSError(REQUEST, RESPONSE)
+        einrichtung = Einrichtungskontakt(id)
+        return h.SubmitOrBack(
+            legend='Einrichtungskontakt löschen',
+            action='klkarte',
+            method='post',
+            hidden=(('file', 'removeeinr'),
+                    ('einrid', einrichtung['id']),
+                ),
+            zeilen=('Soll der Einrichtungskontakt endgültig gelöscht werden?',
+                    ),
+            ).display()

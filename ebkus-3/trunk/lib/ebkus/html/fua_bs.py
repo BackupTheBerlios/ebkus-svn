@@ -36,10 +36,11 @@ class _fua(Request.Request, akte_share):
                                   date =  fua.getDate('k')
                                   ),
                       ],
-                      [h.TextItem(label='Dauer (10Min. Einheiten)',
+                      [h.TextItem(label='Dauer in Minuten',
                                   name='dauer',
                                   value=fua['dauer'],
                                   class_='textboxsmall',
+                                  tip='Bitte in 10-Schritten angeben, z.B. 10, 20, 40, etc.',
                                   maxlength=2,
                                   ),
                        h.SelectItem(label='Art der Aktivität',
@@ -119,10 +120,13 @@ class _fua(Request.Request, akte_share):
         bisherige_aktivitaeten = h.FieldsetDataTable(
             legend=legend,
             empty_msg="Bisher keine Aktivitäten eingetragen.",
-            headers=('Datum', 'Mitarbeiter', 'Art', 'Dauer (x10min)', 'Notiz'),
+            headers=('Datum', 'Mitarbeiter', 'Art', 'Dauer in Minuten', 'Notiz'),
             daten=[[(edit_button and h.Icon(href= 'updfua?fuaid=%(id)d' % fua,
                                             icon= "/ebkus/ebkus_icons/edit_button.gif",
                                             tip= 'Aktivität bearbeiten') or None),
+                    (edit_button and h.Icon(href='rmfua?fuaid=%(id)d' % fua,
+                                            icon="/ebkus/ebkus_icons/del_button.gif",
+                                            tip='Fallunabhängige Aktivität endgültig löschen') or None),
                     h.Datum(date =  fua.getDate('k')),
                     h.String(string=fua['mit__na']),
                     h.String(string=fua['art__name']),
@@ -144,7 +148,7 @@ class fua(_fua):
     permissions=Request.UPDATE_PERM
     def processForm(self, REQUEST, RESPONSE):
         file = self.form.get('file')
-        if file in ('fuabseinf', 'updfuabs'):
+        if file in ('fuabseinf', 'updfuabs', 'removefuabs'):
             # API Funktion einf bzw. upd aufrufen
             getattr(ebupd, file)(self.form)
         jahr = self.form.get('jahr')
@@ -239,6 +243,27 @@ class updfua(_fua):
                              file='updfuabs',
                              )
 
+class rmfua(Request.Request):
+    """Beratungskontakt löschen."""
+    permissions = Request.UPDATE_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        if self.form.has_key('fuaid'):
+            id = self.form.get('fuaid')
+        else:
+            self.last_error_message = "Keine ID für die Aktivität erhalten"
+            return self.EBKuSError(REQUEST, RESPONSE)
+        fua = Fua_BS(id)
+        return h.SubmitOrBack(
+            legend='Fallunabhängige Aktivität',
+            action='fua',
+            method='post',
+            hidden=(('file', 'removefuabs'),
+                    ('fuaid', fua['id']),
+                    ),
+            zeilen=('Soll die fallunabhängige Aktivität vom %s endgültig gelöscht werden?' % fua.getDate('k'),
+                    ),
+            ).display()
+
 class fuabsabfrform(Request.Request, akte_share):
     permissions = Request.ABFR_PERM
     def processForm(self, REQUEST, RESPONSE):
@@ -273,8 +298,8 @@ class fuabsabfr(Request.Request, akte_share):
         dauer = fua['dauer']
         if art == '1':
             # Erstgespräch ohne Fallnummer 
-            netto[art] += 2
-            brutto[art] += 2
+            netto[art] += 20
+            brutto[art] += 20
         elif art == '3':
             # Gruppenarbeit
             netto[art] += dauer

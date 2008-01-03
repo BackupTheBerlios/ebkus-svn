@@ -217,6 +217,36 @@ class updbkont(_bkont):
                              file='updbkont',
                              )
 
+class rmbkont(Request.Request):
+    """Beratungskontakt löschen."""
+    permissions = Request.UPDATE_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        id = self.form.get('bkontid')
+        if not id:
+            self.last_error_message = "Keine ID für den Beratungskontakt erhalten"
+            return self.EBKuSError(REQUEST, RESPONSE)
+        fall_id = self.form.get('fallid')
+        if not fall_id:
+            self.last_error_message = "Keine Fall-ID für den Beratungskontakt erhalten"
+            return self.EBKuSError(REQUEST, RESPONSE)
+        bkont = Beratungskontakt(id)
+        fall = Fall(fall_id)
+        #TODO rausnehmen
+        assert fall in bkont['faelle']
+        return h.SubmitOrBack(
+            legend='Beratungskontakt löschen',
+            action='klkarte',
+            method='post',
+            hidden=(('file', 'removebkont'),
+                    ('bkontid', bkont['id']),
+                    ('fallid', fall_id),
+                    ),
+            zeilen=('Soll der Beratungskontakt vom %s endgültig gelöscht werden?' % bkont.getDate('k'),
+                    'Beteiligte Klienten: %s' % ', '.join([f['name'] for f in bkont['faelle']]),
+                    'Beteiligte Mitarbeiter: %s' % ', '.join([m['na'] for m in bkont['mitarbeiter']]),
+                    ),
+            ).display()
+
 class bkontbsabfrform(Request.Request, akte_share):
     permissions = Request.ABFR_PERM
     def processForm(self, REQUEST, RESPONSE):

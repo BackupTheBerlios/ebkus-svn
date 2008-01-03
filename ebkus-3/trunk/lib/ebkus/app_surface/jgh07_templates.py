@@ -16,6 +16,8 @@ jghhead_t = """
         <input type="hidden" value="%(mit_id)d" name="mitid">
         <table border="0" cellpadding="1" width="95%%">"""
 
+tip_t = """title="%(tip)s" onMouseOver="window.status='%(tip)s';return true;" onMouseOut="window.status='';return true;" """
+
 jghfalldaten_t = """
           <tr>
             <td align="center" class="legendtext" valign="top" height="104" colspan="2">
@@ -61,29 +63,11 @@ jghfalldaten_t = """
                   <td  align="right" class="labeltext">Laufende-Nr.:</td>
                   <td  align="left" class="legendtext">%(laufendenr)s</td>
                 </tr>
-                %(wohnbez_kl)s
               </table>
               </fieldset>
             </td>
           </tr>"""
 
-jghwohnbez_klient_t = """
-                <tr>
-                  <td  colspan=4>
-                  <input type="hidden" name="wohnbez" value="%d">
-                  </td>
-                </tr>"""
-jghwohnbez_klient_berlin_t = """
-                <tr>
-                  <td  align="right" class="labeltext">Wohnbezirk des Klienten:</td>
-                  <td  align="left">
-                    <select name="wohnbez" class="listbox" style="width:180">
-                    %s                    
-                    </select>
-                  </td>
-                  <td></td>
-                  <td></td>
-                </tr>"""
 
 jghbuttons_t = """
           <tr>
@@ -148,7 +132,7 @@ fb_int_item_t = """
                   </td>
                   <td align="left" valign="bottom">
                     <input type="text" name="%(name)s" value="%(value)s"
-                    size="%(size)s" maxlength="%(size)s" %(ro)s>
+                    size="%(size)s" maxlength="%(size)s" %(ro)s %(tip)s>
                   </td>
                 </tr>"""
 

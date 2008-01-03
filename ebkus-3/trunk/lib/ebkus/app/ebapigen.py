@@ -98,8 +98,8 @@ class StrassenkatalogNeuList(Container):
 class Akte(DBObjekt):
     table = 'akte'
     fields =  ['id', 'vn', 'na', 'gb', 'gs', 'ber', 'aufbew', 'str', \
-                       'hsnr', 'plz', 'planungsr', 'wohnbez', 'lage', 'ort', \
-                       'tl1', 'tl2', 'fs', 'no', 'stzbg', 'stzak', 'zeit']
+                       'hsnr', 'plz', 'plraum', 'lage', 'ort', 'tl1', 'tl2', \
+                       'fs', 'no', 'stzbg', 'stzak', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -543,15 +543,15 @@ class MitarbeiterGruppeList(Container):
 class Fachstatistik(DBObjekt):
     table = 'fachstat'
     fields =  ['id', 'mit_id', 'fall_id', 'fall_fn', 'jahr', 'stz', \
-                       'bz', 'plz', 'ort', 'ortsteil', 'samtgemeinde', \
-                       'bezirk', 'plraum', 'gs', 'ag', 'fs', 'zm', 'qualij', \
-                       'hkm', 'hkv', 'bkm', 'bkv', 'qualikm', 'qualikv', \
-                       'agkm', 'agkv', 'ba1', 'ba2', 'pbe', 'pbk', 'kat', \
-                       'kkm', 'kkv', 'kki', 'kpa', 'kfa', 'ksoz', 'kleh', \
-                       'kerz', 'kkonf', 'kson', 'no', 'no2', 'no3', \
-                       'anmprobleme', 'kindprobleme', 'elternprobleme', \
-                       'eleistungen', 'joka1', 'joka2', 'joka3', 'joka4', \
-                       'jokf5', 'jokf6', 'jokf7', 'jokf8', 'zeit']
+                       'plz', 'ort', 'ortsteil', 'samtgemeinde', 'bezirk', \
+                       'plraum', 'gs', 'ag', 'fs', 'zm', 'qualij', 'hkm', \
+                       'hkv', 'bkm', 'bkv', 'qualikm', 'qualikv', 'agkm', \
+                       'agkv', 'ba1', 'ba2', 'pbe', 'pbk', 'kat', 'kkm', 'kkv', \
+                       'kki', 'kpa', 'kfa', 'ksoz', 'kleh', 'kerz', 'kkonf', \
+                       'kson', 'no', 'no2', 'no3', 'anmprobleme', \
+                       'kindprobleme', 'elternprobleme', 'eleistungen', \
+                       'joka1', 'joka2', 'joka3', 'joka4', 'jokf5', 'jokf6', \
+                       'jokf7', 'jokf8', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -576,12 +576,12 @@ class FachstatistikList(Container):
 
 class Jugendhilfestatistik(DBObjekt):
     table = 'jghstat'
-    fields =  ['id', 'fall_id', 'mit_id', 'fall_fn', 'gfall', \
-                       'bezirksnr', 'stz', 'rbz', 'kr', 'gm', 'gmt', 'lnr', \
-                       'traeg', 'bgm', 'bgy', 'em', 'ey', 'bgr', 'gs', 'ag', \
-                       'fs', 'hke', 'gsa', 'gsu', 'zm', 'ba0', 'ba1', 'ba2', \
-                       'ba3', 'ba4', 'ba5', 'ba6', 'ba7', 'ba8', 'ba9', 'schw', \
-                       'fbe0', 'fbe1', 'fbe2', 'fbe3', 'zeit']
+    fields =  ['id', 'fall_id', 'mit_id', 'fall_fn', 'gfall', 'stz', \
+                       'rbz', 'kr', 'gm', 'gmt', 'lnr', 'traeg', 'bgm', 'bgy', \
+                       'em', 'ey', 'bgr', 'gs', 'ag', 'fs', 'hke', 'gsa', \
+                       'gsu', 'zm', 'ba0', 'ba1', 'ba2', 'ba3', 'ba4', 'ba5', \
+                       'ba6', 'ba7', 'ba8', 'ba9', 'schw', 'fbe0', 'fbe1', \
+                       'fbe2', 'fbe3', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -607,12 +607,12 @@ class JugendhilfestatistikList(Container):
 class Jugendhilfestatistik2007(DBObjekt):
     table = 'jghstat07'
     fields =  ['id', 'fall_id', 'fall_fn', 'mit_id', 'stz', 'gfall', \
-                       'bezirksnr', 'land', 'kr', 'einrnr', 'lnr', 'bgm', \
-                       'bgy', 'zustw', 'hilf_art', 'hilf_ort', 'traeger', 'gs', \
-                       'gem', 'gey', 'aort_vor', 'sit_fam', 'ausl_her', \
-                       'vor_dt', 'wirt_sit', 'aip', 'ees', 'va52', 'rgu', \
-                       'hda', 'nbkakt', 'gr1', 'gr2', 'gr3', 'em', 'ey', \
-                       'nbkges', 'lbk6m', 'grende', 'aort_nac', 'unh', 'zeit']
+                       'land', 'kr', 'einrnr', 'lnr', 'bgm', 'bgy', 'zustw', \
+                       'hilf_art', 'hilf_ort', 'traeger', 'gs', 'gem', 'gey', \
+                       'aort_vor', 'sit_fam', 'ausl_her', 'vor_dt', 'wirt_sit', \
+                       'aip', 'ees', 'va52', 'rgu', 'hda', 'nbkakt', 'gr1', \
+                       'gr2', 'gr3', 'em', 'ey', 'nbkges', 'lbk6m', 'grende', \
+                       'aort_nac', 'unh', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -823,7 +823,6 @@ Mitarbeiter.foreignfieldtypes['benr'] = (Code, None)
 Mitarbeiter.foreignfieldtypes['stz'] = (Code, None)
 Akte.foreignfieldtypes['gs'] = (Code, None)
 Akte.foreignfieldtypes['aufbew'] = (Code, None)
-Akte.foreignfieldtypes['wohnbez'] = (Code, None)
 Akte.foreignfieldtypes['fs'] = (Code, None)
 Akte.foreignfieldtypes['stzbg'] = (Code, None)
 Akte.foreignfieldtypes['stzak'] = (Code, None)
@@ -911,7 +910,6 @@ Fachstatistik.foreignfieldtypes['jokf8'] = (Code, None)
 Jugendhilfestatistik.foreignfieldtypes['fall_id'] = (Fall, 'jgh_statistiken')
 Jugendhilfestatistik.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'jgh_statistiken')
 Jugendhilfestatistik.foreignfieldtypes['gfall'] = (Code, None)
-Jugendhilfestatistik.foreignfieldtypes['bezirksnr'] = (Code, None)
 Jugendhilfestatistik.foreignfieldtypes['stz'] = (Code, None)
 Jugendhilfestatistik.foreignfieldtypes['rbz'] = (Code, None)
 Jugendhilfestatistik.foreignfieldtypes['kr'] = (Code, None)
@@ -944,7 +942,6 @@ Jugendhilfestatistik2007.foreignfieldtypes['fall_id'] = (Fall, 'jgh07_statistike
 Jugendhilfestatistik2007.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'jgh07_statistiken')
 Jugendhilfestatistik2007.foreignfieldtypes['stz'] = (Code, None)
 Jugendhilfestatistik2007.foreignfieldtypes['gfall'] = (Code, None)
-Jugendhilfestatistik2007.foreignfieldtypes['bezirksnr'] = (Code, None)
 Jugendhilfestatistik2007.foreignfieldtypes['land'] = (Code, None)
 Jugendhilfestatistik2007.foreignfieldtypes['kr'] = (Code, None)
 Jugendhilfestatistik2007.foreignfieldtypes['einrnr'] = (Code, None)

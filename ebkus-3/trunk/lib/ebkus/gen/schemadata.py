@@ -116,8 +116,7 @@ aufbew, INT, Aufbewahrungskategorie, k, aufbew
 str, VARCHAR(35), Strasse, p,
 hsnr, VARCHAR(5), Hausnummer, p,
 plz, VARCHAR(9), Postleitzahl, p,
-planungsr, VARCHAR(60), Planungsraum, p, wird in das fachstat.bz Feld übernommen
-wohnbez, INT, Wohnbezirk, k, wohnbez, berlinspezifisch
+plraum, VARCHAR(60), Planungsraum, p, 
 lage, INT, inBerlin, p,
 ort, VARCHAR(60), Ort, p,
 tl1, VARCHAR(25), Telefon, p,
@@ -348,7 +347,6 @@ fall_id, INT, Fallid, f, fall, fachstatistiken
 fall_fn, VARCHAR(60), Fallnummer, p,
 jahr, INT, Jahr, p,
 stz, INT, Dienststelle, k, stzei, default ist aktuelle Dst. des Falles, wird benötigt wegen standalone Funktion der Fachstatistik
-bz, VARCHAR(60), Region, p, (jetzt nicht mehr berlinspezifisch) - das ist der Planungsraum
 plz, VARCHAR(9), Postleitzahl, p,
 ort, VARCHAR(60), Ort, p,
 ortsteil, VARCHAR(60), Ortsteil, p,
@@ -406,7 +404,6 @@ fall_id, INT, Fallid, f, fall, jgh_statistiken
 mit_id, INT, Mitarbeiterid, f, mitarbeiter, jgh_statistiken
 fall_fn, VARCHAR(20), Fallnummer, p,
 gfall, INT, Geschwisterfall, k, gfall
-bezirksnr, INT, Wohnbezirksnummer des Klienten, k, wohnbez, berlinspezifisch
 stz, INT, Dienststelle, k, stzei, default ist aktuelle Dst. des Falles
 rbz, INT, Regierungsbezirk, k, rbz, bundesweite Statistik - stellen- nicht klientenbezogen
 kr, INT, Kreis, k, kr, bundesweite Statistik - stellen- nicht klientenbezogen
@@ -450,7 +447,6 @@ fall_fn, VARCHAR(20), Fallnummer, p,
 mit_id, INT, Mitarbeiterid, f, mitarbeiter, jgh07_statistiken
 stz, INT, Dienststelle, k, stzei, default ist aktuelle Dst. des Falles
 gfall, INT, Geschwisterfall, k, gfall
-bezirksnr, INT, Wohnbezirksnummer des Klienten, k, wohnbez, berlinspezifisch
 land, INT, Land, k, land
 kr, INT, Kreis, k, kr, bundesweite Statistik - stellen- nicht klientenbezogen
 einrnr, INT, Einrichtungsnummer, k, einrnr

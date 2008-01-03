@@ -102,16 +102,16 @@ def getClassesToBePublished():
     from ebkus.html.akte import akteneu, waufnneu, updakte, updfall, \
          zda, zdar, rmakten, rmaktenf, rmakten2
     from ebkus.html.anmeldung import anmneu, updanm,viewanm
-    from ebkus.html.bezugsperson import persneu, updpers,viewpers
-    from ebkus.html.einrichtungskontakt import einrneu, updeinr
-    from ebkus.html.leistung import leistneu, updleist
+    from ebkus.html.bezugsperson import persneu, updpers,rmpers, viewpers
+    from ebkus.html.einrichtungskontakt import einrneu, updeinr, rmeinr
+    from ebkus.html.leistung import leistneu, updleist, rmleist
     if config.BERATUNGSKONTAKTE:
-        from ebkus.html.beratungskontakt import bkontneu, updbkont
+        from ebkus.html.beratungskontakt import bkontneu, updbkont, rmbkont
         if config.BERATUNGSKONTAKTE_BS:
             from ebkus.html.beratungskontakt import bkontbsabfrform, bkontbsabfr
     if config.FALLUNABHAENGIGE_AKTIVITAETEN_BS:
         #print 'EBKUS:', 'BS'
-        from ebkus.html.fua_bs import fua, fuaneu, updfua, \
+        from ebkus.html.fua_bs import fua, fuaneu, updfua, rmfua, \
              fuabsabfrform, fuabsabfr
     #from ebkus.html.zustaendigkeit import zustneu, updzust
     from ebkus.html.akte import zustneu, updzust
@@ -119,7 +119,7 @@ def getClassesToBePublished():
     # der Funktion ebupd.updfs und der Klasse updfs gibt. klkarte.py ist verzockt.
     from ebkus.html.fachstatistik import fsneu, updfs, updfs as updfsform
     from ebkus.html.jghstatistik import jghneu, updjgh, jgh07neu, updjgh07, jgh_check, \
-         updjghausw, updjgh as updjghform
+         updjgh as updjghform
     from ebkus.html.aktenvorblatt import vorblatt
     from ebkus.html.dokumentenkarte import kldok,grdok
     from ebkus.html.dokument import vermneu, updverm, upload, updgrverm, rmdok

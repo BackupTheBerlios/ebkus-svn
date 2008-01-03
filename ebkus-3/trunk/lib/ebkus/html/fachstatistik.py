@@ -424,7 +424,6 @@ class _fachstatistik(Request.Request, akte_share):
                     ('fallid', fs['fall_id']),
                     ('fall_fn', fs['fall_fn']),
                     ('mitid', fs['mit_id']),
-                    ('plr', fs['bz']),
                     ('fsid', fs['id']),
                     ),
             )
@@ -478,8 +477,7 @@ class fsneu(_fachstatistik):
             fall_fn=fall['fn'],
             jahr=str(today().year),
             stz=akte['stzbg'],
-            bz=akte['planungsr'],
-            plraum=akte['planungsr'],
+            plraum=akte['plraum'],
             ort=akte['ort'],
             plz=akte['plz'],
             ortsteil=strasse.get('ortsteil', ''),

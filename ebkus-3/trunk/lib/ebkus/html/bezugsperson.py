@@ -6,7 +6,7 @@ import string
 
 from ebkus.app import Request
 from ebkus.config import config
-from ebkus.app.ebapi import Akte, Fall, Bezugsperson, cc, Code
+from ebkus.app.ebapi import Akte, Fall, Bezugsperson, cc, Code, EE
 from ebkus.app.ebapih import get_codes, mksel,mksel_str, mksel_str_upd
 from ebkus.app_surface.klientenkarte_templates import detail_view_bezugsperson_t
 from ebkus.app_surface.standard_templates import *
@@ -125,7 +125,32 @@ class updpers(_pers):
                                      ('vrt', bzp['vrt']),
                                      )
                              )
-        
+
+class rmpers(Request.Request):
+    permissions = Request.UPDATE_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        if self.form.has_key('bpid'):
+            id = self.form.get('bpid')
+        else:
+            self.last_error_message = "Keine ID für die Bezugsperson erhalten"
+            return self.EBKuSError(REQUEST, RESPONSE)
+        bzp = Bezugsperson(id)
+        if bzp['gruppen']:
+            raise EE('Mitglied einer Gruppe kann nicht gelöscht werden')
+        if bzp['fallberatungskontakte']:
+            raise EE('Teilnehmer/in an Beratungskontakt kann nicht gelöscht werden')
+        return h.SubmitOrBack(
+            legend='Daten für Bezugsperson löschen',
+            action='klkarte',
+            method='post',
+            hidden=(('file', 'removepers'),
+                    ('bpid', bzp['id']),
+                    ),
+            zeilen=('Soll die Daten für Bezugsperson %(vn)s %(na)s endgültig gelöscht werden?' % bzp,
+                    ),
+            ).display()
+
+    
 class viewpers(Request.Request, akte_share):
     """Daten (Addresse, etc.) des Klienten bzw. einer Bezugsperson ansehen"""
     permissions = Request.UPDATE_PERM

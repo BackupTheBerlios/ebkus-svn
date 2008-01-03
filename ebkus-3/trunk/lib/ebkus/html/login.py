@@ -28,7 +28,9 @@ class login(Request.Request):
         if username is None:
             res.append(head_normal_ohne_help_t % ("EBKuS Benutzeranmeldung"))
             res.append(login_interface_t %
-                       {'index_url': "/ebkus/%s/index.html" % config.INSTANCE_NAME})
+                       {'index_url': "/ebkus/%s/index.html" % config.INSTANCE_NAME,
+                        'title': config.INSTANCE_TITLE,
+                        })
             return ''.join(res)
 
         ml = MitarbeiterList(where="ben = '%s' and stat = %s" %

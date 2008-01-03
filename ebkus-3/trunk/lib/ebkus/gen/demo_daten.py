@@ -363,12 +363,12 @@ class DemoDaten(object):
                 assert von == bis == None
                 obj['hsnr'] = str(randrange(1, 200))
             obj['plz'] = st['plz']
-            print 'STRASSENKATALOG:', config.STRASSENKATALOG
+            #print 'STRASSENKATALOG:', config.STRASSENKATALOG
         else:
             obj['str'] = choice(self.strassen)
             obj['hsnr'] = str(randrange(1, 200))
             obj['plz'] = "%05d" % randrange(16000, 99999)
-            obj['planungsr'] = "%08d" % randrange(60, 61+int(self.n_akten**.35))
+            obj['plraum'] = "%08d" % randrange(60, 61+int(self.n_akten**.35))
             obj['ort'] = choice(self.orte)
         #print 'FAKE_ADRESSE', obj['hsnr'], type(obj['hsnr'])
         log('FAKE ADRESSE: ort: %(ort)s str: %(str)s hsnr: %(hsnr)s plz: %(plz)s' % obj)
@@ -595,7 +595,7 @@ class DemoDaten(object):
         form['mitid'] = fall['zustaendig__mit_id']
         form['jahr'] = ende_datum.year
         form['stz'] = akte['stzbg']
-        form['plr'] = akte['planungsr']
+        form['plr'] = akte['plraum']
         form['gs'] = akte['gs']
         form['ag'] = self.choose_code_id('fsag')
         form['fs'] = self.choose_code_id('fsfs')
@@ -655,7 +655,6 @@ class DemoDaten(object):
         form['kr'] = Code(kat_code='kr', sort=1)['id'] # zuständige Stelle!
         form['gm'] = self.choose_code_id('gm')
         form['gmt'] = self.choose_code_id('gmt')
-        form['wohnbez'] = akte['wohnbez']
         form['traeg'] = self.choose_code_id('traeg')
         form['bgr'] = self.choose_code_id('bgr')
         form['gs'] = akte['gs']
@@ -694,7 +693,6 @@ class DemoDaten(object):
         form['mitid'] = fall['zustaendig__mit_id']
         form['stz'] = akte['stzbg']
         form['gfall'] = self.choose_code_id('gfall')
-        form['wohnbez'] = akte['wohnbez']
         form['land'] = Code(kat_code='land', sort=1)['id']
         form['kr'] = Code(kat_code='kr', sort=1)['id'] # zuständige Stelle!
         form['einrnr'] = Code(kat_code='einrnr', sort=1)['id'] # zuständige Stelle!

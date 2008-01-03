@@ -41,6 +41,7 @@ _params = (
     ('openssl', 'OUTPUT_PASSWORD', 'output_password', 's', 's:polo'),
     ('openssl', 'OPENSSL_EXECUTABLE', 'openssl_executable', 'p', 's:openssl'),
     ('instance', 'INSTANCE_NAME', 'instance_name', 's', None),
+    ('instance', 'INSTANCE_TITLE', 'instance_title', 's', 'e:self.get_instance_title(instance_name)'),
     ('instance', 'INSTANCE_HOME', 'instance_home', 'p', 'i:%(ebkus_home)s/%(instance_name)s'),
     ('instance', 'DATABASE_NAME', 'database_name', 's', 'i:%(instance_name)s'),
     ('instance', 'DATABASE_HOST', 'database_host', 's', 's:localhost'),
@@ -177,10 +178,14 @@ Bitte nur kleine Buchstaben (keine Umlaute) und Unterstrich verwenden.""" % (val
     def get(self, section, option):
         return self._conf.get(section, option)
 
+    def get_instance_title(self, instance_name):
+        return ' '.join([e.capitalize() for e in instance_name.split('_')])
+
     def _proc_default(self, default, pdict, param):
         if not default:
             self._error("Kein Wert fuer %s" % param)
-            return 
+            return
+        instance_name = pdict.get('instance_name')
         typ, val = default.split(':')
         if typ == 's':
             return val

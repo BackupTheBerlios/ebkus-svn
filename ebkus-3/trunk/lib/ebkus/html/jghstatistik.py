@@ -79,8 +79,6 @@ class jghneu(Request.Request):
         kreise = get_codes('kr')
         gemeinde = get_codes('gm')
         gemeindeteile = get_codes('gmt')
-        if config.BERLINER_VERSION:
-            wohnbezirk =  get_codes('wohnbez')
         traeger = get_codes('traeg')
         beendigungsgruende = get_codes('bgr')
         geschlechter = get_codes('gs')
@@ -113,10 +111,9 @@ class jghneu(Request.Request):
         mksel(res, codeliste_t, kreise)
         if config.BERLINER_VERSION:
             res.append(jghstatneuwbz_berlin_t)
-            mksel(res,codeliste_t,wohnbezirk,'id',akte['wohnbez'])
             res.append(jghstatneugfall_berlin_t)
         else:
-            res.append(jghstatneuwbz_t % akte['wohnbez'])
+            res.append(jghstatneuwbz_t)
             res.append(jghstatneugfall_t)
         mksel(res,codeliste_t, geschwisterfaelle, 'name', 'Nein')
         res.append(jghstatneutraeger_t)
@@ -233,8 +230,6 @@ class updjgh(Request.Request):
         kreise = get_codes('kr')
         gemeinde = get_codes('gm')
         gemeindeteile = get_codes('gmt')
-        if config.BERLINER_VERSION:
-            wohnbezirk = get_codes('wohnbez')
         traeger = get_codes('traeg')
         beendigungsgruende = get_codes('bgr')
         geschlechter = get_codes('gs')
@@ -269,10 +264,9 @@ class updjgh(Request.Request):
         mksel(res, codeliste_t, kreise, 'id', jghstat['kr'])
         if config.BERLINER_VERSION:
             res.append(jghstateditwbz_berlin_t)
-            mksel(res,codeliste_t,wohnbezirk,'id',jghstat['bezirksnr'])
             res.append(jghstateditgfall_berlin_t)
         else:
-            res.append(jghstateditwbz_t % jghstat['bezirksnr'])
+            res.append(jghstateditwbz_t)
             res.append(jghstateditgfall_t)
         mksel(res,codeliste_t, geschwisterfaelle, 'id', jghstat['gfall'])
         res.append(jghstatedittraeger_t)
@@ -629,7 +623,8 @@ Grundsicherung im Alter und bei Erwerbsminderung oder Sozialhilfe (SGB XII)',
                     {'frage': 'Zahl der Beratungskontakte im abgelaufenen Kalenderjahr',
                      'typ': ('int', 1, 999,),
                      'name': 'nbkakt',
-                     'default': ' '
+                     'default': ' ',
+                     'extra': 'Falls leer, wird die aus den Beratungskontakten berechnete Anzahl eingesetzt.',
                      },
                     ),
      }, 
@@ -668,7 +663,8 @@ Grundsicherung im Alter und bei Erwerbsminderung oder Sozialhilfe (SGB XII)',
      'items_data': ({'frage': 'Zahl der Beratungskontakte während der gesamten Beratungsdauer',
                      'typ': ('int', 1, 999,),
                      'name': 'nbkges',
-                     'default': ' '
+                     'default': ' ',
+                     'extra': 'Falls leer, wird die aus den Beratungskontakten berechnete Anzahl eingesetzt.',
                      },
                     {'frage': 'Letzter Beratungskontakt liegt mehr als sechs Monate zurück',
                      'typ': ('kat', 'ja_nein',),
@@ -716,16 +712,10 @@ class _jgh07(Request.Request):
         jgh['kr_sel'] = ''.join(make_option_list(get_codes('kr'), 'first', True))
         jgh['gfall_sel'] = ''.join(make_option_list(get_codes('gfall'), 'first', True))
         jgh['einrnr_sel'] = ''.join(make_option_list(get_codes('einrnr'), 'first', True))
-        wohnbez_sel = ''.join(make_option_list(get_codes('wohnbez'), jgh['bezirksnr'], True))
         if jgh.get('lnr'):
             jgh['laufendenr'] = jgh['lnr']
         else:
             jgh['laufendenr'] = 'noch nicht vergeben'
-        if config.BERLINER_VERSION:
-            # TODO auf neue regio umstellen
-            jgh['wohnbez_kl'] = jghwohnbez_klient_berlin_t % wohnbez_sel
-        else:
-            jgh['wohnbez_kl'] = jghwohnbez_klient_t % jgh['bezirksnr']
         res = []
         res.append(head_normal_t % 'Bundesstatistik bearbeiten')
         res.append(jghhead_t % jgh)
@@ -818,6 +808,11 @@ class _jgh07(Request.Request):
                 item['ro'] = 'readonly'
             else:
                 item['ro'] = ''
+            extra = item.get('extra')
+            if extra:
+                item['tip'] = tip_t % {'tip': extra}
+            else:
+                item['tip'] = ''
             return fb_int_item_t % item
         elif label == 'checkbox':
             name = item['name']
@@ -894,9 +889,8 @@ class jgh07neu(_jgh07):
         jgh['gey'] = geburtsdatum.year
         jgh['gem'] = geburtsdatum.month
         jgh['gs'] = fall['akte__gs']
-        jgh['bezirksnr'] = fall['akte__wohnbez']
         if config.BERATUNGSKONTAKTE:
-            from ebkus.html.beratungskontakt_bs import get_jgh_kontakte
+            from ebkus.html.beratungskontakt import get_jgh_kontakte
             jgh['nbkakt'], jgh['nbkges'] = get_jgh_kontakte(fall)
         return self._formular(jgh)
         
@@ -971,78 +965,6 @@ class jgh_check(Request.Request):
         meldung = submit_or_back_t % d
         return meldung
 
-# Wird nicht mehr verwendet        
-class updjghausw(Request.Request):
-    """Auswahl der Jugendhilfestatistik zum Ändern.
-    (Tabelle: Jugendhilfestatistik)"""
-    
-    permissions = Request.STAT_PERM
-    
-    def processForm(self, REQUEST, RESPONSE):
-        user = self.user
-        stelle = self.stelle
-        stellenzeichen = get_all_codes('stzei')
-        fallid = self.form.get('fallid')
-        mitarbeiter = self.mitarbeiter
-        
-        if fallid:
-            jgh = JugendhilfestatistikList(where = 'fall_id = %s and mit_id = %s and stz = %s'
-                                           % (fallid, mitarbeiter['id'], stelle['id']),
-                                     order = 'ey,fall_fn')
-            if len(jgh) != 1:
-                meldung = {'titel':'Fehler',
-                         'legende':'Fehlerbeschreibung',
-                         'zeile1': "%s Jugendhilfestatistik(en) f&uuml; diesen Fall erhalten" % len(jgh),
-                         'zeile2':'Versuchen Sie es bitte erneut.'}
-                return (meldung_t % meldung)
-            fall = Fall(int(fallid))
-            akte = Akte(fall['akte_id'])
-            letzter_fall = akte['letzter_fall']
-            
-        else:
-            if mitarbeiter['benr'] == cc('benr','bearb'):
-                jgh = JugendhilfestatistikList(where = 'mit_id = %s and stz = %s'
-                                       % (mitarbeiter['id'], stelle['id']),
-                                       order = 'ey,fall_fn')
-            elif mitarbeiter['benr'] == cc('benr','verw'):
-                jgh = JugendhilfestatistikList(where = 'stz = %s' % (stelle['id']), order = 'ey,fall_fn')
-                
-                # Headerblock, Menue u. Uberschrift fuer das HTML-Template
-                
-        if fallid:
-            legendtext = {'legendtext':
-                      "Bundesstatistik f&uuml;r Fallnr.: %(fn)s / Klient: %(akte_id__vn)s, %(akte_id__na)s ausw&auml;hlen"
-                      % fall}
-        else:
-            legendtext = {'legendtext': "Bundesstatistik zum &Auml;ndern ausw&auml;hlen"}
-            
-            # Liste der Templates als String
-        res = []
-        res.append(head_normal_t % 'Auswahl einer Bundesstatistik')
-        res.append(thupdstausw_t % legendtext)
-        ges=0
-        for el in jgh:
-            fall = ebapi.Fall(el['fall_id'])
-            akte = ebapi.Akte(fall['akte_id'])
-            letzter_fall = akte['letzter_fall']
-            if el['fall_fn'] == letzter_fall['fn']:
-                res.append(updjghausw1_t % el)
-                ges=ges+1
-            else:
-                pass
-        if ges == 0:
-            meldung = {'titel':'Fehler',
-                     'legende':'Fehlerbeschreibung',
-                     'zeile1': 'Keine aktuelle Jghstatistik vorhanden',
-                     'zeile2': 'Versuchen Sie es bitte erneut.'}
-            return meldung_t % meldung
-            
-            #res = []
-            #res.append(head_normal_t % 'Auswahl einer Bundesstatistik')
-            #res.append(thupdstausw_t % legendtext)
-            #mksel(res, updjghausw1_t, jgh )
-        res.append(updstausw2_t)
-        return string.join(res, '')
         
         
         

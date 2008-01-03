@@ -807,11 +807,15 @@ def check_list(dict, key, errorstring, default=None):
             
 def check_int_not_empty(dict, key, errorstring, default = None):
     val = dict.get(key)
-    if val is None or val == '':
-        if not default is None: return k_or_val(key, default)
-    if type(val) == type(1): return val
-    try: val = int(val)
-    except:  raise EE(errorstring)
+    if isinstance(val, (int, long)):
+        return val
+    if val is None or val.strip() == '':
+        if not default is None:
+            return k_or_val(key, default)
+    try:
+        val = int(val)
+    except:
+        raise EE(errorstring)
     return val
     
     

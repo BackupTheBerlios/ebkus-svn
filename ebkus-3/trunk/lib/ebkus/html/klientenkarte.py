@@ -83,17 +83,19 @@ class klkarte(Request.Request, akte_share):
       'anmeinf': ('fallid', ebapi.Fall),
       'leisteinf': ('fallid', ebapi.Fall),
       'bkonteinf': ('fallid', ebapi.Fall),
-      'bkontbseinf': ('fallid', ebapi.Fall),
+      'removebkont': ('fallid', ebapi.Fall),
       'zusteinf': ('fallid', ebapi.Fall),
       'zdaeinf': ('fallid', ebapi.Fall),
       #'updfall': ('gfall', ebapi.Fall),
       'updakte': ('akid', ebapi.Akte),
       'updpers': ('bpid', ebapi.Bezugsperson),
+      'removepers': ('bpid', ebapi.Bezugsperson),
       'updeinr': ('einrid', ebapi.Einrichtungskontakt),
+      'removeeinr': ('einrid', ebapi.Einrichtungskontakt),
       'updanm': ('anmid', ebapi.Anmeldung),
       'updleist': ('leistid', ebapi.Leistung),
+      'removeleist': ('leistid', ebapi.Leistung),
       'updbkont': ('fallid', ebapi.Fall),
-      'updbkontbs': ('fallid', ebapi.Fall),
       'updzust': ('zustid', ebapi.Zustaendigkeit),
       'updfall': ('fallid', ebapi.Fall),
       'waufneinf': ('fallid', ebapi.Fall),
@@ -110,12 +112,12 @@ class klkarte(Request.Request, akte_share):
       }
     
     def einfuegen_oder_update(self, file):
-        # API Funktion aufrufen
-        function = getattr(ebupd, file)
-        function(self.form)
         # Akte id ermitteln um klkarte anzeigen zu können
         id_name, klass = self.einfuege_oder_update_operationen.get(file)
         akid = klass(int(self.form[id_name]))['akte__id']
+        # API Funktion aufrufen
+        function = getattr(ebupd, file)
+        function(self.form)
         return akid
         
 
@@ -134,7 +136,6 @@ class klkarte(Request.Request, akte_share):
         leistungen_list = []
         zustaendigkeiten_list = []
         beratungskontakte_list = []
-        beratungskontakte_bs_list = []
         anmeldekontakte_list = []
         fachstatistik_list = []
         jugendhilfestatistik_list = []
@@ -181,13 +182,17 @@ class klkarte(Request.Request, akte_share):
         leistungen = h.FieldsetDataTable(
             legend= 'Leistungen',
             headers= ('Mitarbeiter', 'Leistung', 'Am', 'Bis'),
-            daten= [[(aktueller_fall == leist['fall'] and
+            noheaders=2,
+            daten= [[aktueller_fall == leist['fall'] and
                       h.Icon(href= 'updleist?fallid=%(fall_id)d&leistid=%(id)d' % leist,
                            icon= "/ebkus/ebkus_icons/edit_button.gif",
                            tip= 'Leistung bearbeiten')
-                      or
-                      h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
-                               tip= 'Funktion gesperrt')),
+                     or h.Dummy(),
+                     aktueller_fall == leist['fall'] and
+                     h.Icon(href= 'rmleist?&leistid=%(id)d' % leist,
+                            icon= "/ebkus/ebkus_icons/del_button.gif",
+                            tip= 'Leistung löschen')
+                     or h.Dummy(),
                      h.String(string= leist['mit_id__na']),
                      h.String(string= leist['le__name']),
                      h.Datum(date=leist.getDate('bg')),
@@ -325,17 +330,21 @@ class klkarte(Request.Request, akte_share):
         einrichtungskontakte = h.FieldsetDataTable(
             legend= 'Einrichtungskontakte',
             headers= ('Art', 'Name', 'Telefon 1', 'Telefon 2', 'Aktuell'),
-            daten= [[(aktueller_fall and
-                      h.Icon(href= 'updeinr?einrid=%(id)d' % e,
-                           icon= "/ebkus/ebkus_icons/edit_button.gif",
-                           tip= 'Einrichtungskontakt bearbeiten')
-                      or
-                      h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
-                               tip= 'Funktion gesperrt')),
+            noheaders=2,
+            daten= [[aktueller_fall and
+                     h.Icon(href= 'updeinr?einrid=%(id)d' % e,
+                            icon= "/ebkus/ebkus_icons/edit_button.gif",
+                            tip= 'Einrichtungskontakt bearbeiten')
+                     or h.Dummy(),
+                     aktueller_fall and
+                      h.Icon(href= 'rmeinr?einrid=%(id)d' % e,
+                             icon= "/ebkus/ebkus_icons/del_button.gif",
+                             tip= 'Einrichtungskontakt löschen')
+                     or h.Dummy(),
                      h.String(string= e['insta__name']),
                      h.String(string= e['na']),
                      h.String(string= e['tl1']),
-                     h.String(string= e['tl2']),
+                      h.String(string= e['tl2']),
                      h.String(string= e['status__code'])]
                     for e in einrichtungskontakte_list],
             button= (aktueller_fall and

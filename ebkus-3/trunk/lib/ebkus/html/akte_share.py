@@ -148,7 +148,7 @@ class akte_share(options):
                     h.TextItem(label='Geschl.',
                                name='gs',
                                value=data['gs'] and data['gs__name'] or '',
-                               class_='textbox12',
+                               class_='textbox13',
                               readonly=True,
                               )] +
                    self._get_ort_zusatz_items(data),
@@ -320,11 +320,11 @@ class akte_share(options):
                            )
         # TODO klären, ob die 0 nicht ganz weg kann.
         # wird in setAdresse eingesetzt, wenn kein planungsr angegeben wurde
-        planungsr_value = data.get('planungsr', '')
+        planungsr_value = data.get('plraum', '')
         if planungsr_value == '0':
             planungsr_value = ''
         planungsr = h.TextItem(label='Planungsraum',
-                               name='planungsr',
+                               name='plraum',
                                value=planungsr_value,
                                tip="Der Planungsraum des Klienten",
                                n_col=n_col,
@@ -417,29 +417,33 @@ class akte_share(options):
         bezugspersonen = h.FieldsetDataTable(
             legend= 'Bezugspersonen',
             headers= ('Art', 'Vorname', 'Nachname', 'Telefon 1', 'Telefon 2'),
-            daten= [[(aktueller_fall and
-                      h.Icon(href= 'updpers?akid=%(akte_id)d&bpid=%(id)d' % b,
-                           icon= "/ebkus/ebkus_icons/edit_button.gif",
-                           tip= 'Bezugsperson bearbeiten')
-                      or
-                      h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
-                               tip= 'Funktion gesperrt')),
-
-                       (aktueller_fall and
-                        h.Icon(href= '#',
-                             onClick= "view_details('viewpers?akid=%(akte_id)d&bpid=%(id)d')" % b,
-                             icon= "/ebkus/ebkus_icons/view_details.gif",
-                             tip= 'Bezugsperson ansehen')
-                        or
-                        h.IconDead(icon= "/ebkus/ebkus_icons/view_details_inaktiv.gif",
-                                 tip= 'Funktion gesperrt')),
-
-                       h.String(string= b['verw__name']),
-                       h.String(string= b['vn']),
-                       h.String(string= b['na']),
-                       h.String(string= b['tl1']),
-                       h.String(string= b['tl2'])]
-                      for b in bezugspersonen_list],
+            noheaders=3,
+            daten= [[aktueller_fall and
+                     h.Icon(href='updpers?akid=%(akte_id)d&bpid=%(id)d' % b,
+                            icon="/ebkus/ebkus_icons/edit_button.gif",
+                            tip= 'Bezugsperson bearbeiten')
+                     or
+                     h.Dummy(),
+                     aktueller_fall and
+                     h.Icon(href='rmpers?bpid=%(id)d' % b,
+                            icon= "/ebkus/ebkus_icons/del_button.gif",
+                            tip= 'Daten für Bezugsperson löschen')
+                     or
+                     h.Dummy(),
+                     aktueller_fall and
+                     h.Icon(href= '#',
+                            onClick= "view_details('viewpers?akid=%(akte_id)d&bpid=%(id)d')" % b,
+                            icon= "/ebkus/ebkus_icons/view_details.gif",
+                            tip= 'Bezugsperson ansehen')
+                     or
+                     h.Dummy(),
+                     h.String(string= b['verw__name']),
+                     h.String(string= b['vn']),
+                     h.String(string= b['na']),
+                     h.String(string= b['tl1']),
+                     h.String(string= b['tl2']),
+                     ]
+                    for b in bezugspersonen_list],
             button= (aktueller_fall and hinzufuegen_button and
                      h.Button(value="Hinzufügen",
                             tip="Bezugsperson hinzufügen",
@@ -492,17 +496,22 @@ class akte_share(options):
         beratungskontakte.sort('ky', 'km', 'kd')
         if aktueller_fall:
             updurl = 'updbkont?bkontid=%%(id)d&fallid=%s' % aktueller_fall['id']
+            rmurl =   'rmbkont?bkontid=%%(id)d&fallid=%s' % aktueller_fall['id']
         bisherige_kontakte = h.FieldsetDataTable(
             legend='Beratungskontakte',
             empty_msg="Bisher keine Kontakte eingetragen.",
+            noheaders=2,
             headers=headers,
             daten=[[(edit_button and (aktueller_fall and 
                                       h.Icon(href= updurl % b,
                                              icon= "/ebkus/ebkus_icons/edit_button.gif",
                                              tip= 'Beratungskontakt bearbeiten')
-                                      or
-                                      h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
-                                                 tip= 'Funktion gesperrt'))) or None,
+                                      or h.Dummy())) or None,
+                    (edit_button and (aktueller_fall and
+                                      h.Icon(href=rmurl % b,
+                                             icon="/ebkus/ebkus_icons/del_button.gif",
+                                             tip='Beratungskontakt endgültig löschen')
+                                      or h.Dummy())) or None,
                     h.Datum(date=b.getDate('k'),
                             time=b.getTime('k')),
                     h.String(string=', '.join([m['na']
