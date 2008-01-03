@@ -496,7 +496,9 @@ class fsneu(_fachstatistik):
                              'agkm', 'agkv', 'ba1', 'ba2', 'pbe', 'pbk', )
         for f in single_kat_felder:
             fs[f] = ' ' # leere, selektierte Option, es muss aktiv ausgewählt werden
-
+        anm = fall['anmeldung']
+        if anm:
+            fs['zm'] = anm[0]['zm']
         joker_felder = ('joka1', 'joka2', 'joka3', 'joka4',
                         'jokf5', 'jokf6', 'jokf7', 'jokf8',)
         for f in joker_felder:

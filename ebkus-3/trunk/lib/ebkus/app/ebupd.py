@@ -271,11 +271,8 @@ def anmeinf(form):
     if len(vorhandene_anmeldung) > 0:
         raise EE("Anmeldung für Fall %(fn)s schon vorhanden" % fall)
     get_string_fields(anm, form, ['von','mtl','me', 'mg', 'no'],'')
-    
     if anm['von'] == '':
         raise EE("Kein Feld 'von wem gemeldet'")
-    anm.setDate('a',
-                check_date(form, 'a', "Fehler im Anmeldedatum"))
     anm['zm'] = check_code(form, 'zm', 'fszm', "Fehler im Zugangsmodus")
     try:
         anm.insert(anmid)
@@ -287,18 +284,14 @@ def anmeinf(form):
     
 def updanm(form):
     """Update der Anmeldung."""
-    
     anmold = check_exists(form, 'anmid', Anmeldung, "Keine Anmeldungsid")
     anm = Anmeldung()
     get_string_fields(anm, form, ['von','mtl','me', 'mg', 'no'], anmold)
     if anm['von'] == '':
         raise EE("Kein Feld 'von wem gemeldet'")
-    anmeldedatum = check_date(form, 'a', "Fehler im Anmeldedatum")
-    anm.setDate('a', anmeldedatum)
     anm['zm'] = check_code(form, 'zm', 'fszm', "Fehler im Zugangsmodus", anmold)
     anmold.update(anm)
     _stamp_akte(anmold['akte'])
-    
     
 def leisteinf(form):
     """Neue Leistung."""
@@ -2517,7 +2510,7 @@ def updcode(form):
             else:
                 cneu['sort'] = i
                 c.update(cneu)
-                
+    flush_cache()
             
 
 def updkategorie(form):
@@ -2666,7 +2659,12 @@ def _stamp_akte(akteold):
     akteold.update(akte)
     akteold.akte_undo_cached_fields()
     
-    
+
+def flush_cache():
+    if cache_is_on():
+        cache_off()
+        cache_on()
+
 def setAdresse(obj, form):
     """Wenn strkat_on gesetzt ist, wird die Ueberpruefung durch den Strassenkatalog
     getriggert.

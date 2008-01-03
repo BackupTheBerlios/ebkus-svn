@@ -488,11 +488,11 @@ class akte_share(options):
         if BS:
             art_feld = 'art_bs'
             headers=('Datum', 'Mitarbeiter', 'Klienten', 'Art',
-                       'Teilnehmer', 'Dauer in Minuten', 'Notiz')
+                       'Teilnehmer', 'Dauer in Minuten', 'BS', 'Notiz')
         else:
             art_feld = 'art'
             headers=('Datum', 'Mitarbeiter', 'Klienten', 'Art',
-                     'Dauer', 'Notiz')
+                     'Dauer', 'BS', 'Notiz')
         beratungskontakte.sort('ky', 'km', 'kd')
         if aktueller_fall:
             updurl = 'updbkont?bkontid=%%(id)d&fallid=%s' % aktueller_fall['id']
@@ -524,8 +524,11 @@ class akte_share(options):
                     BS and h.String(string=', '.join([Code(i)['name']
                                                       for i in b['teilnehmer_bs'].split()]),
                                     ) or None,
-                    BS and h.String(string=b['dauer']) or
+                    BS and h.String(string="%(dauer)s / %(brutto)s" % b,
+                                    tip='Netto/Brutto') or
                     h.String(string=bcode('fskd', b['dauer'])['name']),
+                    h.String(string=b['jghkontakte'],
+                             tip='Anzahl der Kontakte im Sinne der Bundesjugendstatistik'),
                     h.String(string=b['no']),
                     ]
                    for b in beratungskontakte],
@@ -587,6 +590,12 @@ class akte_share(options):
 
 
     def get_code_tabelle(self, kat, links=True, view=''):
+        codes = kat['codes'].sorted('sort')
+        bereichskat = kat['flag']
+        if bereichskat:
+            headers=('Code', 'Merkmal', 'Sort', 'Min', 'Max', 'Off', 'Ab', 'Dokumentation')
+        else:
+            headers=('Code', 'Merkmal', 'Sort', 'Off', 'Ab', 'Dokumentation')
         code_tabelle = h.FieldsetDataTable(
             legend="Alle Merkmale der Kategorie '%s'" % kat['name'],
             anchor="%(id)s" % kat,
@@ -597,17 +606,19 @@ class akte_share(options):
                      ),
               h.DummyItem(n_col=5),
               ]] or (),
-            headers=('Code', 'Merkmal', 'Sort', 'Off', 'Ab', 'Dokumentation'),
+            headers=headers,
             daten=[[links and h.Link(string="%(code)s" % code,
                                      tip="Merkmal bearbeiten",
                                      url="updcode?codeid=%s&view=%s" % (code['id'], view))
                     or h.String(string="%(code)s" % code),
                     h.String(string="%(name)s" % code),
                     h.String(string="%(sort)s" % code),
+                    bereichskat and h.String(string="%(mini)s" % code) or None,
+                    bereichskat and h.String(string="%(maxi)s" % code) or None,
                     h.String(string="%(off)s" % code),
                     h.String(string=code['dy'] and "%(dm)s<b>.</b>%(dy)s" % code or ''),
                     h.String(string=code['dok'] or '')]
-                   for code in kat['codes'].sorted('sort')],
+                   for code in codes],
             )
         return code_tabelle
 
@@ -723,15 +734,34 @@ class akte_share(options):
             )
         return gruppendaten
 
-    def grundgesamtheit(self, legend='Grundgesamtheit'):
+    def grundgesamtheit(self, bis_jahr=None, von_jahr=None, quartal=None,
+                        stellen_ids=None,
+                        legend='Grundgesamtheit',
+                        submit_value=None):
         "Für Auswertungen. Legt Jahre und Stellen fest."
+        print 'GG', von_jahr, bis_jahr
+        if not bis_jahr:
+            bis_jahr = today().year
+        if von_jahr == bis_jahr or not von_jahr:
+            erster_eintrag = ' '
+            von_jahr = None
+        else:
+            erster_eintrag = None
+        if not stellen_ids:
+            stellen_ids = [self.stelle['id']]
         res = h.FieldsetInputTable(
-            legend='Grundgesamtheit',
-            daten=[[h.SelectItem(label='Jahr',
+            legend=legend,
+            daten=[[h.SelectItem(label='Quartal',
+                                 name='quartal',
+                                 class_='listbox30',
+                                 tip='Wählen Sie das Quartal, für das eine Auszählung erfolgen soll',
+                                 options=self.for_quartal(sel=quartal, erster_eintrag=' '),
+                                 ),
+                    h.SelectItem(label='Jahr',
                                  name='bis_jahr',
                                  class_='listbox45',
                                  tip='Wählen Sie das Jahr, für das eine Auszählung erfolgen soll',
-                                 options=self.for_jahre(sel=today()['year']-1),
+                                 options=self.for_jahre(sel=bis_jahr),
                                  ),
                     h.SelectItem(label='Stelle',
                                  name='stz',
@@ -739,17 +769,28 @@ class akte_share(options):
                                  rowspan=2,
                                  tip='Eine oder mehrere Stellen auswählen',
                                  size=3,
-                                 options=self.for_kat('stzei', sel=self.stelle['id']),
+                                 options=self.for_kat('stzei', sel=stellen_ids),
                                  ),
                     ],
                    [h.SelectItem(label='Frühere Jahre einbeziehen ab',
                                  name='von_jahr',
                                  class_='listbox45',
+                                 n_label=3,
+                                 n_col=4,
                                  tip='Nur für Auswertungen über mehrere Jahre hinweg',
-                                 options=self.for_jahre(erster_eintrag=' '),
+                                 options=self.for_jahre(sel=von_jahr,
+                                                        erster_eintrag=erster_eintrag),
                                  ),
                     ],
+                   [h.Dummy(n_col=4)],
                    ],
+            button=submit_value and h.Button(value=submit_value,
+                                             name='op',
+                                             tip=submit_value,
+                                             type='submit',
+                                             n_col=4,
+                                             ) or None,
+
             )
         return res
 

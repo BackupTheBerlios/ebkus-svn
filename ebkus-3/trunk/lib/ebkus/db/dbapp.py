@@ -1082,5 +1082,3 @@ class Container(UserList):
             for o in self.data:
                 res.append(o[primarykey])
             return res
-            
-            

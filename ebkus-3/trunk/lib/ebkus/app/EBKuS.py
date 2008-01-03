@@ -101,18 +101,17 @@ def getClassesToBePublished():
     #from ebkus.html.gruppenakte import gruppenakte
     from ebkus.html.akte import akteneu, waufnneu, updakte, updfall, \
          zda, zdar, rmakten, rmaktenf, rmakten2
-    from ebkus.html.anmeldung import anmneu, updanm,viewanm
+    from ebkus.html.anmeldung import anmneu, updanm
     from ebkus.html.bezugsperson import persneu, updpers,rmpers, viewpers
     from ebkus.html.einrichtungskontakt import einrneu, updeinr, rmeinr
     from ebkus.html.leistung import leistneu, updleist, rmleist
     if config.BERATUNGSKONTAKTE:
         from ebkus.html.beratungskontakt import bkontneu, updbkont, rmbkont
         if config.BERATUNGSKONTAKTE_BS:
-            from ebkus.html.beratungskontakt import bkontbsabfrform, bkontbsabfr
+            from ebkus.html.beratungskontakt import bkontbsabfr
     if config.FALLUNABHAENGIGE_AKTIVITAETEN_BS:
         #print 'EBKUS:', 'BS'
-        from ebkus.html.fua_bs import fua, fuaneu, updfua, rmfua, \
-             fuabsabfrform, fuabsabfr
+        from ebkus.html.fua_bs import fua, fuaneu, updfua, rmfua, fuabsabfr
     #from ebkus.html.zustaendigkeit import zustneu, updzust
     from ebkus.html.akte import zustneu, updzust
     # updfs wird auch als updfsform importiert weil es einen Nameclash zwischen

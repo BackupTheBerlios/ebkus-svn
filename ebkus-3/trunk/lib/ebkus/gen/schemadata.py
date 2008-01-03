@@ -143,7 +143,7 @@ table, anmeldung, , Anmeldung, Anmeldung
 id, INT, id, s,
 fall_id, INT, Fall_id, f, fall, anmeldung
 von, VARCHAR(35), angemeldet von, p,
-ad, INT, Anmeldetag, p,
+ad, INT, obsolet(=Fallbeginn), p,
 am, INT, Anmeldemonat, p,
 ay, INT, Anmeldejahr, p,
 mtl, VARCHAR(25), Telefon, p,

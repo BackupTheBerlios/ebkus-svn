@@ -86,7 +86,7 @@ def parse_kategorie_list(str):
         if len(l) < 2:
             print lstr
             raise 'Error in kategorielist %s' % lstr
-        kategories.append(l[:2])
+        kategories.append(l)
     return kategories
     
     
@@ -133,7 +133,7 @@ def insert_kategorien(merkmale):
         kl.deleteall()
     #print 'Kategorien einfügen'
     klistdata = parse_kategorie_list(merkmale['kategorie_list_str'])
-    #idgen = IdGen()
+    bereichslist = string.split(merkmale['bereichs_kategorien_str'])
     aenderungszeit = int(time())
     for kd in klistdata:
         k = Kategorie()
@@ -141,6 +141,12 @@ def insert_kategorien(merkmale):
         k.new()
         k['code'] = kd[0]
         k['name'] = kd[1]
+        try:
+            k['dok'] = kd[2]
+        except:
+            pass # kein dok-string
+        bereichskat = (kd[0] in bereichslist) and 1 or 0
+        k['flag'] = bereichskat
         k['zeit'] = aenderungszeit
         k.insert()
         
@@ -186,6 +192,8 @@ def insert_kategorie_codes(merkmale):
             if cd[4]:
                 c['maxi'] = int(cd[4])
                 #print 'Maxi: %(kat_code)s %(name)s %(maxi)s' % c
+        if len(cd) > 5:
+            c['dok'] = cd[5].strip()
         c.insert()
         
 def update_feld():

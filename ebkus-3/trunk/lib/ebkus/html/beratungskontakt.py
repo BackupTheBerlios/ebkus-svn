@@ -4,7 +4,7 @@
 
 from ebkus.app import Request
 from ebkus.app.ebapi import Code, Fall, MitarbeiterList, Beratungskontakt, BeratungskontaktList, \
-     today, cc, cn, bcode, check_int_not_empty, check_list
+     today, cc, cn, bcode, check_int_not_empty, check_list, EE
 from ebkus.app.ebapih import get_codes
 from ebkus.config import config
 
@@ -58,6 +58,7 @@ class _bkont(Request.Request, akte_share):
                           [h.TextItem(label='Dauer in Minuten)',
                                       name='dauer',
                                       value=bkont['dauer'],
+                                      tip='Bitte in 10-Schritten angeben, z.B. 10, 20, 40, etc.',
                                       class_='textboxsmall',
                                       maxlength=3,
                                       ),
@@ -247,22 +248,6 @@ class rmbkont(Request.Request):
                     ),
             ).display()
 
-class bkontbsabfrform(Request.Request, akte_share):
-    permissions = Request.ABFR_PERM
-    def processForm(self, REQUEST, RESPONSE):
-        res = h.FormPage(
-            title='Abfrage Beratungskontaktzeiten',
-            name="bkontform",action="bkontbsabfr",method="post",
-            breadcrumbs = (('Hauptmenü', 'menu'),
-                           ),
-            hidden = (),
-            rows=(self.get_auswertungs_menu(),
-                  self.grundgesamtheit(legend='Jahr und Stelle wählen'),
-                  h.SpeichernZuruecksetzenAbbrechen(value='Anzeigen'),
-                  ),
-            )
-        return res.display()
-    
 class bkontbsabfr(Request.Request, akte_share):
     permissions = Request.ABFR_PERM
     def _init_res(self):
@@ -277,27 +262,37 @@ class bkontbsabfr(Request.Request, akte_share):
     def _add_res(self, summe, summand):
         for k,v in summand.items():
             summe[k] += v
+##     def count_row(self, netto, brutto, bkont):
+##         "Einen Kontakt auszählen"
+##         art = bkont['art_bs__code']
+##         dauer = bkont['dauer']
+##         if art == '5':
+##             # ausgefallen
+##             netto[art] += 20
+##             brutto[art] += 20
+##         elif art in ('3', '7', '9'):
+##             # Fahrzeiten
+##             netto[art] += dauer
+##             brutto[art] += dauer
+##         else:
+##             # alles andere +40% Vor- und Nachbereitung
+##             netto[art] += dauer
+##             brutto[art] += dauer + (dauer*.4)
+##         if bkont['offenespr'] == cn('ja_nein', 'ja'):
+##             # Offene Sprechstunde
+##             netto['offenespr'] += dauer
+##             brutto['offenespr'] += dauer + (dauer*.4)
     def count_row(self, netto, brutto, bkont):
         "Einen Kontakt auszählen"
         art = bkont['art_bs__code']
         dauer = bkont['dauer']
-        if art == '5':
-            # ausgefallen
-            netto[art] += 20
-            brutto[art] += 20
-        elif art in ('3', '7', '9'):
-            # Fahrzeiten
-            netto[art] += dauer
-            brutto[art] += dauer
-        else:
-            # alles andere +40% Vor- und Nachbereitung
-            netto[art] += dauer
-            brutto[art] += dauer + (dauer*.4)
+        netto[art] += dauer
+        brutto[art] += bkont['brutto']
         if bkont['offenespr'] == cn('ja_nein', 'ja'):
             # Offene Sprechstunde
             netto['offenespr'] += dauer
-            brutto['offenespr'] += dauer + (dauer*.4)
-    def count(self, stz_list, von_jahr, bis_jahr):
+            brutto['offenespr'] += bkont['brutto']
+    def count(self, stz_list, von_jahr, bis_jahr, quartal=None):
         """Kontaktzeiten auszählen.
         Ergebnis ist abhängig von Berechtigungen:
         - verw: alle Mitarbeiter der spezifierten Stellen
@@ -331,6 +326,10 @@ class bkontbsabfr(Request.Request, akte_share):
         where = ("ky is not NULL and "
         "ky >= %(von_jahr)s and ky  <= %(bis_jahr)s and "
         "stz in ( %(stellen)s )") % locals()
+        if quartal:
+            assert von_jahr == bis_jahr
+            monate = range(1,13)[3*quartal-3:3*quartal]
+            where += " and km in (%s)" % ','.join([str(i) for i in monate])
         bkont_list = BeratungskontaktList(where=where)
         benr_id = self.mitarbeiter['benr']
         benr = self.mitarbeiter['benr__code']
@@ -368,49 +367,88 @@ class bkontbsabfr(Request.Request, akte_share):
     def processForm(self, REQUEST, RESPONSE):
         #print 'FORM', self.form
         von_jahr = self.form.get('von_jahr')
-        bis_jahr = check_int_not_empty(self.form, 'bis_jahr', "Jahr fehlt")
-        if not von_jahr or von_jahr > bis_jahr:
+        bis_jahr = self.form.get('bis_jahr')
+        if bis_jahr:
+            bis_jahr = check_int_not_empty(self.form, 'bis_jahr', "Jahr fehlt")
+        else:
+            bis_jahr = today().year
+        von_jahr = check_int_not_empty(self.form, 'von_jahr', "Jahr fehlt", bis_jahr)
+        if von_jahr > bis_jahr:
             von_jahr = bis_jahr
-        stz = check_list(self.form, 'stz', 'Keine Stelle')
-        mitarbeiter, res = self.count(stz, von_jahr, bis_jahr)
+        stellen_ids = [int(id) for id in check_list(self.form, 'stz', 'Keine Stelle',
+                                                    [self.stelle['id']])]
+        quartal = self.form.get('quartal')
+        if quartal:
+            quartal = check_int_not_empty(self.form, 'quartal', 'Fehler im Quartal')
+            if von_jahr != bis_jahr:
+                raise EE('Quartalsauswertungen nur in einem Jahr möglich')
+        else:
+            quartal == None
+        mitarbeiter, res = self.count(stellen_ids, von_jahr, bis_jahr, quartal)
         kontakt_arten = [c['code'] for c in get_codes('kabs')]
         def row(name, tupl):
             netto, brutto = tupl
             row = [h.String(string=name)]
             for ka in kontakt_arten:
-                row.append(h.String(string="%s/%s" %
-                                    (netto[ka], brutto[ka]))
+                row.append(h.String(string="%s / %s" %
+                                    (netto[ka], brutto[ka]),
+                                    tip='Netto/Brutto')
                            )
             return row
         mitarbeiter_daten = [row(m['name'], res[m['id']])
                              for m in mitarbeiter]
-        stellen_row = row(', '.join([Code(s)['name'] for s in stz]),
+        stellen_row = row(', '.join([Code(s)['name'] for s in stellen_ids]),
                           res['summe'])
         headers = [''] + [c['name'] for c in get_codes('kabs')]
-        
+        fuer = ''
+        if von_jahr < bis_jahr:
+            fuer += " für %(von_jahr)s bis %(bis_jahr)s" % locals()
+        else:
+            fuer += " für %(bis_jahr)s" % locals()
+        if quartal:
+            fuer += " Quartal %(quartal)s" % locals()
         tabelle_mitarbeiter = h.FieldsetDataTable(
-            legend='Beratungskontaktzeiten Mitarbeiter',
+            legend='Beratungskontaktzeiten Mitarbeiter' + fuer,
             headers=headers,
             daten=mitarbeiter_daten,
             )
         tabelle_stellen = h.FieldsetDataTable(
-            legend='Beratungskontaktzeiten summiert für Stellen',
+            legend='Beratungskontaktzeiten summiert für Stellen' + fuer,
             headers=headers,
             daten=[stellen_row],
             )
-        res = h.Page(
-            title='Tabelle Beratungskontaktzeiten',
+        res = h.FormPage(
+            title='Auswertung Beratungskontaktzeiten',
+            name="bkontform",action="bkontbsabfr",method="post",
             breadcrumbs = (('Hauptmenü', 'menu'),
-                           ('Abfrage Beratungskontaktzeiten', 'bkontbsabfrform'),
                            ),
             hidden = (),
-            rows=(self.get_hauptmenu(),
+            rows=(self.get_auswertungs_menu(),
+                  self.grundgesamtheit(von_jahr=von_jahr,
+                                       bis_jahr=bis_jahr,
+                                       quartal=quartal,
+                                       stellen_ids=stellen_ids,
+                                       legend='Jahr und Stelle wählen',
+                                       submit_value='Anzeigen'),
                   tabelle_mitarbeiter,
                   tabelle_stellen,
                   ),
             )
         return res.display()
 
+##     def processForm(self, REQUEST, RESPONSE):
+##         res = h.FormPage(
+##             title='Abfrage Beratungskontaktzeiten',
+##             name="bkontform",action="bkontbsabfr",method="post",
+##             breadcrumbs = (('Hauptmenü', 'menu'),
+##                            ),
+##             hidden = (),
+##             rows=(self.get_auswertungs_menu(),
+##                   self.grundgesamtheit(legend='Jahr und Stelle wählen'),
+##                   h.SpeichernZuruecksetzenAbbrechen(value='Anzeigen'),
+##                   ),
+##             )
+##         return res.display()
 
 def get_jgh_kontakte(fall):
     """Ermittelt Anzahl der Kontakte sowohl für den ganzen Fall
@@ -436,30 +474,13 @@ def get_jgh_kontakte(fall):
         jahr += 1
     bkont_list = fall['beratungskontakte']
     kontakte_im_jahr = kontakte_insgesamt = 0
-    if config.BERATUNGSKONTAKTE_BS:
+    if config.BERATUNGSKONTAKTE:
         for row in bkont_list:
-            k = 0
-            code = row['art_bs__code']
-            dauer = row['dauer']*1.4 # Zeit in Minuten inklusive 40% Vor- und Nachbereitung
-            if code in ('1', '2', '3', '4', '6', '7'):
-                if dauer >= 30:
-                    if dauer <= 60:
-                        k = 1
-                    elif dauer <=120:
-                        k = 2
-                    elif dauer <=180:
-                        k = 3
-                    else:
-                        k = 4
+            k = row['jghkontakte'] # definiert in ebapi.py und über art_bs__dok
             if row['ky'] == jahr:
                 kontakte_im_jahr += k
             kontakte_insgesamt += k
-    elif config.BERATUNGSKONTAKTE:
-        for row in bkont_list:
-            # der code der Bereichskategorie fskd ist die Kontaktzahl
-            # im Sinner der Bundesstatistik
-            k = int(bcode('fskd', row['dauer'])['code'])
-            if row['ky'] == jahr:
-                kontakte_im_jahr += k
-            kontakte_insgesamt += k
+    else:
+        kontakte_im_jahr = 0
+        kontakte_insgesamt = 0
     return kontakte_im_jahr, kontakte_insgesamt

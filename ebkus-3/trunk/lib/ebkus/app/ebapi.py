@@ -86,7 +86,7 @@ def bcode(kat_code, value,
     for c in code_list:
         if value >= c['mini'] and value <= c['maxi']:
             return c
-    raise EE('Keine Bereichskategorie für Wert')
+    raise EE('Keine Bereich für Wert gefunden')
     
     
 
@@ -318,8 +318,7 @@ def getQuartal(monat):
         return int(q)
     else:
         raise EE("Keine Monatszahl zwischen 1 und 12")
-        
-        
+
 def getNewId(self):
     """Standardmethode, um neue Werte für Schlüsselfelder zu erzeugen.
     
@@ -625,9 +624,44 @@ def _bkont_faelle(self, key):
                'fallberatungskontakt.fall_id=fall.id')])
     fall_list.sort('akte__na')
     return fall_list
+def _brutto_dauer_bkont_bs(self, key):
+    """Eval'ed den dok-String der Kategorie art_bs aus,
+    so dass man dort eintragen kann, wie aus der Netto-Dauer
+    die Brutto-Dauer berechnet wird.
+    """
+    if config.BERATUNGSKONTAKTE_BS:
+        dauer = self.get('dauer', 0)
+        term = self['art_bs__dok']
+        try:
+            brutto = int(round(eval(term)))
+        except:
+            brutto = 0
+        return brutto
+def _jghkontakte(self, key):
+    if config.BERATUNGSKONTAKTE_BS:
+        if 'bs:ja' in self['art_bs__dok'].lower():
+            return int(bcode('kdbs', self['brutto'])['code'])
+        else:
+            return 0
+    elif config.BERATUNGSKONTAKTE:
+        return int(bcode('fskd', self['dauer'])['code'])
+    
 Beratungskontakt.attributemethods['mitarbeiter'] = _bkont_mitarbeiter
 Beratungskontakt.attributemethods['faelle'] = _bkont_faelle
+Beratungskontakt.attributemethods['brutto'] = _brutto_dauer_bkont_bs
+Beratungskontakt.attributemethods['jghkontakte'] = _jghkontakte
 
+
+def _brutto_dauer_fua_bs(self, key):
+    dauer = self.get('dauer', 0)
+    term = self['art__dok']
+    try:
+        brutto = int(round(eval(term)))
+    except:
+        brutto = 0
+    return brutto
+
+Fua_BS.attributemethods['brutto'] = _brutto_dauer_fua_bs
 
 ############################
 # Pfaddefinitionen

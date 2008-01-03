@@ -43,13 +43,13 @@ m;Mehrfachkategorie;verwtyp
 8;vor d. Schw.;fsag
 9;pränatal;fsag
 999;keine Angabe;fsag
-1;bis 20;fsagel
-2;21-26;fsagel
-3;27-44;fsagel
-4;45-54;fsagel
-5;55-64;fsagel
-6;65-74;fsagel
-7;75-;fsagel
+1;bis 20;fsagel;1;20
+2;21-26;fsagel;21;26
+3;27-44;fsagel;27;44
+4;45-54;fsagel;45;54
+5;55-64;fsagel;55;64
+6;65-74;fsagel;65;74
+7;75-;fsagel;75;150
 999;keine Angabe;fsagel
 1;verheiratet, leibl. Eltern;fsfs
 2;unverheiratet, leibl. Eltern;fsfs
@@ -182,10 +182,11 @@ m;Mehrfachkategorie;verwtyp
 1;30 bis 60 Minuten;fskd;30;59
 2;60 bis 120 Minuten;fskd;60;119
 3;mehr als 120 Minuten;fskd;120;99999
-0;weniger als 30 Minuten;kdbs;0;2
-1;30 bis 60 Minuten;kdbs;3;5
-2;60 bis 120 Minuten;kdbs;6;11
-3;mehr als 120 Minuten;kdbs;12;99999
+0;bis 30min 0 Kontakte;kdbs;0;29
+1;30 bis 60min 1 Kontakt;kdbs;30;60
+2;61 bis 120 min 2 Kontakte;kdbs;61;120
+3;121 bis 180 min 3 Kontakte;kdbs;121;180
+4;ab 181 min 4 Kontakte;kdbs;181;99999
 0;keine;teilnbs
 1;Mutter;teilnbs
 2;Vater;teilnbs
@@ -210,22 +211,22 @@ m;Mehrfachkategorie;verwtyp
 8;Erzieher;fska
 9;Hilfebesprechung;fska
 10;Sonstige;fska
-1;persönlicher Kontakt §28;kabs
-2;telefonischer Kontakt (mit Beratungscharakter);kabs
-3;Schreiben;kabs
-4;Fachkontakt;kabs
-5;ausgefallener Kontakt;kabs
-6;Gruppenkontakt;kabs
-7;E-Mail;kabs
-8;interner Fachkontakt, Fallbesprechung;kabs
-9;fallbezogene Fahrzeit;kabs
-1;ausgefallene Erstgespräche ohne Fall-Nr.;fuabs
-2;offen angebotene Zeiten (Präsenz, Sekretariatsvertretung, Beratungstelefonate mit Nicht-Klienten....);fuabs
-3;Gruppenarbeit (K6);fuabs
-4;gebührenpflichtige Leistungen;fuabs
-5;Vernetzung;fuabs
-6;Familien- und Jugendbildung;fuabs
-7;Fahrzeiten;fuabs
+1;persönlicher Kontakt §28;kabs;;;dauer*1.4 #bs:ja  +40% Vor- Nachbereitung
+2;telefonischer Kontakt (mit Beratungscharakter);kabs;;;dauer*1.4 #bs:ja +40% Vor- Nachbereitung
+3;Schreiben;kabs;;;dauer #bs:ja keine Vor- Nachbereitung
+4;Fachkontakt;kabs;;;dauer*1.4 #bs:ja +40% Vor- Nachbereitung
+5;ausgefallener Kontakt;kabs;;;20 # immer 20 Minuten
+6;Gruppenkontakt;kabs;;;dauer*1.4 #bs:ja +40% Vor- Nachbereitung
+7;E-Mail;kabs;;;dauer #bs:ja keine Vor- Nachbereitung
+8;interner Fachkontakt, Fallbesprechung;kabs;;;dauer*1.4 # +40% Vor- Nachbereitung
+9;fallbezogene Fahrzeit;kabs;;;dauer # keine Vor- Nachbereitung
+1;ausgefallene Erstgespräche ohne Fall-Nr.;fuabs;;;20 # immer 20 Minuten
+2;offen angebotene Zeiten (Präsenz, Sekretariatsvertretung, Beratungstelefonate mit Nicht-Klienten....);fuabs;;;dauer # keine Vor- Nachbereitung 
+3;Gruppenarbeit (K6);fuabs;;;dauer*3 # dreifach
+4;gebührenpflichtige Leistungen;fuabs;;;dauer # keine Vor- Nachbereitung 
+5;Vernetzung;fuabs;;;dauer*1.5 # anderthalbfach
+6;Familien- und Jugendbildung;fuabs;;;dauer*2 # zweifach
+7;Fahrzeiten;fuabs;;;dauer # keine Vor- Nachbereitung 
 0;keine Angabe;fskat;0;0
 1;1-5;fskat;1;5
 2;6-10;fskat;6;10
@@ -556,7 +557,7 @@ code_list_str += """
 #
 # Welche Kategorien sind Bereichskategorien?
 #
-bereichs_kategorien_str = "fskat gsa dbsite jghag fskd kdbs fuadbs"
+bereichs_kategorien_str = "fskat fsagel gsa dbsite jghag fskd kdbs fuadbs"
 
 
 #
@@ -577,13 +578,13 @@ fshe;Herkunftsland der Eltern
 fspbe;Problemspektrum Eltern
 fspbk;Problemspektrum Kind, Jugendliche
 fsle;Erbrachte Leistungen
-fskd;Dauer des Kontakts
-kdbs;Dauer des Kontakts in 10Min. Einheiten (BS)
-fuadbs;Dauer der fallunabhängigen Aktivität in 10Min. Einheiten (BS)
+fskd;Dauer des Kontakts in Minuten
+kdbs;Anzahl der Kontakte im Sinne der Bundesstatistik;Min und Max definieren den Bereich
+fuadbs;Dauer der fallunabhängigen Aktivität in Minuten (BS)
 fska;Art des Beratungskontakts
-kabs;Art des Beratungskontakts (BS)
+kabs;Art des Beratungskontakts (BS);Im Doku-Feld kann die Berechnung der Brutto-Dauer angegeben werden und außerdem, ob die Kontaktart für die Bundesstatistik gezählt wird.
 teilnbs;Teilnehmer am Kontakt (BS)
-fuabs;Art der fallunabhängigen Aktivität (BS)
+fuabs;Art der fallunabhängigen Aktivität (BS);Im Doku-Feld kann die Berechnung der Brutto-Dauer angegeben werden.
 fskat;Anzahl der Termine
 fsqualij;sozialer Status Jugendlicher, 14-27
 fsquali;Qualifikation der Eltern

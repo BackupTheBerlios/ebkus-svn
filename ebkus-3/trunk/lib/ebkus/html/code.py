@@ -35,6 +35,13 @@ class codelist(Request.Request, akte_share):
             title = "Kategorien und Merkmalslisten für %s" % klass
 
         nicht_anzeigen = ('verwtyp', 'config',)
+        zusaetzlich_anzeigen = {
+            'Jugendhilfestatistik2007': ['jghag',],
+            'Beratungskontakt': ['kdbs',],
+            }
+        for kl in zusaetzlich_anzeigen:
+            if kl == klass:
+                kats += [Kategorie(code=k) for k in zusaetzlich_anzeigen[klass]]
         kats = kats.filter(lambda x: x['code'] not in nicht_anzeigen) 
         kats.sort('name')
         for k in kats:
@@ -71,19 +78,13 @@ class codelist(Request.Request, akte_share):
         for c in codetables:
             codelist.append(c)
             codelist.append(zeile_mit_icon)
-        menu = h.Fieldset(#legend='&nbsp;',
-                          content=h.Tr(
-            cells=(h.Button(value="Hauptmenü",
-                            tip="Zum Hauptmenü",
-                            onClick="go_to_url('menu')"),
-                   )))
         res = h.FormPage(
             title=title,
             help=False,
             name="",action="",method="",
             breadcrumbs = (('Administratorhauptmenü', 'menu'),
                            ),
-            rows=(menu,
+            rows=(self.get_hauptmenu(),
                   uebersicht,) +
                   tuple(codelist),
             hidden=(),

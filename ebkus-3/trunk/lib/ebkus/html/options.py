@@ -21,10 +21,10 @@ class options(object):
         bs = ''
         if config.BERATUNGSKONTAKTE_BS:
             bs =  """
-                     <option value="nothing">[ Speziell für Braunschweig ]
-                     <option value="bkontbsabfrform">- Beratungskontaktzeiten
-                     <option value="fuabsabfrform">- Fallunabhängige Aktivitäten
                      <option value="nothing">
+                     <option value="nothing">[ Zeiten ]
+                     <option value="bkontbsabfr">- Beratungskontaktzeiten
+                     <option value="fuabsabfr">- Fallunabhängige Aktivitäten
                      """
         options = ("""
                       <option value="nothing">[ Beratungen ]
@@ -32,8 +32,6 @@ class options(object):
                       <option value="abfr1?w=laufend">- laufende Beratungen
                       <option value="abfr1?w=abgeschlossen">- abgeschlossene Beratungen
                       <option value="nothing">
-"""                      + bs +
-"""
                       <option value="nothing">[ Klientenzahl ]
                       <option value="abfr4">- Neumeldungen u. Abschl&uuml;sse
                       <option value="abfr5">- Klienten pro Mitarbeiter
@@ -43,10 +41,10 @@ class options(object):
                       <option value="nothing">
                       <option value="nothing">[ Fach- und Bundesstatistik ]
                       <option value="statabfr">- Statistik
-                      """)
+                      """
+                      + bs
+                   )
         return options
-
-
 
     def for_mitarbeiter(self, sel=None, empty_option=False):
         if sel and isinstance(sel, basestring):
@@ -80,6 +78,16 @@ class options(object):
             options.append(self.option_tmpl % ('', '', erster_eintrag))
         options += [self.option_tmpl % (j, j==sel and select_attr or '', j)
                     for j in jahre]
+        return '\n'.join(options)
+
+    def for_quartal(self, sel=None, erster_eintrag=None):
+        "Optionen für Quartale 1,2,3,4"
+        options = []
+        select_attr = ' selected="selected" '
+        if erster_eintrag:
+            options.append(self.option_tmpl % ('', '', erster_eintrag))
+        options += [self.option_tmpl % (j, j==sel and select_attr or '', j)
+                    for j in (1,2,3,4)]
         return '\n'.join(options)
 
     def for_kat(self, kat, sel=None, all=False):

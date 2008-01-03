@@ -297,28 +297,20 @@ class klkarte(Request.Request, akte_share):
             )
         anmeldekontakte = h.FieldsetDataTable(
             legend= 'Anmeldungskontakte',
-            headers= ('Gemeldet von', 'Gemeldet am', 'Anmeldegrund'),
-            daten= [[(aktueller_fall == a['fall'] and
+            headers= ('Gemeldet von', 'Telefon', 'Empf.', 'durch', 'Gemeldet am', 'Anmeldegrund'),
+            noheaders=1,
+            daten= [[aktueller_fall == a['fall'] and
                      h.Icon(href= 'updanm?anmid=%(id)d' % a,
-                          icon= "/ebkus/ebkus_icons/edit_button.gif",
-                          tip= 'Anmeldungskontakt bearbeiten')
-                      or
-                      h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
-                               tip= 'Funktion gesperrt')),
-                     (aktueller_fall and
-                      h.Icon(href= '#',
-                           onClick= "view_details('viewanm?anmid=%(id)d')" % a,
-                           icon= "/ebkus/ebkus_icons/view_details.gif",
-                           tip= 'Anmeldungskontakt ansehen')
-                           or
-                      h.IconDead(icon= "/ebkus/ebkus_icons/view_details_inaktiv.gif",
-                               tip= 'Funktion gesperrt')),
-                       h.String(string= a['von']),
-                       h.Datum(day=   a['ad'],
-                             month= a['am'],
-                             year=  a['ay']),
-                       h.String(string= a['mg'])]
-                       for a in anmeldekontakte_list],
+                            icon= "/ebkus/ebkus_icons/edit_button.gif",
+                            tip= 'Anmeldungskontakt bearbeiten')
+                     or Dummy(),
+                     h.String(string= a['von']),
+                     h.String(string= a['mtl']),
+                     h.String(string= a['zm__name']),
+                     h.String(string= a['me']),
+                       h.Datum(date=a['fall'].getDate('bg')),
+                     h.String(string= a['mg'])]
+                    for a in anmeldekontakte_list],
             button= (aktueller_fall and not aktueller_fall['anmeldung'] and
                      h.Button(value= "Hinzufügen",
                             tip= "Anmeldungskontakt hinzufügen",

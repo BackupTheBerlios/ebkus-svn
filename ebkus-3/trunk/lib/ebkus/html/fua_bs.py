@@ -5,7 +5,7 @@
 from ebkus.app import Request
 from ebkus.app import ebupd
 from ebkus.app.ebapi import Code, Fall, MitarbeiterList, Fua_BS, Fua_BSList, \
-     today, cc, cn, check_int_not_empty, check_list
+     today, cc, cn, check_int_not_empty, check_list, EE
 from ebkus.app.ebapih import get_codes
 from ebkus.config import config
 
@@ -41,7 +41,7 @@ class _fua(Request.Request, akte_share):
                                   value=fua['dauer'],
                                   class_='textboxsmall',
                                   tip='Bitte in 10-Schritten angeben, z.B. 10, 20, 40, etc.',
-                                  maxlength=2,
+                                  maxlength=3,
                                   ),
                        h.SelectItem(label='Art der Aktivität',
                                     name='art',
@@ -130,7 +130,8 @@ class _fua(Request.Request, akte_share):
                     h.Datum(date =  fua.getDate('k')),
                     h.String(string=fua['mit__na']),
                     h.String(string=fua['art__name']),
-                    h.String(string=fua['dauer']),
+                    h.String(string="%(dauer)s / %(brutto)s" % fua,
+                             tip='Netto/Brutto'),
                     h.String(string=fua['no']),
                     ]
                    for fua in aktivitaeten_list],
@@ -292,31 +293,38 @@ class fuabsabfr(Request.Request, akte_share):
     def _add_res(self, summe, summand):
         for k,v in summand.items():
             summe[k] += v
+##     def count_row(self, netto, brutto, fua):
+##         "Eine Aktivitaet auszählen"
+##         art = fua['art__code']
+##         dauer = fua['dauer']
+##         if art == '1':
+##             # Erstgespräch ohne Fallnummer 
+##             netto[art] += 20
+##             brutto[art] += 20
+##         elif art == '3':
+##             # Gruppenarbeit
+##             netto[art] += dauer
+##             brutto[art] += dauer*3
+##         elif art == '5':
+##             # Vernetzung
+##             netto[art] += dauer
+##             brutto[art] += dauer*1.5
+##         elif art == '6':
+##             # Familien- und Jugenbildung
+##             netto[art] += dauer
+##             brutto[art] += dauer*2
+##         else:
+##             # alles andere reine Durchführungszeit
+##             netto[art] += dauer
+##             brutto[art] += dauer
     def count_row(self, netto, brutto, fua):
         "Eine Aktivitaet auszählen"
         art = fua['art__code']
         dauer = fua['dauer']
-        if art == '1':
-            # Erstgespräch ohne Fallnummer 
-            netto[art] += 20
-            brutto[art] += 20
-        elif art == '3':
-            # Gruppenarbeit
-            netto[art] += dauer
-            brutto[art] += dauer*3
-        elif art == '5':
-            # Vernetzung
-            netto[art] += dauer
-            brutto[art] += dauer*1.5
-        elif art == '6':
-            # Familien- und Jugenbildung
-            netto[art] += dauer
-            brutto[art] += dauer*2
-        else:
-            # alles andere reine Durchführungszeit
-            netto[art] += dauer
-            brutto[art] += dauer
-    def count(self, stz_list, von_jahr, bis_jahr):
+        netto[art] += dauer
+        brutto[art] += fua['brutto']
+
+    def count(self, stz_list, von_jahr, bis_jahr, quartal=None):
         """Aktivitätszeiten auszählen.
         Ergebnis ist abhängig von Berechtigungen:
         - verw: alle Mitarbeiter der spezifierten Stellen
@@ -328,6 +336,10 @@ class fuabsabfr(Request.Request, akte_share):
         where = ("ky is not NULL and "
         "ky >= %(von_jahr)s and ky  <= %(bis_jahr)s and "
         "stz in ( %(stellen)s )") % locals()
+        if quartal:
+            assert von_jahr == bis_jahr
+            monate = range(1,13)[3*quartal-3:3*quartal]
+            where += " and km in (%s)" % ','.join([str(i) for i in monate])
         fua_list = Fua_BSList(where=where)
         benr_id = self.mitarbeiter['benr']
         benr = self.mitarbeiter['benr__code']
@@ -338,7 +350,7 @@ class fuabsabfr(Request.Request, akte_share):
             bearb_benr_id = cc('benr', 'bearb')
             status = cc('status', 'i')
             mitarbeiter = MitarbeiterList(
-                where='stz in (%(stellen)s) and stat = %(status)s and benr = %(benr_id)s' % locals(),
+                where='stz in (%(stellen)s) and stat = %(status)s and benr = %(bearb_benr_id)s' % locals(),
                 order='na')
         # für jeden Mitarbeiter einen Zähler mit netto, brutto
         res = {}
@@ -350,6 +362,8 @@ class fuabsabfr(Request.Request, akte_share):
                     netto, brutto = res[b['mit_id']]
                     self.count_row(netto, brutto, b)
                 except:
+                    #import traceback
+                    #traceback.print_exc()
                     pass # falls Mitarbeiter in fua, aber nicht in MitarbeiterList
                          # sollte nicht vorkommen, wenn doch, ignorieren
         summe_netto, summe_brutto = self._init_res()
@@ -362,43 +376,70 @@ class fuabsabfr(Request.Request, akte_share):
     def processForm(self, REQUEST, RESPONSE):
         #print 'FORM', self.form
         von_jahr = self.form.get('von_jahr')
-        bis_jahr = check_int_not_empty(self.form, 'bis_jahr', "Jahr fehlt")
-        if not von_jahr or von_jahr > bis_jahr:
+        bis_jahr = self.form.get('bis_jahr')
+        if bis_jahr:
+            bis_jahr = check_int_not_empty(self.form, 'bis_jahr', "Jahr fehlt")
+        else:
+            bis_jahr = today().year
+        von_jahr = check_int_not_empty(self.form, 'von_jahr', "Jahr fehlt", bis_jahr)
+        if von_jahr > bis_jahr:
             von_jahr = bis_jahr
-        stz = check_list(self.form, 'stz', 'Keine Stelle')
-        mitarbeiter, res = self.count(stz, von_jahr, bis_jahr)
+        stellen_ids = [int(id) for id in check_list(self.form, 'stz', 'Keine Stelle',
+                                                    [self.stelle['id']])]
+        quartal = self.form.get('quartal')
+        if quartal:
+            quartal = check_int_not_empty(self.form, 'quartal', 'Fehler im Quartal')
+            if von_jahr != bis_jahr:
+                raise EE('Quartalsauswertungen nur in einem Jahr möglich')
+        else:
+            quartal == None
+        mitarbeiter, res = self.count(stellen_ids, von_jahr, bis_jahr, quartal)
         aktivitaets_arten = [c['code'] for c in get_codes('fuabs')]
         def row(name, tupl):
             netto, brutto = tupl
             row = [h.String(string=name)]
             for ka in aktivitaets_arten:
-                row.append(h.String(string="%s/%s" %
-                                    (netto[ka], brutto[ka]))
+                row.append(h.String(string="%s / %s" %
+                                    (netto[ka], brutto[ka]),
+                                    tip='Netto/Brutto')
                            )
             return row
         mitarbeiter_daten = [row(m['name'], res[m['id']])
                              for m in mitarbeiter]
-        stellen_row = row(', '.join([Code(s)['name'] for s in stz]),
+        stellen_row = row(', '.join([Code(s)['name'] for s in stellen_ids]),
                           res['summe'])
         headers = [''] + [c['name'] for c in get_codes('fuabs')]
         
+        fuer = ''
+        if von_jahr < bis_jahr:
+            fuer += " für %(von_jahr)s bis %(bis_jahr)s" % locals()
+        else:
+            fuer += " für %(bis_jahr)s" % locals()
+        if quartal:
+            fuer += " Quartal %(quartal)s" % locals()
         tabelle_mitarbeiter = h.FieldsetDataTable(
-            legend='Zeiten für fallunabhängige Aktivitäten Mitarbeiter',
+            legend='Zeiten für fallunabhängige Aktivitäten Mitarbeiter' + fuer,
             headers=headers,
             daten=mitarbeiter_daten,
             )
         tabelle_stellen = h.FieldsetDataTable(
-            legend='Zeiten für fallunabhängige Aktivitäten summiert für Stellen',
+            legend='Zeiten für fallunabhängige Aktivitäten summiert für Stellen' + fuer,
             headers=headers,
             daten=[stellen_row],
             )
-        res = h.Page(
-            title='Zeiten für fallunabhängige Aktivitäten',
+        res = h.FormPage(
+            name="fuaform",action="fuabsabfr",method="post",
+            title='Auswertung fallunabhängige Aktivitäten',
             breadcrumbs = (('Hauptmenü', 'menu'),
-                           ('Abfrage fallunabhängige Aktivitäten', 'fuabsabfrform'),
                            ),
             hidden = (),
-            rows=(self.get_hauptmenu(),
+            rows=(self.get_auswertungs_menu(),
+                  self.grundgesamtheit(von_jahr=von_jahr,
+                                       bis_jahr=bis_jahr,
+                                       quartal=quartal,
+                                       stellen_ids=stellen_ids,
+                                       legend='Jahr und Stelle wählen',
+                                       submit_value='Anzeigen'),
                   tabelle_mitarbeiter,
                   tabelle_stellen,
                   ),
