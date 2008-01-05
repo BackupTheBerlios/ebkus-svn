@@ -150,8 +150,7 @@ class FallList(Container):
 
 class Anmeldung(DBObjekt):
     table = 'anmeldung'
-    fields =  ['id', 'fall_id', 'von', 'ad', 'am', 'ay', 'mtl', 'me', \
-                       'zm', 'mg', 'no']
+    fields =  ['id', 'fall_id', 'von', 'mtl', 'me', 'zm', 'mg', 'no']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}

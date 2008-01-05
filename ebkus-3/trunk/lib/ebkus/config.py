@@ -56,6 +56,7 @@ _params = (
     ('instance', 'SITE', 'site', 's', 's:A'),
     ('instance', 'MASTER_SITE', 'master_site', 's', 's:A'),
     ('instance', 'LOESCHFRIST', 'loeschfrist', 'i', 's:36'),
+    ('instance', 'WIEDERAUFNAHMEFRIST', 'wiederaufnahmefrist', 'i', 's:1'),
     ('instance', 'SESSION_TIME', 'session_time', 'i', 's:120'),
     ('instance', 'PROTOCOL_DIR', 'protocol_dir', 'p', 'i:%(instance_home)s/protokolle'),
     ('instance', 'AK_DIRS_MAX', 'ak_dirs_max', 's', 's:100'),

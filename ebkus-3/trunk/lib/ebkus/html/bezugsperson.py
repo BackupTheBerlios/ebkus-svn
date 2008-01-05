@@ -76,10 +76,7 @@ class persneu(_pers):
         if self.form.has_key('fallid'):
             fallid = self.form.get('fallid')
         else:
-            return h.Meldung(legend='Keine ID für den Fall erhalten',
-                             zeilen=('Keine ID für den Fall erhalten!',
-                                     'Sie werden zum Hauptmen&uuml; weitergeleitet.'),
-                             ).display()
+            raise EE('Keine ID für den Fall erhalten')
         fall = Fall(fallid)
         akte = fall['akte']
         bzp = Bezugsperson()

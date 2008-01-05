@@ -2,7 +2,6 @@
 
 
 from  cStringIO import StringIO
-from ebkus.app.Request import getRequest
 from ebkus.config import config
 
 def join(seq):
@@ -163,7 +162,7 @@ class Base(_HTML):
 ##                                  for entry in self.breadcrumbs if entry])
 ##             crumbs += ' > %s' % self.title
             # TODO user daten übernehmen
-
+            from ebkus.app.Request import getRequest
             mitarbeiter = getRequest().mitarbeiter
             self.login = "%(vn)s %(na)s (%(ben)s, %(benr__name)s)" % mitarbeiter
             #self.breadcrumb = self.breadcrumbs_t % (crumbs, login)
@@ -458,18 +457,20 @@ class FieldsetFormDataTable(FieldsetForm, DataTable):
 
 class Meldung(FormPage):
     """obligat: legend, zeilen
-    optional: titel
+    optional: title
     """
     onClick = "javascript:history.back()"
     empty_row = '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>'
     def _init(self):
         self.set_rows()
         super(Meldung, self)._init()
-        if not self.titel:
-            self.titel = self.legend
+        if not self.title:
+            self.title = self.legend
+        if self.weiter:
+            self.onClick = "go_to_url('%s')" % self.weiter
     def set_rows(self):
         rows = [self.empty_row]*3
-        rows += ['<tr><td>%s</td></tr>' % z for z in self.zeilen]
+        rows += ['<tr><td align="center">%s</td></tr>' % z for z in self.zeilen]
         rows += [self.empty_row]*3
         button = Button(value="Ok",
                         onClick=self.onClick,
@@ -482,7 +483,7 @@ class Meldung(FormPage):
 
 class SubmitOrBack(FormPage):
     """obligat: legend, zeilen
-    optional: titel
+    optional: title
     optional: alle Parameter von Form
     """
     onclick_abbrechen = "javascript:history.back()"
@@ -492,8 +493,8 @@ class SubmitOrBack(FormPage):
     def _init(self):
         self.set_rows()
         super(SubmitOrBack, self)._init()
-        if not self.titel:
-            self.titel = self.legend
+        if not self.title:
+            self.title = self.legend
     def set_rows(self):
         rows = [self.empty_row]*3
         rows += ['<tr><td colspan="2">%s</td></tr>' % z for z in self.zeilen]

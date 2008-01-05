@@ -2,9 +2,6 @@
 
 
 jghhead_t = """
-</head>
-<body bgcolor="#CCCCCC" link="#CCCCCC" vlink="#CCCCCC" alink="#000000">
-<table width="800" align="center">
   <tr>
     <td height="465" align="center" valign="top">
       <form name="jghform" method="post" action="jgh_check">
@@ -20,7 +17,7 @@ tip_t = """title="%(tip)s" onMouseOver="window.status='%(tip)s';return true;" on
 
 jghfalldaten_t = """
           <tr>
-            <td align="center" class="legendtext" valign="top" height="104" colspan="2">
+            <td align="center" valign="top" height="104" colspan="2">
               <fieldset><legend class="legendtext">Falldaten</legend>
               <table width="100%%" border="0" cellpadding="1">
                 <tr>
@@ -45,7 +42,7 @@ jghfalldaten_t = """
                 </tr>
                 <tr>
                   <td  align="right" class="labeltext">Mitarbeiter:</td>
-                  <td  align="left" class="legendtext">%(mit_id__ben)s</td>
+                  <td  align="left" class="legendtext">%(mit_id__name)s</td>
                   <td  align="right" class="labeltext">Einrichtungs-Nr.:</td>
                   <td  align="left">
                     <select name="einrnr" class="listbox" style="width:180">
@@ -95,14 +92,11 @@ jghfoot_t = """
       </form>
     </td>
   </tr>
-</table>
-</body>
-</html>
 """
 
 fb_abschnitt_t = """
           <tr>
-            <td align="center" class="legendtext" valign="top" colspan="2">
+            <td align="center" valign="top" colspan="2">
               <fieldset><legend class="legendtext">%(abschnitt)s %(title)s</legend>
               <table width="100%%" border="0" cellpadding="1">
 %(items)s

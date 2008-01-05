@@ -185,13 +185,9 @@ def insert_kategorie_codes(merkmale):
         c['zeit'] = aenderungszeit
         assert c['kat_code'] == katcode == kat['code'] == cd[2]
         sort = sort + 1
-        if katcode in bereichslist and len(cd) > 3:
-            if cd[3]:
-                c['mini'] = int(cd[3])
-                #print 'Mini: %(kat_code)s %(name)s %(mini)s' % c
-            if cd[4]:
-                c['maxi'] = int(cd[4])
-                #print 'Maxi: %(kat_code)s %(name)s %(maxi)s' % c
+        if katcode in bereichslist and len(cd) > 4:
+            c['mini'] = int(cd[3])
+            c['maxi'] = int(cd[4])
         if len(cd) > 5:
             c['dok'] = cd[5].strip()
         c.insert()

@@ -200,7 +200,11 @@ port: 50013
 #database_user: muster_efb
 #database_password: muster_efb
 
+in Monaten
 #loeschfrist: 36
+in Monaten
+#wiederaufnahmefrist: 1
+in Minuten
 #session_time: 120
 
 # das kann lange dauern wenn es auf true steht,

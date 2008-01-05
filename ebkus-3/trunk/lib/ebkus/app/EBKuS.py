@@ -131,14 +131,14 @@ def getClassesToBePublished():
     from ebkus.html.abfragedef import abfragedef
     from ebkus.html.datenaustausch import formabfrjghexport, jghexportfeedback, jghexportlist
     from ebkus.html.mitarbeiter import mitausw, mitneu, updmit
-    from ebkus.html.code import codelist, codetab, codeneu, updcode, updkat
+    from ebkus.html.code import codelist, codeneu, updcode, updkat
     from ebkus.html.administration import admin, feedback, admin_protocol
     from ebkus.html.fskonfig import fskonfig
     # msg neue klassen
     from ebkus.html.login import login, logout
     from ebkus.html.password import pwchange, pw_make_change
     from ebkus.html.menu_protocol import menu_protocol
-    from ebkus.html.wordexp import wordexport
+    #from ebkus.html.wordexp import wordexport
     from ebkus.html.protokoll_login import login_formular
     from ebkus.html.protokoll_login import check_protokoll_login
     from ebkus.html.ebkushilfe import ebkus_help_document, ebkus_help_tree, ebkus_help

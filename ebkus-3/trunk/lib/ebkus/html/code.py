@@ -91,88 +91,45 @@ class codelist(Request.Request, akte_share):
             )
         return res.display()
         
-class oldcodelist(Request.Request):
-    """Tabellarische Liste der Kategorien und Codes. """
+        
+## class codetab(Request.Request):
+##     """1 Code-Tabelle."""
     
-    permissions = Request.CODE_PERM
+##     permissions = Request.CODE_PERM
     
-    def processForm(self, REQUEST, RESPONSE):
-        user = self.user
-        
-        katliste = KategorieList(where = "code <> '%s' " % "verwtyp",
-                                 order = 'name')
-        
-        # Headerblock, Menue u. Überschrift fuer das HTML-Template
-        
-        header = {'titel': 'Kategorielisten',
-                  'ueberschrift':
-                  '<A name="top"> </A>'}
-        
-        # Liste der Templates als String
-        
-        res = []
-        res.append(head_normal_ohne_help_t %("Alle Kategorie- und Merkmalslisten im &Uuml;berblick"))
-        res.append(katuebersichtstart_t)
-        for k in katliste:
-            if k['code'] != 'fsag' and k['code'] != 'fsagel' and k['code'] != 'ag':
-                k['doku'] = k.get('dok') or ''
-                res.append(katuebersichtitem_t % k)
-                feldliste = FeldList(where = 'kat_id = %s' %k['id'])
-                for f in feldliste:
-                    res.append(katuebersichtdbtabellen_t %f)
-                res.append(katuebersichtende_t)
-        res.append(katuebersichtgesamtende_t)
-        
-        for k in katliste:
-            if k['code'] != 'fsag' and k['code'] != 'fsagel' and k['code'] != 'ag':
-                res.append(thkat_t % k)
-                res.append(thcodeliste_t)
-                cliste = get_all_codes(k['code'])
-                mk_ausgabe_codeliste(res, codelisten_t, cliste)
-                res.append(code_liste_ende)
-                res.append(hreftop_t % "codelist#top")
-        res.append(katuebersichtende2_t)
-        return string.join(res, '')
-        
-        
-class codetab(Request.Request):
-    """1 Code-Tabelle."""
-    
-    permissions = Request.CODE_PERM
-    
-    def processForm(self, REQUEST, RESPONSE):
-        tabelle = self.form.get('tabelle')
-        kat_id = self.form.get('kat_id')
-        kat_name = self.form.get('kat_name')
-        if not tabelle and not kat_id:
-            self.last_error_message = "Keine ID fuer Tabelle bzw. Kategorie erhalten"
-            return self.EBKuSError(REQUEST, RESPONSE)
-        if tabelle:
-            tliste = TabelleList(where = "klasse = '%s'" % tabelle)
+##     def processForm(self, REQUEST, RESPONSE):
+##         tabelle = self.form.get('tabelle')
+##         kat_id = self.form.get('kat_id')
+##         kat_name = self.form.get('kat_name')
+##         if not tabelle and not kat_id:
+##             self.last_error_message = "Keine ID fuer Tabelle bzw. Kategorie erhalten"
+##             return self.EBKuSError(REQUEST, RESPONSE)
+##         if tabelle:
+##             tliste = TabelleList(where = "klasse = '%s'" % tabelle)
 
-            if len(tliste) == 1:
-                tab = tliste[0]
-                felder = tab['felder']
-                felder.sort('kat_id__name')
+##             if len(tliste) == 1:
+##                 tab = tliste[0]
+##                 felder = tab['felder']
+##                 felder.sort('kat_id__name')
 
-            res = []
-            res.append(head_normal_ohne_help_t %('Kategorie- und Merkmalslisten zu: '+ "'%s'" % tabelle))
-            res.append(code_tab_start_t)
-            x = []
-            for f in felder:
-                if f['kat_id'] and f['kat_id'] not in x:
-                    a = felder.find('kat_id', f['kat_id'])
-                    if len(a) >= 1:
-                        x.append(f['kat_id'])
-                        k = Kategorie(f['kat_id'])
-                        res.append(thkat_t % k)
-                        res.append(thcodeliste_t)
-                        cliste = get_all_codes(k['code'])
-                        mk_ausgabe_codeliste(res, codelisten_t, cliste)
-                        res.append(code_liste_ende)
-                        res.append(hreftop_t % "codetab?tabelle=%s#top" % tabelle)
-            res.append(katuebersichtende2_t)
-            return string.join(res, '')
+##             res = []
+##             res.append(head_normal_ohne_help_t %('Kategorie- und Merkmalslisten zu: '+ "'%s'" % tabelle))
+##             res.append(code_tab_start_t)
+##             x = []
+##             for f in felder:
+##                 if f['kat_id'] and f['kat_id'] not in x:
+##                     a = felder.find('kat_id', f['kat_id'])
+##                     if len(a) >= 1:
+##                         x.append(f['kat_id'])
+##                         k = Kategorie(f['kat_id'])
+##                         res.append(thkat_t % k)
+##                         res.append(thcodeliste_t)
+##                         cliste = get_all_codes(k['code'])
+##                         mk_ausgabe_codeliste(res, codelisten_t, cliste)
+##                         res.append(code_liste_ende)
+##                         res.append(hreftop_t % "codetab?tabelle=%s#top" % tabelle)
+##             res.append(katuebersichtende2_t)
+##             return string.join(res, '')
 
 class _code(Request.Request, akte_share):
     def _process(self,
@@ -189,8 +146,9 @@ class _code(Request.Request, akte_share):
         elif view.startswith('codelist__'): # Aufruf erfolgte von codelist
             view = 'codelist?tbl=%s#%s' % (view.split('__')[1], kat['id'])
         new = (file == 'codeeinf')
-        bereichskategorie = bool(kat['code']=='dbsite' or FeldList(
-            where="kat_id=%s and verwtyp=%s" % (kat['id'], cc('verwtyp', 'b'))))
+##         bereichskategorie = bool(kat['code']=='dbsite' or FeldList(
+##             where="kat_id=%s and verwtyp=%s" % (kat['id'], cc('verwtyp', 'b'))))
+        bereichskategorie = bool(kat['flag']&1) # in migrate wird flag auf 1 gesetzt
         legend = (new and "Merkmal hinzufügen für Kategorie '%(name)s'" % kat or
                   "Merkmal bearbeiten aus Kategorie '%(name)s'" % kat)
         code_edit = h.FieldsetInputTable(
@@ -216,12 +174,12 @@ class _code(Request.Request, akte_share):
                    bereichskategorie and
                    [h.TextItem(label="Minimum",
                                name="mini",
-                               value=code['mini'] or '',
+                               value=code['mini'],
                                tip="Minimaler Wert des Bereichs (nur für Bereichskategorien, z.B. Anzahl Termine)",
                                                      class_="textboxmid"),
                     h.TextItem(label="Maximum",
                                name="maxi",
-                               value=code['maxi'] or '',
+                               value=code['maxi'],
                                tip="Maximaler Wert des Bereichs (nur für Bereichskategorien, z.B. Anzahl Termine)",
                                class_="textboxmid"),
                     h.SelectItem(label="Position",

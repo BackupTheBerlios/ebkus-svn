@@ -39,9 +39,7 @@ class _statistik(Request.Request, akte_share):
 class statabfr(_statistik):
     "Formular für die Fach- und Bundesstatistikabfrage"
     permissions = Request.ABFR_PERM
-
-    def _process(self,
-                 ):
+    def _process(self):
         teilmenge = h.FieldsetDataTable(
             legend='Teilmenge',
             daten=[[h.SelectItem(label='Definierte Teilmengen',
@@ -52,22 +50,6 @@ class statabfr(_statistik):
                                  n_col=3,
                                  ),
                     ],
-##                    [h.Button(value="Bearbeiten",
-##                              tip="Ausgewählte Definition ansehen und bearbeiten",
-##                              type='button',
-##                              onClick="abfrage_bearbeiten('edit')",
-##                              ),
-##                     h.Button(value="Neu",
-##                              tip="Neue Teilmengendefinition erstellen",
-##                              type='button',
-##                              onClick="abfrage_bearbeiten('new')",
-##                              ),
-##                     h.Button(value="Löschen",
-##                              tip="Ausgewählte Definition löschen",
-##                              type='button',
-##                              onClick="abfrage_bearbeiten('del')",
-##                              ),
-##                     ],
                    [h.Button(value="Bearbeiten",
                              name='abfrop',
                              tip="Ausgewählte Definition ansehen und bearbeiten",
@@ -154,7 +136,7 @@ class statabfr(_statistik):
                            ),
             hidden = (),
             rows=(self.get_auswertungs_menu(),
-                  self.grundgesamtheit(),
+                  self.grundgesamtheit(show_quartal=False),
                   teilmenge,
                   auszaehlung,
                   #h.SpeichernZuruecksetzenAbbrechen(),
@@ -532,9 +514,19 @@ class statergebnis(_statistik_ergebnis):
     def processForm(self, REQUEST, RESPONSE):
         #print 'FORM', self.form
         von_jahr = self.form.get('von_jahr')
-        bis_jahr = check_int_not_empty(self.form, 'bis_jahr', "Jahr fehlt")
-        if not von_jahr or von_jahr > bis_jahr:
+        bis_jahr = self.form.get('bis_jahr')
+        if bis_jahr:
+            bis_jahr = check_int_not_empty(self.form, 'bis_jahr', "Jahr fehlt")
+        else:
+            bis_jahr = today().year
+        von_jahr = check_int_not_empty(self.form, 'von_jahr', "Jahr fehlt", bis_jahr)
+        if von_jahr > bis_jahr:
             von_jahr = bis_jahr
+
+##         von_jahr = self.form.get('von_jahr')
+##         bis_jahr = check_int_not_empty(self.form, 'bis_jahr', "Jahr fehlt")
+##         if not von_jahr or von_jahr > bis_jahr:
+##             von_jahr = bis_jahr
 # TODO
 ##         if von_jahr <= 2006 and bis_jahr >= 2007:
 ##             return h.Meldung(legend='Ungültige Jahresangaben',

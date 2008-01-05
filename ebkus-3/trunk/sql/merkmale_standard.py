@@ -33,13 +33,13 @@ p;Primitiv;verwtyp
 m;Mehrfachkategorie;verwtyp
 1;m;gs
 2;w;gs
-1;0-2;fsag
-2;3-5;fsag
-3;6-9;fsag
-4;10-13;fsag
-5;14-17;fsag
-6;18-20;fsag
-7;21-26;fsag
+1;0-2;fsag;0;2
+2;3-5;fsag;3;5
+3;6-9;fsag;6;9
+4;10-13;fsag;10;13
+5;14-17;fsag;14;17
+6;18-20;fsag;18;20
+7;21-26;fsag;21;26
 8;vor d. Schw.;fsag
 9;pränatal;fsag
 999;keine Angabe;fsag
@@ -236,8 +236,8 @@ m;Mehrfachkategorie;verwtyp
 6;31-40;fskat;31;40
 7;41-50;fskat;41;50
 8;mehr als 50;fskat;51;
-1;Mutter;klerv
-2;Vater;klerv
+1;Mutter;klerv;;;Wird zur Berechnung der Altersgruppe der Mutter verwendet
+2;Vater;klerv;;;Wird zur Berechnung der Altersgruppe des Vaters verwendet
 3;Geschwister;klerv
 4;Halbgeschw.;klerv
 5;Stiefmutter;klerv
@@ -557,7 +557,7 @@ code_list_str += """
 #
 # Welche Kategorien sind Bereichskategorien?
 #
-bereichs_kategorien_str = "fskat fsagel gsa dbsite jghag fskd kdbs fuadbs"
+bereichs_kategorien_str = "fskat fsag fsagel gsa dbsite jghag fskd kdbs fuadbs"
 
 
 #

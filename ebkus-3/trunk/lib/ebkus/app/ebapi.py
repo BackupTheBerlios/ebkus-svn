@@ -84,8 +84,11 @@ def bcode(kat_code, value,
             raise EE('Kein Wert für Bereichskategorie')
     code_list = get_codes(kat_code)
     for c in code_list:
-        if value >= c['mini'] and value <= c['maxi']:
-            return c
+        try:
+            if value >= int(c['mini']) and value <= int(c['maxi']):
+                return c
+        except:
+            pass
     raise EE('Keine Bereich für Wert gefunden')
     
     
@@ -409,13 +412,10 @@ def _akte_name(self, key):
 def _wiederaufnehmbar(self, key):
     letzter_fall = self['letzter_fall']
     if letzter_fall and letzter_fall['zday'] != 0:
-        zdazeit_in_tagen = letzter_fall['zday']*365 + letzter_fall['zdam']*30 + letzter_fall['zdad']
-        heute_in_tagen = today().year*365 + today().month*30 + today().day
-        wiederaufnehmbar = (heute_in_tagen - zdazeit_in_tagen) > 30
-    else: wiederaufnehmbar = 0
-    #self.data['wiederaufnehmbar'] = wiederaufnehmbar # data cache
-    self._cache_field('wiederaufnehmbar', wiederaufnehmbar)
-    return wiederaufnehmbar
+        zda_date = letzter_fall.getDate('zda')
+        wauf_bis = zda_date.add_month(config.WIEDERAUFNAHMEFRIST)
+        return today() <= wauf_bis
+    return False
     
 def _letzter_fall(self, key):
     faelle = self['faelle']
@@ -638,13 +638,16 @@ def _brutto_dauer_bkont_bs(self, key):
             brutto = 0
         return brutto
 def _jghkontakte(self, key):
-    if config.BERATUNGSKONTAKTE_BS:
-        if 'bs:ja' in self['art_bs__dok'].lower():
-            return int(bcode('kdbs', self['brutto'])['code'])
-        else:
-            return 0
-    elif config.BERATUNGSKONTAKTE:
-        return int(bcode('fskd', self['dauer'])['code'])
+    try:
+        if config.BERATUNGSKONTAKTE_BS:
+            if 'bs:ja' in self['art_bs__dok'].lower():
+                return int(bcode('kdbs', self['brutto'])['code'])
+            else:
+                return 0
+        elif config.BERATUNGSKONTAKTE:
+            return int(bcode('fskd', self['dauer'])['code'])
+    except:
+        pass
     
 Beratungskontakt.attributemethods['mitarbeiter'] = _bkont_mitarbeiter
 Beratungskontakt.attributemethods['faelle'] = _bkont_faelle
@@ -1049,6 +1052,9 @@ class EBUpdateError(Exception):
     als ERROR geloggt werden sollte"""
     pass
     
+ER = EBUpdateError
+
+
 class EBUpdateDataError(Exception):
     """Ein Fehler, der in der Regel durch falsche Eingaben des Benutzers
     entsteht und daher auch von diesem selber zu korrigieren ist.

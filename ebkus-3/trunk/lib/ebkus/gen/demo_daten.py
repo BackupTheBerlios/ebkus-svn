@@ -28,6 +28,7 @@ BIS_JAHR = None
 #TODAY = (2007,7,1)   # gefaked today, sollte im laufenden Demosystem auch gefaked werden
 TODAY = None          # aktuelles Datum
 
+
 def create_schulungs_daten(iconfig,                    # config Objekt für die entsprechende Instanz
                            logf=None):
 ##                       n_akten=N_AKTEN,            # Anzahl von Akten in der demo
@@ -40,9 +41,16 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
 ##                                                   # default ist dieses Jahr
 ##                       fake_today=TODAY):          # gefaktes heute: (2009,6,6), default das reale heute 
 
-    n_akten = 400
-    n_bearbeiter = 16
-    n_stellen = 4
+##     n_akten = 400
+##     n_bearbeiter = 16
+##     n_stellen = 4
+##     von_jahr = Date(2006)
+##     bis_jahr = None
+##     fake_today = None
+
+    n_akten = 100
+    n_bearbeiter = 4
+    n_stellen = 2
     von_jahr = Date(2006)
     bis_jahr = None
     fake_today = None
@@ -54,9 +62,7 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
     if logf:
         global log
         log = logf
-    stellen_codes = ('BS', 'GF', 'WF', 'WOB')
-    # umbenennen des vordefinierten Stellenzeichens
-    Code(kat_code='stzei', code='A').update({'name': 'Stelle BS', 'code': 'BS'})
+    handle_stellen_einrichtung(n_stellen)
     log("Heutiges Datum: %s" % today())
     ort = config.STRASSENKATALOG
     if ort:
@@ -76,8 +82,6 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
         von_jahr = bis_jahr.add_month(-24)
     DemoDaten.bis_jahr = bis_jahr
     DemoDaten.von_jahr = von_jahr
-    for i in range(1, n_stellen):
-        DemoDaten().fake_stelle(i, code=stellen_codes[i])
     stellen = DemoDaten.stellen = CodeList(where="kat_code='stzei'")
     if ort:
         DemoDaten.strkat = StrassenkatalogNeuList(where='')
@@ -761,3 +765,49 @@ class DemoDaten(object):
         altd.insert()
         log("Altdaten %s" % id)
         return altd
+
+def handle_stellen_einrichtung(n_stellen):
+    stellen_codes = ('BS', 'GF', 'WF', 'WOB')
+    land_codes = (
+        ('10', 'BSLand'),
+        ('11', 'GFLand'),
+        ('12', 'WFLand'),
+        ('13', 'WOBLand'),
+        )
+    kr_codes = (
+        ('20', 'BSKreis'),
+        ('21', 'GFKreis'),
+        ('22', 'WFKreis'),
+        ('23', 'WOBKreis'),
+        )
+    einrnr_codes = (
+        ('100100', 'BSEinrichtungsnummmer'),
+        ('200200', 'GFEinrichtungsnummer'),
+        ('300300', 'WFEinrichtungsnummer'),
+        ('400400', 'WOBEinrichtungsnummer'),
+        )
+    # standardmerkmale nach hinter
+    CodeList(kat_code='land').deleteall()
+    CodeList(kat_code='kr').deleteall()
+    CodeList(kat_code='einrnr').deleteall()
+    def insert_codes(data, kat_code):
+        for i, (c, n) in enumerate(data):
+            code = Code()
+            code.init(
+                kat_id=Kategorie(code=kat_code)['id'],
+                kat_code=kat_code,
+                code=c,
+                name=n,
+                sort=i+1,
+                off=0,
+                dok='Stelle %s # Bei dieser Stelle steht dieses Merkmal oben' % stellen_codes[i]
+                )
+            code.new()
+            code.insert()
+    insert_codes(land_codes, 'land')
+    insert_codes(kr_codes, 'kr')
+    insert_codes(einrnr_codes, 'einrnr')
+    # umbenennen des vordefinierten Stellenzeichens
+    Code(kat_code='stzei', code='A').update({'name': 'Stelle BS', 'code': 'BS'})
+    for i in range(1, n_stellen):
+        DemoDaten().fake_stelle(i, code=stellen_codes[i])

@@ -26,7 +26,7 @@ from ebkus.config import config
 from ebkus.app import ebapi
 from ebkus.app import Request
 from ebkus.app.ebapi import Akte, Fall, Jugendhilfestatistik, Code, \
-     JugendhilfestatistikList, cc, cn, today, check_date, calc_age, \
+     JugendhilfestatistikList, cc, cn, today, EE, check_date, calc_age, \
      Jugendhilfestatistik2007List, Jugendhilfestatistik2007
 from ebkus.app.ebupd import upgrade_jgh
 from ebkus.app.ebapih import get_codes, mksel, get_all_codes
@@ -34,6 +34,8 @@ from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.jgh_templates import *
 from ebkus.app_surface.jgh07_templates import *
 
+import ebkus.html.htmlgen as h
+from ebkus.html.akte_share import akte_share
 
 
 class jghneu(Request.Request):
@@ -53,11 +55,7 @@ class jghneu(Request.Request):
 ##             jghstat = fall['jgh']
         
         if not fallid:
-            meldung = {'titel':'Fehler',
-                      'legende':'Fehlerbeschreibung',
-                       'zeile1':'Sie d&uuml;rfen eine Bundesstatistik nur f&uuml;r einen g&uuml;ltigen Fall erstellen.',
-                       'zeile2':''}
-            return meldung_t % meldung
+            raise EE('Bundesstatistik nur f&uuml;r einen g&uuml;ltigen Fall')
         fall = Fall(fallid)
         akte = fall['akte']
         fn = fall['fn']
@@ -66,12 +64,7 @@ class jghneu(Request.Request):
         bgy = fall['bgy']
         ex_jgh = fall['jgh']
         if ex_jgh:
-            meldung = {'titel':'Hinweis',
-                     'legende':'Hinweis',
-                     'zeile1':'Es ist bereits eine Jugendhilfestatistik f&uuml;r die Fallnummer vorhanden!',
-                     'zeile2':''}
-            return meldung_t % meldung
-
+            raise EE('Bundesstatistik bereits vorhanden')
         alter_klient = calc_age(akte['gb'],fall.getDate('bg'))
         geschwisterfaelle = get_codes('gfall')
         stellenzeichen = get_codes('stzei')
@@ -209,11 +202,7 @@ class updjgh(Request.Request):
                 if isinstance(jghstat, Jugendhilfestatistik2007):
                     return self.ebkus.dispatch('updjgh07', REQUEST, RESPONSE)
             else:
-                meldung = {'titel':'Hinweis',
-                           'legende':'Hinweis',
-                           'zeile1':'Es ist noch keine Bundesstatistik f&uuml;r den Fall vorhanden!',
-                           'zeile2':''}
-                return meldung_t % meldung
+                raise EE('Noch keine Bundesstatistik f&uuml;r den Fall vorhanden.')
         elif id:
             jghstat = Jugendhilfestatistik(id)
             fallid = jghstat.get('fall_id')
@@ -702,22 +691,24 @@ Grundsicherung im Alter und bei Erwerbsminderung oder Sozialhilfe (SGB XII)',
      }, 
     )
 
-class _jgh07(Request.Request):
+class _jgh07(Request.Request, akte_share):
     """Gemeinsame Klasse für die neue Bundesstatistik"""
     def _formular(self, jgh):
         """Bringt Templates und Daten zusammen sowohl für die Neueinführung
         als auch für das Update.
         """
-        jgh['land_sel'] = ''.join(make_option_list(get_codes('land'), 'first', True))
-        jgh['kr_sel'] = ''.join(make_option_list(get_codes('kr'), 'first', True))
+        jgh['land_sel'] = self.for_land_kr_einrnr('land')
+        jgh['kr_sel'] = self.for_land_kr_einrnr('kr')
+        jgh['einrnr_sel'] = self.for_land_kr_einrnr('einrnr')
+##         jgh['land_sel'] = ''.join(make_option_list(get_codes('land'), 'first', True))
+##         jgh['kr_sel'] = ''.join(make_option_list(get_codes('kr'), 'first', True))
+##         jgh['einrnr_sel'] = ''.join(make_option_list(get_codes('einrnr'), 'first', True))
         jgh['gfall_sel'] = ''.join(make_option_list(get_codes('gfall'), 'first', True))
-        jgh['einrnr_sel'] = ''.join(make_option_list(get_codes('einrnr'), 'first', True))
         if jgh.get('lnr'):
             jgh['laufendenr'] = jgh['lnr']
         else:
             jgh['laufendenr'] = 'noch nicht vergeben'
         res = []
-        res.append(head_normal_t % 'Bundesstatistik bearbeiten')
         res.append(jghhead_t % jgh)
         res.append(jghfalldaten_t % jgh)
         res.append(fb_abschnitt_trenner_t)
@@ -725,8 +716,20 @@ class _jgh07(Request.Request):
             [self._abschnitt(a, jgh) for a in _fb_data]))
         res.append(fb_abschnitt_trenner_t)
         res.append(jghbuttons_t) 
-        res.append(jghfoot_t) 
-        return ''.join(res)
+        res.append(jghfoot_t)
+        fall = jgh['fall']
+        if fall:
+            klkarte_url = 'klkarte?akid=%(akte_id)s' % fall
+        else:
+            klkarte_url = ''
+        return h.Page(
+            title='Bundesstatistik bearbeiten',
+            help=False,
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ('Klientenkarte', klkarte_url),
+                           ),
+            rows=res
+            ).display()
 
     def _abschnitt(self, data, jgh):
         if isinstance(data, basestring):
@@ -838,11 +841,7 @@ class updjgh07(_jgh07):
             fall = Fall(fallid)
             jgh = fall['jgh']
             if not jgh:
-                meldung = {'titel':'Hinweis',
-                           'legende':'Hinweis',
-                           'zeile1':'Es ist noch keine Bundesstatistik f&uuml;r den Fall vorhanden!',
-                           'zeile2':''}
-                return meldung_t % meldung
+                raise EE('Noch keine Bundesstatistik f&uuml;r den Fall vorhanden.')
         else:
             self.last_error_message = "Keine Bundesstatistik-ID erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
@@ -861,20 +860,11 @@ class jgh07neu(_jgh07):
             # alte Statistik auf neue upgraden
             upgrade_jgh(jghiddel, old2new=True)
         if not fallid:
-            meldung = {'titel':'Fehler',
-                      'legende':'Fehlerbeschreibung',
-                       'zeile1':'Sie d&uuml;rfen eine Bundesstatistik nur f&uuml;r einen g&uuml;ltigen Fall erstellen.',
-                       'zeile2':''}
-            return meldung_t % meldung
+            raise EE('Bundesstatistik nur f&uuml;r einen g&uuml;ltigen Fall')
         fall = Fall(fallid)
         ex_jgh = fall['jgh']
         if ex_jgh:
-            meldung = {'titel':'Hinweis',
-                     'legende':'Hinweis',
-                     'zeile1':
-                       'Es ist bereits eine Jugendhilfestatistik f&uuml;r die Fallnummer vorhanden!',
-                     'zeile2':''}
-            return meldung_t % meldung
+            raise EE('Bundesstatistik bereits vorhanden.')
         jgh = Jugendhilfestatistik2007()
         jgh['jghid'] = Jugendhilfestatistik2007().getNewId()
         jgh['stz'] = self.stelle['id']

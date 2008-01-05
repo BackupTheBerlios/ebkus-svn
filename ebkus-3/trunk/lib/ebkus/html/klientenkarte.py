@@ -22,15 +22,11 @@ class klkarte(Request.Request, akte_share):
             fallid = self.form.get('fallid')
             akid = self.form.get('akid')
             if not akid:
-                if not fallid:
-                    return h.Meldung(
-                        legend='Keine Men&uuml;auswahl erhalten!',
-                        zeilen=('Es wurde nichts aus dem Men&uuml; ausgew&auml;hlt.',)
-                        ).display()
-                else:
+                if fallid:
                     akid = ebapi.Fall(fallid)['akte_id']
+                else:
+                    raise ebapi.EE('Es wurde nichts aus dem Menü ausgewählt.')
             return self.klkarte_display(akid)
-
             
             # Fall 2 erst einfuegen oder updaten, dann Klientenkarte darstellen
         if self.einfuege_oder_update_operationen.get(file):
@@ -52,20 +48,14 @@ class klkarte(Request.Request, akte_share):
             if fallid:
                     fallid = int(fallid)
             else:
-                return h.Meldung(
-                    legend='Keine Men&uuml;auswahl erhalten!',
-                    zeilen=('Es wurde nichts aus dem Men&uuml; ausgew&auml;hlt.',),
-                    ).display()
+                raise ebapi.EE('Es wurde nichts aus dem Menü ausgewählt.')
             RESPONSE.redirect('kldok?fallid=%s' % fallid)
             return ''
         # für die Behandlung der Statistiken vom Hauptmenü aus:
         if file in ('updjghform', 'updfsform'):
             fallid = self.form.get('fallid')
             if not fallid:
-                return h.Meldung(
-                    legend='Keine Men&uuml;auswahl erhalten!',
-                    zeilen=('Es wurde nichts aus dem Men&uuml; ausgew&auml;hlt.',),
-                    ).display()
+                raise ebapi.EE('Es wurde nichts aus dem Menü ausgewählt.')
             fall = ebapi.Fall(fallid)
             if file == 'updjghform':
                 jgh = fall['jgh'] # in ebapi definiert
@@ -114,10 +104,15 @@ class klkarte(Request.Request, akte_share):
     def einfuegen_oder_update(self, file):
         # Akte id ermitteln um klkarte anzeigen zu können
         id_name, klass = self.einfuege_oder_update_operationen.get(file)
-        akid = klass(int(self.form[id_name]))['akte__id']
+        akid = None
+        if file.startswith('remove'):
+            # vorher, weils Objekt später weg ist
+            akid = klass(int(self.form[id_name]))['akte__id']
         # API Funktion aufrufen
         function = getattr(ebupd, file)
         function(self.form)
+        if not akid:
+            akid = klass(int(self.form[id_name]))['akte__id']
         return akid
         
 
@@ -243,13 +238,12 @@ class klkarte(Request.Request, akte_share):
         stand = h.FieldsetDataTable(
             legend= 'Stand',
             headers= ('Fallnummer', 'Beginn', 'z.d.A.'),
-            daten= [[(fall == aktueller_fall and
+            noheaders=1,
+            daten= [[fall == aktueller_fall and
                       h.Icon(href= 'updfall?akid=%(akte_id)d&fallid=%(id)d' % fall,
                            icon= "/ebkus/ebkus_icons/edit_button.gif",
                            tip= 'Fallstatus bearbeiten')
-                      or
-                      h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
-                               tip= 'Funktion gesperrt')),
+                      or h.Dummy(),
                      h.String(string=fall['fn']),
                      h.Datum(day=fall['bgd'],
                            month= fall['bgm'],
@@ -274,13 +268,12 @@ class klkarte(Request.Request, akte_share):
         bearbeiter = h.FieldsetDataTable(
             legend= 'Bearbeiter',
             headers= ('Bearbeiter', 'Beginn', 'Ende'),
-            daten= [[(zust['fall'] == aktueller_fall and
+            noheaders=1,
+            daten= [[zust['fall'] == aktueller_fall and
                       h.Icon(href= 'updzust?fallid=%(fall_id)d&zustid=%(id)d' % zust,
                            icon= "/ebkus/ebkus_icons/edit_button.gif",
                            tip= "Zuständigkeit bearbeiten")
-                      or
-                      h.IconDead(icon= "/ebkus/ebkus_icons/edit_button_inaktiv_locked.gif",
-                               tip= 'Funktion gesperrt')),
+                      or h.Dummy(),
                      h.String(string= zust['mit_id__na']),
                      h.Datum(day=   zust['bgd'],
                            month= zust['bgm'],
@@ -303,7 +296,7 @@ class klkarte(Request.Request, akte_share):
                      h.Icon(href= 'updanm?anmid=%(id)d' % a,
                             icon= "/ebkus/ebkus_icons/edit_button.gif",
                             tip= 'Anmeldungskontakt bearbeiten')
-                     or Dummy(),
+                     or h.Dummy(),
                      h.String(string= a['von']),
                      h.String(string= a['mtl']),
                      h.String(string= a['zm__name']),
@@ -437,14 +430,13 @@ class klkarte(Request.Request, akte_share):
             fallgruppen = h.FieldsetDataTable(
                 legend='Gruppenkarten des Falls',
                 headers=('Gruppennummer', 'Name',),
-                daten=[[(aktueller_fall
+                noheaders=1,
+                daten=[[aktueller_fall
                          and
                          h.Icon(href='grkarte?gruppeid=%(gruppe_id)s' % fg,
                               icon="/ebkus/ebkus_icons/edit_grp_button.gif",
                               tip='Gruppenkarte ansehen')
-                         or 
-                         h.IconDead(icon="/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
-                                  tip='Funktion gesperrt')),
+                         or h.Dummy(),
                         h.String(string=fg['gruppe_id__gn']),
                         h.String(string="%(fall__akte__vn)s %(fall__akte__na)s" % fg)]
                        for fg in fallgruppen_list],
@@ -453,13 +445,12 @@ class klkarte(Request.Request, akte_share):
             bezugspersongruppen = h.FieldsetDataTable(
                 legend= 'Gruppenkarten der Bezugspersonen',
                 headers= ('Gruppennummer.', 'Name',),
-                daten= [[(aktueller_fall and
+                noheaders=1,
+                daten= [[aktueller_fall and
                           h.Icon(href= 'grkarte?gruppeid=%(gruppe_id)s' % bg,
                                icon= "/ebkus/ebkus_icons/edit_grp_button.gif",
                                tip= 'Gruppenkarte ansehen')
-                          or 
-                          h.IconDead(icon= "/ebkus/ebkus_icons/edit_grp_button_inaktiv.gif",
-                                   tip= 'Funktion gesperrt')),
+                          or h.Dummy(),
                          h.String(string= bg['gruppe_id__gn']),
                          h.String(string= "%(bezugsp__vn)s %(bezugsp__na)s" % bg)]
                         for bg in bezugspersongruppen_list],

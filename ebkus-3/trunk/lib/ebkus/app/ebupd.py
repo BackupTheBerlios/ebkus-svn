@@ -401,7 +401,7 @@ def _bkont_check(form, bkont):
         bkont['art_bs'] = check_code(form, 'art_bs', 'kabs', "Fehler in Beratungskontaktart")
         mc = check_multi_code(form, 'teilnehmer_bs', 'teilnbs',
                               "Fehler in Teilnehmer",
-                              default='9') # TODO auf 0 stellen nach neuer DB
+                              default='0') # TODO auf 0 stellen nach neuer DB
         #print 'MULTICODE', mc, type(mc)
         bkont['teilnehmer_bs'] = mc
         bkont['offenespr'] = check_code(form, 'offenespr', 'ja_nein', "", cn('ja_nein', 'ja'))

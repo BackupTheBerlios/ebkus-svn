@@ -13,6 +13,33 @@ class options(object):
     option_tmpl = '<option value="%s"%s>%s</option>'
 
 
+    def for_land_kr_einrnr(self, kat):
+        """Das dok-Feld der Merkmale von kr, land, einrnr, kann mit
+        Stelle <stellencode> beginnen. Dann wird das Merkmal in
+        Option-List an erste Stelle gesetzt. Relevant für die
+        Bundesstatistik, damit verschiedene Stellen unterschiedliche
+        Merkmale haben können und diese nicht fehleranfällig auswählen
+        müssen.
+        """
+        assert kat in ('kr', 'land', 'einrnr')
+        codes = get_codes(kat)
+        stz_code = self.stelle['code'].lower()
+        found = None
+        for c in codes:
+            dok = c['dok']
+            if dok:
+                dok = dok.strip().lower()
+                if dok.startswith('stelle'):
+                    dok = dok[6:].strip()
+                    if dok.startswith(stz_code):
+                        found = c
+                        break
+        if found:
+            codes.remove(found)
+            codes.insert(0, found)
+            
+        return  make_option_list(codes, 'id', 'name')
+
     def for_plz(self):
         "Alle Postleitzahlen im Straßenkatalog"
         plzs = SQL("select distinct plz from strkatalog").execute()

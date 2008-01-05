@@ -527,7 +527,7 @@ class akte_share(options):
                     BS and h.String(string="%(dauer)s / %(brutto)s" % b,
                                     tip='Netto/Brutto') or
                     h.String(string=bcode('fskd', b['dauer'])['name']),
-                    h.String(string=b['jghkontakte'],
+                    h.String(string=b['jghkontakte'] or '',
                              tip='Anzahl der Kontakte im Sinne der Bundesjugendstatistik'),
                     h.String(string=b['no']),
                     ]
@@ -737,9 +737,10 @@ class akte_share(options):
     def grundgesamtheit(self, bis_jahr=None, von_jahr=None, quartal=None,
                         stellen_ids=None,
                         legend='Grundgesamtheit',
-                        submit_value=None):
+                        submit_value=None,
+                        show_quartal=True):
         "Für Auswertungen. Legt Jahre und Stellen fest."
-        print 'GG', von_jahr, bis_jahr
+        #print 'GG', von_jahr, bis_jahr
         if not bis_jahr:
             bis_jahr = today().year
         if von_jahr == bis_jahr or not von_jahr:
@@ -751,12 +752,12 @@ class akte_share(options):
             stellen_ids = [self.stelle['id']]
         res = h.FieldsetInputTable(
             legend=legend,
-            daten=[[h.SelectItem(label='Quartal',
+            daten=[[show_quartal and h.SelectItem(label='Quartal',
                                  name='quartal',
                                  class_='listbox30',
                                  tip='Wählen Sie das Quartal, für das eine Auszählung erfolgen soll',
                                  options=self.for_quartal(sel=quartal, erster_eintrag=' '),
-                                 ),
+                                 ) or h.DummyItem(),
                     h.SelectItem(label='Jahr',
                                  name='bis_jahr',
                                  class_='listbox45',

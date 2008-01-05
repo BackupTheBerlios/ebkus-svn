@@ -11,6 +11,7 @@ from ebkus.db.sql import opendb, SQLError
 from ebkus.db.dbadapter import DatabaseError
 from ebkus.db.dbapp import DBAppError
 from ebkus.app.ebapi import EBUpdateError, EBUpdateDataError
+import ebkus.html.htmlgen as h
 
 
 # Benutzerrechte für inhaltliche Teile (Dateien) des Programms.
@@ -143,30 +144,36 @@ class Request(object):
             raise KeineZugriffsberechtigung()
 
     def nichtIdentifiziert(self, REQUEST, RESPONSE):
-        meldung = {'titel': 'Zugriff verweigert!',
-                   'legende': 'Zugriff Verweigert!',
-                   'url':'login',
-                   'zeile1': 'Sie konnten nicht eindeutig als angemeldeter Benutzer identifiziert werden.',
-                   'zeile2': 'Hinweis:<br> EBKuS meldet Sie nach ' + str(config.SESSION_TIME) + ' Min. ' +
-                   'automatisch vom System ab!'}
-        return (meldung_weiterleitung_t % meldung)
+        return h.Meldung(
+            legend='Zugriff verweigert',
+            weiter='login',
+            zeilen=('Sie konnten nicht eindeutig als angemeldeter Benutzer identifiziert werden.',
+                  'Hinweis:',
+                  'EBKuS meldet Sie nach ' + str(config.SESSION_TIME) +
+                  ' Minuten ohne Aktivität automatisch vom System ab.',
+                  'Weiter zum Login ...',
+                  ),
+            ).display()
 
     def keineZugriffsberechtigung(self, REQUEST, RESPONSE):
-        meldung = {'titel': 'Zugriff verweigert!',
-                   'legende': 'Zugriff Verweigert!',
-                   'url':'menu',
-                   'zeile1': 'Sie haben keine Zugriffsberechtigung.',
-                   'zeile2': 'Hinweis:<br> Sie werden in das Hauptmen&uuml weitergeleitet!'}
-        return (meldung_weiterleitung_t % meldung)
+        return h.Meldung(
+            legend='Zugriff verweigert',
+            weiter='menu',
+            zeilen=('Sie haben keine Zugriffsberechtigung.',
+                  'Weiter zum  Hauptmen&uuml ...',
+                  ),
+            ).display()
 
 
     def EBKuSError(self, REQUEST, RESPONSE):
         RESPONSE.setHeader('content-type', 'text/html')
-        meldung = {'titel': 'Es ist ein Fehler aufgetreten!',
-                  'legende': 'Fehlerbeschreibung',
-                  'zeile1': '%s' % str(self.last_error_message),
-                  'zeile2': ''}
-        return (meldung_t % meldung)
+        return h.Meldung(
+            title='Fehlermeldung',
+            legend='Fehlerbeschreibung',
+            zeilen=(str(self.last_error_message),
+                  'Zurück ...',
+                  ),
+            ).display()
             
             
     def getMitarbeiterliste(self):
@@ -177,10 +184,6 @@ class Request(object):
           order = 'na')
         return ml
 
-    def render(self, template_name, context_dict):
-        template = self.ebkus.jinja_environment.get_template(template_name)
-        res = template.render(**context_dict)
-        return res.encode('latin-1')
                               
         
         

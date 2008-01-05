@@ -398,6 +398,8 @@ class abfr4(_abfr):
         neumeldungen = FallList(where = 'bgy = %s' % jahr
                                 + ' and akte_id__stzbg = %d' % stelle['id'],
                                 order = 'bgm' )
+        asdliste = [f for f in neumeldungen
+                    if f['anmeldung'] and f['anmeldung'][0]['zm__name'] == 'ASD']
         zdaliste = JGHList(where = 'ey = %s' % jahr
                                 + ' and stz = %d' % stelle['id'],
                                 order = 'em' )
@@ -416,18 +418,20 @@ class abfr4(_abfr):
                                 + ' and (zday = 0 or zday >= %s)' % jahr,
                                 order = 'bgy, bgm' )
         neul = [n['bgm'] for n in neumeldungen]
+        asdl = [f['bgm'] for f in asdliste]
         zdal = [z['em'] for z in zdaliste]
         hauptf = [z['em'] for z in hauptfallliste]
         geschw = [z['em'] for z in geschwliste]
-        quartal1_neu = quartal1_zda = quartal1_hauptf = quartal1_geschw = 0
-        quartal2_neu = quartal2_zda = quartal2_hauptf = quartal2_geschw = 0
-        quartal3_neu = quartal3_zda = quartal3_hauptf = quartal3_geschw = 0
-        quartal4_neu = quartal4_zda = quartal4_hauptf = quartal4_geschw = 0
+        quartal1_neu = quartal1_asd = quartal1_zda = quartal1_hauptf = quartal1_geschw = 0
+        quartal2_neu = quartal2_asd = quartal2_zda = quartal2_hauptf = quartal2_geschw = 0
+        quartal3_neu = quartal3_asd = quartal3_zda = quartal3_hauptf = quartal3_geschw = 0
+        quartal4_neu = quartal4_asd = quartal4_zda = quartal4_hauptf = quartal4_geschw = 0
         i = 1
         monats_ergebnisse = []
         while i < 13:
             # i steht für den Monat in jahr
             neumeldezahl = neul.count(i)
+            asdzahl = asdl.count(i)
             zdazahl = zdal.count(i)
             hauptfzahl = hauptf.count(i)
             geschwzahl = geschw.count(i)
@@ -443,6 +447,7 @@ class abfr4(_abfr):
                     laufendzahl +=1
             if i <= 3:
                 quartal1_neu += neumeldezahl
+                quartal1_asd += asdzahl
                 quartal1_zda += zdazahl
                 quartal1_hauptf +=  hauptfzahl
                 quartal1_geschw +=  geschwzahl
@@ -451,33 +456,36 @@ class abfr4(_abfr):
                 # if i > 3 < 7:
             elif i <= 6:
                 quartal2_neu += neumeldezahl
+                quartal2_asd += asdzahl
                 quartal2_zda += zdazahl
                 quartal2_hauptf += hauptfzahl
                 quartal2_geschw += geschwzahl
             elif i <= 9:
                 quartal3_neu += neumeldezahl
+                quartal3_asd += asdzahl
                 quartal3_zda += zdazahl
                 quartal3_hauptf += hauptfzahl
                 quartal3_geschw += geschwzahl
             elif i <= 12:
                 quartal4_neu += neumeldezahl
+                quartal4_asd += asdzahl
                 quartal4_zda += zdazahl
                 quartal4_hauptf += hauptfzahl
                 quartal4_geschw += geschwzahl
-            monats_ergebnisse.append((i, laufendzahl, neumeldezahl,
+            monats_ergebnisse.append((i, laufendzahl, neumeldezahl, asdzahl,
                                       hauptfzahl, geschwzahl, zdazahl)) 
             i = i + 1
         quartals_ergebnisse = []
-        quartals_ergebnisse.append((1, quartal1_neu, quartal1_hauptf,
+        quartals_ergebnisse.append((1, quartal1_neu, quartal1_asd, quartal1_hauptf,
                                     quartal1_geschw, quartal1_zda,))
         
-        quartals_ergebnisse.append((2, quartal2_neu, quartal2_hauptf,
+        quartals_ergebnisse.append((2, quartal2_neu, quartal2_asd, quartal2_hauptf,
                                     quartal2_geschw, quartal2_zda,))
-        quartals_ergebnisse.append((3, quartal3_neu, quartal3_hauptf,
+        quartals_ergebnisse.append((3, quartal3_neu, quartal3_asd, quartal3_hauptf,
                                     quartal3_geschw, quartal3_zda,))
-        quartals_ergebnisse.append((4, quartal4_neu, quartal4_hauptf,
+        quartals_ergebnisse.append((4, quartal4_neu, quartal4_asd, quartal4_hauptf,
                                     quartal4_geschw, quartal4_zda,))
-        gesamt_ergebnisse = (len(neul), len(hauptf), len(geschw), len(zdal))
+        gesamt_ergebnisse = (len(neul), len(asdl), len(hauptf), len(geschw), len(zdal))
         return monats_ergebnisse, quartals_ergebnisse, gesamt_ergebnisse
     
     def processForm(self, REQUEST, RESPONSE):
@@ -507,7 +515,7 @@ class abfr4(_abfr):
                            self.get_neumelde_abschluss_daten(jahr)
         report = h.FieldsetDataTable(
             legend='Neumeldungen und Abschlüsse %s' % jahr,
-            headers=('Monat', 'Laufende am Monatsende', 'Neu', 'Hauptfall',
+            headers=('Monat', 'Laufende am Monatsende', 'Neu', 'davon ASD', 'Hauptfall',
                      'Geschwisterfall', 'z.d.A'),
             daten=[[h.String(string=m[0]),
                     h.String(string=m[1]),
@@ -515,6 +523,7 @@ class abfr4(_abfr):
                     h.String(string=m[3]),
                     h.String(string=m[4]),
                     h.String(string=m[5]),
+                    h.String(string=m[6]),
             ] for m in monats_ergebnisse] +
             [[h.String(string='Quartal %s' % m[0],
                       class_='tabledatabold'),
@@ -527,6 +536,8 @@ class abfr4(_abfr):
                       class_='tabledatabold'),
              h.String(string=m[4],
                       class_='tabledatabold'),
+             h.String(string=m[5],
+                      class_='tabledatabold'),
              ] for m in quartals_ergebnisse] +
             [[h.String(string='Gesamt',
                       class_='tabledatabold'),
@@ -538,6 +549,8 @@ class abfr4(_abfr):
              h.String(string=gesamt_ergebnisse[2],
                       class_='tabledatabold'),
              h.String(string=gesamt_ergebnisse[3],
+                      class_='tabledatabold'),
+             h.String(string=gesamt_ergebnisse[4],
                       class_='tabledatabold'),
              ]],
             )
@@ -562,21 +575,27 @@ class abfr5(_abfr):
     """Klientenzahl pro Mitarbeiter u. Jahr."""
     permissions = Request.ABFR_PERM
     def get_mitarbeiter_ergebnisse(self, jahr):
-        a = b = c = 0
+        a = b = c = d = e = 0
         mitarbeiter_ergebnisse = []
         for m in self.getMitarbeiterliste():
             neuel = ZustaendigkeitList(where = 'bgy = %s' % jahr
                                        + ' and mit_id = %d ' %m['id'])
+            davon_fallbeginn = [z for z in neuel
+                                if z['fall'].getDate('bg') == z.getDate('bg')]
             laufendl = ZustaendigkeitList(where = 'ey = 0 and bgy <= %s' % jahr
                                          + ' and bgy > 1980 and mit_id = %d ' %m['id'])
             abgeschl = ZustaendigkeitList(where = 'ey = %s' % jahr
                                            + ' and mit_id = %d ' %m['id'])
-            mitarbeiter_ergebnisse.append((m['na'], len(neuel),
-                                           len(laufendl), len(abgeschl)))
+            davon_zda = [z for z in abgeschl
+                         if z['fall'].getDate('zda') == z.getDate('e')]
+            mitarbeiter_ergebnisse.append((m['na'], len(neuel),len(davon_fallbeginn),
+                                           len(laufendl), len(abgeschl), len(davon_zda)))
             a = a + len(neuel)
-            b = b + len(laufendl)
-            c = c + len(abgeschl)
-        gesamt = a,b,c
+            b = b + len(davon_fallbeginn)
+            c = c + len(laufendl)
+            d = d + len(abgeschl)
+            e = e + len(davon_zda)
+        gesamt = a,b,c,d,e
         return mitarbeiter_ergebnisse, gesamt
     def processForm(self, REQUEST, RESPONSE):
         jahr = check_int_not_empty(self.form, 'jahr', "Fehler im Jahr", '')
@@ -602,20 +621,36 @@ class abfr5(_abfr):
         mitarbeiter_ergebnisse, gesamt = self.get_mitarbeiter_ergebnisse(jahr)
         report = h.FieldsetDataTable(
             legend='Neumeldungen und Abschlüsse pro Mitarbeiter %s' % jahr,
-            headers=('Mitarbeiter', 'Neu %s' % jahr, 'Laufend', 'Beendet',),
+            headers=('Mitarbeiter', 'Neu', 'davon Fallbeginn', 'Laufend', 'Beendet','davon z.d.A.'),
             daten=[[h.String(string=m[0]),
-                    h.String(string=m[1]),
-                    h.String(string=m[2]),
-                    h.String(string=m[3]),
+                    h.String(string=m[1],
+                             tip='Zuständigkeit neu übernommen'),
+                    h.String(string=m[2],
+                             tip='Zuständigkeit für neuen Fall übernommen'),
+                    h.String(string=m[3],
+                             tip='Laufende Fälle am Ende des Jahres'),
+                    h.String(string=m[4],
+                             tip='Zuständigkeit beendet'),
+                    h.String(string=m[5],
+                             tip='Zuständigkeitsende durch Fallabschluss'),
             ] for m in mitarbeiter_ergebnisse] +
             [[h.String(string='Gesamt',
                       class_='tabledatabold'),
              h.String(string=gesamt[0],
-                      class_='tabledatabold'),
+                      class_='tabledatabold',
+                      tip='Zuständigkeit neu übernommen'),
              h.String(string=gesamt[1],
-                      class_='tabledatabold'),
+                      class_='tabledatabold',
+                      tip='Zuständigkeit für neuen Fall übernommen'),
              h.String(string=gesamt[2],
-                      class_='tabledatabold'),
+                      class_='tabledatabold',
+                      tip='Laufende Fälle am Ende des Jahres'),
+             h.String(string=gesamt[3],
+                      class_='tabledatabold',
+                      tip='Zuständigkeit beendet'),
+             h.String(string=gesamt[4],
+                      class_='tabledatabold',
+                      tip='Zuständigkeitsende durch Fallabschluss'),
              ]],
             )
         res = h.FormPage(

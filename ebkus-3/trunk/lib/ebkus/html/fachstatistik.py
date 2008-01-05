@@ -5,7 +5,7 @@ from ebkus.config import config
 from ebkus.app import ebapi
 from ebkus.app import Request
 from ebkus.app.ebapi import Akte, Fall, Fachstatistik, FachstatistikList, \
-     LeistungList,cc,today,calc_age
+     LeistungList,cc,today,calc_age, bcode, EE
 from ebkus.html.strkat import get_strasse
 
 import ebkus.html.htmlgen as h
@@ -395,7 +395,6 @@ class _fachstatistik(Request.Request, akte_share):
             )
         if file == 'updfs':
             fstat = fs
-            #fstat['jokf1'] = cc('fsag', '3')
         else:
             fstat = None
         rows = self._customize(fstat, (
@@ -437,11 +436,7 @@ class fsneu(_fachstatistik):
     def processForm(self, REQUEST, RESPONSE):
         fallid = self.form.get('fallid')
         if not fallid:
-            return h.Meldung(
-                titel='Fehler',
-                legend='Fehlerbeschreibung',
-                zeilen=('Erstellen einer Fachstatistik nur f&uuml;r einen Fall moeglich!',)
-                ).display()
+            raise EE('Erstellen einer Fachstatistik nur f&uuml;r einen Fall moeglich.')
         fall = Fall(fallid)
         akte = fall['akte']
         # Ich kanns mir nicht anders vorstellen:
@@ -452,20 +447,33 @@ class fsneu(_fachstatistik):
         leistungen = fall['leistungen']
         jahresl = ebapi.FachstatistikList(where = "fall_fn = '%s'" % fall['fn'])
         if jahresl:
-            return h.Meldung(
-                legend='Hinweis',
-                zeilen=('Es ist bereits eine Fachstatistik f&uuml;r die Fallnummer vorhanden!',)
-                ).display()
+            raise EE('Fachstatistik f&uuml;r den Fall schon vorhanden')
         fs = Fachstatistik()
         def altersgruppe(geburtsdatum_als_string, aktuelles_datum):
             alter = calc_age(geburtsdatum_als_string, aktuelles_datum)
             ag = cc('fsag','999')
-            gruppen = (2,5,9,13,17,20,26) # gr 1: <=2, gr 2: <=5, etc, siehe Merkmale fsag
-            for i,v in enumerate(gruppen):
-                if alter <= v:
-                    ag = cc('fsag', str(i+1))
-                    break
+            try:
+                ag = bcode('fsag', alter)['id']
+            except:
+                pass # kein bereich gefunden
             return ag
+        def altersgruppeeltern(verwcode):
+            ag = cc('fsagel','999')
+            try:
+                for b in akte['bezugspersonen']:
+                    print 'BP gefunden'
+                    if b['verw__code'] == verwcode:
+                        print 'M oder V gefunden'
+                        if b['gb']:
+                            print 'GB gefunden'
+                            alter = calc_age(b['gb'], fall.getDate('bg'))
+                            print 'Alter gefunden'
+                            ag = bcode('fsagel', alter)['id']
+                            print 'AG gefunden', ag
+            except:
+                pass # kein valides Geburtsdatum gefunden
+            return ag
+                        
         if config.STRASSENKATALOG:
             strasse = get_strasse(akte)
         else:
@@ -485,6 +493,8 @@ class fsneu(_fachstatistik):
             samtgemeinde=strasse.get('samtgemeinde', ''),
             gs=akte['gs'],
             ag=altersgruppe(akte['gb'], fall.getDate('bg')),
+            agkm=altersgruppeeltern('1'), # code klerv für Mutter
+            agkv=altersgruppeeltern('2'), # code klerv für Vater
             fs=akte['fs'],
             anmprobleme=None,
             kindprobleme=None,
@@ -493,7 +503,7 @@ class fsneu(_fachstatistik):
         fs['eleistungen'] = ' '.join([str(leist['le']) for leist in leistungen])
         single_kat_felder = ('zm', 'qualij', 'hkm', 'hkv', 'bkm', 'bkv',
                              'qualikm', 'qualikv',
-                             'agkm', 'agkv', 'ba1', 'ba2', 'pbe', 'pbk', )
+                             'ba1', 'ba2', 'pbe', 'pbk', )
         for f in single_kat_felder:
             fs[f] = ' ' # leere, selektierte Option, es muss aktiv ausgewählt werden
         anm = fall['anmeldung']
@@ -529,10 +539,7 @@ class updfs(_fachstatistik):
             fall = Fall(fallid)
             fs_list = fall['fachstatistiken']
             if not fs_list:
-                return h.Meldung(
-                    legend='Hinweis',
-                    zeilen=('Es ist noch keine Fachstatistik f&uuml;r den Fall vorhanden!',),
-                    ).display()
+                raise EE('Noch keine Fachstatistik f&uuml;r den Fall vorhanden.')
             else:
                 fs = fs_list[-1] # müsste eigentlich immer nur eine sein ...
         else:

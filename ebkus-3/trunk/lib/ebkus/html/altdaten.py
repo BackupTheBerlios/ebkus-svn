@@ -139,7 +139,9 @@ class altimport(Request.Request, akte_share):
             res = h.Meldung(
                 legend="Altdaten erfolgreich importiert",
                 zeilen=("Altdaten erfolgreich importiert.",
-                      "%s Datensätze eingelesen" % len(altd_list)),
+                      "%s Datensätze eingelesen" % len(altd_list),
+                        'Weiter zum  Hauptmen&uuml ...',
+                        ),
                 onClick="go_to_url('menu')",
                 )
             return res.display()

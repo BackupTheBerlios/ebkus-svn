@@ -556,8 +556,10 @@ class strkatimport(Request.Request, akte_share):
                 legend="Straßenkatalog erfolgreich importiert",
                 zeilen=("Für die genannten Postleitzahlen wurde die Einträge "
                         "im Straßenkatalog erfolgreich ersetzt.",
-                      "%s Datensätze übernommen" % len(strkat_list)),
-                onClick="go_to_url('menu')",
+                      "%s Datensätze übernommen" % len(strkat_list),
+                        'Weiter zum  Hauptmen&uuml ...',
+                        ),
+                weiter='menu',
                 )
             return res.display()
         if self.session.data.get('strkat'):
