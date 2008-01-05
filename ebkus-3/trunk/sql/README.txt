@@ -7,15 +7,19 @@ Vollständiger Berliner Straßenkatalog bzw. Auschnitt für Demo::
   strassenkat_berlin.sql.gz
   strassenkat_berlin_ausschnitt.sql.gz
 
-Merkmalsdefinitionen zur Initialisierung der Datenbank
-mit berliner Merkmalen bzw. ohne berliner Merkmale::
+Weitere Straßenkataloge:
 
-  merkmale_berlin.py
+  strkatalog_braunschweig.sql.gz
+  strkatalog_braunschweig_gifhorn.sql.gz
+  strkatalog_gifhorn.sql.gz
+  strkatalog_wolfenbuettel.sql.gz
+  strkatalog_wolfsburg.sql.gz
+  strkatalog_wolfsburg_gifhorn.sql.gz
+
+Die Kombinationen werden teilweise so von den EB-Stellen
+benötigt. 
+
+Merkmalsdefinitionen zur Initialisierung der Datenbank::
+
   merkmale_standard.py
-
-Hier sollten nur die Merkmale stehen, die für das Funktionieren
-von EBKuS unbedingt erforderlich sind. Im Moment aber noch 
-identisch mit merkmale_standard.py::
-
-  merkmale_minimal.py
 

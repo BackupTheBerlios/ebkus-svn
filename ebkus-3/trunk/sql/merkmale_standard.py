@@ -235,7 +235,7 @@ m;Mehrfachkategorie;verwtyp
 5;21-30;fskat;21;30
 6;31-40;fskat;31;40
 7;41-50;fskat;41;50
-8;mehr als 50;fskat;51;
+8;mehr als 50;fskat;51;99999
 1;Mutter;klerv;;;Wird zur Berechnung der Altersgruppe der Mutter verwendet
 2;Vater;klerv;;;Wird zur Berechnung der Altersgruppe des Vaters verwendet
 3;Geschwister;klerv
