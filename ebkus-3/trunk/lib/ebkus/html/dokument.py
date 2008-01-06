@@ -58,6 +58,7 @@ class _dokument(Request.Request, akte_share):
                 daten=[[h.UploadItem(label='Lokaler Dateiname',
                                      name='datei',
                                      tip='Lokale Datei hochladen',
+                                     class_='textboxlarge',
                                      ),
                         ]],
                 )
