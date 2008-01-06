@@ -164,7 +164,7 @@ class Base(_HTML):
             # TODO user daten übernehmen
             from ebkus.app.Request import getRequest
             mitarbeiter = getRequest().mitarbeiter
-            self.login = "%(vn)s %(na)s (%(ben)s, %(benr__name)s)" % mitarbeiter
+            self.login = "%(vn)s %(na)s (%(ben)s@%(stz__code)s, %(benr__name)s)" % mitarbeiter
             #self.breadcrumb = self.breadcrumbs_t % (crumbs, login)
             self.breadcrumb = crumbs
             self.instanz = "EBKuS 4.0: %s" % config.INSTANCE_TITLE
@@ -462,12 +462,12 @@ class Meldung(FormPage):
     onClick = "javascript:history.back()"
     empty_row = '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>'
     def _init(self):
+        if self.weiter:
+            self.onClick = "go_to_url('%s')" % self.weiter
         self.set_rows()
         super(Meldung, self)._init()
         if not self.title:
             self.title = self.legend
-        if self.weiter:
-            self.onClick = "go_to_url('%s')" % self.weiter
     def set_rows(self):
         rows = [self.empty_row]*3
         rows += ['<tr><td align="center">%s</td></tr>' % z for z in self.zeilen]

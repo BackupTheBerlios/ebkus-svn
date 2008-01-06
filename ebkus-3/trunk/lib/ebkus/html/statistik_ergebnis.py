@@ -4,6 +4,7 @@ import logging
 from ebkus.app import Request
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.abfragen_templates import *
+import ebkus.html.htmlgen as h
 
 import gdchart
 import cStringIO
@@ -38,15 +39,13 @@ class auszergebnis(Request.Request):
         try:
             self.auszaehlung = self.session.data[self.session_key][self.id]
         except KeyError:
-            meldung = {
-                'titel':'Abfrageergebnis veraltet',
-                'legende':'Abfrageergebnis veraltet',
-                'zeile1':'Die Abfrageergebnisse stammen aus einer fr&uuml;heren Session.',
-                'zeile2':'Bitte wiederholen Sie die Anfrage.'
-                }
-            return meldung_t % meldung
-
-
+            return h.Meldung(
+                legend='Abfrageergebnis veraltet',
+                zeilen=('Die Abfrageergebnisse stammen aus einer fr&uuml;heren Session.',
+                        'Bitte wiederholen Sie die Anfrage.',
+                      'Zurück ...',
+                      ),
+                ).display()
         if self.typ == 'tab':
             # Einzeltabelle zum Drucken
             return self.show_tabelle()

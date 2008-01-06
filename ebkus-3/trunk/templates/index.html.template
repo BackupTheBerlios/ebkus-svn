@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>EBKuS %(INSTANCE_NAME)s</title>
+<title>EBKuS %(INSTANCE_TITLE)s</title>
 </head>
 <body style="font-family: sans-serif">
 <table border="0"><tr><td width="10%%"></td><td>
@@ -8,7 +8,7 @@
 <img border="0" alt="/ebkus/ebkus_icons/ebkus_logo.gif" src="/ebkus/ebkus_icons/ebkus_logo.gif" />
 </a>
 </p>
-<h1>%(INSTANCE_NAME)s</h1>
+<h1>%(INSTANCE_TITLE)s</h1>
 <p><a href="/ebkus/%(INSTANCE_NAME)s/cgi/do/login">Anmelden</a></p>
 <p>Bei Problemen wenden Sie sich bitte an den Anwendungsbetreuer:</p>
 <blockquote>
@@ -24,8 +24,8 @@ E-Mail: <a href="mailto:%(ADMIN_EMAIL)s">
 <hr />
 <small>
 <small>
-<p>EBKuS 3.3 <br />
-Copyright (1997-2007) 
+<p>EBKuS 4.0 <br />
+Copyright (1997-2008) 
 <a href="mailto:juerg@pantau.in-berlin.de">Jürg Huber</a>,
 <a href="mailto:atms@alibi.in-berlin.de">Albrecht Schmiedel</a>
 <br/>

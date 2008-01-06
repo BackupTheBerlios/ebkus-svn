@@ -1397,7 +1397,7 @@ def _jgh07_check(form, jgh):
     if config.BERATUNGSKONTAKTE:
         from ebkus.html.beratungskontakt import get_jgh_kontakte
         nbkakt, nbkges = get_jgh_kontakte(fall)
-    print 'DEFAULTS', nbkakt, nbkges
+    #print 'DEFAULTS', nbkakt, nbkges
     if hilfe_dauert_an:
         jgh['nbkakt'] = check_int_not_empty(form, 'nbkakt',
                             "Fehlt: %s" % item_J, default=nbkakt)

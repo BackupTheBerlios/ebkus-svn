@@ -185,6 +185,7 @@ def insert_kategorie_codes(merkmale):
         c['zeit'] = aenderungszeit
         assert c['kat_code'] == katcode == kat['code'] == cd[2]
         sort = sort + 1
+        #print 'BBB', cd
         if katcode in bereichslist and len(cd) > 4:
             c['mini'] = int(cd[3])
             c['maxi'] = int(cd[4])

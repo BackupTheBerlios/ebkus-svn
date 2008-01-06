@@ -29,11 +29,9 @@ class options(object):
             dok = c['dok']
             if dok:
                 dok = dok.strip().lower()
-                if dok.startswith('stelle'):
-                    dok = dok[6:].strip()
-                    if dok.startswith(stz_code):
-                        found = c
-                        break
+                if ('stelle ' + stz_code + ';') in dok:
+                    found = c
+                    break
         if found:
             codes.remove(found)
             codes.insert(0, found)

@@ -294,10 +294,13 @@ t;ist im Verteiler;vert
 f;nicht im Verteiler;vert
 ja;aktuelle Einrichtung;einrstat
 nein;frühere Einrichtung;einrstat
-0;Musterregierungsbezirk;rbz
-01;Musterkreis;kr
-000;N.N.;gm
-000;N.N.;gmt
+0;Musterregierungsbezirk;rbz;nicht benötigt
+51;Gifhorn;kr
+58;Wolfenbüttel;kr
+03;Wolfsburg;kr
+01;Braunschweig;kr
+000;N.N.;gm;nicht benötigt
+000;N.N.;gmt;nicht benötigt
 1;Träger der öffentl. JGH;traeg
 2;Träger der freien JGH;traeg
 1;Beratung wurde einvernehmlich beendet;bgr
@@ -451,7 +454,22 @@ protocol;off;config
 
 # Ergänzungen für die neue Bundesstatistik 2007
 code_list_str += \
-"""12;Muster-Land;land
+"""01;Schleswig-Holstein;land
+02;Freie und Hansestadt Hamburg;land
+03;Niedersachsen;land
+04;Freie Hansestadt Bremen;land
+05;Nordrhein-Westfalen;land
+06;Hessen;land
+07;Rheinland-Pfalz;land
+08;Baden-Württemberg;land
+09;Bayern;land
+10;Saarland;land
+11;Berlin;land
+12;Brandenburg;land
+13;Mecklenburg-Vorpommern;land
+14;Sachsen;land
+15;Sachsen-Anhalt;land
+16;Thüringen;land
 11;11 Muster-Einrichtungsnummer;einrnr
 1;Eltern leben zusammen;shf
 2;Elternteil lebt alleine ohne (Ehe-)Partner (mit/ohne weitere/n Kinder/n);shf
@@ -597,10 +615,10 @@ stand;Bearbeitungsstand
 notizbed;Notizbedeutung
 vert;im Verteiler
 einrstat;Aktueller Kontakt
-rbz;Regierungsbezirk
-kr;Kreis
-gm;Gemeinde
-gmt;Gemeindeteil
+rbz;Regierungsbezirk;amtlicher Gemeindeschlüssel (AGS)
+kr;Kreis;amtlicher Gemeindeschlüssel (AGS, Ziffer 4-5)
+gm;Gemeinde;amtlicher Gemeindeschlüssel (AGS)
+gmt;Gemeindeteil;amtlicher Gemeindeschlüssel (AGS)
 traeg;Jugendhilfe-Träger
 bgr;Beendigungsgrund
 gs;Geschlecht
@@ -648,7 +666,7 @@ aip;Die Hilfe/Beratung anregende Institution oder Person
 gruende;Gründe für die Hilfegewährung
 grende;Gründe für die Beendigung der Hilfe/Beratung
 unh;Unmittelbar nachfolgende Hilfe
-land;Land (Feld 2-3)
+land;Land (Feld 2-3);amtlicher Gemeindeschlüssel (AGS Ziffer 1-2)
 einrnr;Einrichtungs-Nr (Feld 10-15)
 jghag;Altersgruppe
 """

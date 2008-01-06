@@ -351,13 +351,13 @@ class DBObjekt(UserDict):
         try:
             return self._lookup_path(key)
         except DBAppError, e:
-            print e.args
+            #print e.args
             raise AttributeError("Could not resolve field '%s' for instance of '%s'" %
                                  (key, self.__class__.__name__))
             
             
     def get_conditional(self, key):
-        print '*****************************CONDITIONAL_FIELD', self.__class__.__name__, key
+        #print '*****************************CONDITIONAL_FIELD', self.__class__.__name__, key
         alts = self.conditionalfields[key]
         cond =  alts[0]
         if type(cond) == type(''):

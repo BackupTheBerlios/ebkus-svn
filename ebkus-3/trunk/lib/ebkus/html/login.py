@@ -5,7 +5,7 @@ from ebkus.app.session import create_session, get_session, has_session
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.session_templates import *
 from ebkus.app import Request
-from ebkus.app.ebapi import MitarbeiterList, cc
+from ebkus.app.ebapi import MitarbeiterList, cc, EE
 from ebkus.app.protocol import write_sql_protocol
 from ebkus.config import config
 

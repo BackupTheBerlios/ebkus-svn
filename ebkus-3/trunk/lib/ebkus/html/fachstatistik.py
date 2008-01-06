@@ -461,15 +461,10 @@ class fsneu(_fachstatistik):
             ag = cc('fsagel','999')
             try:
                 for b in akte['bezugspersonen']:
-                    print 'BP gefunden'
                     if b['verw__code'] == verwcode:
-                        print 'M oder V gefunden'
                         if b['gb']:
-                            print 'GB gefunden'
                             alter = calc_age(b['gb'], fall.getDate('bg'))
-                            print 'Alter gefunden'
                             ag = bcode('fsagel', alter)['id']
-                            print 'AG gefunden', ag
             except:
                 pass # kein valides Geburtsdatum gefunden
             return ag

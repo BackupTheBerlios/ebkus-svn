@@ -768,45 +768,35 @@ class DemoDaten(object):
 
 def handle_stellen_einrichtung(n_stellen):
     stellen_codes = ('BS', 'GF', 'WF', 'WOB')
-    land_codes = (
-        ('10', 'BSLand'),
-        ('11', 'GFLand'),
-        ('12', 'WFLand'),
-        ('13', 'WOBLand'),
-        )
-    kr_codes = (
-        ('20', 'BSKreis'),
-        ('21', 'GFKreis'),
-        ('22', 'WFKreis'),
-        ('23', 'WOBKreis'),
-        )
+    kreise = ('Braunschweig', 'Gifhorn', 'Wolfenbüttel', 'Wolfsburg')
     einrnr_codes = (
         ('100100', 'BSEinrichtungsnummmer'),
         ('200200', 'GFEinrichtungsnummer'),
         ('300300', 'WFEinrichtungsnummer'),
         ('400400', 'WOBEinrichtungsnummer'),
         )
-    # standardmerkmale nach hinter
-    CodeList(kat_code='land').deleteall()
-    CodeList(kat_code='kr').deleteall()
-    CodeList(kat_code='einrnr').deleteall()
-    def insert_codes(data, kat_code):
-        for i, (c, n) in enumerate(data):
-            code = Code()
-            code.init(
-                kat_id=Kategorie(code=kat_code)['id'],
-                kat_code=kat_code,
-                code=c,
-                name=n,
-                sort=i+1,
-                off=0,
-                dok='Stelle %s # Bei dieser Stelle steht dieses Merkmal oben' % stellen_codes[i]
-                )
-            code.new()
-            code.insert()
-    insert_codes(land_codes, 'land')
-    insert_codes(kr_codes, 'kr')
-    insert_codes(einrnr_codes, 'einrnr')
+    CodeList(where="kat_code='einrnr'").deleteall()
+    kat_code = 'einrnr'
+    for i, (c, n) in enumerate(einrnr_codes):
+        code = Code()
+        code.init(
+            kat_id=Kategorie(code=kat_code)['id'],
+            kat_code=kat_code,
+            code=c,
+            name=n,
+            sort=i+1,
+            off=0,
+            dok='Stelle %s; # Bei dieser Stelle steht dieses Merkmal oben' % stellen_codes[i]
+            )
+        code.new()
+        code.insert()
+            
+    for i, (st, kr) in enumerate(zip(stellen_codes, kreise)):
+        kr_code = Code(name=kr)
+        kr_code.update({'dok': "Stelle %s; # kommt bei St. %s nach oben" % (st, st) })
+    land_code = Code(name='Niedersachsen')
+    land_code.update({'dok': "%s # kommt bei diesen Stellen nach oben" %
+                      ' '.join([("Stelle %s;" % s) for s in stellen_codes]) })
     # umbenennen des vordefinierten Stellenzeichens
     Code(kat_code='stzei', code='A').update({'name': 'Stelle BS', 'code': 'BS'})
     for i in range(1, n_stellen):

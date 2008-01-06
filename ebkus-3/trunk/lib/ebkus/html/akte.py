@@ -556,7 +556,7 @@ class rmakten2(Request.Request, akte_share):
     permissions = Request.ADMIN_PERM
     def processForm(self, REQUEST, RESPONSE):
         from ebkus.app.ebapi import check_list
-        print self.form
+        #print self.form
         op = self.form.get('op')
         rm = check_list(self.form, 'rmak', 'Fehler in markierten Akten', '')
         if op == 'loeschen_confirmed' and rm:

@@ -254,7 +254,7 @@ class print_pdf(Request.Request):
                 aktendokl = DokumentList(where = 'fall_id = %s  '
                                        % (f['id']), order = 'vy,vm,vd')
                 dokl = []
-                print aktendokl
+                #print aktendokl
                 for d in aktendokl:
                     if d['art'] != cc('dokart', 'bnotiz'):
                         zeilen = string.split(mk_columns(d['betr'],60),'\n')
@@ -315,7 +315,8 @@ class print_pdf(Request.Request):
                         #page
                         pg = canv.getPageNumber()
                         if pg % 10 == 0:
-                            print 'formatted page %d' % canv.getPageNumber()
+                            #print 'formatted page %d' % canv.getPageNumber()
+                            pass
                 tx.textLine('')
         if tx:
             canv.drawText(tx)
@@ -415,7 +416,7 @@ class printgr_pdf(Request.Request):
             aktendokl = GruppendokumentList(where = 'gruppe_id = %s  '
                                    % (gruppe['id']), order = 'vy,vm,vd')
             dokl = []
-            print aktendokl
+            #print aktendokl
             for d in aktendokl:
                 if d['art'] != cc('dokart', 'bnotiz'):
                     zeilen = string.split(mk_columns(d['betr'],60),'\n')
@@ -478,7 +479,8 @@ class printgr_pdf(Request.Request):
                     #page
                     pg = canv.getPageNumber()
                     if pg % 10 == 0:
-                        print 'formatted page %d' % canv.getPageNumber()
+                        #print 'formatted page %d' % canv.getPageNumber()
+                        pass
             tx.textLine('')
         if tx:
             canv.drawText(tx)
@@ -516,8 +518,8 @@ class suchetxt(Request.Request):
         popen = os.popen
         
         akte = None
-        print "***************************"
-        print self.form.has_key('fallid')
+        #print "***************************"
+        #print self.form.has_key('fallid')
         
         mitarbeiterliste = self.getMitarbeiterliste()
         user = self.user
@@ -572,10 +574,10 @@ class suchetxt(Request.Request):
                 akte_path = get_akte_path(akte['id'])
                 cwd = os.getcwd()
                 os.chdir('%s' % akte_path)
-                print "************* VOR POPEN *******************"
+                #print "************* VOR POPEN *******************"
                 fd = popen('agrep -n -i %s *.txt /dev/null' % expr)
-                print "************* NACH POPEN ******************"
-                print fd.readlines()
+                #print "************* NACH POPEN ******************"
+                #print fd.readlines()
                 ergebnis = fd.readlines()
                 fd.close()
                 os.chdir(cwd)

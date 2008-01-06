@@ -143,13 +143,13 @@ class SQL:
         
         sql = self.evalSQLTemplate(params)
         #if debug: log.log1( sql)
-        if debug: print sql
+        #if debug: print sql
         try:
             result = getDBHandle().query(sql)
         except Exception, text:
             raise SQLError('database error', str(text), sql)
             #if debug: log.log1(result)
-        if debug: print result
+        #if debug: print result
         return result
         
     def getSQL(self, **params):
