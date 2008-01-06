@@ -1,4 +1,4 @@
-EBKuS 3.3
+EBKuS 4.0
 =========
 
 Klientenverwaltung, Aktendokumentation, Gruppenverwaltung 
@@ -9,6 +9,20 @@ Lizenz: GNU General Public License (GPL)
 
 E-Mail: juerg@pantau.in-berlin.de, atms@alibi.in-berlin.de
 WWW: http://www.ebkus.org/
+
+
+ACHTUNG
+=======
+
+DIE VERSION 4.0 ENTHÄLT KEIN UPDATE-SKRIPT ZUR ÜBERFÜHRUNG
+ÄLTERER VERSIONEN. NUR FÜR GANZ NEUE INSTALLTIONEN GEEIGNET!
+
+DAS HANDBUCH IST NOCH NICHT FÜR DIE STARK VERÄNDERTE VERSION 4
+AKTUALISIERT! 
+
+DIE INSTALLATIONSANLEITUNG IM HANDBUCH IST JEDOCH NACH WIE VOR
+GÜLTIG. 
+
 
 Hinweis für Windows-Benutzer
 ----------------------------
@@ -27,10 +41,14 @@ Handbuch:
 
 lokal: 
 
+VERALTET!
+
 - doc/EBKuS_Handbuch.html
 - doc/EBKuS_Handbuch.pdf
 
 WWW:   
+
+VERALTET!
 
 - http://ebkus.berlios.de/ebkus-3.3/EBKuS_Handbuch.html
 - http://ebkus.berlios.de/ebkus-3.3/EBKuS_Handbuch.pdf
@@ -41,29 +59,5 @@ Installation
 Zur Installation siehe die Datei doc/installation.txt bzw. das
 Kapitel Installation im Handbuch.
 
-EBKuS-Software
---------------
-
-- Quellen direkt aus Subversion (bash unter Linux)::
-
-    svn checkout http://svn.berlios.de/svnroot/repos/ebkus/ebkus-3/tags/EBKuS-3.3
-
-- nur Quellen (ca. 5MB)::
-
-    ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.3-src.zip
-    ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.3-src.tar.gz
-
-    http://ebkus.berlios.de/ebkus/ebkus-3.3-src.zip
-    http://ebkus.berlios.de/ebkus/ebkus-3.3-src.tar.gz
-
-  Aus den Quellen kann mit dem mitgelieferten Skript create_cd.py
-  eine vollständige Distribution erstellt werden.  Siehe auch den
-  Abschnitt "create_cd.py" im Handbuch bzw. in der Datei
-  doc/installation.txt.
-
-- vollständige Distribution inklusive der gesamten zusätzlich
-  benötigten Software (ca. 70MB)::
-
-    ftp://ftp.efb-berlin.de/pub/ebkus/ebkus-3.3/ebkus-3.3-dist.zip
 
 
