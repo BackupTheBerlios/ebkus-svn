@@ -1,0 +1,20 @@
+Aktuell:
+
+- Version 3.3 mit der neuen gesetzlichen Statistik für die
+  Kinder- und Jugendhilfe
+
+Perspektivisch:
+
+- Transaktionen verwenden (hauptsächlich in app/ebupd.py)
+
+- SQLLite statt MySQL
+
+- CherryPy statt Apache/Bobo
+
+- Objektrelationales Tool statt Selbstgestricktes
+
+- online-Hilfe mit dem Handbuch integrieren
+
+- Export der Fachstatistik und der Jugendhilfestatistik nach
+  Excel 
+

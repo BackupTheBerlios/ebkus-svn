@@ -1,0 +1,138 @@
+html,body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            font-weight:normal;
+
+            background: #CCCCCC;
+            color:#000000;
+}
+
+
+table.pageframe { 
+        padding: 0 0 0 0;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 30px;
+        width: 800px;
+ }
+
+a:link { text-decoration:none; font-weight:bold; color:#000000; }
+a:visited { text-decoration:none; font-weight:bold; color:#000000; }
+a:hover { text-decoration:none; font-weight:bold; background-color:#CCCCCC; }
+a:active { text-decoration:none; font-weight:bold; background-color:#CCCCCC; }
+
+
+.textbox13 {  font-weight: normal; width: 13pt; }
+.textboxsmall {  font-weight: normal; width: 20pt; }
+.textbox52 {  font-weight: normal; width: 52pt; }
+.textbox30 {  width: 30pt;}
+.textboxmid {  width: 40pt; clip:  rect(   )}
+.textbox80 {  width: 80pt; }
+.textbox {  width: 120pt; }
+.textbox120 {  width: 120pt; }
+.textbox170 {  width: 170pt; }
+.textboxlarge {  width: 220pt; }
+.textbox310 {  width: 310pt; }
+.textbox280 {  width: 280pt; }
+.textboxverylarge {  width: 400pt; }
+
+.listbox30 {  width: 30pt; }
+.listbox45 {  width: 45pt; }
+.listbox60 {  width: 60pt; }
+.listbox120 {  width: 122pt; }
+.listbox130 {  width: 132pt; }
+.listbox {  width: 170pt; }
+.listbox170 {  width: 170pt; }
+.listbox220 {  width: 222pt; }
+.listbox280 {  width: 282pt; }
+.listbox310 {  width: 310pt; }
+.listbox360 {  width: 360pt; }
+.listbox2 { font-family: Courier; font-size: 10pt; width: 170pt; }
+.listboxstr {  font-family: Courier; font-size: 11pt; width: 340pt; }
+.listboxstrlarge {  font-family: Courier; font-size: 11pt; width: 600pt; }
+.listboxstrverylarge {  font-family: Courier; font-size: 10pt; width: 650pt; }
+
+
+.smalltext {font-size:7pt;}
+.parenttext {font-size:11pt;}
+.normaltext {font-size:10pt;font-weight:normal}
+.childtext {font-size:9pt;}
+.labeltext {font-size:10pt;}
+.legendtext {font-size:10pt;font-weight:bold}
+.titeltext {font-size:12pt;font-weight:bold}
+.strtext11 {  font-family: Courier; font-size: 11pt;}
+.strtext10 {  font-family: Courier; font-size: 10pt;}
+
+.breadcrumb {
+        font-size:7pt;
+        padding: 0 0 0 0;
+}
+div#help{
+       position: absolute;
+       left: 7px;
+       top: 7px;
+       font-size:8pt;
+       }
+div#breadcrumb{
+       position: absolute;
+       left: 60px;
+       width: 320px;
+       top: 7px;
+       font-size:8pt;
+       }
+div#instanz{
+       position: absolute;
+       left: 400px;
+       top: 7px;
+       width: 230px;
+       font-size:8pt;
+       }
+div#login{
+       position: absolute;
+       right: 50px;
+       width: 250px;
+       top: 7px;
+       font-size:8pt;
+       }
+div#logout{
+       position: absolute;
+       right: 7px;
+       top: 7px;
+       font-size:8pt;
+       }
+
+fieldset {
+           border-width:2;
+           border-color:#FFFFFF;
+           border-style:groove;
+}
+
+th { 
+     font-size:10pt;
+     font-weight:normal;
+     text-align: left;
+}
+
+/* hat im IE 6 keinen Effekt */
+table { 
+        padding: 3px 3px 3px 3px;
+ }
+
+.tabledata {
+     background-color:#FFFFFF;
+     font-size:10pt;
+     font-weight:normal;
+     text-align: left;
+     padding:.1em;
+ }
+.tabledatabold {
+     background-color:#FFFFFF;
+     font-size:10pt;
+     font-weight:bold;
+     text-align: left;
+     padding:.1em;
+ }
+
+.buttonbig {font-size:10pt;height:18pt;width:120pt;background-color:#CCCCCC}
+.button {font-size:10pt;height:18pt;width:90pt;background-color:#CCCCCC}
+.buttonsmall {font-size:10pt;height:18pt;background-color:#CCCCCC}
