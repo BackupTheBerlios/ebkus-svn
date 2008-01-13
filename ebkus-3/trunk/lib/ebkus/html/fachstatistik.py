@@ -506,8 +506,11 @@ class fsneu(_fachstatistik):
             fs[f] = ' ' # leere, selektierte Option, es muss aktiv ausgewählt werden
 
         # falls unter 14 Beschäftigung vorbelegen
-        if alter < 14:
-            fs['qualij'] = cc('fsqualij', '7')
+        try:
+            if alter < 14:
+                fs['qualij'] = cc('fsqualij', '7')
+        except:
+            pass
         anm = fall['anmeldung']
         if anm:
             fs['zm'] = anm[0]['zm']
