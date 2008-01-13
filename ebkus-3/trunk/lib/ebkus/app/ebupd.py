@@ -40,7 +40,7 @@ def akteeinf(form):
     # Fallbeginn ist identisch mit Zuständigkeitsbeginn
     fall.setDate('bg',
                  check_date(form, 'zubg',
-                            "Fehler im Datum für den Zuständigkeitsbeginn"))
+                            "Fehler im Anmeldedatum"))
     fall.setDate('zda', Date(0,0,0))
     fall['fn'] = getNewFallnummer(stelle['code'], fall['bgy'])
     fall['status'] = cc('stand', 'l')
@@ -869,6 +869,9 @@ def zdaeinf(form):
 ##     else:
 ##         raise EE("Keine Jugendhilfestatistik für Fallnummer '%(fn)s' vorhanden" % fallold )
     jgh = fallold['jgh']
+    if (jgh and isinstance(jgh, Jugendhilfestatistik2007) and
+        jgh['hda'] == cc('ja_nein', '1')):
+        raise EE("Die vorhandene Jugendhilfestatistik ist nicht für einen abgeschlossenen Fall.")
     if not jgh:
         raise EE("Keine Jugendhilfestatistik für Fallnummer '%(fn)s' vorhanden" % fallold )
         

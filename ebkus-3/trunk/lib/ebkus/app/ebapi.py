@@ -410,11 +410,16 @@ def _akte_name(self, key):
     return "%(vn)s %(na)s" % self
 
 def _wiederaufnehmbar(self, key):
+    """Ein Fall ist wiederaufnehmbar, wenn der Abschluss *länger* zurückliegt,
+    als die konfigurierte Wiederaufnahmefrist.
+    Ansonsten (nämlich innerhalb der Wiederaufnahmefrist) wird
+    der einfach aktiviert, dh 'Zda Rückgängig'
+    """
     letzter_fall = self['letzter_fall']
     if letzter_fall and letzter_fall['zday'] != 0:
         zda_date = letzter_fall.getDate('zda')
-        wauf_bis = zda_date.add_month(config.WIEDERAUFNAHMEFRIST)
-        return today() <= wauf_bis
+        zda_rueck_bis = zda_date.add_month(config.WIEDERAUFNAHMEFRIST)
+        return today() > zda_rueck_bis
     return False
     
 def _letzter_fall(self, key):
@@ -552,6 +557,11 @@ def _fall_beratungskontakte(self, key):
                'fallberatungskontakt.bkont_id=beratungskontakt.id')])
     bkont_list.sort('ky', 'km', 'kd')
     return bkont_list
+def _fall_leistungsbeginn(self, key):
+    leistungen = self['leistungen']
+    leistungen.sort('bgy', 'bgm', 'bgd')
+    return leistungen[0].getDate('bg')
+
 Fall.attributemethods['name'] = _fall_name
 Fall.attributemethods['aktuell'] = _aktuell_fall
 Fall.attributemethods['zustaendig'] = _zustaendig_fall
@@ -563,6 +573,7 @@ Fall.attributemethods['has_jghstatistik'] = _has_jghstatistik
 Fall.attributemethods['bg'] = getDate
 Fall.attributemethods['zda'] = getDate
 Fall.attributemethods['beratungskontakte'] = _fall_beratungskontakte
+Fall.attributemethods['leistungsbeginn'] = _fall_leistungsbeginn
 
 
 def _prev_zust(self, key):

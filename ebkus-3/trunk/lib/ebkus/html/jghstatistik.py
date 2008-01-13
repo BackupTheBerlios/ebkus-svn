@@ -517,10 +517,17 @@ _fb_data = (
     {'abschnitt': 'E',
      'title': 'Geschlecht und Alter',
      'items_data': ({'frage': 'Geschlecht',
-                'typ': ('kat', 'gs',),
-                'name': 'gs',
-                'default': ' '
+                     'typ': ('kat', 'gs',),
+                     'name': 'gs',
+                     'size': '3',
+                     'readonly': True,
+                     'default': ' '
                 },
+##     {'frage': 'Geschlecht',
+##                 'typ': ('kat', 'gs',),
+##                 'name': 'gs',
+##                 'default': ' '
+##                 },
                {'frage': 'Geburtsmonat',
                 'typ': ('int', 1, 12,),
                 'name': 'gem',
@@ -777,6 +784,13 @@ class _jgh07(Request.Request, akte_share):
             kat_code = item['typ'][1]
             name = item['name']
             default = jgh.get(name)
+            if name == 'gs': # Geschlecht readonly
+                # Wert muss da sein! Nur für Geschlecht gedacht.
+                item['value'] = Code(jgh[name])['name']
+                item['name'] = '' # readonly feld
+                item['ro'] = 'readonly'
+                item['tip'] = ''
+                return fb_text_item_t % item
             if not default:
                 default = item.get('default')
                 if default and default != ' ':
@@ -870,7 +884,8 @@ class jgh07neu(_jgh07):
         jgh['stz'] = self.stelle['id']
         jgh['file'] = 'jgh07einf'
         jgh['mit_id'] = self.mitarbeiter['id']
-        jgh.setDate('bg', fall.getDate('bg'))
+        #jgh.setDate('bg', fall.getDate('bg'))
+        jgh.setDate('bg', fall['leistungsbeginn'])
         jgh['fall_fn'] = fall['fn']
         jgh['fall_id'] = fall['id']
         dmy = [int(e) for e in fall['akte__gb'].split('.')]
@@ -879,6 +894,7 @@ class jgh07neu(_jgh07):
         jgh['gey'] = geburtsdatum.year
         jgh['gem'] = geburtsdatum.month
         jgh['gs'] = fall['akte__gs']
+        assert isinstance(jgh['gs'], (int, long))
         if config.BERATUNGSKONTAKTE:
             from ebkus.html.beratungskontakt import get_jgh_kontakte
             jgh['nbkakt'], jgh['nbkges'] = get_jgh_kontakte(fall)

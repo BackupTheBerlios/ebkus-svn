@@ -11,6 +11,7 @@ jghhead_t = """
         <input type="hidden" value="%(jghid)s" name="jghid" >
         <input type="hidden" value="%(file)s" name="file" >
         <input type="hidden" value="%(mit_id)d" name="mitid">
+        <input type="hidden" value="%(gs)d" name="gs">
         <table border="0" cellpadding="1" width="95%%">"""
 
 tip_t = """title="%(tip)s" onMouseOver="window.status='%(tip)s';return true;" onMouseOut="window.status='';return true;" """
@@ -120,6 +121,17 @@ fb_option_t = """
       <option value="%(id)d" title="%(name)s" %(sel)s > %(name)s """
 
 fb_int_item_t = """
+                <tr>
+                  <td align="left" width="35%%" class="labeltext">
+                  %(frage)s:
+                  </td>
+                  <td align="left" valign="bottom">
+                    <input type="text" name="%(name)s" value="%(value)s"
+                    size="%(size)s" maxlength="%(size)s" %(ro)s %(tip)s>
+                  </td>
+                </tr>"""
+
+fb_text_item_t = """
                 <tr>
                   <td align="left" width="35%%" class="labeltext">
                   %(frage)s:

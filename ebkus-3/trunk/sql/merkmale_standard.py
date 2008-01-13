@@ -270,6 +270,7 @@ m;Mehrfachkategorie;verwtyp
 5;berufstätig;fsqualij
 5;Berufsförderung;fsqualij
 6;sonstige;fsqualij
+7;entfällt (unter 14)
 999;keine Angabe;fsqualij
 1;Schule;fsquali
 2;ungelernt;fsquali
@@ -604,7 +605,7 @@ kabs;Art des Beratungskontakts (BS);Im Doku-Feld kann die Berechnung der Brutto-
 teilnbs;Teilnehmer am Kontakt (BS)
 fuabs;Art der fallunabhängigen Aktivität (BS);Im Doku-Feld kann die Berechnung der Brutto-Dauer angegeben werden.
 fskat;Anzahl der Termine
-fsqualij;sozialer Status Jugendlicher, 14-27
+fsqualij;Beschäftigung Jugendlicher
 fsquali;Qualifikation der Eltern
 klerv;Verwandtschaftsgrad
 klinsta;Einrichtungskontakt

@@ -55,6 +55,12 @@ install.py [-d <Downloadverzeichnis>] <Installationsverzeichnis>
       Falls nicht angegeben, wird das Installationsverzeichnis
       verwendet.
 
+    --no_mysql
+    --no_apache
+    --no_srvstart
+
+      Damit die jeweilige Komponente nicht installiert wird
+
 """
     print s
     sys.exit(1)

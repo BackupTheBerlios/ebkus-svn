@@ -127,11 +127,12 @@ class _fachstatistik(Request.Request, akte_share):
                                  tip=regional_info,
                                  ),
                       ],
-                     [h.SelectItem(label='Geschlecht',
-                                   name='gs',
-                                   options=self.for_kat('gs', fs['gs']),
-                                   aktiviert=True,
-                                    ),
+                     [h.TextItem(label='Geschlecht',
+                                 name='xxx',
+                                 value=fs['gs__name'],
+                                 class_='textbox13',
+                                 readonly=True,
+                                 ),
                       h.SelectItem(label='Alter Kind/Jugendliche(r)',
                                    name='ag',
                                    options=self.for_kat('fsag', fs['ag']),
@@ -147,7 +148,7 @@ class _fachstatistik(Request.Request, akte_share):
                                    options=self.for_kat('fszm', fs['zm']),
                                    ),
                       ],
-                     [h.SelectItem(label='Qualifikation Kind/Jugendliche(r)',
+                     [h.SelectItem(label='Beschäftigung Jugendliche(r)',
                                    name='qualij',
                                    options=self.for_kat('fsqualij', fs['qualij']),
                                    ),
@@ -424,6 +425,7 @@ class _fachstatistik(Request.Request, akte_share):
                     ('fall_fn', fs['fall_fn']),
                     ('mitid', fs['mit_id']),
                     ('fsid', fs['id']),
+                    ('gs', fs['gs']),
                     ),
             )
         return res.display()
@@ -449,8 +451,9 @@ class fsneu(_fachstatistik):
         if jahresl:
             raise EE('Fachstatistik f&uuml;r den Fall schon vorhanden')
         fs = Fachstatistik()
-        def altersgruppe(geburtsdatum_als_string, aktuelles_datum):
-            alter = calc_age(geburtsdatum_als_string, aktuelles_datum)
+        # Alter relativ zum Fallbeginn
+        alter = calc_age(akte['gb'], fall.getDate('bg'))
+        def altersgruppe():
             ag = cc('fsag','999')
             try:
                 ag = bcode('fsag', alter)['id']
@@ -487,7 +490,7 @@ class fsneu(_fachstatistik):
             bezirk=strasse.get('bezirk', ''),
             samtgemeinde=strasse.get('samtgemeinde', ''),
             gs=akte['gs'],
-            ag=altersgruppe(akte['gb'], fall.getDate('bg')),
+            ag=altersgruppe(),
             agkm=altersgruppeeltern('1'), # code klerv für Mutter
             agkv=altersgruppeeltern('2'), # code klerv für Vater
             fs=akte['fs'],
@@ -501,6 +504,10 @@ class fsneu(_fachstatistik):
                              'ba1', 'ba2', 'pbe', 'pbk', )
         for f in single_kat_felder:
             fs[f] = ' ' # leere, selektierte Option, es muss aktiv ausgewählt werden
+
+        # falls unter 14 Beschäftigung vorbelegen
+        if alter < 14:
+            fs['qualij'] = cc('fsqualij', '7')
         anm = fall['anmeldung']
         if anm:
             fs['zm'] = anm[0]['zm']

@@ -167,9 +167,11 @@ class klkarte(Request.Request, akte_share):
 
         klientendaten = self.get_klientendaten_readonly(
             akte, 
-            button=h.Button(value="Bearbeiten",
-                            tip="Klientenstammdaten bearbeiten",
-                            onClick= "go_to_url('updakte?akid=%(id)s')" % akte)
+            button=aktueller_fall and
+            h.Button(value="Bearbeiten",
+                     tip="Klientenstammdaten bearbeiten",
+                     onClick= "go_to_url('updakte?akid=%(id)s')" % akte)
+            or None,
             )
         bezugspersonen = self.get_bezugspersonen(bezugspersonen_list, aktueller_fall,
                                                  edit_button=True, view_button=True,
@@ -237,7 +239,7 @@ class klkarte(Request.Request, akte_share):
             beratungskontakte = None
         stand = h.FieldsetDataTable(
             legend= 'Stand',
-            headers= ('Fallnummer', 'Beginn', 'z.d.A.'),
+            headers= ('Fallnummer', 'Anmeldedatum', 'z.d.A.'),
             noheaders=1,
             daten= [[fall == aktueller_fall and
                       h.Icon(href= 'updfall?akid=%(akte_id)d&fallid=%(id)d' % fall,
