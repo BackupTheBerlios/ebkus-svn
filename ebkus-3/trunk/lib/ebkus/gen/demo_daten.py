@@ -48,6 +48,13 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
 ##     bis_jahr = None
 ##     fake_today = None
 
+##     n_akten = 600
+##     n_bearbeiter = 20
+##     n_stellen = 4
+##     von_jahr = Date(2006)
+##     bis_jahr = None
+##     fake_today = None
+
     n_akten = 100
     n_bearbeiter = 4
     n_stellen = 2
@@ -431,7 +438,7 @@ class DemoDaten(object):
 ##             zda = self.choose_date(beginn.add_month(1), min(beginn.add_month(alter), today()))
         # eine Statistik pro abgeschlossenem Fall
         self.fake_fachstatistik(fall, zda)
-        self.fake_jghstatistik(fall, zda)
+        self.fake_jghstatistik(fall, zda, abgeschlossen=True)
         setDate(form, 'zda', zda)
         # 0 bis 5 Leistungen hinzufügen
         for i in range(randrange(6)):
@@ -638,10 +645,10 @@ class DemoDaten(object):
         fseinf(form)
         log("Fachstatistik für %s (akte_id=%s)" % (fall['fn'], self.akte_id))
             
-    def fake_jghstatistik(self, fall, ende_datum):
+    def fake_jghstatistik(self, fall, ende_datum, abgeschlossen=None):
         log("fake_jghstatistik %s (akte_id=%s)" % (fall['fn'], self.akte_id))
         if ende_datum.year >= 2007:
-            self.fake_jgh07statistik(fall, ende_datum)
+            self.fake_jgh07statistik(fall, ende_datum, abgeschlossen)
             return
         akte = Akte(self.akte_id)
         form = {}
@@ -685,7 +692,7 @@ class DemoDaten(object):
         jgheinf(form)
         log("Jugendhilfestatistik für %s (akte_id=%s)" % (fall['fn'], self.akte_id))
 
-    def fake_jgh07statistik(self, fall, ende_datum):
+    def fake_jgh07statistik(self, fall, ende_datum, abgeschlossen):
         log("fake_jgh07statistik %s (akte_id=%s)" % (fall['fn'], self.akte_id))
         assert ende_datum.year >= 2007
         akte = Akte(self.akte_id)
@@ -717,7 +724,13 @@ class DemoDaten(object):
         form['ees'] = self.choose_code_id('ja_nein')
         form['va52'] = self.choose_code_id('ja_nein')
         form['rgu'] = self.choose_code_id('ja_nein')
-        form['hda'] = self.choose_code_id('ja_nein')
+        #form['hda'] = cc('ja_nein', '1')
+        if abgeschlossen == True:
+            form['hda'] = cc('ja_nein', '2')
+        elif abgeschlossen == False:
+            form['hda'] = cc('ja_nein', '1')
+        else:
+            form['hda'] = self.choose_code_id('ja_nein')
         gruende = self.choose_code_id_several('gruende', 1, 3, unique=True)
         form['gr1'] = gruende[0]
         if len(gruende) > 1:
