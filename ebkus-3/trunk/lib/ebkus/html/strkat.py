@@ -380,6 +380,8 @@ class strkatimport(Request.Request, akte_share):
     permissions = Request.ADMIN_PERM
         
     def read_data(self, f):
+        "liefert Liste von initialisierten, nicht-persistenten "
+        "StrassenkatalogNeu Objekten"
         #print 'FILE: ', f, type(f)
         data = []
         feldnamen = get_strkat_felder()[1:]
@@ -544,11 +546,11 @@ class strkatimport(Request.Request, akte_share):
             plzs = self.session.data['plzs']
             where = "plz in (%s)" % ','.join([("'%s'" % p) for p in plzs])
             StrassenkatalogNeuList(where=where).deleteall()
-            maxid = SQL("select max(id) from strkatalog").execute()[0][0]
-            if not maxid:
-                maxid = 0
-            for i,s in enumerate(strkat_list):
-                s.insert(maxid + i +1)
+##             maxid = SQL("select max(id) from strkatalog").execute()[0][0]
+##             if not maxid:
+##                 maxid = 0
+##             for i,s in enumerate(strkat_list):
+##                 s.insert(maxid + i +1)
             for s in strkat_list:
                 s.new()
                 s.insert()
