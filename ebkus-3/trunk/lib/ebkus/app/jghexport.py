@@ -170,8 +170,8 @@ def get_datensatz_ab_2007(r):
     d = [' ']*155      # Datensatz
     _set(d, 1, 1, 'A')
     _set(d, 2, 3, int(r['land__code']), "%02d")
-    _set(d, 4, 4, '0') # Regierungsbezirk bleibt leer
-    _set(d, 5, 6, int(r['kr__code']), "%02d")
+    #_set(d, 4, 4, '0') # Regierungsbezirk jetzt beim Kreis mit drin
+    _set(d, 4, 6, int(r['kr__code']), "%03d")
     _set(d, 7, 9, '0'*3) # Gemeinde bleibt leer
     _set(d, 10, 15, int(r['einrnr__code']), "%06d")
     _set(d, 16, 20, r['lnr'], '%05d')

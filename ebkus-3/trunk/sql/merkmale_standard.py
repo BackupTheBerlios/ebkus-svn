@@ -296,10 +296,10 @@ f;nicht im Verteiler;vert
 ja;aktuelle Einrichtung;einrstat
 nein;frühere Einrichtung;einrstat
 0;Musterregierungsbezirk;rbz;nicht benötigt
-51;Gifhorn;kr
-58;Wolfenbüttel;kr
-03;Wolfsburg;kr
-01;Braunschweig;kr
+151;Gifhorn;kr
+158;Wolfenbüttel;kr
+103;Wolfsburg;kr
+101;Braunschweig;kr
 000;N.N.;gm;nicht benötigt
 000;N.N.;gmt;nicht benötigt
 1;Träger der öffentl. JGH;traeg
@@ -616,8 +616,8 @@ stand;Bearbeitungsstand
 notizbed;Notizbedeutung
 vert;im Verteiler
 einrstat;Aktueller Kontakt
-rbz;Regierungsbezirk;amtlicher Gemeindeschlüssel (AGS)
-kr;Kreis;amtlicher Gemeindeschlüssel (AGS, Ziffer 4-5)
+rbz;Regierungsbezirk;amtlicher Gemeindeschlüssel (AGS) obsolet, in Kreis mit drin
+kr;Kreis;amtlicher Gemeindeschlüssel (AGS, Ziffer 3-5)
 gm;Gemeinde;amtlicher Gemeindeschlüssel (AGS)
 gmt;Gemeindeteil;amtlicher Gemeindeschlüssel (AGS)
 traeg;Jugendhilfe-Träger
