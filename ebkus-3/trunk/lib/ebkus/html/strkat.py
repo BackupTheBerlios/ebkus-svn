@@ -518,14 +518,25 @@ class strkatimport(Request.Request, akte_share):
         raise EE(message)
 
     def processForm(self, REQUEST, RESPONSE):
+        print self.form
         example = self.form.get('example')
         datei = self.form.get('datei')
+        replace = self.form.get('replace')
         if datei:
             data = self.read_data(datei)
             strkat_list = StrassenkatalogNeuList(data)
             plzs = self.validate_eindeutig(strkat_list)
             self.session.data['strkat'] = strkat_list
             self.session.data['plzs'] = plzs
+            if replace == 'true':
+                self.session.data['replace'] = True
+                feedback1 = """Der vorhandene Straßenkatalog wird
+durch die Datensätze der importierten Datei
+vollständig ersetzt."""
+            else:
+                self.session.data['replace'] = False
+                feedback1 = """Für diese Postleitzahlen werden die Einträge 
+im Straßenkatalog ersetzt."""
             return  h.SubmitOrBack(
                 legend='Straßenkatalog übernehmen',
                 action='strkatimport',
@@ -536,15 +547,22 @@ class strkatimport(Request.Request, akte_share):
                         "%s Datensätze" % len(strkat_list),
                         "Es gibt Datensätze für die folgenden Postleitzahlen:",) +
                 tuple([str(plz) for plz in plzs]) +
-                ("Für diese Postleitzahlen werden die Einträge "
-                 "im Straßenkatalog ersetzt.", "",
+                (feedback1, "",
                  "Datensätze übernehmen?",)
                 ).display()
         strkat_validiert = self.form.get('strkat_validiert')
         if strkat_validiert:
             strkat_list = self.session.data['strkat']
             plzs = self.session.data['plzs']
-            where = "plz in (%s)" % ','.join([("'%s'" % p) for p in plzs])
+            if self.session.data['replace']:
+                where = ''
+                feedback2 = """Der vorhandene Straßenkatalog wurde
+durch die Datensätze der importierten Datei
+erfolgreich ersetzt."""
+            else:
+                where = "plz in (%s)" % ','.join([("'%s'" % p) for p in plzs])
+                feedback2 = """Für die genannten Postleitzahlen wurden die Einträge
+im Straßenkatalog erfolgreich ersetzt."""
             StrassenkatalogNeuList(where=where).deleteall()
 ##             maxid = SQL("select max(id) from strkatalog").execute()[0][0]
 ##             if not maxid:
@@ -556,9 +574,8 @@ class strkatimport(Request.Request, akte_share):
                 s.insert()
             res = h.Meldung(
                 legend="Straßenkatalog erfolgreich importiert",
-                zeilen=("Für die genannten Postleitzahlen wurde die Einträge "
-                        "im Straßenkatalog erfolgreich ersetzt.",
-                      "%s Datensätze übernommen" % len(strkat_list),
+                zeilen=(feedback2,
+                        "%s Datensätze übernommen" % len(strkat_list),
                         'Weiter zum  Hauptmen&uuml ...',
                         ),
                 weiter='menu',
@@ -685,7 +702,22 @@ class strkatimport(Request.Request, akte_share):
         strkatimport = h.FieldsetFormInputTable(
             legend='Straßenkatalog importieren',
             name='strkatimport',action="strkatimport",method="post",
-            daten=[[h.UploadItem(label='Lokaler Dateiname',
+            daten=[[h.RadioItem(label='Nur Einträge für die gegebenen Postleitzahlen ersetzen',
+                                name='replace',
+                                tip='Es werden nur die Einträge für die in der Importdatei vorkommenden Postleitzahlen ersetzt',
+                                value='false',
+                                checked=True,
+                                ),
+                    ],
+                   [h.RadioItem(label='Vorhandenen Straßenkatalog vollständig ersetzen',
+                                name='replace',
+                                tip='Der aktuell vorhanden Straßenkatalog wird vollständig durch den Import ersetzt',
+                                value='true',
+                                checked=False,
+                                ),
+                    ],
+                   [h.DummyItem()],
+                   [h.UploadItem(label='Lokaler Dateiname',
                                  name='datei',
                                  tip='CSV-Datei mit Straßenkatalog',
                                  class_="textboxverylarge",
