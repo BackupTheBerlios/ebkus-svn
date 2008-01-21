@@ -2357,7 +2357,7 @@ def updmit(form):
         from ebkus.app import ebapi
         for klassname in (
             'LeistungList',
-            'BeratungskontaktList',
+            'MitarbeiterberatungskontaktList',
             'Fua_BSList',
             'ZustaendigkeitList',
             'DokumentList',
