@@ -246,7 +246,12 @@ def xcountwerte(d_list, werte, namen, attr):
 
 def xcountrohwerte(d_list, feldname):
     res = []
-    values = [x[feldname] for x in d_list]
+    values = []
+    for x in d_list:
+        v = x[feldname]
+        if v == None:
+            v = ''
+        values.append(v)
     werte = sorted(set(values))
     for w in werte:
         freq = values.count(w)

@@ -1246,7 +1246,7 @@ def register_get(key, default=None):
 def sorted(seq):
     "da wir python2.3 verwenden, leider kein eingebautes sorted"
     try:
-        copy = seq[:]
+        copy = list(seq)
         copy.sort()
         return copy
     except:
