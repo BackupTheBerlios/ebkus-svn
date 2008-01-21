@@ -52,7 +52,7 @@ class klkarte(Request.Request, akte_share):
             RESPONSE.redirect('kldok?fallid=%s' % fallid)
             return ''
         # für die Behandlung der Statistiken vom Hauptmenü aus:
-        if file in ('updjghform', 'updfsform'):
+        if file in ('updjghform', 'updfsform', 'vorblatt'):
             fallid = self.form.get('fallid')
             if not fallid:
                 raise ebapi.EE('Es wurde nichts aus dem Menü ausgewählt.')
@@ -64,6 +64,9 @@ class klkarte(Request.Request, akte_share):
             elif file == 'updfsform':
                 if not fall['fachstatistiken']:
                     file = 'fsneu'
+            # vorblatt geht an dispatch
+            # wie schafft man es an dieser Stelle, dass ein
+            # neuer Fenster für das Vorblatt aufgemacht wird?
         return self.ebkus.dispatch(file, REQUEST, RESPONSE)
         
     einfuege_oder_update_operationen = {

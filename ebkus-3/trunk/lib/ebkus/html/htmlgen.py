@@ -67,6 +67,7 @@ class _HTML(object):
         for attr in self.attribute_to_evaluate:
             val = getattr(self, attr)
             if val:
+                #print 'HTMLGEN', val
                 if isinstance(val, _HTML):
                     setattr(self, attr, val.display())
                 elif not isinstance(val, basestring):
@@ -699,10 +700,11 @@ class TextareaItem(InputItem):
     optional: readonly
     """
     class_ = 'textbox120'
+    class_ = 'textareanormal'
     tmpl = """<td align="right" class="%(label_class)s"%(label_width_attr)s%(rowspan_attr)s%(label_colspan_attr)s>
     <label for="%(id)s">%(label)s</label></td>
     <td align="left"%(colspan_attr)s%(tip)s%(rowspan_attr)s>
-    <textarea name="%(name)s" id="%(id)s" rows=%(rows)s cols=%(cols)s
+    <textarea name="%(name)s" id="%(id)s" rows="%(rows)s" cols="%(cols)s"
     class="%(class_)s" %(onBlur_attr)s%(readonly_attr)s>%(value)s</textarea>
     </td>
 """
@@ -819,12 +821,12 @@ class DatumItem(InputItem):
       """
     tmpl = """    <td align="right" class="%(label_class)s"%(label_width_attr)s%(label_colspan_attr)s>
     <label for="%(id)s">%(label)s</label></td>
-    <td align="left"%(tip)s%(colspan_attr)s>%(day_input)s<input
+    <td align="left"%(tip)s%(colspan_attr)s><nobr>%(day_input)s<input
     type="text" value="%(month)s" class="textbox13" size=2 maxlength=2
              name="%(mname)s"%(readonly_attr)s><b>.</b><input
              type="text" value="%(year)s" class="textbox30" size=4 maxlength=4
              name="%(yname)s"%(readonly_attr)s>%(time_input)s
-    </td>
+    </nobr></td>
 """
 
 class SpeichernZuruecksetzenAbbrechen(_HTML):

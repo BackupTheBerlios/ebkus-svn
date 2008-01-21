@@ -367,20 +367,20 @@ dbapp.DBObjekt.getNewId = getNewId
 
 def getNewFallnummer(stz_code, jahr):
     """Neue Fallnummer erzeugen."""
-    jahresfallliste = FallList(
-      where="bgy = %s and fn like '%%%s%%'" % (jahr, stz_code))
+    return _getNewNummer(stz_code, jahr, FallList, 'fn')
+def getNewGruppennummer(stz_code, jahr):
+    """Neue Gruppennummer erzeugen."""
+    return _getNewNummer(stz_code, jahr, GruppeList, 'gn')
+def _getNewNummer(stz_code, jahr, klass, feld):
+    """Neue Fall- oder Gruppennummer erzeugen."""
+    jahresfallliste = klass(
+      where="bgy = %s and %s like '%%%s%%'" % (jahr, feld, stz_code))
     if jahresfallliste:
-        groesste_fallnummer = max([ int(f['fn'].split('-')[0]) for f in jahresfallliste])
+        groesste_fallnummer = max([ int(f[feld].split('-')[0]) for f in jahresfallliste])
     else:
         groesste_fallnummer = 1
     return "%s-%s%s" % (groesste_fallnummer + 1, jahr, stz_code)
     
-def getNewGruppennummer(stz_code):
-    """Neue Gruppennummer erzeugen."""
-    jahresgruppenl = GruppeList(where = 'bgy = %(year)d' % today() +
-             " and gn like '%%%s%%'" % stz_code)
-    
-    return str(len(jahresgruppenl) + 1) + '-' + str(today().year) + stz_code
     
     
     ##############################
@@ -508,6 +508,7 @@ def _aktuell_fall(self, key):
     return self['zday'] == 0
     
 def _zustaendig_fall(self, key):
+    "die aktuelle Zuständigkeit (*nicht* der Mitarbeiter)"
     found = 0
     for z in self['zustaendigkeiten']:
         if z['ed'] == 0:

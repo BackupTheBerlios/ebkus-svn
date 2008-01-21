@@ -478,7 +478,7 @@ class fsneu(_fachstatistik):
             strasse = {}
         fs.init(
             id=Fachstatistik().getNewId(),
-            mit_id=self.mitarbeiter['id'],
+            mit_id=fall['zustaendig__mit_id'],
             fall_id=fall['id'],
             fall_fn=fall['fn'],
             jahr=str(today().year),

@@ -23,6 +23,7 @@ class _bkont(Request.Request, akte_share):
                  bkont,
                  file,
                  ):
+        print 'BKONT MITARBEITER', bkont['mitarbeiter']
         if config.BERATUNGSKONTAKTE_BS:
             beratungs_kontakt_bearbeiten = h.FieldsetInputTable(
                 legend = '%s %s %s' % (legendtext, fall['akte__vn'], fall['akte__na']),
@@ -47,12 +48,10 @@ class _bkont(Request.Request, akte_share):
                                        date =  bkont.getDate('k'),
                                        time = bkont.getTime('k'),
                                        ),
-                           h.SelectItem(label='Teilnehmer',
-                                        name='teilnehmer_bs',
-                                        multiple=True,
-                                        size=4,
-                                        rowspan=3,
-                                        options=self.for_kat('teilnbs', sel=bkont['teilnehmer_bs'])
+                           h.SelectItem(label='Art des Kontaktes',
+                                        name='art_bs',
+                                        class_='listbox280',
+                                        options=self.for_kat('kabs', sel=bkont['art_bs'])
                                         ),
                            ],
                           [h.TextItem(label='Dauer in Minuten)',
@@ -62,23 +61,28 @@ class _bkont(Request.Request, akte_share):
                                       class_='textboxsmall',
                                       maxlength=3,
                                       ),
-                           ],
-                          [h.SelectItem(label='Art des Kontaktes',
-                                        name='art_bs',
-                                        options=self.for_kat('kabs', sel=bkont['art_bs'])
+                           h.SelectItem(label='Teilnehmer',
+                                        name='teilnehmer_bs',
+                                        multiple=True,
+                                        size=5,
+                                        tip='Wer hat teilgenommen?',
+                                        rowspan=3,
+                                        options=self.for_kat('teilnbs', sel=bkont['teilnehmer_bs'])
                                         ),
+                           ],
+                          [h.TextItem(label='Anzahl',
+                                      name='anzahl',
+                                      value=bkont['anzahl'],
+                                      tip='Anzahl der Teilnehmer',
+                                      class_='textboxsmall',
+                                      maxlength=2,
+                                      ),
                            ],
                           [h.CheckItem(label='In offener Sprechstunde',
                                        name='offenespr',
                                        value=cn('ja_nein', 'ja'),
                                        checked=bkont['offenespr']==cn('ja_nein', 'ja'),
                                        ),
-                           h.TextItem(label='Anzahl',
-                                      name='anzahl',
-                                      value=bkont['anzahl'],
-                                      class_='textboxsmall',
-                                      maxlength=2,
-                                      ),
                            ],
                           [h.TextItem(label='Notiz',
                                       name='no',
@@ -168,7 +172,7 @@ class bkontneu(_bkont):
         benr = self.mitarbeiter['benr__code']
         if benr in ('verw',):
             # Verwaltungskraft kann Einträge für andere Mitarbeiter machen
-            mitarbeiter = []
+            mitarbeiter = [fall['zustaendig__mit']]
         else:
             mitarbeiter = [self.mitarbeiter]
         bkont = Beratungskontakt()

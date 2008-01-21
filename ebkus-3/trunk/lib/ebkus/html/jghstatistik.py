@@ -883,7 +883,7 @@ class jgh07neu(_jgh07):
         jgh['jghid'] = Jugendhilfestatistik2007().getNewId()
         jgh['stz'] = self.stelle['id']
         jgh['file'] = 'jgh07einf'
-        jgh['mit_id'] = self.mitarbeiter['id']
+        jgh['mit_id'] = fall['zustaendig__mit_id']
         #jgh.setDate('bg', fall.getDate('bg'))
         jgh.setDate('bg', fall['leistungsbeginn'])
         jgh['fall_fn'] = fall['fn']

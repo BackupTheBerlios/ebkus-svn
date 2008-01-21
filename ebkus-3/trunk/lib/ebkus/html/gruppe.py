@@ -113,7 +113,6 @@ class _gruppe(Request.Request,akte_share):
                            ),
             hidden=(("gruppeid", gruppe['id']),
                     ("file", file),
-                    ("gn", gruppe['gn']),
                     ("stz", gruppe['stz']),
                     ),
             rows=(self.get_gruppendaten(gruppe, readonly=False),
@@ -129,7 +128,6 @@ class gruppeneu(_gruppe):
         gruppe = Gruppe()
         gruppe.init(
             id=Gruppe().getNewId(),
-            gn=getNewGruppennummer(self.stelle['code']),
             tzahl=None,
             stzahl=None,
             teiln=None,

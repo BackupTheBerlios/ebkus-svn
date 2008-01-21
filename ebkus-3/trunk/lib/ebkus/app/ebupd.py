@@ -1813,9 +1813,6 @@ def gruppeeinf(form):
                      "Gruppe (id: %(id)s, Name: %(name)s gibt es in der Datenbank bereits")
     gruppe = Gruppe()
     get_string_fields(gruppe, form, ['gn', 'name', 'thema'], '')
-    gruppe['gn'] = check_str_not_empty(form, 'gn', "Keine Gruppennummer")
-    check_unique(gruppe['gn'], GruppeList, 'gn',
-                 "Gruppennummer ist bereits vergeben")
     gruppe['name'] = check_str_not_empty(form, 'name', "Kein Gruppenname")
     gruppe['thema'] = check_str_not_empty(form, 'thema', "Kein Thema")
     gruppe['teiln'] = check_code(form, 'teiln', 'teiln',
@@ -1840,6 +1837,9 @@ def gruppeeinf(form):
                                    "Fehler im Datum für das Ende", Date(0,0,0), maybezero = 1, maybefuture=1 ))
     if gruppe.getDate('bg') > gruppe.getDate('e'):
         raise EE('Beginndatum liegt vor Endedatum')
+    gruppe['gn'] = getNewGruppennummer(Code(gruppe['stz'])['code'], gruppe['bgy'])
+    check_unique(gruppe['gn'], GruppeList, 'gn',
+                 "Gruppennummer ist bereits vergeben")
     for m in mitid:
         mitgruppe = MitarbeiterGruppe()
         mitgruppe['mit_id'] = int(m)

@@ -70,7 +70,7 @@ class _dokument(Request.Request, akte_share):
                                        value=dok['text'],
                                        rows='10',
                                        cols='70',
-                                       class_='textboxverylarge',
+                                       class_='textareaverylarge',
                                        tip='Text schreiben oder einfügen',
                                      ),
                 ]],

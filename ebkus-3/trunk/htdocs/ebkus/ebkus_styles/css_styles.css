@@ -16,6 +16,19 @@ table.pageframe {
         width: 800px;
  }
 
+.textareanormal { 
+           font-family: Arial, Helvetica, sans-serif;
+           font-size: 10pt;
+           font-weight: normal;
+           width: 120pt;
+}
+.textareaverylarge {  
+           font-family: Arial, Helvetica, sans-serif;
+           font-size: 10pt;
+           font-weight: normal;
+           width: 400pt; 
+}
+
 a:link { text-decoration:none; font-weight:bold; color:#000000; }
 a:visited { text-decoration:none; font-weight:bold; color:#000000; }
 a:hover { text-decoration:none; font-weight:bold; background-color:#CCCCCC; }

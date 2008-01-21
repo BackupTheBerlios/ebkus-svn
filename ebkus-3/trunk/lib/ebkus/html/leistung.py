@@ -26,6 +26,7 @@ class _leist(Request.Request, akte_share):
                                    options=self.for_mitarbeiter(leistung['mit_id'])),
                       h.SelectItem(label='Leistung',
                                    name='le',
+                                   class_='listbox220',
                                    options=self.for_kat('fsle', leistung['le'])),
             ]]
             )
@@ -80,6 +81,12 @@ class leistneu(_leist):
             self.last_error_message = "Keine ID für den Fall erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
         fall = Fall(int(fallid))
+        benr = self.mitarbeiter['benr__code']
+        if benr in ('verw',):
+            # Verwaltungskraft kann Einträge für andere Mitarbeiter machen
+            mit_id = fall['zustaendig__mit_id']
+        else:
+            mit_id = self.mitarbeiter['id']
         leistung = Leistung()
         leistung.init(
             id=Leistung().getNewId(),
@@ -88,7 +95,7 @@ class leistneu(_leist):
             ed='',
             stz=self.stelle['id'],
             fall_id=fall['id'],
-            mit_id=self.mitarbeiter['id'],
+            mit_id=mit_id,
             le=cc('fsle', '1'),
             )
         leistung.setDate('bg', today())
