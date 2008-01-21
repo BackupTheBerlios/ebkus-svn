@@ -179,7 +179,7 @@ vanmeldung_t = """
         <tr bgcolor="#FFFFFF">
           <td align="right" valign="middle" class="legendtext">Gemeldet von:</td>
           <td align="left" valign="middle" width=100%% class="normaltext">&#160; %(von)s am&#160;
-            %(ad)d.%(am)d.%(ay)d. Telefon:&#160; %(mtl)s &#160;&#160;&#160;&#160;&#160;
+            %(fall__bgd)d.%(fall__bgm)d.%(fall__bgy)d. Telefon:&#160; %(mtl)s &#160;&#160;&#160;&#160;&#160;
             %(nobedanm)s </td>
         </tr>
         <tr bgcolor="#FFFFFF">
