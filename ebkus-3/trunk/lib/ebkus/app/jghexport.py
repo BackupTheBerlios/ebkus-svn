@@ -167,7 +167,7 @@ def get_datensatz_ab_2007(r):
 
     Zurückgegeben wird der eigentliche Datensatz sowie ein Kontrolldatensatz.
     """
-    d = [' ']*155      # Datensatz
+    d = [' ']*157      # Datensatz
     _set(d, 1, 1, 'A')
     _set(d, 2, 3, int(r['land__code']), "%02d")
     #_set(d, 4, 4, '0') # Regierungsbezirk jetzt beim Kreis mit drin
@@ -208,13 +208,14 @@ def get_datensatz_ab_2007(r):
     _set(d, 151, 152, r['grende__code'], None, {None: ' '*2})
     _set(d, 153, 154, r['aort_nac__code'], None, {None: ' '*2})
     _set(d, 155, 155, r['unh__code'], None, {None: ' '})
+    _set(d, 156, 157, '\r\n') # neu: newline zwischen den Datensätzen
     datensatz = ''.join(d)
-    assert len(datensatz) == 155
+    assert len(datensatz) == 157
     if datensatz[122] == '1': # Hilfe dauert an
         assert datensatz[137:155] == ' '*18
     else:
         assert datensatz[123:126] == ' '*3
-    log_datensatz = "%-10s%-10s%s\r\n" % (r['fall_fn'], r['mit_id__ben'], datensatz)
+    log_datensatz = "%-14s%-10s%s" % (r['fall_fn'], r['mit_id__ben'], datensatz)
     return datensatz, log_datensatz
 
 def _set(vector, von, bis, val, template=None, substitutions=None):
