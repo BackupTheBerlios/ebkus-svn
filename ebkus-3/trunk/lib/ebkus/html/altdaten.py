@@ -314,6 +314,17 @@ class altlist(Request.Request, akte_share):
                          "mitarbeiter like '%%%(rest)s%%')" % locals())
         if where:
             altdaten = AltdatenList(where=' and '.join(where), order='name, vorname, fallnummer')
+
+        where = []
+        aktuelle_daten = []
+        if vorname:
+            where.append("akte.vn like '%%%(vorname)s%%'" % locals())
+        if name:
+            where.append("akte.na like '%%%(name)s%%'" % locals())
+        if where:
+            aktuelle_daten = FallList(where=' and '.join(where),
+                                      join=[('akte', 'fall.akte_id=akte.id')],
+                                      order='akte.na, akte.vn')
         auswahl_kriterien = h.FieldsetFormInputTable(
             name="altlist",
             #action="abfragedef",
@@ -402,6 +413,20 @@ class altlist(Request.Request, akte_share):
                      ],
             empty_msg="Keine passenden Altdaten gefunden.",
             )
+        aktuelle_daten_table = h.FieldsetDataTable(
+            legend='Klienten passend zu den Suchkriterien Vorname/Nachname',
+            headers=('Fallnr', 'Vorname', 'Name', 'Geb.', 'Beginn', 'z.d.A.', 'Zuständig',),
+            daten=[[h.Link(string=fall['fn'],
+                           url='klkarte?akid=%(akte_id)s' % fall),
+                    h.String(string=fall['akte__vn']),
+                    h.String(string=fall['akte__na']),
+                    h.String(string=fall['akte__gb']),
+                    h.Datum(date=fall.getDate('bg')),
+                    h.Datum(date=fall.getDate('zda')),
+                    h.String(string=fall['zuletzt_zustaendig__mit__na']),
+            ] for fall in aktuelle_daten],
+            empty_msg="Keine Klienten gefunden.",
+            )
         res = h.Page(
             title='Altdaten',
             breadcrumbs = (('Hauptmenü', 'menu'),
@@ -410,6 +435,7 @@ class altlist(Request.Request, akte_share):
             rows=(self.get_hauptmenu(),
                   auswahl_kriterien,
                   altdaten_table,
+                  aktuelle_daten_table,
                   ),
             )
         return res.display()
