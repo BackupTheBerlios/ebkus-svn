@@ -2526,10 +2526,10 @@ def updkategorie(form):
     
 
 
-def remove_akte(akte, statistik_auch=False):
+def remove_akte(akte, statistik_auch=False, aktuell_auch=False):
     akte_id = akte['id']
     for fall in akte['faelle']:
-        remove_fall(fall, statistik_auch)
+        remove_fall(fall, statistik_auch, aktuell_auch)
     einrl = EinrichtungskontaktList(where = 'akte_id = %s' % akte_id)
     einrl.deleteall()
     bezugspl = BezugspersonList(where = 'akte_id = %s' % akte_id)
@@ -2563,7 +2563,7 @@ def remove_fall(fall, statistik_auch=False, aktuell_auch=False):
     zustaendigl = ZustaendigkeitList(where = 'fall_id = %s' % fall_id)
     anmeldungl = AnmeldungList(where = 'fall_id = %s' % fall_id)
     leistungl = LeistungList(where = 'fall_id = %s' % fall_id)
-    bkontl = BeratungskontaktList(where = 'fall_id = %s' % fall_id)
+    fallberl = FallberatungskontaktList(where='fall_id = %s' % fall_id)
     fallgrl = FallGruppeList(where = 'fall_id = %s' % fall_id)
     akte_path = get_akte_path(fall['akte_id'])
     for j in jghstatl:
@@ -2603,12 +2603,20 @@ def remove_fall(fall, statistik_auch=False, aktuell_auch=False):
     dokl.deleteall()
     fallgrl.deleteall()
     zustaendigl.deleteall()
-    for b in bkontl:
-        b['fallberatungskontakte'].deleteall()
-        b['mitarbeiterberatungskontakte'].deleteall()
-    bkontl.deleteall()
-    bkontbsl.deleteall()
+    # Beratungskontakte werden nur dann gelöscht, wenn sie sich ausschließlich
+    # auf den zu löschenden Fall beziehen. Ansonsten wird nur die Beteiligung
+    # dieses Falls am Beratungskontakt gelöscht.
+    for f in fallberl:
+        bkont = f['bkont']
+        # alle Beratungskontakte löschen, die sich *nur* auf diesen Fall beziehen
+        if len(bkont['fallberatungskontakte']) == 1:
+            assert f == bkont['fallberatungskontakte'][0]
+            # für diese auch die Mitarbeiterberatungskontakte löschen
+            bkont['mitarbeiterberatungskontakte'].deleteall()
+            bkont.delete()
+        f.delete()
     fall.delete()
+    undo_cached_fields()
     return True
     
 

@@ -432,10 +432,134 @@ class updzust(_zust):
 
 
 class rmaktenf(Request.Request, akte_share):
-    """Abfrageformular zum Löschen von Akten."""
+    """Einzelnen Fall löschen."""
     permissions = Request.ADMIN_PERM
     def processForm(self, REQUEST, RESPONSE):
-        return "Noch nicht implementiert"
+        fn = self.form.get('fn')
+        statistik_auch = (self.form.get('statistik_auch') == '1')
+        ok = self.form.get('ok')
+        fall_id = self.form.get('fallid')
+        if fn and not ok and not fall_id:
+            faelle = FallList(where="fn = '%s'" % fn)
+            if len(faelle) < 1:
+                raise EE("Kein Fall mit dieser Fallnummer gefunden.")
+            elif len(faelle) > 1:
+                # darf nicht passieren
+                raise EE("Mehrere passende Fälle gefunden.")
+            else:
+                fall = faelle[0]
+            if not fall['aktuell']:
+                raise EE("Fall <em>%s</em> ist abgeschlossen. Es können nur aktuelle Fälle gelöscht werden."
+                         % fn)
+            akte = fall['akte']
+            statistik_vorhanden = bool(fall['fachstatistiken'] or
+                                       fall['jgh_statistiken'] or
+                                       fall['jgh07_statistiken'])
+            stattext = ''
+            if statistik_vorhanden:
+                if statistik_auch:
+                    stattext = "(Die zugehörige Bundes- und Fachstatistik wird ebenfalls gelöscht.)"
+                else:
+                    stattext = "(Die zugehörige Bundes- und Fachstatistik bleibt erhalten.)"
+            if len(akte['faelle']) == 1:
+                letzter_fall = True
+                legend = 'Akte endgültig löschen'
+                zeilen=("Der Fall <em>%(fn)s</em> ist der einzige in der Akte <em>%(name)s</em>." % fall,
+                        "Da eine Akte immer mindestens einen Fall haben muss, wird die "
+                        "Akte inklusive aller Stammdaten ebenfalls gelöscht.",
+                        stattext,
+                        "Soll der Fall <em>%(fn)s</em> mitsamt der gesamten Akte <em>%(name)s</em> "
+                        "endgültig gelöscht werden?" % fall,
+                        )
+            else:
+                letzter_fall = False
+                legend = 'Fall endgültig löschen'
+                zeilen=("Soll der Fall <em>%(fn)s (%(name)s)</em> endgültig gelöscht werden?" % fall,
+                        stattext,
+                        )
+            hidden = (('fallid', fall['id']),
+                      ('statistik_auch', statistik_auch and '1' or ''),
+                      ('ok', '1'),
+                )
+            return h.SubmitOrBack(
+                legend=legend,
+                action='rmaktenf',
+                method='post',
+                hidden=hidden,
+                zeilen=zeilen,
+                ).display()
+        elif fall_id and ok == '1':
+            fall = Fall(fall_id)
+            akte = fall['akte']
+            akten = [akte]
+            name = akte['name']
+            fn = fall['fn']
+            from ebkus.app.ebupd import remove_fall, remove_akte
+            if len(akte['faelle']) == 1:
+                ganze_akte_loeschen = True
+                remove_akte(akte,
+                            statistik_auch=statistik_auch,
+                            aktuell_auch=True)
+                legend = "Ganze Akte gelöscht"
+            else:
+                ganze_akte_loeschen = False
+                remove_fall(fall,
+                            statistik_auch=statistik_auch,
+                            aktuell_auch=True)
+                legend = "Fall gelöscht"
+            geloeschter_fall = h.FieldsetDataTable(
+                legend=legend,
+                headers=('Fallnummer', 'Name'),
+                daten=[[h.String(string=fn),
+                        h.String(string=name),
+                        ]],
+                )
+            res = h.Page(
+                title=legend,
+                breadcrumbs = (('Aministratorhauptmenü', 'menu'),
+                               ('Einzelnen Fall löschen', None),
+                               ),
+                rows=(self.get_hauptmenu(),
+                      geloeschter_fall,
+                      ),
+                )
+            return res.display()
+            
+        auswahl = h.FieldsetFormInputTable(
+            name="rmfallanzeigen",
+            action="rmaktenf",
+            method="post",
+            legend='Fallnummer des zu löschenden Falls',
+            daten=[[h.TextItem(label='Fallnummer',
+                               name='fn',
+                               value='',
+                               tip='Fallnummer des zu löschenden Falls'
+                               ),
+                    h.CheckItem(label="Statistik auch löschen",
+                                name="statistik_auch",
+                                value="1",
+                                checked=True,
+                                tip="Ankreuzen, um auch die zugehörige Bundes- und Fachstatistik zu löschen",
+                                ),
+                    ],
+                   [h.Dummy(n_col=4)],
+                   ],
+            button=h.Button(value="Löschen",
+                            name='op',
+                            tip="Fall mit der angegebenen Nummer endgültig löschen",
+                            type='submit',
+                            n_col=4,
+                            ),
+            )
+        res = h.Page(
+            title='Einzelnen Fall löschen',
+            breadcrumbs = (('Aministratorhauptmenü', 'menu'),
+                           ),
+            rows=(self.get_hauptmenu(),
+                  auswahl,
+                  ),
+            )
+        return res.display()
 
 
 class rmakten(Request.Request, akte_share):
@@ -540,7 +664,7 @@ class rmakten(Request.Request, akte_share):
         else:
             akten = None
         res = h.Page(
-            title='Akten löschen',
+            title='Akten löschen nach Ablauf der Löschfrist',
             breadcrumbs = (('Aministratorhauptmenü', 'menu'),
                            ),
             rows=(self.get_hauptmenu(),
