@@ -125,7 +125,7 @@ def get_datensatz_bis_2006(r):
     """
     l = [
       check_code(r['rbz__code'], 1),
-      check_code(r['kr__code'], 2),
+      check_code(r['kr__code'][1:3], 2),
       check_code(r['gm__code'], 3),
       check_code(r['gmt__code'], 3),
       "%05d" % r['lnr'],
@@ -231,11 +231,11 @@ def _set(vector, von, bis, val, template=None, substitutions=None):
         else:
             res = val
     #print 'VAL', val
-    assert len(res) == (bis + 1 - von)
+    assert len(res) == (bis + 1 - von), 'Fehler beim Export der Bundesstatistik. Spalte %s-%s' % (von, bis)
     vector[von-1:bis] = list(res)
 
 def check_code(str, length, leer_code = None):
-##     assert len(str) == length
+    assert len(str) == length
     if not leer_code is None and str == leer_code:
         str = ' '*length
     return str
