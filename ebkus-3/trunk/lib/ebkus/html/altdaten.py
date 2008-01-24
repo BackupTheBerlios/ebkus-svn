@@ -314,17 +314,15 @@ class altlist(Request.Request, akte_share):
                          "mitarbeiter like '%%%(rest)s%%')" % locals())
         if where:
             altdaten = AltdatenList(where=' and '.join(where), order='name, vorname, fallnummer')
-
-        where = []
         aktuelle_daten = []
-        if vorname:
-            where.append("akte.vn like '%%%(vorname)s%%'" % locals())
-        if name:
-            where.append("akte.na like '%%%(name)s%%'" % locals())
-        if where:
-            aktuelle_daten = FallList(where=' and '.join(where),
-                                      join=[('akte', 'fall.akte_id=akte.id')],
-                                      order='akte.na, akte.vn')
+        if vorname or name:
+            mitarbeiter = None
+            if self.mitarbeiter['benr__code'] == 'bearb':
+                mitarbeiter = self.mitarbeiter
+            aktuelle_daten = self.beratungen_fall(mitarbeiter=mitarbeiter,
+                                                  klvorname=vorname,
+                                                  klnachname=name,
+                                                  )
         auswahl_kriterien = h.FieldsetFormInputTable(
             name="altlist",
             #action="abfragedef",

@@ -4,7 +4,7 @@
 
 from ebkus.config import config
 from ebkus.app.ebapi import today, str2date, cc, bcode, \
-     Akte, Bezugsperson, BeratungskontaktList, Code
+     Akte, Bezugsperson, BeratungskontaktList, Code, FallList
 from ebkus.app.ebapih import get_codes, make_option_list
 import ebkus.html.htmlgen as h
 from ebkus.html.options import options
@@ -866,3 +866,74 @@ class akte_share(options):
                                  ),
                     ]])
         return menu
+
+    def beratungen(self, welche, mitarbeiter=None,
+                   stelle=None,
+                   ab_jahr=None,
+                   ab_fallnummer=None,
+                   sort=()):
+        assert welche in ('laufend', 'abgeschlossen', 'alle')
+        assert ab_jahr and ab_fallnummer or not ab_fallnummer
+        where = 'fall.zday %s 0' % (welche=='laufend' and '=' or
+                                    welche=='abgeschlossen' and '>' or
+                                    welche=='alle' and '>='
+                                    )
+        # nur die letzte Zuständigkeit deren Endedatum gleich dem ZDA-Datum ist
+        where += """ and fall.zday = zustaendigkeit.ey and 
+        fall.zdam = zustaendigkeit.em and 
+        fall.zdad = zustaendigkeit.ed"""
+        
+        if mitarbeiter:
+            where += ' and mitarbeiter.id=%s' % mitarbeiter['id']
+        if stelle:
+            where += ' and akte.stzbg=%s' % stelle['id']
+        if ab_jahr:
+            where += ' and fall.bgy >= %s' % ab_jahr
+        fall_list = FallList(
+            where=where,
+            join=[('zustaendigkeit', 'zustaendigkeit.fall_id=fall.id'),
+                  ('akte', 'fall.akte_id=akte.id'),
+                  ('mitarbeiter', 'zustaendigkeit.mit_id=mitarbeiter.id')])
+        if ab_jahr and ab_fallnummer:
+            def ab_fn(fall):
+                j = fall['bgy']
+                c = fall['fn_count'] # Fallnummerzähler, definiert in ebapi.py
+                return  j > ab_jahr or (j == ab_jahr and c >= ab_fallnummer)
+            fall_list = fall_list.filter(ab_fn)
+        fall_list.sort(*sort)
+        return fall_list
+
+    def beratungen_fall(self, mitarbeiter=None,
+                        klname=None,
+                        klvorname=None,
+                        klnachname=None,
+                        fn=None,
+                        sort=()):
+        join=[('zustaendigkeit', 'zustaendigkeit.fall_id=fall.id'),
+              ('akte', 'fall.akte_id=akte.id'),
+              ('mitarbeiter', 'zustaendigkeit.mit_id=mitarbeiter.id')]
+        # nur die eigene Stelle
+        where = "akte.stzbg=%s" % self.stelle['id']
+        # nur die letzte Zuständigkeit deren Endedatum gleich dem ZDA-Datum ist
+        where += """ and fall.zday = zustaendigkeit.ey and 
+        fall.zdam = zustaendigkeit.em and 
+        fall.zdad = zustaendigkeit.ed"""
+        if klname:
+            where += " and (akte.vn like '%%%s%%' or akte.na like '%%%s%%')" % (klname, klname)
+        if klvorname:
+            where += " and (akte.vn like '%%%s%%')" % (klvorname,)
+        if klnachname:
+            where += " and (akte.na like '%%%s%%')" % (klnachname,)
+        if klname or klvorname or klnachname:
+            sort = ('akte__na', 'akte__vn', 'bgy', 'bgm', 'bgd')
+        if fn:
+            where += " and fall.fn like '%%%s%%'" % fn
+            sort = ('bgy', 'fn_count')
+        if mitarbeiter:
+            where += " and mitarbeiter.id = %s" % mitarbeiter['id']
+        fall_list = FallList(
+            where=where,
+            join=join,
+            )
+        fall_list.sort(*sort)
+        return fall_list
