@@ -2428,6 +2428,7 @@ def codeeinf(form):
     code['sort'] = check_int_not_empty(form, 'sort', "Sortierangabe fehlt")
     code['dm'] = None
     code['dy'] = None
+    _check_code(code)
     codeliste = CodeList(where = "kat_code = '%s'" % code['kat_code']
                          + 'and sort >= %d' % code['sort'], order = 'sort')
     if codeliste:
@@ -2447,7 +2448,18 @@ def codeeinf(form):
         except: pass
         raise EBUpdateError("Fehler beim Einfügen in die Datenbank: %s" % str(args))
         
-        
+
+def _check_code(code):
+    # kr 3-stellig
+    kat_code = code['kat_code']
+    code = code['code']
+    if kat_code == 'kr' and len(code) != 3:
+        raise EE("Code für Kreis muss dreistellig sein (Ziffer 3-5 des amtlichen Gemeindeschlüssel (AGS)")
+    elif kat_code == 'land' and len(code) != 2:
+        raise EE("Code für Land muss zweistellig sein (Ziffer 1-2 des amtlichen Gemeindeschlüssel (AGS)")
+    elif kat_code == 'einrnr' and len(code) != 6:
+        raise EE("Code für Einrichtungsnummer muss sechsstellig sein")
+
 def updcode(form):
     """Update des Code."""
     
@@ -2491,6 +2503,7 @@ def updcode(form):
     else:
         code['dy'] = None
         
+    _check_code(code)
     x = code['sort']
     y = codeold['sort']
     
