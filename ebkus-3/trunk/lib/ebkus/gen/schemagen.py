@@ -208,7 +208,15 @@ def insert_tables_fields_in_db(newtables, test = 0):
                 print sql
             fid = fid + 1
             
-            
+
+def insert_version():
+    "In der Datenbank die Version der Software speichern, "
+    "mit der die Datenbank erzeugt wurde. "
+    "Wichtig für Updates. "
+    from ebkus import Version
+    from ebkus.app.ebapi import register_set
+    register_set("Version", Version)
+    
 def init_new_db(schema_str, test):
     import ebkus.app.protocol
     try:
@@ -217,6 +225,7 @@ def init_new_db(schema_str, test):
         delete_tables_in_db(test)
         create_schema_in_db(newtables, test)
         insert_tables_fields_in_db(newtables, test)
+        insert_version()
     finally:
         ebkus.app.protocol.temp_on()
     
