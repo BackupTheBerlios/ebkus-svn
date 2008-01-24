@@ -23,7 +23,7 @@ class pwchange(Request.Request):
                   }
         
         res = []
-        res.append(head_normal_t % ('&Auml;nderung des Benutzerpasswortes'))
+        res.append(head_normal_ohne_help_t % ('&Auml;nderung des Benutzerpasswortes'))
         res.append(pass_change_t % akt_mitarbeiter)
         return ''.join(res)
         
