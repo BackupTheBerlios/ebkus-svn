@@ -1,0 +1,98 @@
+#! /bin/sh
+
+# System startup script for the EBKuS server
+# 
+# There is one separate script for each EBKuS instance.
+# The name of the script is ebkus_$INSTANCE_NAME.
+#
+### BEGIN INIT INFO
+# Provides: ebkus_%(INSTANCE_NAME)s
+# Required-Start: $remote_fs apache mysql
+# Required-Stop:  $remote_fs
+# Default-Start:  3 5
+# Default-Stop:   0 1 2 6
+# Description:    Start ebkus_%(INSTANCE_NAME)s server
+### END INIT INFO
+
+EBKUS_USER="%(EBKUS_USER)s"
+PYTHON_BIN="%(PYTHON_EXECUTABLE)s"
+test -x $PYTHON_BIN || exit 5
+EBKUS_START="%(INSTANCE_HOME)s/start.py"
+test -x $EBKUS_START || exit 5
+EBKUS_STOP="%(INSTANCE_HOME)s/stop.py"
+test -x $EBKUS_STOP || exit 5
+EBKUS_STATUS="%(INSTANCE_HOME)s/status.py"
+test -x $EBKUS_STATUS || exit 5
+
+
+# Shell functions sourced from /etc/rc.status:
+#      rc_check         check and set local and overall rc status
+#      rc_status        check and set local and overall rc status
+#      rc_status -v     ditto but be verbose in local rc status
+#      rc_status -v -r  ditto and clear the local rc status
+#      rc_failed        set local and overall rc status to failed
+#      rc_failed <num>  set local and overall rc status to <num><num>
+#      rc_reset         clear local rc status (overall remains)
+#      rc_exit          exit appropriate to overall rc status
+. /etc/rc.status
+
+# First reset status of this service
+rc_reset
+
+# Return values acc. to LSB for all commands but status:
+# 0 - success
+# 1 - generic or unspecified error
+# 2 - invalid or excess argument(s)
+# 3 - unimplemented feature (e.g. "reload")
+# 4 - insufficient privilege
+# 5 - program is not installed
+# 6 - program is not configured
+# 7 - program is not running
+# 
+# Obiges nur rudimentaer implementiert!
+
+
+case "$1" in
+    start)
+	echo -n "Starting ebkus_%(INSTANCE_NAME)s"
+        # startproc funktioniert nicht, da sich damit
+        # nur eine Instanz starten laesst.
+        #   (Weiss jemand wie man das macht? --> atms@alibi.in-berlin.de)
+        # startproc -u 503 -g 100 $EBKUS_START
+        sudo -u $EBKUS_USER $PYTHON_BIN $EBKUS_START &
+	# Remember status and be verbose
+	rc_status -v
+	;;
+    stop)
+	echo -n "Shutting down ebkus_%(INSTANCE_NAME)s"
+        sudo -u $EBKUS_USER $PYTHON_BIN $EBKUS_STOP
+	rc_status -v
+	;;
+    restart)
+	## Stop the service and regardless of whether it was
+	## running or not, start it again.
+	$0 stop
+	$0 start
+	# Remember status and be quiet
+	rc_status
+	;;
+    status)
+	echo -n "Checking for ebkus_%(INSTANCE_NAME)s: "
+	## Check status with checkproc(8), if process is running
+	## checkproc will return with exit status 0.
+
+	# Status has a slightly different for the status command:
+	# 0 - service running
+	# 1 - service dead, but /var/run/  pid  file exists
+	# 2 - service dead, but /var/lock/ lock file exists
+	# 3 - service not running
+
+        sudo -u $EBKUS_USER $PYTHON_BIN $EBKUS_STATUS
+	rc_status -v
+	;;
+    *)
+	echo "Usage: $0 {start|stop|status|restart}"
+	exit 1
+	;;
+esac
+rc_exit
