@@ -59,7 +59,7 @@ def needs_update():
     return True
 
 def do_update():
-    SQL('ALTER TABLE jghstat07 ADD COLUMN jahr INT')
+    SQL('ALTER TABLE jghstat07 ADD COLUMN jahr INT').execute()
     from ebkus import Version
     from ebkus.app.ebapi import register_set
     register_set('Version', Version)
