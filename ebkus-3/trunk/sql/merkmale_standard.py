@@ -216,7 +216,7 @@ m;Mehrfachkategorie;verwtyp
 3;Schreiben;kabs;;;dauer #bs:ja keine Vor- Nachbereitung
 4;Fachkontakt;kabs;;;dauer*1.4 #bs:ja +40% Vor- Nachbereitung
 5;ausgefallener Kontakt;kabs;;;20 # immer 20 Minuten
-6;Gruppenkontakt;kabs;;;dauer*1.4 #bs:ja +40% Vor- Nachbereitung
+6;Gruppenkontakt;kabs;;;dauer*3||dauer*2 #bs:ja +40% Vor- Nachbereitung
 7;E-Mail;kabs;;;dauer #bs:ja keine Vor- Nachbereitung
 8;interner Fachkontakt, Fallbesprechung;kabs;;;dauer*1.4 # +40% Vor- Nachbereitung
 9;fallbezogene Fahrzeit;kabs;;;dauer # keine Vor- Nachbereitung
