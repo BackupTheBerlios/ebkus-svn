@@ -441,6 +441,7 @@ table, jghstat07, , Jugendhilfestatistik ab 2007, Jugendhilfestatistik2007
 id, INT, id, s,
 fall_id, INT, Fallid, f, fall, jgh07_statistiken
 fall_fn, VARCHAR(20), Fallnummer, p,
+jahr, INT, Jahr, p,
 mit_id, INT, Mitarbeiterid, f, mitarbeiter, jgh07_statistiken
 stz, INT, Dienststelle, k, stzei, default ist aktuelle Dst. des Falles
 gfall, INT, Geschwisterfall, k, gfall

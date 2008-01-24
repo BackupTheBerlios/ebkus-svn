@@ -605,13 +605,13 @@ class JugendhilfestatistikList(Container):
 
 class Jugendhilfestatistik2007(DBObjekt):
     table = 'jghstat07'
-    fields =  ['id', 'fall_id', 'fall_fn', 'mit_id', 'stz', 'gfall', \
-                       'land', 'kr', 'einrnr', 'lnr', 'bgm', 'bgy', 'zustw', \
-                       'hilf_art', 'hilf_ort', 'traeger', 'gs', 'gem', 'gey', \
-                       'aort_vor', 'sit_fam', 'ausl_her', 'vor_dt', 'wirt_sit', \
-                       'aip', 'ees', 'va52', 'rgu', 'hda', 'nbkakt', 'gr1', \
-                       'gr2', 'gr3', 'em', 'ey', 'nbkges', 'lbk6m', 'grende', \
-                       'aort_nac', 'unh', 'zeit']
+    fields =  ['id', 'fall_id', 'fall_fn', 'jahr', 'mit_id', 'stz', \
+                       'gfall', 'land', 'kr', 'einrnr', 'lnr', 'bgm', 'bgy', \
+                       'zustw', 'hilf_art', 'hilf_ort', 'traeger', 'gs', 'gem', \
+                       'gey', 'aort_vor', 'sit_fam', 'ausl_her', 'vor_dt', \
+                       'wirt_sit', 'aip', 'ees', 'va52', 'rgu', 'hda', \
+                       'nbkakt', 'gr1', 'gr2', 'gr3', 'em', 'ey', 'nbkges', \
+                       'lbk6m', 'grende', 'aort_nac', 'unh', 'zeit']
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}

@@ -22,6 +22,15 @@ jghfalldaten_t = """
               <fieldset><legend class="legendtext">Falldaten</legend>
               <table width="100%%" border="0" cellpadding="1">
                 <tr>
+                  <td align="right" class="labeltext">
+                  Jahr:
+                  </td>
+                  <td align="left">
+                    <input type="text" name="jahr" value="%(jahr)s"
+                    size="5" maxlength="4">
+                  </td>
+                </tr>
+                <tr>
                   <td width="16%%" align="right" class="labeltext" >Fallnummer:</td>
                   <td width="34%%" align="left" class="legendtext">%(fall_fn)s</td>
                   <td  align="right" class="labeltext">Land:</td>

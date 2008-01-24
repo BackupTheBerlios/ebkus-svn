@@ -540,16 +540,34 @@ def _fn_count(self, key):
     fn = self['fn']
     return int(fn.split('-')[0])
 
-def _has_fachstatistik(self, key):
-    if self['fachstatistiken']:
-        return 'j'
+## def _has_fachstatistik(self, key):
+##     if self['aktuell']:
+##         if self['fachstatistiken']:
+##             return str(self['fachstatistiken'][0]['jahr'])[2:]
+##         else:
+##             return 'nv'
+##     else:
+##         return '-'
+## def _has_jghstatistik(self, key):
+##     if self['aktuell']:
+##         if self['jgh07_statistiken']:
+##             return str(self['jgh07_statistiken'][0]['jahr'])[2:]
+##         else:
+##             return 'nv'
+##     else:
+##         return '-'
+def _has_statistik(self, key):
+    if key == 'has_fachstatistik':
+        k = 'fachstatistiken'
+    elif key == 'has_jghstatistik':
+        k = 'jgh07_statistiken'
+    if self['aktuell']:
+        if self[k]:
+            return str(self[k][0]['jahr'])[2:]
+        else:
+            return 'nv'
     else:
-        return 'n'
-def _has_jghstatistik(self, key):
-    if self['jgh_statistiken'] or self['jgh07_statistiken']:
-        return 'j'
-    else:
-        return 'n'
+        return '-'
 
 def _fall_beratungskontakte(self, key):
     bkont_list = BeratungskontaktList(
@@ -569,8 +587,8 @@ Fall.attributemethods['zustaendig'] = _zustaendig_fall
 Fall.attributemethods['zuletzt_zustaendig'] = _zuletzt_zustaendig_fall
 Fall.attributemethods['jgh'] = _get_jgh
 Fall.attributemethods['fn_count'] = _fn_count
-Fall.attributemethods['has_fachstatistik'] = _has_fachstatistik
-Fall.attributemethods['has_jghstatistik'] = _has_jghstatistik
+Fall.attributemethods['has_fachstatistik'] = _has_statistik
+Fall.attributemethods['has_jghstatistik'] = _has_statistik
 Fall.attributemethods['bg'] = getDate
 Fall.attributemethods['zda'] = getDate
 Fall.attributemethods['beratungskontakte'] = _fall_beratungskontakte
@@ -636,24 +654,63 @@ def _bkont_faelle(self, key):
                'fallberatungskontakt.fall_id=fall.id')])
     fall_list.sort('akte__na')
     return fall_list
+## def _brutto_dauer_bkont_bs(self, key):
+##     """Eval'ed den dok-String der Kategorie art_bs aus,
+##     so dass man dort eintragen kann, wie aus der Netto-Dauer
+##     die Brutto-Dauer berechnet wird.
+##     """
+##     if config.BERATUNGSKONTAKTE_BS:
+##         dauer = self.get('dauer', 0)
+##         term = self['art_bs__dok']
+##         try:
+##             brutto = int(round(eval(term)))
+##         except:
+##             brutto = 0
+##         return brutto
 def _brutto_dauer_bkont_bs(self, key):
-    """Eval'ed den dok-String der Kategorie art_bs aus,
+    """Brutto-Dauer für die Kontaktanzahl der Bundesstatistik.
+    
+    Eval'ed den dok-String der Kategorie art_bs aus,
     so dass man dort eintragen kann, wie aus der Netto-Dauer
     die Brutto-Dauer berechnet wird.
+    Speziell für die Brutto-Dauer im Sinne der Bundesstatistik
+    kann man nach dem Trenner || eine zweite Formel eingeben, die nur
+    für die Berechnung der Kontaktzeit für die Bundesstatistik
+    genommen wird:
+
+    dauer * 1.8 || dauer*1.2 # bs:ja
     """
     if config.BERATUNGSKONTAKTE_BS:
         dauer = self.get('dauer', 0)
         term = self['art_bs__dok']
+        # Kommentar absplitten
+        try:
+            term, comment = term.split('#')
+        except:
+            pass
+        # zweite Formal absplitten
+        try:
+            brutto_term, brutto_bs_term = term.split('||')
+        except:
+            # falls nicht vorhanden, die erste nehmen
+            brutto_term = brutto_bs_term = term
+        if key == 'brutto':
+            term = brutto_term
+        elif key == 'brutto_bs':
+            term = brutto_bs_term
         try:
             brutto = int(round(eval(term)))
         except:
             brutto = 0
         return brutto
+        
 def _jghkontakte(self, key):
     try:
         if config.BERATUNGSKONTAKTE_BS:
             if 'bs:ja' in self['art_bs__dok'].lower():
-                return int(bcode('kdbs', self['brutto'])['code'])
+                # als Grundlage für die Berechnung der Anzahl der Kontakte
+                # wird das oben berechnete brutto_bs genommen
+                return int(bcode('kdbs', self['brutto_bs'])['code'])
             else:
                 return 0
         elif config.BERATUNGSKONTAKTE:
@@ -664,6 +721,8 @@ def _jghkontakte(self, key):
 Beratungskontakt.attributemethods['mitarbeiter'] = _bkont_mitarbeiter
 Beratungskontakt.attributemethods['faelle'] = _bkont_faelle
 Beratungskontakt.attributemethods['brutto'] = _brutto_dauer_bkont_bs
+# brutto für die Bundesstatistik
+Beratungskontakt.attributemethods['brutto_bs'] = _brutto_dauer_bkont_bs
 Beratungskontakt.attributemethods['jghkontakte'] = _jghkontakte
 
 

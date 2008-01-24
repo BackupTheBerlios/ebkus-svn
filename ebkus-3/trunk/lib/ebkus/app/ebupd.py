@@ -1326,6 +1326,9 @@ def _jgh07_check(form, jgh):
     except:
         # es muss keinen Fall geben, z.B. falls dieser schon gelöscht wurde
         fall = None
+    jgh['jahr'] = jahr = check_int_not_empty(form, 'jahr', 'Kein Jahr')
+    if jahr > today().year:
+        raise EE('Fehler im Jahr: zu weit in der Zukunft')
     jgh['stz'] = check_code(form, 'stz', 'stzei',
                             "Kein Stellenzeichen für die Jugendhilfestatistik")
     jgh['mit_id'] = check_fk(form, 'mitid', Mitarbeiter,
@@ -1377,8 +1380,10 @@ def _jgh07_check(form, jgh):
     jgh.setDate('bg',
                 check_date(form, 'bg',
                            "Fehler im Datum für den Beginn", nodayallowed = 1 ) )
-    if fall and fall['bgy'] != jgh['bgy'] or fall['bgm'] != jgh['bgm']:
-        raise EE("Beginndatum in der Jugendhilfestatistik stimmt mit dem Fallbeginn nicht überein")
+    if fall and fall['bgy'] > jgh['bgy'] or fall['bgm'] > jgh['bgm']:
+        raise EE("Beginndatum in der Jugendhilfestatistik vor Fallbeginn")
+    if jahr < jgh['bgy']:
+        raise EE("Fehler im Jahr: liegt vor Fallbeginn")
     if hilfe_dauert_an:
         raise_if_int(form, ('ey', 'em'),
                      "Nur bei beendeter Hilfe ausfüllen: L / Ende der Hilfe / Datum")
@@ -1391,6 +1396,9 @@ def _jgh07_check(form, jgh):
             raise EE("Fallende in der Jugendhilfestatistik liegt vor Fallbeginn")
         if jgh.getDate('e') < Date(2007):
             raise EE("Neue Bundesstatistik für Fallende vor 2007 nicht erlaubt")
+        if jgh.getDate('e').year != jahr:
+            raise EE("Jahr des Endes der Beratung nicht gleich dem Jahr")
+            
         del jgh['ed']
     del jgh['bgd']
     # Beratungskontakte direkt abhandeln
@@ -1399,7 +1407,7 @@ def _jgh07_check(form, jgh):
     nbkakt = nbkges = None
     if config.BERATUNGSKONTAKTE:
         from ebkus.html.beratungskontakt import get_jgh_kontakte
-        nbkakt, nbkges = get_jgh_kontakte(fall)
+        nbkakt, nbkges = get_jgh_kontakte(fall, jahr)
     #print 'DEFAULTS', nbkakt, nbkges
     if hilfe_dauert_an:
         jgh['nbkakt'] = check_int_not_empty(form, 'nbkakt',

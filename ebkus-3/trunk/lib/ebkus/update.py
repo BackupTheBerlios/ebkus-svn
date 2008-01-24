@@ -36,6 +36,11 @@ def update():
     else:
         logging.info("Kein Update erforderlich")
 
+# jahr in jgh07
+# fsqualij
+# kr, rbz KategorieDoku 
+
+
 # ab hier private
 def needs_update():
     db = getDBHandle()

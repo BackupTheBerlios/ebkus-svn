@@ -80,7 +80,8 @@ def jghexport(jahr, andauernd):
     if jahr >= 2007:
         get_datensatz = get_datensatz_ab_2007
         if andauernd:
-            jghl = Jugendhilfestatistik2007List(where = 'ey is NULL and bgy <= %s' % jahr, order = 'lnr')
+            #jghl = Jugendhilfestatistik2007List(where = 'ey is NULL and bgy <= %s' % jahr, order = 'lnr')
+            jghl = Jugendhilfestatistik2007List(where = 'ey is NULL and jahr = %s' % jahr, order = 'lnr')
         else:
             jghl = Jugendhilfestatistik2007List(where = 'ey=%s' % jahr, order = 'lnr')
     else:

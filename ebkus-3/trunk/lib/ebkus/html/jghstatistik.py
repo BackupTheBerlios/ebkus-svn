@@ -868,6 +868,7 @@ class jgh07neu(_jgh07):
     permissions = Request.STAT_PERM
     def processForm(self, REQUEST, RESPONSE):
         fallid = self.form.get('fallid')
+        jahr = today().year
         jghiddel = self.form.get('jghiddel')
         typ = self.form.get('typ')
         if jghiddel and typ == 'jgh' and fallid:
@@ -888,6 +889,7 @@ class jgh07neu(_jgh07):
         jgh.setDate('bg', fall['leistungsbeginn'])
         jgh['fall_fn'] = fall['fn']
         jgh['fall_id'] = fall['id']
+        jgh['jahr'] = jahr
         dmy = [int(e) for e in fall['akte__gb'].split('.')]
         dmy.reverse()
         geburtsdatum = ebapi.Date(*dmy)
@@ -897,7 +899,7 @@ class jgh07neu(_jgh07):
         assert isinstance(jgh['gs'], (int, long))
         if config.BERATUNGSKONTAKTE:
             from ebkus.html.beratungskontakt import get_jgh_kontakte
-            jgh['nbkakt'], jgh['nbkges'] = get_jgh_kontakte(fall)
+            jgh['nbkakt'], jgh['nbkges'] = get_jgh_kontakte(fall, jahr)
         return self._formular(jgh)
         
 

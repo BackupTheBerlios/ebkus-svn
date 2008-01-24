@@ -701,6 +701,7 @@ class DemoDaten(object):
         form['jghid'] = jgh_id
         form['fallid'] = fall['id']
         form['fall_fn'] = fall['fn']
+        form['jahr'] = ende_datum.year
         form['mitid'] = fall['zustaendig__mit_id']
         form['stz'] = akte['stzbg']
         form['gfall'] = self.choose_code_id('gfall')

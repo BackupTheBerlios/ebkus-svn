@@ -454,28 +454,13 @@ class bkontbsabfr(Request.Request, akte_share):
 ##             )
 ##         return res.display()
 
-def get_jgh_kontakte(fall):
+def get_jgh_kontakte(fall, jahr):
     """Ermittelt Anzahl der Kontakte sowohl für den ganzen Fall
-    als auch für das vergangene Jahr.
+    als auch für das gegebene Jahr.
 
-    In Braunschweig anders als sonst.
-
-    1;persönlicher Kontakt §28;kabs
-    2;telefonischer Kontakt (mit Beratungscharakter);kabs
-    3;Schreiben;kabs
-    4;Fachkontakt;kabs
-    5;ausgefallener Kontakt;kabs
-    6;Gruppenkontakt;kabs
-    7;E-Mail;kabs
-    8;interner Fachkontakt, Fallbesprechung;kabs
-    9;fallbezogene Fahrzeit;kabs
-    Für die Bundesstatistik zählt 1,2,4,6,7
+    In Braunschweig anders als sonst. Berechnung ein ebapi,
+    attributemethod 'jghkontakte'
     """
-    jahr = today().year - 1 # Normalerweise vom letzten Jahr
-    # TODO wieder auf > 10 stellen
-    # TODO wie genau zählen? Noch mal absprechen
-    if today().month > 6:  # Ab Juli von diesem Jahr
-        jahr += 1
     bkont_list = fall['beratungskontakte']
     kontakte_im_jahr = kontakte_insgesamt = 0
     if config.BERATUNGSKONTAKTE:
