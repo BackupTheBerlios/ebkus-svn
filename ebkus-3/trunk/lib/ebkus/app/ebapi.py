@@ -1285,7 +1285,7 @@ def register_set(key, value=None):
         return
     p = dumps(value)
     if r:
-        r.update({key: p})
+        r.update({'value': p})
     else:
         r = Register()
         r.init(id=Register().getNewId(),
