@@ -1299,6 +1299,8 @@ def register_get(key, default=None):
     except dbapp.DBAppError:
         return default
     s = r['value']
+    try: s = s.tostring() # kommt manchmal als array.array raus
+    except: pass # war schon string
     return loads(s)
 
 
