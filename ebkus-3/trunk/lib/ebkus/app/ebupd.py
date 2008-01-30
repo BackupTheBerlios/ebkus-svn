@@ -1020,6 +1020,7 @@ def _fs_check(form, fstat, fstatold=None):
                               "Kein Stellenzeichen für die Fachstatistik")
     # Regionalinfos übernehmen
     fall_id = fstat['fall_id']
+    fall = None
     if fall_id:
         fall = Fall(fall_id)
         akte = fall['akte']
@@ -1054,12 +1055,18 @@ def _fs_check(form, fstat, fstatold=None):
             elif fname in ('no', 'no2', 'no3'):
                 fstat[fname] = check_str_not_empty(form, fname, "Keine Notiz", '')
             elif fname in ('kat',):
-                fstat[fname] = check_int_not_empty(form, fname, "Terminsumme fehlt")
-                for f in fsc.termin_felder:
-                    fobj = fsc.get(f)
-                    fstat[f] = check_int_not_empty(form, f, "Fehlt: %s" % fobj['name'])
-            elif fname in fsc.termin_felder:
-                fstat[fname] = check_int_not_empty(form, fname, "Keine Terminanzahl", 0)
+                uebernehmen = form.get('uebernehmen')
+                if uebernehmen == '1' and config.BERATUNGSKONTAKTE and not config.BERATUNGSKONTAKTE_BS:
+                    # aus Beratungskontakten übernehmen
+                    from ebkus.html.beratungskontakt import get_fs_kontakte
+                    get_fs_kontakte(fall, fstat)
+                else:
+                    fstat[fname] = check_int_not_empty(form, fname, "Terminsumme fehlt")
+                    for f in fsc.termin_felder:
+                        fobj = fsc.get(f)
+                        fstat[f] = check_int_not_empty(form, f, "Fehlt: %s" % fobj['name'])
+##             elif fname in fsc.termin_felder:
+##                 fstat[fname] = check_int_not_empty(form, fname, "Keine Terminanzahl", 0)
     if fall_id and akte:
         akte.akte_undo_cached_fields()
 
@@ -1079,7 +1086,6 @@ def fseinf(form):
     jahresl = FachstatistikList(where = "fall_fn = '%s'" % fstat['fall_fn'])
     if len(jahresl) >= 1:
         raise EE("Fachstatistik für Fallnummer: '%s' vorhanden" % fstat['fall_fn'])
-    fstat['bz'] = form.get('plr')
     _fs_check(form, fstat)
     fstat['zeit'] = int(time.time())
     try:

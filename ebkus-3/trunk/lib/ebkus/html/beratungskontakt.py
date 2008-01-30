@@ -473,3 +473,26 @@ def get_jgh_kontakte(fall, jahr):
         kontakte_im_jahr = 0
         kontakte_insgesamt = 0
     return kontakte_im_jahr, kontakte_insgesamt
+
+def get_fs_kontakte(fall, fs):
+    """Anzahl der Kontakte für jede Kontaktart aus den Beratungskontakten
+    in das Fachstatistikobjekt eintragen.
+    """
+    code2feld = {'1': 'kkm', '2': 'kkv', '3': 'kki', '4': 'kpa', '5': 'kfa',
+                 '6': 'ksoz', '7': 'kleh', '8': 'kerz', '9': 'kkonf', '10': 'kson',
+                 }
+    if config.BERATUNGSKONTAKTE and not config.BERATUNGSKONTAKTE_BS:
+        for f in  code2feld.values():
+            fs[f] = 0
+        bkont_list = []
+        if fall:
+            bkont_list = fall['beratungskontakte']
+        summe = 0
+        for bkont in bkont_list:
+            # 0, 1, 2, 3 entsprechend dem code von fskd
+            anzahl = int(bcode('fskd', bkont['dauer'], 0)['code'])
+            code = bkont['art__code']
+            feld = code2feld[code]
+            fs[feld] += anzahl
+            summe += anzahl
+        fs['kat'] = summe

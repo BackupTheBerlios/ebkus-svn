@@ -239,7 +239,14 @@ class _fachstatistik(Request.Request, akte_share):
                                  label_width=label_width,
                                  options=self.for_kat('fspbk', fs['pbk']),
                                  )
-                    ]],
+                    ],
+                   [h.TextItem(label='Sonstige',
+                               name='no2',
+                               value=fs['no2'],
+                               class_="textbox310",
+                               ),
+                    ]
+                   ],
             )
 ##         jokf1 = h.FieldsetInputTable(
 ##             legend='Hauptproblematik Kind / Jugendliche',
@@ -259,7 +266,14 @@ class _fachstatistik(Request.Request, akte_share):
                                  label_width=label_width,
                                  options=self.for_kat('fspbe', fs['pbe']),
                                  )
-                    ]],
+                    ],
+                   [h.TextItem(label='Sonstige',
+                               name='no3',
+                               value=fs['no3'],
+                               class_="textbox310",
+                                  ),
+                    ]
+                   ],
             )
         anmprobleme = h.FieldsetInputTable(
             legend='Problem(e) bei der Anmeldung',
@@ -284,12 +298,7 @@ class _fachstatistik(Request.Request, akte_share):
                                  size=8,
                                  ),
                     ],
-                   [h.TextItem(label='Sonstige',
-                               name='no2',
-                               value=fs['no2'],
-                               class_="textbox310",
-                               ),
-                    ]],
+                   ],
             )
         elternprobleme = h.FieldsetInputTable(
             legend='Problemspektrum Eltern',
@@ -302,12 +311,7 @@ class _fachstatistik(Request.Request, akte_share):
                                  size=8,
                                  ),
                     ],
-                   [h.TextItem(label='Sonstige',
-                               name='no3',
-                               value=fs['no3'],
-                               class_="textbox310",
-                                  ),
-                    ]],
+                   ],
             )
 
         jokf5 = h.FieldsetInputTable(
@@ -379,7 +383,30 @@ class _fachstatistik(Request.Request, akte_share):
             kat = items[-1]
             kat.bold_label=True
             kat.bold_value=True
-            return [items[0:5]+[h.DummyItem()], items[5:10]+[kat]]
+            if config.BERATUNGSKONTAKTE and not config.BERATUNGSKONTAKTE_BS:
+                # wenn die Terminsumme aus den Beratungskontakten gleich der
+                # Terminsumme in der Datenbank ist, nehmen wir an, dass die Daten
+                # übernommen wurden und markieren das Kästchen.
+                # Wenn nicht, sieht der Benutzer, dass die Daten nicht übernommen sind
+                # und kann das Kästchen markieren, um sie erneut zu übernehmen.
+                from ebkus.html.beratungskontakt import get_fs_kontakte
+                pseudo_fs = {}
+                fall_id = fs['fall_id']
+                if fall_id:
+                    fall = Fall(fall_id)
+                    get_fs_kontakte(fall, pseudo_fs)
+                    checked = pseudo_fs['kat'] == fs['kat']
+                else:
+                    checked = False
+                checkitem = h.CheckItem(label="Aus Beratungskontakten übernehmen",
+                                        name="uebernehmen",
+                                        value='1',
+                                        checked=checked,
+                                        tip="Markieren, um Terminsummen aus Beratungskontakten zu übernehmen",
+                                        )
+            else:
+                checkitem = h.DummyItem()
+            return [items[0:5]+[checkitem], items[5:10]+[kat]]
         ### ende get_termine_daten
         termine = h.FieldsetInputTable(
             legend='Terminsumme',
@@ -441,6 +468,9 @@ class fsneu(_fachstatistik):
             raise EE('Erstellen einer Fachstatistik nur f&uuml;r einen Fall moeglich.')
         fall = Fall(fallid)
         akte = fall['akte']
+        geschlecht = akte['gs']
+        if not geschlecht:
+            raise EE("Bitte zuerst das Geschlecht in die Klientenkarte eintragen!")
         # Ich kanns mir nicht anders vorstellen:
         if akte['aktueller_fall']:
             assert fall['id'] == akte['aktueller_fall']['id'] == akte['letzter_fall']['id']
@@ -523,8 +553,12 @@ class fsneu(_fachstatistik):
                 fs[f] = ' ' # leere, selektierte Option, es muss aktiv ausgewählt werden
         termin_felder = ('kkm', 'kkv', 'kki', 'kpa', 'kfa',
                          'ksoz', 'kleh', 'kerz', 'kkonf', 'kson', 'kat',)
-        for f in termin_felder:
-            fs[f] = 0
+        if config.BERATUNGSKONTAKTE and not config.BERATUNGSKONTAKTE_BS:
+            from ebkus.html.beratungskontakt import get_fs_kontakte
+            get_fs_kontakte(fall, fs)
+        else:
+            for f in termin_felder:
+                fs[f] = 0
         #print '***********FSNEU', fs
         return self._process(title='Neue Fachstatistik erstellen',
                              file='fseinf',
