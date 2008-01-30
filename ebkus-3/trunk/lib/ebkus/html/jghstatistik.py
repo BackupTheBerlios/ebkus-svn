@@ -895,7 +895,10 @@ class jgh07neu(_jgh07):
         geburtsdatum = ebapi.Date(*dmy)
         jgh['gey'] = geburtsdatum.year
         jgh['gem'] = geburtsdatum.month
-        jgh['gs'] = fall['akte__gs']
+        geschlecht = fall['akte__gs']
+        if not geschlecht:
+            raise EE("Bitte zuerst das Geschlecht in die Klientenkarte eintragen!")
+        jgh['gs'] = geschlecht
         assert isinstance(jgh['gs'], (int, long))
         if config.BERATUNGSKONTAKTE:
             from ebkus.html.beratungskontakt import get_jgh_kontakte
