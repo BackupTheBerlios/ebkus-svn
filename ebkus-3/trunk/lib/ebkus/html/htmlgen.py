@@ -3,6 +3,7 @@
 
 from  cStringIO import StringIO
 from ebkus.config import config
+from ebkus import Version
 
 def join(seq):
     #print 'JOIN', seq
@@ -168,7 +169,7 @@ class Base(_HTML):
             self.login = "%(vn)s %(na)s (%(ben)s@%(stz__code)s, %(benr__name)s)" % mitarbeiter
             #self.breadcrumb = self.breadcrumbs_t % (crumbs, login)
             self.breadcrumb = crumbs
-            self.instanz = "EBKuS 4.0: %s" % config.INSTANCE_TITLE
+            self.instanz = "EBKuS %s: %s" % (Version, config.INSTANCE_TITLE)
             self.statuszeile = self.statuszeile_t % self
     tmpl = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
