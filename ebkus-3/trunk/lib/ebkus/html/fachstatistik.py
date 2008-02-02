@@ -395,7 +395,11 @@ class _fachstatistik(Request.Request, akte_share):
                 if fall_id:
                     fall = Fall(fall_id)
                     get_fs_kontakte(fall, pseudo_fs)
-                    checked = pseudo_fs['kat'] == fs['kat']
+                    if pseudo_fs['kat'] == fs['kat'] == 0:
+                        # Übernahme ist nicht default bei neuer FS
+                        checked = False
+                    else:
+                        checked = pseudo_fs['kat'] == fs['kat']
                 else:
                     checked = False
                 checkitem = h.CheckItem(label="Aus Beratungskontakten übernehmen",
