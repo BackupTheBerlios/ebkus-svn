@@ -23,7 +23,7 @@ class _bkont(Request.Request, akte_share):
                  bkont,
                  file,
                  ):
-        print 'BKONT MITARBEITER', bkont['mitarbeiter']
+        #print 'BKONT MITARBEITER', bkont['mitarbeiter']
         if config.BERATUNGSKONTAKTE_BS:
             beratungs_kontakt_bearbeiten = h.FieldsetInputTable(
                 legend = '%s %s %s' % (legendtext, fall['akte__vn'], fall['akte__na']),
