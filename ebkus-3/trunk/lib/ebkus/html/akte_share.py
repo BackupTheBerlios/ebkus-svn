@@ -772,7 +772,9 @@ class akte_share(options):
                         stellen_ids=None,
                         legend='Grundgesamtheit',
                         submit_value=None,
-                        show_quartal=True):
+                        show_quartal=True,
+                        show_welche=False,
+                        welche=None):
         "Für Auswertungen. Legt Jahre und Stellen fest."
         #print 'GG', von_jahr, bis_jahr
         if not bis_jahr:
@@ -784,9 +786,20 @@ class akte_share(options):
             erster_eintrag = None
         if not stellen_ids:
             stellen_ids = [self.stelle['id']]
+        tmpl = '<option value="%s"%s>%s</option>'
+        sel = ' selected="selected"'
+        welche_options = '\n'.join([tmpl % (v,
+                                            v==welche and sel or '',
+                                            v.capitalize())
+                                    for v in ('laufend', 'abgeschlossen', 'alle')])
         res = h.FieldsetInputTable(
             legend=legend,
-            daten=[[show_quartal and h.SelectItem(label='Quartal',
+            daten=[[show_welche and h.SelectItem(label='Welche',
+                                 name='w',
+                                 options=welche_options,
+                                 tip='Auszählung nur für laufende, abgeschlossene oder alle Fälle',
+                                 ) or
+                    show_quartal and h.SelectItem(label='Quartal',
                                  name='quartal',
                                  class_='listbox30',
                                  tip='Wählen Sie das Quartal, für das eine Auszählung erfolgen soll',

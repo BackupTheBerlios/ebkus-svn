@@ -7,6 +7,7 @@ from ebkus.db.sql import SQL
 from ebkus.app import Request
 from ebkus.app.ebapi import EE, nfc, Fachstatistik, FachstatistikList, \
      JugendhilfestatistikList, Jugendhilfestatistik2007List, \
+     Jugendhilfestatistik, Jugendhilfestatistik2007, \
      ZustaendigkeitList, AkteList, BezugspersonList, FallList, GruppeList, \
      Tabelle, Code, Feld, Mitarbeiter, MitarbeiterList, MitarbeiterGruppeList, \
      sorted, today, cc, check_int_not_empty, check_list, \
@@ -14,6 +15,7 @@ from ebkus.app.ebapi import EE, nfc, Fachstatistik, FachstatistikList, \
 from ebkus.app.ebapih import get_codes, mksel, get_all_codes
 from ebkus.html.statistik_ergebnis import auszergebnis
 from ebkus.app.statistik import CodeAuszaehlung, WertAuszaehlung
+from ebkus.html.abfragedef import Query
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.abfragen_templates import *
 from ebkus.app import ebupd
@@ -136,7 +138,9 @@ class statabfr(_statistik):
                            ),
             hidden = (),
             rows=(self.get_auswertungs_menu(),
-                  self.grundgesamtheit(show_quartal=False),
+                  self.grundgesamtheit(show_quartal=False,
+                                       show_welche=False,
+                                       welche='abgeschlossen'),
                   teilmenge,
                   auszaehlung,
                   #h.SpeichernZuruecksetzenAbbrechen(),
@@ -285,9 +289,6 @@ class _statistik_ergebnis(Request.Request, akte_share):
                title='Unmittelbar nachfolgende Hilfe',
                session_key=session_key),
             ]
-        if config.BERLINER_VERSION:
-            auszaehlungen.append(
-                CA(liste, 'bezirksnr', title="Wohnbezirk", session_key=session_key))
 ##         mitarbeiter = MitarbeiterList(where="benr = %s" % cc('benr', 'bearb'))
 ##         auszaehlungen.append(OA(liste, 'mit_id', mitarbeiter,
 ##                                 'na', title="Mitarbeiter", file=file))
@@ -323,10 +324,6 @@ class _statistik_ergebnis(Request.Request, akte_share):
             CA(liste, 'fbe3', title="Beratung setzt ein im sozialen Umfeld",
                                session_key=session_key)
             ]
-        # TODO kann das nicht ersatzlos entfallen, da in Regionalauswertung enthalten?
-        if config.BERLINER_VERSION:
-            auszaehlungen.append(
-                CA(liste, 'bezirksnr', title="Wohnbezirk", session_key=session_key))
 ##         mitarbeiter = MitarbeiterList(where="benr = %s" % cc('benr', 'bearb'))
 ##         auszaehlungen.append(OA(liste, 'mit_id', mitarbeiter,
 ##                                 'na', title="Mitarbeiter", session_key=session_key))
@@ -349,13 +346,34 @@ class _statistik_ergebnis(Request.Request, akte_share):
                 app(RWA(liste, f, title=f.capitalize(), session_key=session_key))
         return auszaehlungen
 
+    def _get_kompatible_abfragen(self, liste, abfrage_list):
+        # Hack um Teilmengendefs für die Teilmengenauszählung auszuschliessen,
+        # wenn die entsprechende Liste gar nicht da ist:
+        classes = []
+        try:
+            for e in liste[0]: # Liste von tupeln
+                classes.append(e.__class__)
+        except:
+            classes.append(liste[0].__class__)
+        for c in classes:
+            assert c in (Fachstatistik, Jugendhilfestatistik2007, Jugendhilfestatistik)
+        abfragen = []
+        for a in abfrage_list:
+            q = Query(a)
+            if (q.fs or q.ort) and Fachstatistik not in classes:
+                continue
+            if q.jgh and Jugendhilfestatistik2007 not in classes:
+                continue
+            abfragen.append(a)
+        return abfragen
+    
     def get_teilmengen_auszaehlungen(self, liste, session_key, abfr_ids=None):
         from ebkus.app.statistik import FunktionsAuszaehlung as FA
-        from ebkus.html.abfragedef import Query
         if abfr_ids:
             abfrage_list = [Abfrage(id) for id in abfr_ids]
         else:
             abfrage_list = AbfrageList(where='')
+        abfrage_list = self._get_kompatible_abfragen(liste, abfrage_list)
         name_functions = [(a['name'], Query(a).test) for a in abfrage_list]
         return [Ueberschrift('Benutzerdefinierte Teilmengen'),
                 FA(liste, name_functions, title="Benutzerdefinierte Teilmengen",
@@ -413,21 +431,45 @@ class _statistik_ergebnis(Request.Request, akte_share):
                 erg.auszaehlung = a
                 erg.add_tabelle(res)
         
+##     def get_grundgesamtheit(self, stz_list, von_jahr, bis_jahr, klass):
+##         "Liefert alle FS bzw. JGH-Objekte (abhängig von klass) der"
+##         "angegebenen Stellen und Jahre."
+##         "Geordnet nach id"
+##         if klass == FachstatistikList:
+##             jahr = 'jahr'
+##         else:
+##             jahr = 'ey'
+##         stellen = ','.join(stz_list)
+##         ggl = klass(where="%(jahr)s is not NULL and "
+##                     "%(jahr)s  >= %(von_jahr)s and %(jahr)s  <= %(bis_jahr)s and "
+##                     "stz in ( %(stellen)s )" % locals())
+##         return ggl
+                     
+# TODO: welche mit einbeziehen
     def get_grundgesamtheit(self, stz_list, von_jahr, bis_jahr, klass):
         "Liefert alle FS bzw. JGH-Objekte (abhängig von klass) der"
         "angegebenen Stellen und Jahre."
-        "Geordnet nach id"
-        if klass == FachstatistikList:
+        "Nur abgeschlossene Fälle, oder Statistiken mir fehlender fall_id"
+        if klass == JugendhilfestatistikList:
+            jahr = 'ey'
+        elif klass in (Jugendhilfestatistik2007List, FachstatistikList):
             jahr = 'jahr'
         else:
-            jahr = 'ey'
+            raise EE('Interner Fehler in get_grundgesamtheit')
         stellen = ','.join(stz_list)
-        ggl = klass(where="%(jahr)s is not NULL and "
-                    "%(jahr)s  >= %(von_jahr)s and %(jahr)s  <= %(bis_jahr)s and "
-                    "stz in ( %(stellen)s )" % locals())
+        where_fall = "fall.zday > 0 and "
+        where_kein_fall = "fall_id IS NULL and "
+        where = """%(jahr)s  >= %(von_jahr)s and %(jahr)s  <= %(bis_jahr)s and 
+        stz in ( %(stellen)s )""" % locals()
+        ggl = (klass(where=where_fall + where,
+                     join=[('fall', '%s.fall_id=fall.id' % klass.resultClass.table)]
+                     ) +
+               klass(where=where_kein_fall + where)
+               )
         return ggl
                      
-    def get_grundgesamtheit_anzeige(self, stz_list, von_jahr, bis_jahr, fs, jgh, anzahl_gg):
+    def get_grundgesamtheit_anzeige(self, stz_list, von_jahr, bis_jahr,
+                                    fs, jgh, jgh07, anzahl_gg):
         "Liefert ein Paar, z.B. "
         "Stelle A und Jahre 1999 - 2003, Alle Fälle mit Bundesstatistik (45 Klienten)"
         if von_jahr == bis_jahr:
@@ -439,71 +481,62 @@ class _statistik_ergebnis(Request.Request, akte_share):
             stellen_str = 'Stelle %s' % stellen
         else:
             stellen_str = 'Stellen %s' % stellen
+        bs = jgh and "(alter) Bundesstatistik" or jgh07 and "Bundesstatistik" or ''
+        fs = fs and "Fachstatistik" or ''
         return ('%s und %s' % (jahr_str, stellen_str),
-                "Alle Fälle mit %s%s (%s Klient%s)" %
-                (fs and 'Fachstatistik' or 'Bundesstatistik',
-                 fs and jgh and ' und Bundesstatistik' or '',
+                "Alle Fälle mit %s (%s Klient%s)" %
+                (fs and bs and "%s und %s" % (fs, bs) or fs or bs,
                  anzahl_gg,
                  anzahl_gg > 1 and 'en' or '')
                 )
 
-
-
-
-    def filter(self, abfrage, von_jahr, bis_jahr, stz_list):
-        if isinstance(abfr, Abfrage):
-            query = Query(abfr)
-
-        return query, ggl, 
-
-
+##     def join_fs_jgh_list(self, fs_list, jgh_list):
+##         "Beide Listen müssen nach id geordnet sein."
+##         "Es wird eine Liste aus Paaren (fs, jgh) gebildet, mit je gleicher id."
+##         res = []
+##         fm, jm = len(fs_list), len(jgh_list)
+##         i = j = 0
+##         while i<fm and j<jm:
+##             fs = fs_list[i]
+##             jgh = jgh_list[j]
+##             fs_id = fs['id']
+##             jgh_id = jgh['id']
+##             if fs_id == jgh_id:
+##                 res.append((fs,jgh))
+##                 i += 1
+##                 j += 1
+##             elif fs_id < jgh_id:
+##                 i += 1
+##             else:
+##                 j += 1
+##         return res
 
     def join_fs_jgh_list(self, fs_list, jgh_list):
-        "Beide Listen müssen nach id geordnet sein."
-        "Es wird eine Liste aus Paaren (fs, jgh) gebildet, mit je gleicher id."
-        res = []
-        fm, jm = len(fs_list), len(jgh_list)
-        i = j = 0
-        while i<fm and j<jm:
-            fs = fs_list[i]
-            jgh = jgh_list[j]
-            fs_id = fs['id']
-            jgh_id = jgh['id']
-            if fs_id == jgh_id:
-                res.append((fs,jgh))
-                i += 1
-                j += 1
-            elif fs_id < jgh_id:
-                i += 1
-            else:
-                j += 1
-        return res
-    def join_fs_jgh_list(self, fs_list, jgh_list):
-        "Beide Listen müssen nicht nach id geordnet sein."
-        "Es wird eine Liste aus Paaren (fs, jgh) gebildet, mit je gleicher id."
+        "Beide Listen müssen nicht geordnet sein."
+        "Es wird eine Liste aus Paaren (fs, jgh) gebildet, mit je gleicher fall_id."
         "Enthalten ist nur die Schnittmenge zwischen beiden Listen."
-        fs_dict = dict([(f['id'],f) for f in fs_list])
-        jgh_dict = dict([(j['id'],j) for j in jgh_list])
+        fs_dict = dict([(f['fall_fn'],f) for f in fs_list])
+        jgh_dict = dict([(j['fall_fn'],j) for j in jgh_list])
         keys = sorted(jgh_dict.keys())
         res = [(fs_dict[k], jgh_dict[k]) for k in keys if fs_dict.has_key(k)]
         return res
 
-    def twin_getter(self, fs_list, jgh_list):
-        fm, jm = len(fs_list), len(jgh_list)
-        i = j = 0
-        while i<fm and j<jm:
-            fs = fs_list[i]
-            jgh = jgh_list[j]
-            fs_id = fs['id']
-            jgh_id = jgh['id']
-            if fs_id == jgh_id:
-                yield fs,jgh
-                i += 1
-                j += 1
-            elif fs_id < jgh_id:
-                i += 1
-            else:
-                j += 1
+##     def twin_getter(self, fs_list, jgh_list):
+##         fm, jm = len(fs_list), len(jgh_list)
+##         i = j = 0
+##         while i<fm and j<jm:
+##             fs = fs_list[i]
+##             jgh = jgh_list[j]
+##             fs_id = fs['id']
+##             jgh_id = jgh['id']
+##             if fs_id == jgh_id:
+##                 yield fs,jgh
+##                 i += 1
+##                 j += 1
+##             elif fs_id < jgh_id:
+##                 i += 1
+##             else:
+##                 j += 1
 
 
 
@@ -513,6 +546,7 @@ class statergebnis(_statistik_ergebnis):
 
     def processForm(self, REQUEST, RESPONSE):
         #print 'FORM', self.form
+        welche = self.form.get('w')
         von_jahr = self.form.get('von_jahr')
         bis_jahr = self.form.get('bis_jahr')
         if bis_jahr:
@@ -537,32 +571,36 @@ class statergebnis(_statistik_ergebnis):
         stz = check_list(self.form, 'stz', 'Keine Stelle')
         item_auswahl = check_list(self.form, 'item_auswahl', 'Bitte gewünschte Auszählung ankreuzen.')
         teilm = self.form.get('teilm')
-        from abfragedef import Query
         if teilm:
             abfr = Abfrage(teilm)
             query = Query(abfr)
         else:
             query = Query()
-        # jgh-Liste dabei?
-        jgh = 'jgh_gesamt' in item_auswahl or query.jgh
-        # fs-Liste dabei?
-        fs = 'fs_gesamt' in item_auswahl or query.fs
-        #############
-        # Statistik nur für Fälle, wo beide Formulare ausgefüllt sind
-        # und wo bei der Bundesstatistik das Endejahr eingetragen ist.
-        fs = jgh = True
-        #############
-        if not jgh and not fs:
-            # Diese Annahme ist falsch für Teilmengenauswertung, weil manche sich
-            # auf jgh beziehen können.
-            # Bei Regionen problematisch, weil dadurch die GG festgelegt wird.
-            fs = True
+        fs, jgh, jgh07 = self.check_params(von_jahr, bis_jahr, stz, item_auswahl, query)
+##         # jgh-Liste dabei?
+##         jgh = 'jgh_gesamt' in item_auswahl or query.jgh
+##         # fs-Liste dabei?
+##         fs = 'fs_gesamt' in item_auswahl or query.fs
+##         #############
+##         # Statistik nur für Fälle, wo beide Formulare ausgefüllt sind
+##         # und wo bei der Bundesstatistik das Endejahr eingetragen ist.
+##         fs = jgh = True
+##         #############
+##         if not jgh and not fs:
+##             # Diese Annahme ist falsch für Teilmengenauswertung, weil manche sich
+##             # auf jgh beziehen können.
+##             # Bei Regionen problematisch, weil dadurch die GG festgelegt wird.
+##             fs = True
         if fs:
-            fs_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr, FachstatistikList)
+            fs_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr,
+                                              FachstatistikList)
         if jgh:
-            # Wir verwenden nur die neue Bundesstatistik
-            jgh_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr, Jugendhilfestatistik2007List)
-        if fs and jgh:
+            jgh_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr,
+                                               JugendhilfestatistikList)
+        if jgh07:
+            jgh_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr,
+                                               Jugendhilfestatistik2007List)
+        if fs and (jgh or jgh07):
             # beide nötig: erzeugt wird eine Liste von Paaren (fs, jgh) für jeden Fall
             # für den beide Statistiken vorliegen
             ggl = self.join_fs_jgh_list(fs_ggl, jgh_ggl)
@@ -572,7 +610,8 @@ class statergebnis(_statistik_ergebnis):
             ggl = fs_ggl
         else:
             ggl = jgh_ggl
-        anzeige_gg = self.get_grundgesamtheit_anzeige(stz, von_jahr, bis_jahr, fs, jgh, len(ggl))
+        anzeige_gg = self.get_grundgesamtheit_anzeige(stz, von_jahr, bis_jahr,
+                                                      fs, jgh, jgh07, len(ggl))
         if not ggl:
             raise EE("Keine Datensätze für die gewünschte Grundgesamtheit:"
                      "\n\n%s\n%s" % anzeige_gg)
@@ -591,6 +630,34 @@ class statergebnis(_statistik_ergebnis):
             query=query,
             item_auswahl=item_auswahl,
             )
+
+    def check_params(self, von_jahr, bis_jahr, stz, item_auswahl, query):
+        assert item_auswahl and von_jahr and bis_jahr and query and stz
+        fs = jgh = jgh07 = False
+        for k in ('fs_gesamt', 'regional', 'teilmengen'):
+            if k in item_auswahl:
+                fs = True
+                break
+        if von_jahr >= 2007 and 'teilmengen' in item_auswahl:
+            # Damit kann man Teilmengen alleine auszählen,
+            # ohne BS oder FS anzukreuzen
+            jgh07 = True
+        if query.fs or query.ort:
+            fs = True
+        if query.jgh:
+            jgh07 = True
+        if 'jgh_gesamt' in item_auswahl and von_jahr < 2007:
+            jgh = True
+        if 'jgh_gesamt' in item_auswahl and bis_jahr >= 2007:
+            jgh07 = True
+        if query.jgh and von_jahr < 2007:
+            raise EE("Statistik vor 2007 nicht möglich mit Teilmenge '%s'" % query.name)
+        if von_jahr < 2007 and bis_jahr >= 2007 and 'jgh_gesamt' in item_auswahl:
+            raise EE("Bundesstatistik entweder nur bis 2006 oder ab 2007 möglich")
+        assert not (jgh and jgh07)
+        assert fs or jgh or jgh07
+        return fs, jgh, jgh07
+
 
     def _display_ergebnis(self,
                           liste,
