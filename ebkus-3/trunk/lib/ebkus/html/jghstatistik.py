@@ -88,7 +88,7 @@ class jghneu(Request.Request):
         hiddenid2 ={'name': 'stz', 'value': self.stelle['id']}
         mitarb_data = {'mit_id': self.mitarbeiter['id'],'mit_name' : self.mitarbeiter['ben']}
         res = []
-        res.append(head_normal_t % 'Neue Bundesstatistik erstellen')
+        res.append(head_normal_ohne_help_t % 'Neue Bundesstatistik erstellen')
         res.append(jghstatneu_t % ({'id':fallid}))
         res.append(jghstatneufn_t  %({'fall_fn' : fn} ))
         res.append(jghstatneugemeinde_t %(Code(cc('gm','000'))['id']))
@@ -237,7 +237,7 @@ class updjgh(Request.Request):
         hiddenid2 ={'name': 'stz', 'value': self.stelle['id']}
         
         res = []
-        res.append(head_normal_t % 'Alte Bundesstatistik bearbeiten (bis 2006)')
+        res.append(head_normal_ohne_help_t % 'Alte Bundesstatistik bearbeiten (bis 2006)')
         res.append(jghstatedit_t % ({'id':fallid}))
         res.append(jghstateditfn_t  %({'fall_fn' : jghstat['fall_fn']}))
         res.append(jghstateditgemeinde_t %(Code(cc('gm','000'))['id']))
