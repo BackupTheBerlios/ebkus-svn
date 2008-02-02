@@ -854,7 +854,9 @@ def zdaeinf(form):
     fstatl = FachstatistikList(where = 'fall_id = %d' % fallold['id'])
     
     if len(fstatl) == 1:
-        pass
+        fs = fstatl[0]
+        if fs['jahr'] != zdadatum.year:
+            raise EE("Jahr der Fachstatistik entspricht nicht dem Jahr des Fallabschlusses")
     elif len(fstatl) > 1:
         raise EE("Mehr als 1 Fachstatistik für Fallnummer '%s', " % fallold['fn']
                  + "'%d' vorhanden." % fall['zday'] )
@@ -869,12 +871,13 @@ def zdaeinf(form):
 ##     else:
 ##         raise EE("Keine Jugendhilfestatistik für Fallnummer '%(fn)s' vorhanden" % fallold )
     jgh = fallold['jgh']
-    if (jgh and isinstance(jgh, Jugendhilfestatistik2007) and
-        jgh['hda'] == cc('ja_nein', '1')):
-        raise EE("Die vorhandene Jugendhilfestatistik ist nicht für einen abgeschlossenen Fall.")
+    if jgh and isinstance(jgh, Jugendhilfestatistik2007):
+        if jgh['hda'] == cc('ja_nein', '1'):
+            raise EE("Die vorhandene Jugendhilfestatistik ist nicht für einen abgeschlossenen Fall.")
+        if jgh['jahr'] != zdadatum.year:
+            raise EE("Jahr der Bundesstatistik entspricht nicht dem Jahr des Fallabschlusses")
     if not jgh:
         raise EE("Keine Jugendhilfestatistik für Fallnummer '%(fn)s' vorhanden" % fallold )
-        
     akteold = fallold['akte']
     letzter_fall = akteold['letzter_fall']
     leistungen = LeistungList(where = 'fall_id = %s and ed=0 and em=0 and ey=0' % letzter_fall['id'])
@@ -2637,11 +2640,12 @@ def remove_fall(fall, statistik_auch=False, aktuell_auch=False):
         bkont = f['bkont']
         # alle Beratungskontakte löschen, die sich *nur* auf diesen Fall beziehen
         if len(bkont['fallberatungskontakte']) == 1:
-            assert f == bkont['fallberatungskontakte'][0]
+            assert f['id'] == bkont['fallberatungskontakte'][0]['id']
             # für diese auch die Mitarbeiterberatungskontakte löschen
             bkont['mitarbeiterberatungskontakte'].deleteall()
             bkont.delete()
-        f.delete()
+        try: f.delete()
+        except: pass # wg. Fehler früherem Fehler kann er sich hier mal verschlucken
     fall.delete()
     undo_cached_fields()
     return True
