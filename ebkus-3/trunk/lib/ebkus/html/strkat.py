@@ -25,11 +25,14 @@ class strkat(Request.Request):
                 ).display()
         nichts_gefunden = False
         zuviel_gefunden = False
+        ein_treffer = False
         such_muster = True
         if strassen_list == None:
             such_muster = False
         elif len(strassen_list) < 1:
             nichts_gefunden = True
+        elif len(strassen_list) == 1:
+            ein_treffer = True
         elif len(strassen_list) > 1000:
             zuviel_gefunden = True
         sp = '&nbsp;'
@@ -89,6 +92,7 @@ class strkat(Request.Request):
             title='Straßensuche',
             name="strkat",action="klkarte",method="post",
             onSubmit="submit_strkat()",
+            onload=ein_treffer and "submit_strkat()" or '',
             rows=(
                   ergebnisse,
                   buttons,
@@ -149,7 +153,7 @@ class strkat(Request.Request):
             value_fields = ['name','hausnr_ohne_nullen','plz','ort',
                             'ortsteil','samtgemeinde','bezirk','id']
             value = '#'.join(['%%(%s)s' % f for f in value_fields])
-            tmpl = '<option value="%s">' % value
+            tmpl = '<option value="%s"%%(sel)s>' % value
             tmpl += '%(option_name2)s</option>'
             optionale_suchfelder = config.STRASSENSUCHE.split()
             if config.STRASSENKATALOG_VOLLSTAENDIG:
@@ -157,6 +161,7 @@ class strkat(Request.Request):
             else:
                 hausnummern = ['von2', 'bis2', 'gu2',]
             felder = ['name',] +  hausnummern + ['plz'] + optionale_suchfelder
+            single = len(strassen_list) == 1
             for element in strassen_list:
                 hsnr = hausnr # der übergebene Wert von der form
                 von = element['von']
@@ -167,6 +172,7 @@ class strkat(Request.Request):
                 element['bis2'] = fuehrende_nullen_ersetzen(element['bis'], sp)
                 element['gu2'] = element['gu'] or ''
                 element['option_name2'] =  _format_option(element, felder)
+                element['sel'] = single and ' selected="selected"' or ''
                 options.append(tmpl % element)
         return '\n'.join(options)
         
