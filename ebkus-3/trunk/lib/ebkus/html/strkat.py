@@ -2,6 +2,7 @@
 import re
 import csv
 import os
+from ebkus.db.sql import escape
 from ebkus.app import Request
 from ebkus.app.ebapi import StrassenkatalogNeuList, \
      StrassenkatalogNeu, FeldList, EE, cc, check_list, SQL
@@ -186,10 +187,10 @@ def get_strassen_list(form, exact=False):
     for f in str_felder:
         val = form.get(f, '')
         if val:
-            where.append("%s like '%s%s'" % (f, val, joker))
+            where.append("%s like %s" % (f, escape(val + joker)))
     str = check_strasse(form.get('str', ''))
     if str:
-        where.append("name like '%s%s'" % (str, joker))
+        where.append("name like %s" % (escape(str + joker)))
     hsnr  = check_hausnr(form.get('hsnr', ''))
     if hsnr.startswith('-'): # ausdrücklich keine Hausnummer
         where.append("von IS NULL and bis IS NULL")

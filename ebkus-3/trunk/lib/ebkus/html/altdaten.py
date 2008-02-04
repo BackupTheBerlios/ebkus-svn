@@ -4,6 +4,7 @@
 
 import os
 import csv
+from ebkus.db.sql import escape
 from ebkus.app import Request
 from ebkus.config import config
 from ebkus.app.ebapi import Akte, Fall, FallList, \
@@ -301,17 +302,21 @@ class altlist(Request.Request, akte_share):
         where = []
         altdaten = []
         if vorname:
-            where.append("vorname like '%%%(vorname)s%%'" % locals())
+            vorname_e = escape('%' + vorname + '%')
+            where.append("vorname like %(vorname_e)s" % locals())
         if name:
-            where.append("name like '%%%(name)s%%'" % locals())
+            name_e = escape('%' + name + '%')
+            where.append("name like %(name_e)s" % locals())
         if fallnummer:
-            where.append("fallnummer like '%%%(fallnummer)s%%'" % locals())
+            fallnummer_e = escape('%' + fallnummer + '%')
+            where.append("fallnummer like %(fallnummer_e)s" % locals())
         if rest:
-            where.append("(strasse like '%%%(rest)s%%' or "
-                         "ort like '%%%(rest)s%%' or "
-                         "plz like '%%%(rest)s%%' or "
-                         "memo like '%%%(rest)s%%' or "
-                         "mitarbeiter like '%%%(rest)s%%')" % locals())
+            rest_e = escape('%' + rest + '%')
+            where.append("(strasse like %(rest_e)s or "
+                         "ort like %(rest_e)s or "
+                         "plz like %(rest_e)s or "
+                         "memo like %(rest_e)s or "
+                         "mitarbeiter like %(rest_e)s)" % locals())
         if where:
             altdaten = AltdatenList(where=' and '.join(where), order='name, vorname, fallnummer')
         aktuelle_daten = []

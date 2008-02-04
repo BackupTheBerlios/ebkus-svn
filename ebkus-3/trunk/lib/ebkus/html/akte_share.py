@@ -3,6 +3,7 @@
 """Gemeinsame HTML Elemente."""
 
 from ebkus.config import config
+from ebkus.db.sql import escape
 from ebkus.app.ebapi import today, str2date, cc, bcode, \
      Akte, Bezugsperson, BeratungskontaktList, Code, FallList
 from ebkus.app.ebapih import get_codes, make_option_list
@@ -932,15 +933,20 @@ class akte_share(options):
         fall.zdam = zustaendigkeit.em and 
         fall.zdad = zustaendigkeit.ed"""
         if klname:
-            where += " and (akte.vn like '%%%s%%' or akte.na like '%%%s%%')" % (klname, klname)
+            expr = escape('%' + klname + '%')
+            where += " and (akte.vn like %s or akte.na like %s)" % \
+            (expr, expr)
         if klvorname:
-            where += " and (akte.vn like '%%%s%%')" % (klvorname,)
+            expr = escape('%' + klvorname + '%')
+            where += " and (akte.vn like %s)" % (expr,)
         if klnachname:
-            where += " and (akte.na like '%%%s%%')" % (klnachname,)
+            expr = escape('%' + klnachname + '%')
+            where += " and (akte.na like %s)" % (klnachname,)
         if klname or klvorname or klnachname:
             sort = ('akte__na', 'akte__vn', 'bgy', 'bgm', 'bgd')
         if fn:
-            where += " and fall.fn like '%%%s%%'" % fn
+            expr = escape('%' + fn + '%')
+            where += " and fall.fn like %s" % expr
             sort = ('bgy', 'fn_count')
         if mitarbeiter:
             where += " and mitarbeiter.id = %s" % mitarbeiter['id']

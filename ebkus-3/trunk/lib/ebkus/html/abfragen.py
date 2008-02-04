@@ -3,6 +3,7 @@
 
 import sys
 from ebkus.config import config
+from ebkus.db.sql import escape
 from ebkus.app import Request
 from ebkus.app.ebapi import JugendhilfestatistikList, Jugendhilfestatistik2007List, \
      ZustaendigkeitList, AkteList, BezugspersonList, FallList, GruppeList, \
@@ -51,8 +52,9 @@ class _abfr(Request.Request, akte_share):
         if mitarbeiter:
             where.append("mitarbeiter.id=%s" % mitarbeiter['id'])
         if grname:
-            where.append("(gruppe.name like '%%%s%%' or gruppe.thema like '%%%s%%')" % \
-                     (grname, grname))
+            expr = escape('%' + grname + '%')
+            where.append("(gruppe.name like %s or gruppe.thema like %s)" % \
+                     (expr, expr))
         if welche=='laufend':
             where.append('gruppe.ey=0')
         elif welche=='abgeschlossen':
@@ -240,8 +242,9 @@ class abfr3(_abfr):
         fall.zdam = zustaendigkeit.em and 
         fall.zdad = zustaendigkeit.ed"""
         if bzpname:
-            where += " and (bezugsperson.vn like '%%%s%%' or bezugsperson.na like '%%%s%%')" % \
-                     (bzpname, bzpname)
+            expr = escape('%' + bzpname + '%')
+            where += " and (bezugsperson.vn like %s or bezugsperson.na like %s)" % \
+                     (expr, expr)
         if mitarbeiter:
             where += " and mitarbeiter.id = %s" % mitarbeiter['id']
         bezugsperson_list = BezugspersonList(
