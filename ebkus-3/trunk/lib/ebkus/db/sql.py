@@ -362,6 +362,7 @@ def msql_quote(arg):
         return "%s" % arg
         #return repr(arg)
         
-        
-        
-        
+def escape(o):
+    # escape der Datenbank, macht auch apostroph um strings,
+    # as'as  -> 'as\'as'
+    return getDBHandle().dbhandle.escape(o)
