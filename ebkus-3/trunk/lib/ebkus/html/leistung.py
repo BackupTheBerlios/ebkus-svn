@@ -26,7 +26,7 @@ class _leist(Request.Request, akte_share):
                                    options=self.for_mitarbeiter(leistung['mit_id'])),
                       h.SelectItem(label='Leistung',
                                    name='le',
-                                   class_='listbox220',
+                                   class_='listbox250',
                                    options=self.for_kat('fsle', leistung['le'])),
             ]]
             )

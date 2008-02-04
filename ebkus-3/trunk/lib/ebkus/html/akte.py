@@ -62,6 +62,7 @@ class _akte(Request.Request, akte_share):
                         h.SelectItem(label='Leistung',
                                      name='le',
                                      tip='Art der erbrachten Leistung',
+                                     class_='listbox250',
                                      options=self.for_kat('fsle', akte['fs'])),
                         ],[h.DummyItem(),
                            h.DatumItem(label='Am',
