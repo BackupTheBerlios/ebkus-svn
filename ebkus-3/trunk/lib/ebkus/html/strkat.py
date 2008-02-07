@@ -120,6 +120,8 @@ class strkat(Request.Request):
                     res.append(sp*(soll - ist))
                     ist = soll
                 val = element[f]
+                if val == None:
+                    val = ''
                 l = len(val)
                 if f in ('von2', 'bis2'):
                     n_sp = val.count(sp)
