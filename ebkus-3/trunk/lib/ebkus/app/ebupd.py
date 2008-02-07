@@ -2462,6 +2462,8 @@ def _check_code(code):
     # kr 3-stellig
     kat_code = code['kat_code']
     code = code['code']
+    if not code.isdigit():
+        raise EE("Code muss aus Ziffern bestehen")
     if kat_code == 'kr' and len(code) != 3:
         raise EE("Code für Kreis muss dreistellig sein (Ziffer 3-5 des amtlichen Gemeindeschlüssel (AGS)")
     elif kat_code == 'land' and len(code) != 2:
