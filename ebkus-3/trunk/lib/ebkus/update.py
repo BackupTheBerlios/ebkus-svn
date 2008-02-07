@@ -35,7 +35,7 @@ class UpdateDB(object):
     Die Software der höheren Version muss bereits eingespielt sein.
     """
     # diese Listen definieren für welche Datenbankversionen diese Klasse funktioniert
-    ist_moeglich = ['3.3', '4.1'] # TODO: 4.0.1 und 4.0.2 integrieren
+    ist_moeglich = ['3.3', '4.0', '4.0.2', '4.1'] # TODO: 4.0.1 und 4.0.2 integrieren
     soll_moeglich = ['4.1']
 
     def __init__(self):
@@ -61,6 +61,8 @@ class UpdateDB(object):
         logging.shutdown()
         sys.exit(1)
 
+    def has_field(self, table, field):
+        return bool([t for t in getDBHandle().listfields(table) if t[0] == field])
 
     def get_version(self):
         tables = self.tables
@@ -70,7 +72,14 @@ class UpdateDB(object):
             return '3.3'
         elif 'register' in tables:
             from ebkus.app.ebapi import register_get
-            return register_get('Version')
+            version = register_get('Version')
+            if version:
+                return version
+            else:
+                # 4.0 oder 4.0.1
+                return '4.0'
+        else:
+            return None
 
     def update_noetig(self):
         if self.ist == self.soll:
@@ -89,6 +98,46 @@ class UpdateDB(object):
         return True
 
     def update(self):
+        method = "update_%s_nach_%s" % (self.ist, self.soll)
+        method = method.replace('.', '_')
+        res = getattr(self, method)()
+        from ebkus import Version
+        from ebkus.app.ebapi import register_set
+        register_set("Version", self.soll)
+        logging.info("Datenbank von Version %s auf Version %s erfolgreich updatet" %
+                     (self.ist, self.soll))
+
+    def update_4_0_nach_4_1(self):
+        if not self.has_field('jghstat07', 'jahr'):
+            SQL('ALTER TABLE jghstat07 ADD COLUMN jahr INT').execute()
+            logging.info("Feld 'jahr' zur Bundesstatistik hinzugefügt")
+        tab_id = Tabelle(tabelle='jghstat07')['id']
+        if not FeldList(where="tab_id=%s and feld='jahr'" % tab_id):
+            feld = Feld()
+            feld.init(tab_id=tab_id,
+                      feld='jahr',
+                      name='Jahr',
+                      typ='INT',
+                      verwtyp=cc('verwtyp', 'p'),
+                      flag=0,
+                )
+            feld.new()
+            feld.insert()
+            logging.info("Metadaten für Feld 'jahr' hinzugefügt")
+        self.jahr_in_bundesstatistik()
+        Kategorie(code='kr').update({
+            'dok': "amtlicher Gemeindeschlüssel (AGS, Ziffer 3-5)"})
+        Kategorie(code='rbz').update({
+            'dok': "amtlicher Gemeindeschlüssel (AGS) obsolet, in Kreis mit drin"})
+        self.kreis_dreistellig_umstellen()
+        self.einrichtungsnummer_sechsstellig_umstellen()
+
+
+    def update_4_0_2_nach_4_1(self):
+        # kann nichts schaden
+        self.update_4_0_2_nach_4_1()
+
+    def update_3_3_nach_4_1(self):
         self.rename_tables()
         self.init_new_db()
         self.set_diff()
@@ -109,7 +158,7 @@ class UpdateDB(object):
         self.jahr_in_bundesstatistik()
         self.geschlecht_aus_statistik_nach_akte()
         self.add_mime_types()
-        self.kreis_fuer_berlin_umstellen()
+        self.kreis_dreistellig_umstellen()
         self.strassenkatalog_einlesen()
         self.stellenzeichen_reparieren()
         self.akte_aufbew_initialisieren()
@@ -205,7 +254,10 @@ class UpdateDB(object):
     def geschlecht_aus_statistik_nach_akte(self):
         fs_list = FachstatistikList(where='')
         for fs in fs_list:
-            fs['fall__akte'].update({'gs': fs['gs']})
+            try:
+                fs['fall__akte'].update({'gs': fs['gs']})
+            except:
+                pass
         logging.info("Geschlecht aus Fachstatistik in die Klientenakte uebernommen")
 
     def strassenkatalog_einlesen(self):
@@ -220,7 +272,7 @@ class UpdateDB(object):
             os.system("%s %s | mysql -u%s %s %s" % (cat, str_kat, user, pw_arg, db))
             logging.info('Strassenkatalog eingelesen: %s' % STRASSENKATALOG)
         
-    def kreis_fuer_berlin_umstellen(self):
+    def kreis_dreistellig_umstellen(self):
         from ebkus.app.ebapih import get_all_codes
         kreise = get_all_codes('kr')
         for k in kreise:
@@ -228,10 +280,24 @@ class UpdateDB(object):
             if code in ('01', '02', '03', '04', '05', '06',
                         '07', '08', '09', '10', '11', '12',
                         ):
-                code = '0' + code
+                code = '0' + code # Berlin 0
+            elif len(code) == 2:
+                code = '1' + code # sonst 1
             k.update({'code': code})
-        logging.info('Kreis-Code für Berlin dreistellig gemacht')
+        logging.info('Kreis-Code dreistellig gemacht')
         
+    def einrichtungsnummer_sechsstellig_umstellen(self):
+        from ebkus.app.ebapih import get_all_codes
+        codes = get_all_codes('einrnr')
+        for c in codes:
+            code = c['code']
+            if not c.isdigit():
+                logging.error("Einrichungsnummer gefunden, die keine Zahl ist: %s" % code)
+            elif len(code) != 6:
+                code = "%06d" % code[:6]
+                c.update({'code': code})
+        logging.info('Einrichtungsnummern sechsstellig gemacht')
+
     def rename_tables(self):
         for t in self.tables:
             SQL('ALTER TABLE %s RENAME %s_old' % (t, t)).execute()
@@ -399,8 +465,8 @@ class UpdateDB(object):
             assert old['codes'] == new['codes'] 
         else:
             print '*** differ: ', old['code'], old['name'], new['name']
-            old_codes = dict((c['code'], c) for c in old['codes'])
-            new_codes = dict((c['code'], c) for c in new['codes'])
+            old_codes = dict([(c['code'], c) for c in old['codes']])
+            new_codes = dict([(c['code'], c) for c in new['codes']])
 ##             print old_codes
 ##             print new_codes
             codes = list(set([c for c in chain(old_codes, new_codes)]))
