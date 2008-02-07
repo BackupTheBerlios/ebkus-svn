@@ -471,7 +471,7 @@ code_list_str += \
 14;Sachsen;land
 15;Sachsen-Anhalt;land
 16;Thüringen;land
-11;11 Muster-Einrichtungsnummer;einrnr
+000011;11 Muster-Einrichtungsnummer;einrnr
 1;Eltern leben zusammen;shf
 2;Elternteil lebt alleine ohne (Ehe-)Partner (mit/ohne weitere/n Kinder/n);shf
 3;Elternteil lebt mit neuer Partnerin/neuem Partner (mit/ohne weitere/n Kinder/n)(z.B. Stiefelternkonstellation);shf
