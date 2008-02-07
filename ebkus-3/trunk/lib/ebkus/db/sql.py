@@ -363,6 +363,10 @@ def msql_quote(arg):
         #return repr(arg)
         
 def escape(o):
-    # escape der Datenbank, macht auch apostroph um strings,
-    # as'as  -> 'as\'as'
-    return getDBHandle().dbhandle.escape(o)
+    """Escape für ein String, der damit direkt in ein where eingesetzt werden kann"""
+    # escape der Datenbank geht nicht wg. verschiedenen MySQLdb-Versionen (??)
+    if "'" in o:
+        if r"\'" in o:
+            raise SQLError('Backslash-Apostroph nicht erlaubt')
+        o = o.replace("'", r"\'")
+    return "'%s'" % o
