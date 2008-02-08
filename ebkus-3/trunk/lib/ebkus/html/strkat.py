@@ -487,12 +487,14 @@ class strkatimport(Request.Request, akte_share):
             try:
                 vn, vb, vg = split_hausnummer(von)
                 bn, bb, bg = split_hausnummer(bis)
+                assert 0 < vn < 1000 
+                assert 0 < bn < 1000 
             except:
                 self.csv_lese_fehler('Fehler in Hausnummer', znr, daten)
             if (vn == bn and not vb.upper() <=  bb.upper()) or vn > bn:
                 self.csv_lese_fehler("Hausnummer 'von' muss größer sein als 'bis'", znr, daten)
-            dic['von'] = "%s%s" % (vn, vb.upper())
-            dic['bis'] = "%s%s" % (bn, bb.upper())
+            dic['von'] = "%03d%s" % (vn, vb.upper())
+            dic['bis'] = "%03d%s" % (bn, bb.upper())
         else:
             dic['von'] = None
             dic['bis'] = None
