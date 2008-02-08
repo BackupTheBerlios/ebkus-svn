@@ -876,9 +876,11 @@ class ComponentApache(Component):
         ip = self.install_path
         apache_conf = join(ip, 'conf', 'httpd.conf')
         self.log("apache Konfiguration erzeugen: %s" % apache_conf)
+        keep_alive = win32 and 'Off' or 'On'
         create_file(join(self.config.EBKUS_DIST, 'templates', 'httpd.conf.template'),
                    apache_conf,
-                   params = {'SERVER_ROOT': ip,
+                   params = {'KEEP_ALIVE': keep_alive,
+                             'SERVER_ROOT': ip,
                              'EBKUS_HTTPD_CONF': join(self.config.EBKUS_HOME, 'ebkus_httpd.conf')})
 
     def safe_to_remove(self):
