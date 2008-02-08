@@ -11,7 +11,7 @@ from ebkus.gen.genEb import generate_ebapi
 from ebkus.app.ebapi import Tabelle, Feld, FeldList, \
      Kategorie, KategorieList, Code, CodeList, FachstatistikList, \
      FallList, AkteList, JugendhilfestatistikList, Jugendhilfestatistik2007List, \
-     getNewFallnummer, cc, today, calc_age, Fall
+     getNewFallnummer, cc, today, calc_age, Fall, StrassenkatalogNeuList
 
 
 #str_kat = join(config.EBKUS_HOME, 'sql', STRASSENKATALOG) 
@@ -131,11 +131,12 @@ class UpdateDB(object):
             'dok': "amtlicher Gemeindeschlüssel (AGS) obsolet, in Kreis mit drin"})
         self.kreis_dreistellig_umstellen()
         self.einrichtungsnummer_sechsstellig_umstellen()
-
+        self.keep_alive_anpassen()
+        self.strassenkatalog_reparieren()
 
     def update_4_0_2_nach_4_1(self):
         # kann nichts schaden
-        self.update_4_0_2_nach_4_1()
+        self.update_4_0_nach_4_1()
 
     def update_3_3_nach_4_1(self):
         self.rename_tables()
@@ -165,6 +166,43 @@ class UpdateDB(object):
         self.fallnummer_pruefen_und_reparieren()
         self.regional_abgleich()
         self.alte_tabellen_loeschen()
+        self.keep_alive_anpassen()
+
+
+    def strassenkatalog_reparieren(self):
+        strassen_list = StrassenkatalogNeuList(where='von IS NOT NULL')
+        from ebkus.html.strkat import split_hausnummer
+        count = 0
+        for s in strassen_list:
+            try:
+                vn, vb, vg = split_hausnummer(s['von'])
+                bn, bb, bg = split_hausnummer(s['bis'])
+                s.update({'von': "%03d%s" % (vn, vb.upper()),
+                          'bis': "%03d%s" % (bn, bb.upper()),
+                    })
+                count += 1
+            except:
+                pass
+        logging.info("%s Eintraege des Strassenkatalogs repariert" % count)
+
+    def keep_alive_anpassen(self):
+        changed = False
+        if sys.platform == 'win32':
+            httpd_conf = join(config.INSTALL_DIR, 'apache', 'conf', 'httpd.conf')
+            if exists(httpd_conf):
+                f = open(httpd_conf, 'rb')
+                text = f.read()
+                f.close()
+                if text.find('\nKeepAlive On') > -1:
+                    text = text.replace('\nKeepAlive On', '\nKeepAlive Off')
+                    open(httpd_conf, 'wb').write(text)
+                    changed = True
+        if changed:
+            logging.info("Apache-Server auf 'KeepAlive Off' eingestellt")
+        else:
+            logging.info("Apache-Server 'KeepAlive' nicht veraendert")
+                
+            
 
     def alte_tabellen_loeschen(self):
         for t in getDBHandle().listtables():
@@ -173,29 +211,30 @@ class UpdateDB(object):
         logging.info("Alte Tabellen geloescht")
         
     def regional_abgleich(self):
-        akte_list = AkteList(where='')
-        from ebkus.html.strkat import get_strasse
-        count = 0
-        def fs_iter(akte):
-            for fall in akte['faelle']:
-                for fs in fall['fachstatistiken']:
-                    yield fs
-        for a in akte_list:
-            strasse = get_strasse(a)
-            if strasse:
-                count += 1
-                upd = {}
-                for f in ('ort', 'plz', 'ortsteil',
-                          'bezirk', 'samtgemeinde', 'plraum'):
-                    upd[f]= strasse[f]
-                for fs in fs_iter(a):
-                    fs.update(upd) 
-                a.update({'plraum': strasse['plraum']})
-            else:
-                # dieser Fall ist schon durch planungsr_ort_plz_kopieren() geregelt
-                pass
-        logging.info("Abgleich mit dem Strassenkatalog %s mal (aus %s) gelungen" %
-                     (count, len(akte_list)))
+        if config.STRASSENKATALOG:
+            akte_list = AkteList(where='')
+            from ebkus.html.strkat import get_strasse
+            count = 0
+            def fs_iter(akte):
+                for fall in akte['faelle']:
+                    for fs in fall['fachstatistiken']:
+                        yield fs
+            for a in akte_list:
+                strasse = get_strasse(a)
+                if strasse:
+                    count += 1
+                    upd = {}
+                    for f in ('ort', 'plz', 'ortsteil',
+                              'bezirk', 'samtgemeinde', 'plraum'):
+                        upd[f]= strasse[f]
+                    for fs in fs_iter(a):
+                        fs.update(upd) 
+                    a.update({'plraum': strasse['plraum']})
+                else:
+                    # dieser Fall ist schon durch planungsr_ort_plz_kopieren() geregelt
+                    pass
+            logging.info("Abgleich mit dem Strassenkatalog %s mal (aus %s) gelungen" %
+                         (count, len(akte_list)))
         
 
     def akte_aufbew_initialisieren(self):
@@ -291,11 +330,12 @@ class UpdateDB(object):
         codes = get_all_codes('einrnr')
         for c in codes:
             code = c['code']
-            if not c.isdigit():
+            if not code.isdigit():
                 logging.error("Einrichungsnummer gefunden, die keine Zahl ist: %s" % code)
             elif len(code) != 6:
-                code = "%06d" % code[:6]
+                code = "%06d" % int(code[:6])
                 c.update({'code': code})
+                logging.info("Einrichungsnummer mit 0 aufgefuellt: %s" % code)
         logging.info('Einrichtungsnummern sechsstellig gemacht')
 
     def rename_tables(self):
