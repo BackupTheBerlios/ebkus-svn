@@ -45,7 +45,3 @@ apache_linux = ftp_bke_linux + 'apache_1.3.31.tar.gz'
 srvstart_win32 = ftp_bke_win32 + 'srvstart_run.v110.zip'
 
 reportlab = ftp_bke_linux + 'ReportLab_1_19.zip'
-
-# Original-Quelle ist
-# http://cheeseshop.python.org/packages/source/J/Jinja/Jinja-1.1.tar.gz
-jinja = ftp_bke_linux + 'Jinja-1.1.zip'

@@ -24,7 +24,7 @@ def assert_readable(path):
 class InstallException(Exception):
     pass
 
-def create_cd(dist_dir, cd_dir, for_linux, for_win32):
+def create_cd(dist_dir, cd_dir, version, for_linux, for_win32):
     global win32
     saved_win32 = win32
     # Windows Sachen runterladen
@@ -44,7 +44,6 @@ def create_cd(dist_dir, cd_dir, for_linux, for_win32):
         installer.openssl._download()
         installer.pygdchart._download()
         installer.reportlab._download()
-        installer.jinja._download()
         installer.srvstart._download()
         myrmtree(install_dir, logf=installer.log)
     
@@ -66,11 +65,10 @@ def create_cd(dist_dir, cd_dir, for_linux, for_win32):
         installer.openssl._download()
         installer.pygdchart._download()
         installer.reportlab._download()
-        installer.jinja._download()
         myrmtree(install_dir, logf=installer.log)
 
     # EBKuS Dateien kopieren
-    ebkus_dir = join(cd_dir, 'ebkus-3.3')
+    ebkus_dir = join(cd_dir, 'ebkus-%s' % version)
     create_directory(ebkus_dir)
     for f in os.listdir(dist_dir):
         src = join(dist_dir, f)
@@ -248,13 +246,6 @@ class Installer(object):
         reportlab.archive_dir = 'reportlab-1_19'
         reportlab.target_dir = ''
         self.reportlab = reportlab
-
-        jinja = ComponentJinja('jinja')
-        jinja.url = spl(d.jinja)[0]
-        jinja.archive = spl(d.jinja)[1]
-        jinja.archive_dir = 'Jinja-1.1'
-        jinja.target_dir = ''
-        self.jinja = jinja
 
         pygdchart = ComponentPygdchart('pygdchart')
         if win32:
@@ -685,19 +676,6 @@ class ComponentReportlab(Component):
 
     def is_installed(self):
         return exists(join(self.config.EBKUS_PYTHON_PATH, 'reportlab'))
-
-class ComponentJinja(Component):
-    def installable(self):
-        return True
-    def _get_install_path(self):
-        return join(self.config.EBKUS_PYTHON_PATH, 'jinja')
-    def _install(self):
-        self._download()
-        self._unpack()
-        self._copy_to_python(join(self.unpack_path, 'jinja'))
-
-    def is_installed(self):
-        return exists(join(self.config.EBKUS_PYTHON_PATH, 'jinja'))
 
 class ComponentPygdchart(Component):
     dll_name = win32 and 'gdchart.pyd' or 'gdchart.so'
