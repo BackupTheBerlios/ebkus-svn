@@ -324,12 +324,16 @@ class akte_share(options):
         planungsr_value = data.get('plraum', '')
         if planungsr_value == '0':
             planungsr_value = ''
-        planungsr = h.TextItem(label='Planungsraum',
-                               name='plraum',
-                               value=planungsr_value,
-                               tip="Der Planungsraum des Klienten",
-                               n_col=n_col,
-                               )
+
+        if isinstance(data, Akte):
+            planungsr = h.TextItem(label='Planungsraum',
+                                   name='plraum',
+                                   value=planungsr_value,
+                                   tip="Der Planungsraum des Klienten",
+                                   n_col=n_col,
+                                   )
+        else:
+            planungsr = h.DummyItem(n_col=n_col,)
         if config.STRASSENKATALOG:
             items = (strkat_ein_aus,)
         else:
