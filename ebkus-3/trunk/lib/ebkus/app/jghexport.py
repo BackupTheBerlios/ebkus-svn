@@ -83,7 +83,13 @@ def jghexport(jahr, andauernd):
             #jghl = Jugendhilfestatistik2007List(where = 'ey is NULL and bgy <= %s' % jahr, order = 'lnr')
             jghl = Jugendhilfestatistik2007List(where = 'ey is NULL and jahr = %s' % jahr, order = 'lnr')
         else:
-            jghl = Jugendhilfestatistik2007List(where = 'ey=%s' % jahr, order = 'lnr')
+            where = 'ey=%s' % jahr
+            where_fall = " and fall.zday > 0"
+            where_kein_fall = " and fall_id IS NULL"
+            join = [('fall', 'jghstat07.fall_id=fall.id')]
+            jghl = (Jugendhilfestatistik2007List(where=where+where_fall, join=join) +
+                    Jugendhilfestatistik2007List(where=where+where_kein_fall, join=join))
+            jghl.sort('lnr')
     else:
         jghl = JugendhilfestatistikList (where = 'ey =  %s' % jahr, order = 'lnr')
         get_datensatz = get_datensatz_bis_2006

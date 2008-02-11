@@ -450,9 +450,9 @@ class _statistik_ergebnis(Request.Request, akte_share):
         "Liefert alle FS bzw. JGH-Objekte (abhängig von klass) der"
         "angegebenen Stellen und Jahre."
         "Nur abgeschlossene Fälle, oder Statistiken mir fehlender fall_id"
-        if klass == JugendhilfestatistikList:
+        if klass in (Jugendhilfestatistik2007List, JugendhilfestatistikList):
             jahr = 'ey'
-        elif klass in (Jugendhilfestatistik2007List, FachstatistikList):
+        elif klass in (FachstatistikList,):
             jahr = 'jahr'
         else:
             raise EE('Interner Fehler in get_grundgesamtheit')
