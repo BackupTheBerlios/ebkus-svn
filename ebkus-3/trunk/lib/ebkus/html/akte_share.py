@@ -945,7 +945,7 @@ class akte_share(options):
             where += " and (akte.vn like %s)" % (expr,)
         if klnachname:
             expr = escape('%' + klnachname + '%')
-            where += " and (akte.na like %s)" % (klnachname,)
+            where += " and (akte.na like %s)" % (expr,)
         if klname or klvorname or klnachname:
             sort = ('akte__na', 'akte__vn', 'bgy', 'bgm', 'bgd')
         if fn:
