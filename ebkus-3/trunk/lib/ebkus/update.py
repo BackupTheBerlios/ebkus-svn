@@ -27,6 +27,7 @@ except NameError:
 # public
 def update():
     u = UpdateDB()
+    u.keep_alive_anpassen()
     if u.update_noetig():
         u.update()
         
@@ -186,22 +187,22 @@ class UpdateDB(object):
         logging.info("%s Eintraege des Strassenkatalogs repariert" % count)
 
     def keep_alive_anpassen(self):
-        changed = False
-        if sys.platform == 'win32':
-            httpd_conf = join(config.INSTALL_DIR, 'apache', 'conf', 'httpd.conf')
-            if exists(httpd_conf):
-                f = open(httpd_conf, 'rb')
-                text = f.read()
-                f.close()
-                if text.find('\nKeepAlive On') > -1:
-                    text = text.replace('\nKeepAlive On', '\nKeepAlive Off')
-                    open(httpd_conf, 'wb').write(text)
-                    changed = True
-        if changed:
-            logging.info("Apache-Server auf 'KeepAlive Off' eingestellt")
-        else:
-            logging.info("Apache-Server 'KeepAlive' nicht veraendert")
-                
+        try:
+            changed = False
+            if sys.platform == 'win32':
+                httpd_conf = join(config.INSTALL_DIR, 'apache', 'conf', 'httpd.conf')
+                if exists(httpd_conf):
+                    f = open(httpd_conf, 'rb')
+                    text = f.read()
+                    f.close()
+                    if text.find('\nKeepAlive On') > -1:
+                        text = text.replace('\nKeepAlive On', '\nKeepAlive Off')
+                        open(httpd_conf, 'wb').write(text)
+                        changed = True
+            if changed:
+                logging.info("Apache-Server auf 'KeepAlive Off' eingestellt")
+        except:
+            pass # sollte nie scheitern
             
 
     def alte_tabellen_loeschen(self):
