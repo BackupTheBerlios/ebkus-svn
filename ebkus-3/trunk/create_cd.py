@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: latin-1
+
 """
 Struktur der CD:
 
@@ -19,7 +20,7 @@ README.txt
   ReportLab_1_19.zip
   pygdchart0.6.1-w32-py23.zip
   srvstart_run.v110.zip
-/ebkus-3.2
+/ebkus-<Version>
   /doc
   /lib
   /sql
@@ -71,7 +72,6 @@ if __name__ == '__main__':
     dir = normpath(abspath(dir))
     EBKUS_DIST = dir
     sys.path.insert(0, join(EBKUS_DIST, 'lib'))
-
     try:
         optlist, args = getopt.getopt(sys.argv[1:],
                                       'h',
@@ -99,4 +99,5 @@ if __name__ == '__main__':
     assert not CD_DIR.startswith(EBKUS_DIST), \
            "CD-Verzeichnis '%s' darf kein Unterverzeichnis von '%s' sein" % (CD_DIR, EBKUS_DIST)
     from ebkus.Install import create_cd
-    create_cd(EBKUS_DIST, CD_DIR, for_linux=linux, for_win32=win32)
+    from ebkus import Version
+    create_cd(EBKUS_DIST, CD_DIR, Version, for_linux=linux, for_win32=win32)
