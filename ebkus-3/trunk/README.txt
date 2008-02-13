@@ -1,10 +1,10 @@
-EBKuS 4.0
+EBKuS 4.1
 =========
 
 Klientenverwaltung, Aktendokumentation, Gruppenverwaltung 
 und Statistik für Erziehungs- und Familienberatungsstellen
 
-Copyright (1997-2007) Jürg Huber, Albrecht Schmiedel 
+Copyright (1997-2008) Jürg Huber, Albrecht Schmiedel 
 Lizenz: GNU General Public License (GPL)
 
 E-Mail: juerg@pantau.in-berlin.de, atms@alibi.in-berlin.de
@@ -13,9 +13,6 @@ WWW: http://www.ebkus.org/
 
 ACHTUNG
 =======
-
-DIE VERSION 4.0 ENTHÄLT KEIN UPDATE-SKRIPT ZUR ÜBERFÜHRUNG
-ÄLTERER VERSIONEN. NUR FÜR GANZ NEUE INSTALLTIONEN GEEIGNET!
 
 DAS HANDBUCH IST NOCH NICHT FÜR DIE STARK VERÄNDERTE VERSION 4
 AKTUALISIERT! 
@@ -57,7 +54,7 @@ Installation
 ------------
 
 Zur Installation siehe die Datei doc/installation.txt bzw. das
-Kapitel Installation im Handbuch.
+Kapitel Installation im Handbuch (nicht veraltet!).
 
 
 

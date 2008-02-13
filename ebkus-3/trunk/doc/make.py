@@ -99,10 +99,12 @@ def run_cmd(cmd):
 
 def usage():
     msg ="""\
-make.py [-h, --help] [html|latex|pdf|clean]
+make.py [-h, --help, -r, --readme] [html|latex|pdf|clean]
 
    EBKuS-Dokumentation im HTML-Format oder als PDF erstellen.
-
+   oder mit Option -r, --readme: nur HTML-Versionen der READMEs
+   im Distributionsverzeichnis erstellen, nicht das Handbuch)
+   
    Ohne Argumente wird bei Bedarf die gesamte Dokumentation neu
    erstellt. (Bedarf besteht, wenn in einer der Quelldateien sich
    etwas geändert hat.)
@@ -149,6 +151,13 @@ def make_latex():
         post_process_latex('manual.tex')
     
 
+def make_readme():
+    "HTML-Versionen der Dokumentation im Distributionsverzeichnis erstellen."
+    docs = ('NEU_IN_DIESER_VERSION', 'VERSIONS_GESCHICHTE',)
+    for d in docs:
+        os.system("rst2html.py --input-encoding=latin1 --stylesheet-path=manual.css " +
+                  "--config=docutils.conf --initial-header-level=3 ../%s.txt ../%s.html" % (d, d))
+
 if __name__ == '__main__':
     os.chdir(dirname(abspath(sys.argv[0])))
     pdf = html = latex = clean = False
@@ -162,6 +171,9 @@ if __name__ == '__main__':
             latex = True
         if 'clean' in args:
             clean = True
+        if '-r' in args or '--readme' in args:
+            make_readme()
+            sys.exit(0)
         if '-h' in args or '--help' in args:
             usage()
             sys.exit(0)

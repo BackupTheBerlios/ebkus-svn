@@ -1,0 +1,337 @@
+Veränderungen in EBKuS 4.1 gegenüber EBKuS 3.3 (13. Februar 2008)
+=================================================================
+
+ACHTUNG:
+Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
+aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
+nach wie vor gültig.
+
+NAVIGATION: Inhaltsverzeichnis und Überschriften im Text
+sind wechselseitig verlinkt. Ein Klick auf eine Überschrift führt
+zurück zum Inhaltsverzeichnis.
+
+.. contents::
+
+.. sectnum::
+
+
+Update von 3.3 auf 4.1
+----------------------
+
+Das Datenbankschema hat sich verändert, die Datenbanken sind
+nicht kompatibel. Version 4.1 enthält ein Update-Skript, das
+automatisch die Datenbank an die neue Version anpasst (siehe
+README-Update-von-3.3-nach-4.1.txt). 
+
+
+Konfiguration
+-------------
+
+Neue Konfigurationsvariablen in ``ebkus.conf``:
+
+* ``instance_title``: Langname für die Instanz, erscheint bei der
+  Anmeldung und in der Statuszeile.
+
+* ``wiederaufnahmefrist``: Anzahl der Monate, innerhalb derer ein
+  abgeschlossener Fall wiederaufgenommen werden kann.
+
+* ``beratungskontakte``: Falls ``true`` können in der
+  Klientenakte einzelne Beratungskontakte eingetragen werden. Die
+  Summen werden in die Bundesstatistik und in die Fachstatistik übernommen.
+
+* ``beratungskontakte_bs``: Falls ``true`` (``beratungskontakte``
+  muss ebenfalls auf ``true`` stehen) treten Anpassungen speziell
+  für Braunschweig in Kraft.
+* ``fallunabhaengige_aktivitaeten_bs``: Falls ``true`` können
+  fallunabhängige Aktivitäten eingetragen und ausgewertet
+  werden. Speziell für Braunschweig.
+
+* ``strassenkatalog_vollstaendig``: Falls ``true`` wird
+  angenommen, dass der Straßenkatalog Einträge für jede einzelne
+  Hausnummer enthält anstatt Einträge nur für ganze Straßen
+  bzw. für bestimmte Intervalle von Hausnummern.
+
+* ``strassensuche``: bestimmt die Anzeige von Zusatzinfo aus dem
+  Straßenkatalog bei der Darstellung von Adressen (irrelevant,
+  wenn kein Straßenkatalog verwendet wird). Im folgenden Beispiel
+  wird so viel wie möglich angezeigt: 
+
+  ::
+
+    ``strassensuche: ort bezirk ortsteil samtgemeinde``
+
+  ``ort`` kann weggelassen werden, wenn im Straßenkatalog nur ein
+  Ort vorkommt. Die Felder ``ortsteil`` und ``samtgemeinde`` können
+  weggelassen werden, wenn im Straßenkatalog nur das Feld
+  ``bezirk`` Einträge enthält.
+
+
+Benutzeroberfläche
+------------------
+
+Alle Seiten haben oben eine Statuszeile mit 
+
+* Link zur relevanten Stelle im Handbuch (welches leider noch
+  nicht aktualisiert ist),
+
+* Pfad zur aktuellen Seite ("Breadcrumb"),
+
+* EBKuS-Version, Instanz(lang)name,
+
+* Benutzername (Kennung@Stelle, Rolle),
+
+* Link zum Abmelden.
+
+Die Oberfläche wurde überarbeitet und ist jetzt insgesamt
+konsistenter und übersichtlicher.
+
+Die Suche erfolgt jetzt direkt vom Hauptmenü aus.
+
+
+Klientenakte
+------------
+
+Übernahmen von Altdaten
+.......................
+
+Bei der Neuaufnahme können Name, Geburtsdatum, Geschlecht,
+Adresse und Telefonnummer aus eventuell vorhandenen Altdaten
+übernommen werden. Altdaten müssen zuvor über das
+Administrationsmenü als CSV-Datei importiert werden. Dort ist
+auch das Format der zu importierenden Datei erklärt.
+
+
+Stammdaten
+..........
+
+* Geschlecht wird bei Klientendaten eingetragen und in die Fach-
+  und Bundesstatistik übernommen.
+
+* Bei den Stammdaten wird eine Aufbewahrungskategorie vermerkt,
+  die beim Löschen von Akten berücksichtigt werden kann
+  (Missbrauchsfälle und Therapien müssen länger aufbewahrt werden
+  als Beratungen.)
+
+
+Straßenkatalog
+..............
+
+* Die Anwendung wurde stark vereinfacht.
+
+* Zum Abgleich können die ersten Buchstaben des Straßennames, des
+  Ortes, der Postleitzahl und - je nachdem, ob der Straßenkatalog
+  diese Angaben enthält - des Bezirks, des Ortsteils und der
+  Samtgemeinde verwendet werden.
+
+* Wenn die Angaben genau einen Treffer ergeben, wird die Adresse
+  direkt mit den Daten des Treffers vervollständigt ohne die
+  Straßenauswahl-Maske zu aktivieren.
+
+* Straßenkataloge können in einem fest definierten Format als
+  CSV-Dateien importiert und exportiert werden und auf diese
+  Weise gepflegt werden.
+
+
+Bezugsperson
+............
+
+* Name und Adresse sind mit Name und Adresse vom Klienten
+  vorbelegt, da hier am häufigsten Eltern oder Geschwister
+  eingetragen werden.
+
+* Geschlecht der Bezugsperson wird vorbelegt wenn '-vater' oder '-mutter' in der
+  Verwandtschaftsart vorkommen.
+
+
+Anmeldekontakt
+..............
+
+* Datum kann nicht mehr eingegeben werden, da der Fallbeginn als
+  Anmeldedatum  zugrundegelegt wird.
+
+
+Beratungskontakte
+.................
+
+* Neu in EBKuS 4
+
+* An einem Beratungskontakt können mehrere Mitarbeiter und
+  mehrere Klienten beteiligt sein. 
+
+* Der Klient, von dessen Klientenkarte der Kontakt hinzugefügt
+  wurde, ist als Beteiligter vorselektiert. Der für ihn
+  zuständige Mitarbeiter ist ebenfalls vorselektiert.
+
+* Die Summe der Beratungskontakte wird in die Fach- und
+  Bundesstatistik übernommen.
+
+
+Zuständigkeit
+.............
+
+* Beim Abspeichern wird gewährleistet, dass es für jeden
+  Zeitpunkt eines laufenden Falles ein zuständigen Mitarbeiter
+  gibt. 
+
+
+Fall
+....
+
+* Wo früher 'Fallbeginn' stand, steht nun 'Anmeldedatum', wodurch
+  das mit diesem Datum Gemeinte verdeutlicht wird.
+
+* Leistungsbeginn ist das Datum der ersten Leistung, welches als
+  'Beginn der Hilfegewährung' in die Bundesstatistik übernommen
+  wird.
+
+* Die Wiederaufnahmefrist (Anzahl der Monate, innerhalb derer ein
+  abgeschlossener Fall wiederaufgenommen werden kann) ist jetzt konfigurierbar.
+
+
+Löschen
+.......
+
+Bei aktuellen Fällen können einzelne Einträge für 
+
+* Bezugsperson,
+
+* Beratungskontakt, 
+
+* Einrichtungskontakt und 
+
+* Leistung gelöscht werden.
+
+
+Fachstatistik
+-------------
+
+* Regionaldaten (Ort, PLZ, Ortsteil, Bezirk, Samtgemeinde) werden
+  in die Fachstatistik übernommen falls vorhanden.
+
+* 'Qualifikation Jugendlicher' wurde umbenannt in 'Beschäftigung
+  Jugendlicher' und neues Merkmal 'entfällt (unter 14)' hinzugefügt.
+
+* 'Beruf Mutter/Vater' wurde umbenannt in 'Beschäftigung Mutter/Vater'
+  und einige Merkmalsbezeichnungen angepasst.
+
+* 'Problem 1/2 bei der Anmeldung' wurde zusammengefasst zu 'Probleme
+  bei der Anmeldung' mit der Möglichkeit, mehrere Merkmale
+  auszuwählen. 
+
+* 'Hauptproblematik Kind/Jugendliche' bzw. 'Hauptproblematik
+  Eltern' entfallen. 
+
+* Vorbelegungen:
+
+  * Geschlecht aus den Stammdaten
+
+  * Altersgruppe aus dem Geburtsdatum in den Stammdaten
+
+  * Altersgruppe der Eltern aus dem Geburtsdatum der Eltern falls
+    vorhanden
+
+  * Erbrachte Leistungen aus der Klientenakte
+
+  * Terminsummen aus den Beratungskontakten falls vorhanden
+
+* Fachstatistik ist über das Administrationsmenü konfigurierbar:
+
+  * Einzelne Fragen können abgeschaltet werden.
+
+  * Es können bis zu vier zusätzliche Fragen mit Einfachauswahl
+    frei konfiguriert werden.
+
+  * Es können bis zu vier zusätzliche Fragen mit Mehrfachauswahl
+    frei konfiguriert werden.
+
+  * Die Merkmalskataloge von allen Fragen können reduziert,
+    modifiziert und erweitert werden.
+
+  * Altersgruppen können in der Aufteilung modifiziert werden.
+
+Bundesstatistik
+---------------
+
+* Bundesstatistik erhält ebenso wie die Fachstatistik das Merkmal
+  'Jahr'. Bei abgeschlossenen Fällen muss es identisch sein mit
+  dem Jahr 'Ende der Hilfe', bei andauernder Hilfe das Jahr, für
+  die die Statistik gilt.
+
+* Vorbelegungen:
+
+  * Land-, Kreis- und Einrichtungsnummer können so vorkonfiguriert
+    werden, dass für die jeweilige Stelle der richtige Wert
+    automatisch oben steht und übernommen wird.
+
+  * Hilfebeginn aus dem Datum der ersten Leistung
+
+  * Geschlecht/Geburtsjahr/Geburtsmonat aus den Stammdaten
+
+  * 'Intensität der andauernden Beratung'
+    bzw. 'Betreuungsintensität'  aus der Summe der Beratungskontakte
+    falls vorhanen. Werden diese Felder freigelassen, wird beim
+    Speichern automatisch die Summen der Beratungskontakte eingefügt.
+
+
+Auswertungen
+------------
+
+Beratungen
+..........
+
+* Liste ist nach verschiedenen Kriterien sortierbar.
+
+* Für offene Fälle wird das Vorhandensein einer Bundes- oder
+  Fachstatistik angezeigt.
+
+
+Statistik
+.........
+
+* Teilmengendefinitionen: Durch logische Kombinationen beliebiger
+  Mermale der Fach- und Bundesstatistik lassen sich Teilmengen
+  von Fällen definieren, für die getrennte Auszählungen gemacht
+  werden können.
+
+* Durch die Übernahme von Regionaldaten in die Fachstatistik
+  lassen sich leicht separate Auszählungen für bestimmte Regionen
+  erstellen. Regionen können durch Ort, PLZ, Planungsraum sowie
+  Ortsteil, Bezirk und Samtgemeinde (falls über den
+  Straßenkatalog verfügbar) definiert werden.
+
+
+Administration
+--------------
+
+
+* Akten können nach Ablauf der Löschfrist
+  (konfigurationsabhängig) gelöscht werden.
+
+* Einzelne offene Fälle können mit oder ohne Statistik gelöscht
+  werden. Wenn es nur einen einzigen Fall gibt, wird die ganze
+  Akte gelöscht. So können fehlerhaft eingegebene Akten entfernt
+  werden. 
+
+* Altdaten lassen sich in Form einer CSV-Datei mit festgelegtem
+  Format importieren. Das Format wird auf der Import-Maske
+  erklärt. Die Daten können bei der Neuaufnahme übernommen
+  werden.
+
+* Straßenkataloge lassen sich in Form von CSV-Dateien importieren
+  und exportieren. Das  Format wird auf der Import-Maske
+  erklärt. Es lassen sich auch Teile eines Katalogs für
+  definierte Postleitzahlen exportieren, die dann z.B. korrigiert
+  und anschließend wieder importiert werden.
+
+* Konfigurierbarkeit der Fachstatistik:
+
+  * Einzelne Fragen lassen sich abstellen.
+
+  * Merkmale können deaktiviert, umbenannt oder hinzugefügt
+    werden.
+
+  * Es können bis zu vier zusätzliche Fragen mit Einfachauswahl
+    hinzugefügt werden. Text der Frage und Merkmale sind direkt
+    einzugeben.
+
+  * Bis zu vier weitere Fragen mit Mehrfachauswahl.
