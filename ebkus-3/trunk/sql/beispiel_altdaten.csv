@@ -1,9 +1,9 @@
-"vorname";"name";"geburtsdatum";"geschlecht";"jahr";"fallnummer";"mitarbeiter";"strasse";"hausnummer";"plz";"ort";"telefon1";"telefon2";"memo"
-"Ögür";"Müller";"22.08.1990";"w";"2000";"2000631";"Mitarb1";"Rosenweg";"61";"43656";"Unterhausen";"44386386";"87686540";"Memo für Altdaten id=1. äöüÄÖÜß Hier Können auch Zeilenumbrüche vorkommen.
+vorname;name;geburtsdatum;geschlecht;jahr;fallnummer;mitarbeiter;strasse;hausnummer;plz;ort;telefon1;telefon2;memo
+Ögür;Müller;22.08.1990;w;2000;2000631;Mitarb1;Rosenweg;61;43656;Unterhausen;44386386;87686540;"Memo für Altdaten id=1. äöüÄÖÜß Hier Können auch Zeilenumbrüche vorkommen.
 Das steht auf einer neuen Zeile. "
-"Frieda";"Öhlbrecht";"28.12.1997";"w";"2005";"2005256";"Mitarb2";"Karl-Marx-Str.";"36";"32241";"Unterhausen";"4117188";"10131770";"Memo für Altdaten id=2. äöüÄÖÜß Weitere Anführungszeichen sehen so aus. 
+Frieda;Öhlbrecht;28.12.1997;w;2005;2005256;Mitarb2;Karl-Marx-Str.;36;32241;Unterhausen;4117188;10131770;"Memo für Altdaten id=2. äöüÄÖÜß Weitere Anführungszeichen sehen so aus. 
 Zitat: ""Das steht in einem Memofeld in Anführungszeichen"""
-"Hugo";"Haß";"23.06.1997";"w";"1999";"1999471";"Mitarb3";"Müllerstr.";"51";"55595";"Unterhausen";"63452429";"60785501";"Memo für Altdaten id=3. äöüÄÖÜß Hier kann man noch eine Menge über den alten Fall reinschreiben. Auch längere Texte. "
+Hugo;Haß;23.06.1997;w;1999;1999471;Mitarb3;Müllerstr.;51;55595;Unterhausen;63452429;60785501;"Memo für Altdaten id=3. äöüÄÖÜß Hier kann man noch eine Menge über den alten Fall reinschreiben. Auch längere Texte. "
 "Peter";"Schmidt";"15.09.1991";"w";"2005";"2005862";"Mitarb4";"Am Rott";"132";"22214";"Klein-Magrau";"12662823";"56241980";"Memo für Altdaten id=4. äöüÄÖÜß Hier kann man noch eine Menge über den alten Fall reinschreiben. Auch län"
 "Tom";"Wäderich";"25.08.1991";"w";"2002";"2002872";"Mitarb5";"Karl-Marx-Str.";"168";"82170";"Unterhausen";"91506368";"73271280";"Memo für Altdaten id=5. äöüÄÖÜß Hier kann man noch eine Menge ü"
 "Tom";"Müller";"20.12.1990";"w";"2001";"2001088";"Mitarb6";"Rosenweg";"90";"64080";"Groß-Lehnau";"24887467";"57641610";"Memo für Altdaten id=6. äöüÄÖÜß "
