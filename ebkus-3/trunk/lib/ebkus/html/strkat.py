@@ -595,7 +595,7 @@ im Straßenkatalog erfolgreich ersetzt."""
         if self.session.data.get('strkat'):
             del self.session.data['strkat']
             del self.session.data['plzs']
-        fname = 'demo_strkatalog.csv'
+        fname = 'beispiel_strkatalog.csv'
         demo_strkatalog = os.path.join(config.EBKUS_HOME, 'sql', fname)
         if example == '1':
             f = open(demo_strkatalog)
@@ -618,10 +618,10 @@ im Straßenkatalog erfolgreich ersetzt."""
         hinweise_csv = h.FieldsetDataTable(
             legend='Hinweise zur CSV-Datei',
             daten=[[h.String(string="Die CSV-Datei muss genauso aufgebaut sein wie die " +
-                      '<a href="altimport?example=1">Beispieldatei</a>.<br /> ' +
+                      '<a href="strkatimport?example=1">Beispieldatei</a>.<br /> ' +
                       "Dieses Format kann direkt mit Open Office oder MS Excel " +
                       "geöffnet und geschrieben werden " +
-                      '(<a href="altimport?example=2">Beispiel</a>).',
+                      '(<a href="strkatimport?example=2">Beispiel</a>).',
                       n_col=2,
                       )
                     ],
@@ -629,10 +629,7 @@ im Straßenkatalog erfolgreich ersetzt."""
                              ),
                     h.String(string=
                              "In der ersten Zeile müssen in jeder Spalte "
-                             " die entsprechenden Feldnamen stehen: "
-                             "%s<em>&lt;Umbruch wg. Lesbarkeit&gt;</em> %s" %
-                             (erste_zeile[:60],
-                             erste_zeile[60:])
+                             " die entsprechenden Feldnamen stehen: %s" % erste_zeile,
                              ),
                     ],
                    [h.String(string='Feldtrennzeichen:'
@@ -642,17 +639,7 @@ im Straßenkatalog erfolgreich ersetzt."""
                     ],
                    [h.String(string='Texttrennzeichen:'
                              ),
-                    h.String(string='"'
-                             ),
-                    ],
-                   [h.String(string='Texttrennzeichen im Text:'
-                             ),
-                    h.String(string='"" (Verdoppelung)'
-                             ),
-                    ],
-                   [h.String(string='Zeilenumbrüche in einem Feld:'
-                             ),
-                    h.String(string='zulässig'
+                    h.String(string='" (Anführungszeichen). Kann bei einfachen Feldern entfallen, die selbst keine Anführungszeichen oder Zeilenumbrüche enthalten.'
                              ),
                     ],
                    [h.String(string='Kodierung:'
@@ -667,45 +654,71 @@ im Straßenkatalog erfolgreich ersetzt."""
                    ],
             )
         hinweise_felder = h.FieldsetDataTable(
-            legend='Hinweise zu den Feldern',
-            daten=[[h.String(string="Felder können leer sein, die entsprechenden "
-                      'Daten stehen dann nicht für eine Übernahme zur Verfügung.',
-                      n_col=2,
-                      )
-                    ],
-                   [h.String(string='geburtsdatum:'
+            legend='Bedingungen für die Korrektheit eines Straßenkatalogs',
+            daten=[[h.String(string='Pflichtfelder:'
                              ),
-                    h.String(string=
-                             "Tag . Monat . Jahr <br /> "
-                             "Das Jahr muss vierstellig sein, Tag und Monat ein- oder zweistellig, <br /> "
-                             "z.B. 1.1.2002, 10.01.1999"
+                    h.String(string="Die Felder plz, ort, name dürfen nicht leer sein."
                              ),
                     ],
-                   [h.String(string='geschlecht:'
+                   [h.String(string='Hausnummern:'
                              ),
-                    h.String(string='m oder w, alles andere ist ungültig'
+                    h.String(string='Ein <em>vollständiger Straßenkatalog</em> enthält einen Eintrag '
+                             'für jede Hausnummer. Die Felder von und bis sind dann immer identisch '
+                             'und niemals leer. Das Feld gu ist immer leer. <br />'
+                             'Ein <em>unvollständiger Straßenkatalog</em> muss keine Einträge '
+                             'für Hausnummern haben. In diesem Fall gibt es für eine Straße '
+                             'nur einen Eintrag, und die Straße ist damit einer einzigen Postleitzahl '
+                             'zugeordnet. Alternativ kann durch die Felder von/bis ein Intervall '
+                             'von Hausnummern definiert werden, wodurch mehrere Einträge pro Straße '
+                             'möglich sind, denen auch unterschiedliche Postleitzahlen zugeordnet '
+                             'sein können. In diesem Fall muss immer sowohl von als auch bis '
+                             'einen Wert haben. Wenn ein Intervall vorliegt, kann das Feld gu den '
+                             "Wert 'g', 'G', 'u', 'U'  annehmen, "
+                             'wodurch der zugehörige Intervall als nur aus den geraden bzw. '
+                             'ungeraden Zahlen bestehend definiert wird. <br />'
+                             'Wenn ein vollständiger Straßenkatalog verwendet wird, sollte  '
+                             'in der Konfiguration der Parameter <em>strassenkatalog_vollstaendig</em> '
+                             'auf true gesetzt werden. <br />'
+                             'Hausnummern bestehen immer aus einer maximal dreistellige Zahl, '
+                             'evt. gefolgt von einem Buchstaben. '
                              ),
                     ],
-                   [h.String(string='jahr:'
+                   [h.String(string='Eindeutigkeit:'
                              ),
-                    h.String(string='eine vierstellige Zahl'
+                    h.String(string='Eine Kombination der Felder von, bis, gu, name, plz, ort '
+                             'darf im gesamten Straßenkatalog nur einmal vorkommen, da eine Adresse '
+                             'durch plz, ort, strasse und hausnummer eindeutig definiert ist. '
+                             'Die Zusatzfelder ortsteil, bezirk, samtgemeinde dürfen grundsätzlich '
+                             'nicht zur Differenzierung von Adressen herangezogen werden. '
+                             'Z.B. dürfen die folgenden Einträge nicht zusammen in einem Straßenkatalog '
+                             'erscheinen: <br />'
+                             ';;;An der Schule;38116;Braunschweig;Alt-Lehndorf;;;;<br />'
+                             ';;;An der Schule;38116;Braunschweig;Neu-Lehndorf;;;;<br />'
+                             'Zulässig ist jedoch: <br />'
+                             ';;;An der Schule;38116;Braunschweig;Alt-Lehndorf;;;;<br />'
+                             ';;;An der Schule;38117;Braunschweig;Neu-Lehndorf;;;;<br />'
+                             '1;1;;Arndtstr.;38118;Braunschweig;Wilhelmitor-Süd;;;;<br />'
+                             '17;21;;Arndtstr.;38120;Braunschweig;Hermannshöhe;;;;<br />'
+                             '36;38;;Arndtstr.;38118;Braunschweig;Wilhelmitor-Süd;;;;<br />'
                              ),
                     ],
-                   [h.String(string='strasse:'
+                   [h.String(string='Zusatzfelder:'
+                             ),
+                    h.String(string='Die Felder ortsteil, bezirk, samtgemeinde und plraum '
+                             'geben zusätzliche Informationen für eine gegebene Adresse. '
+                             'Sie können leer bleiben, aber wenn sie verwendet werden, '
+                             'sollte sinnvollerweise für jeden Eintrag ein '
+                             'Wert vorhanden sein. Sie können dann bei der Straßensuche '
+                             'als Suchkriterien verwendet werden, und es können statistische '
+                             'Auswertungen darüber durchgeführt werden.<br />'
+                             'Die jeweils verwendeten Zusatzfelder müssen in der Konfiguration '
+                             'ebkus.conf im Parameter <em>strassensuche</em> aufgeführt werden. '
+                             ),
+                    ],
+                   [h.String(string='Schreibweise:'
                              ),
                     h.String(string='Endung mit <em>strasse, Strasse, straße, Straße</em> '
                              'werden zu <em>str.</em> bzw. <em>Str.</em> normalisiert.'
-                             ),
-                    ],
-                   [h.String(string='hausnummer:'
-                             ),
-                    h.String(string='ein- bis dreistellige Zahl und evt. ein Buchstabe als '
-                             'Zusatz, der zum großgeschriebenen Buchstaben normalisiert wird.'
-                             ),
-                    ],
-                   [h.String(string='plz:'
-                             ),
-                    h.String(string='fünfstellige Zahl'
                              ),
                     ],
                    ],
@@ -748,8 +761,8 @@ im Straßenkatalog erfolgreich ersetzt."""
             hidden=(),
             rows=(self.get_hauptmenu(),
                   strkatimport,
-                  #hinweise_csv,
-                  #hinweise_felder,
+                  hinweise_csv,
+                  hinweise_felder,
                   ),
             )
         return res.display()

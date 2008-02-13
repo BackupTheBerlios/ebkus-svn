@@ -148,7 +148,7 @@ class altimport(Request.Request, akte_share):
             return res.display()
         if self.session.data.get('altdaten'):
             del self.session.data['altdaten']
-        fname = 'demo_altdaten.csv'
+        fname = 'beispiel_altdaten.csv'
         demo_altdaten = os.path.join(config.EBKUS_HOME, 'sql', fname)
         if example == '1':
             f = open(demo_altdaten)
@@ -195,7 +195,7 @@ class altimport(Request.Request, akte_share):
                     ],
                    [h.String(string='Texttrennzeichen:'
                              ),
-                    h.String(string='"'
+                    h.String(string='" (Anführungszeichen). Kann bei einfachen Feldern entfallen, die selbst keine Anführungszeichen oder Zeilenumbrüche enthalten.'
                              ),
                     ],
                    [h.String(string='Texttrennzeichen im Text:'
@@ -223,6 +223,15 @@ class altimport(Request.Request, akte_share):
             legend='Hinweise zu den Feldern',
             daten=[[h.String(string="Felder können leer sein, die entsprechenden "
                       'Daten stehen dann nicht für eine Übernahme zur Verfügung.',
+                      n_col=2,
+                      )
+                    ],
+                   [h.String(string="Folgende Felder werden in die entsprechenden Felder der neuen "
+                             "Akte übernommen, falls sie Werte enthalten: "
+                             "vorname, name, geburtsdatum, geschlecht, ort, plz, strasse, hausnummer, "
+                             "telefon1, telefon2. <br />"
+                             "Die Felder fallnummer, jahr und mitarbeiter werden in das Notizfeld "
+                             "der neuen Akte übernommen.",
                       n_col=2,
                       )
                     ],
@@ -259,6 +268,13 @@ class altimport(Request.Request, akte_share):
                    [h.String(string='plz:'
                              ),
                     h.String(string='fünfstellige Zahl'
+                             ),
+                    ],
+                   [h.String(string='memo:'
+                             ),
+                    h.String(string='Hier kann auch längerer Text stehen, auch über mehrere Zeilen hinweg.'
+                             'Anführungsstriche, die im Feld vorkommen, müssen verdoppelt werden, '
+                             'damit sie nicht als Ende des Feldes interpretiert werden.'
                              ),
                     ],
                    ],
