@@ -225,6 +225,13 @@ class DBObjekt(UserDict):
         ##       raise AttributeError, 'in __getitem__'
         
         
+    def __cmp__(self, other):
+        try:
+            return self[self.primarykey].__cmp__(other[other.primarykey])
+        except:
+            return self == other
+
+
     def init(self, **kw):
         """Initialisieren eines nicht-persistenten DB-Objekts mit Werten
         für die Felder.
