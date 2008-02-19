@@ -1,4 +1,4 @@
-Veränderungen in EBKuS 4.1 gegenüber EBKuS 3.3 (13. Februar 2008)
+Veränderungen in EBKuS 4.1 gegenüber EBKuS 3.3 (19. Februar 2008)
 =================================================================
 
 ACHTUNG:

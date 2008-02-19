@@ -7,7 +7,7 @@ EBKuS Versionsgeschichte
 .. contents::
 
 
-EBKuS 4.1 (13. Februar 2008)
+EBKuS 4.1 (19. Februar 2008)
 ============================
 
 siehe NEU_IN_DIESER_VERSION.txt
