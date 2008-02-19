@@ -1,0 +1,28 @@
+#!%(PYTHON_EXECUTABLE)s
+# coding: latin-1
+
+# Startdatei fuer EBKuS
+# Diese Datei wird generiert.
+
+import sys
+
+def usage():
+    s = """\
+start.py
+    Server starten, konfigurierte Log-Datei verwenden
+start.py --console [ --error | --info | --debug ]
+    Server starten und Log-Ausgabe auf die Konsole ausgeben
+"""    
+    sys.exit(1)
+
+if __name__ == '__main__':
+    if '--help' in sys.argv or '-h' in sys.argv:
+        usage()
+    import init
+    import ebkus.ebs
+    from ebkus.bobo.pcgi_publisher import main
+    main('ebkus.ebs')
+
+
+
+
