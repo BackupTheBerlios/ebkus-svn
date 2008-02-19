@@ -85,9 +85,9 @@ class akte_share(options):
                                                      ),
                           }
             zusatzfelder = [k for k in config.STRASSENSUCHE.split() if k != 'ort']
-            if strasse.get('samtgemeinde') == strasse['ort']:
-                if 'samtgemeinde' in zusatzfelder:
-                    zusatzfelder.remove('samtgemeinde')
+##             if strasse.get('samtgemeinde') == strasse['ort']:
+##                 if 'samtgemeinde' in zusatzfelder:
+##                     zusatzfelder.remove('samtgemeinde')
             if len(zusatzfelder) == 1:
                 items[0] = items_dict[zusatzfelder[0]]
             elif len(zusatzfelder) > 1:
