@@ -1,0 +1,89 @@
+#!%(PYTHON_EXECUTABLE)s
+# coding: latin-1
+
+# Diese Datei wird generiert.
+
+import os, sys, getopt
+from os.path import join, split, dirname, basename, exists, isdir, isfile, normpath, abspath, splitext
+
+
+def usage():
+    s = """\
+datenbank_sichern.py --sql [<Verzeichnis>]
+     Datenbank-Kopie als SQL-Datei erzeugen. Falls kein
+     Verzeichnis angegeben ist, wird die Datei in das aktuelle
+     Arbeitsverzeichnis geschrieben. Die Datenbank kann mit
+        datenbank_initialisieren --sql <SQL-Datei>
+     wiederhergestellt werden.
+
+datenbank_sichern.py --zip [<Verzeichnis>]
+     Datenbank-Archiv als ZIP-Datei erzeugen. Falls kein
+     Verzeichnis angegeben ist, wird die Datei in das aktuelle
+     Arbeitsverzeichnis geschrieben.
+     Das ZIP-Archiv enthaelt sowohl die Datenbank-Kopie als
+     SQL-Datei als auch alle Dateien, die unter daten/akten
+     bzw. daten/gruppen abgespeichert sind.
+     Damit lassen sich alle Daten einer Instanz sichern.
+     Die Instanz laesst sich mit
+        datenbank_initialisieren --zip <ZIP-Archiv>
+     wiederherstellen.
+
+datenbank_sichern.py --help [-h]
+    diese Hilfe
+
+Beispiele:
+
+python datenbank_sichern.py --sql
+python datenbank_sichern.py --zip /home/ebkus/backups
+
+"""
+    print s
+    sys.exit(1)
+
+if __name__ == '__main__':
+    import init
+    try:
+        optlist, args = getopt.getopt(sys.argv[1:],
+                                      'h',
+                                      ['help', 'sql', 'zip'])
+    except getopt.GetoptError, m:
+        print str(m)
+        print '---------'
+        usage()
+
+    sql = zip = None 
+    for option, value in optlist:
+        if option in ('--help', '-h'):
+            usage()
+        if option in ('--zip', ):
+            zip = True
+            sql = False
+        if option in ('--sql',):
+            sql = True
+            zip = False
+
+    if not (sql or zip):
+        usage()
+    if args:
+        sql_dir = args[0]
+        assert isdir(sql_dir), "%%s ist kein Verzeichnis" %% sql_dir
+    else:
+        sql_dir = os.getcwd()
+
+    from ebkus.Install import InstallFromInstance
+    from ebkus.config import config
+    installer = InstallFromInstance(config)
+    installer.init()
+    instance = installer.ebkus[config.INSTANCE_NAME]
+    if sql:
+        res = instance.dump_database(sql_dir)
+    if zip:
+        res = instance.backup_instance(sql_dir)
+    if res:
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+
+
+
