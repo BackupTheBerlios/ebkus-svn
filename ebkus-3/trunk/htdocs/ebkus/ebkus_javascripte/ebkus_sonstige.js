@@ -346,6 +346,30 @@ function _fetch(name)
    return '';
 }
 
+function warn_kein_strkat()
+{
+    strkat_on = document.getElementsByName("strkat_on")[0];
+    if (strkat_on.checked == false) 
+    { 
+        text = "Bitte Straﬂenkatalog nur dann deaktivieren, wenn die Adresse\r\n";
+        text += "- nicht bekannt, unvollst‰ndig oder falsch ist, oder\r\n";
+        text += "- auﬂerhalb des Geltungsbereichs des Staﬂenkatalogs liegt.\r\n";
+        text += "In allen anderen F‰llen f¸hrt eine erneute Suche mit weniger ";
+        text += "restriktiven Suchkriterien fast immer zum Erfolg.\r\n";
+        //alert(text);
+        //confirm ging nicht richtig im IE
+        text += "Wirklich Deaktivieren?";
+        res = confirm(text);
+        if(res == true)
+        { 
+           strkat_on.checked = false;
+        } else
+        {
+           strkat_on.checked = true;
+        }
+    }               
+        
+}
 function abfrage_bearbeiten(op)
 {
     if (op == 'del' || op == 'edit')

@@ -267,6 +267,7 @@ class akte_share(options):
                                      name='strkat_on',
                                      value=1,
                                      checked=strkat_on,
+                                     onClick="javascript:warn_kein_strkat()",
                                      n_label=2,
                                      n_col=n_col,
                                      )

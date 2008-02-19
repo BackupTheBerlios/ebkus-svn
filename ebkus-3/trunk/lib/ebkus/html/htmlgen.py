@@ -732,7 +732,7 @@ class CheckItem(InputItem):
     <label for="%(id)s">%(label)s</label></td>
     <td class="%(class_)s" align="left"%(tip2)s%(colspan_attr)s>
     <input type="checkbox" name="%(name)s" value="%(value)s" id="%(id)s"
-     %(checked_attr)s%(readonly_attr)s%(onClick_attr)s>
+     %(checked_attr)s%(readonly_attr)s%(onClick_attr)s%(onChange_attr)s>
     </td>
 """
 
