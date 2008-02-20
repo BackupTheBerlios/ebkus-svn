@@ -28,6 +28,7 @@ except NameError:
 def update():
     u = UpdateDB()
     u.keep_alive_anpassen()
+    u.fallnummer_pruefen_und_reparieren()
     if u.update_noetig():
         u.update()
         
