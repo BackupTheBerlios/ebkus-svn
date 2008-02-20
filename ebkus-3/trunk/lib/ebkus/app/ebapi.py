@@ -374,11 +374,11 @@ def getNewGruppennummer(stz_code, jahr):
 def _getNewNummer(stz_code, jahr, klass, feld):
     """Neue Fall- oder Gruppennummer erzeugen."""
     jahresfallliste = klass(
-      where="bgy = %s and %s like '%%%s%%'" % (jahr, feld, stz_code))
+      where="bgy = %s and %s like '%%%s%s'" % (jahr, feld, jahr, stz_code))
     if jahresfallliste:
         groesste_fallnummer = max([ int(f[feld].split('-')[0]) for f in jahresfallliste])
     else:
-        groesste_fallnummer = 1
+        groesste_fallnummer = 0
     return "%s-%s%s" % (groesste_fallnummer + 1, jahr, stz_code)
     
     
