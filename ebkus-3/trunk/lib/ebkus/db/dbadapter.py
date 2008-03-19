@@ -50,7 +50,8 @@ class DBAdapter:
             # hat für die Funktionalität keine Bedeutung
             logging.exception("Probleme beim SQL-Protokollieren")
         cursor = self.dbhandle.cursor()
-        is_select = query[:6].lower() == 'select'
+        is_select = (query[:6].lower() == 'select' or
+                     query[:4].lower() == 'show')
         try:
             logging.debug("Datenbankzugriff: \n%s", query)
             # for MySQLdb 1.2.2 MODIFE
