@@ -459,7 +459,7 @@ class abfr4(_abfr):
         report = h.FieldsetDataTable(
             legend='Neumeldungen und Abschlüsse %s' % jahr,
             headers=('Monat', 'Laufende am Monatsende', 'Neu', 'davon ASD', 'Hauptfall',
-                     'Geschwisterfall', 'z.d.A'),
+                     'Geschwisterfall', 'abgeschl. Bundesstatistik'),
             daten=[[h.String(string=m[0]),
                     h.String(string=m[1]),
                     h.String(string=m[2]),
