@@ -424,7 +424,7 @@ class akte_share(options):
             legend= 'Bezugspersonen',
             headers= ('Art', 'Vorname', 'Nachname', 'Telefon 1', 'Telefon 2'),
             noheaders=3,
-            daten= [[aktueller_fall and
+            daten= [[aktueller_fall and edit_button and
                      h.Icon(href='updpers?akid=%(akte_id)d&bpid=%(id)d' % b,
                             icon="/ebkus/ebkus_icons/edit_button.gif",
                             tip= 'Bezugsperson bearbeiten')
@@ -436,7 +436,7 @@ class akte_share(options):
                             tip= 'Daten für Bezugsperson löschen')
                      or
                      h.Dummy(),
-                     aktueller_fall and
+                     aktueller_fall and view_button and
                      h.Icon(href= '#',
                             onClick= "view_details('viewpers?akid=%(akte_id)d&bpid=%(id)d')" % b,
                             icon= "/ebkus/ebkus_icons/view_details.gif",
@@ -458,33 +458,25 @@ class akte_share(options):
                               aktueller_fall,
                             ) or None),
             )
-        # Löschen unerwünschter icons aus den Tabellenitems.
-        # Erscheint mir einfacher, als die Generierung weiter zu verschachteln.
-        daten = bezugspersonen.daten
-        if edit_button:
-            if not view_button:
-                for zeile in daten:
-                    del zeile[1]
-        else:
-            for zeile in daten:
-                del zeile[0]
-            if not view_button:
-                for zeile in daten:
-                    del zeile[0]
+##         # Löschen unerwünschter icons aus den Tabellenitems.
+##         # Erscheint mir einfacher, als die Generierung weiter zu verschachteln.
+##         daten = bezugspersonen.daten
+##         noheaders = bezugspersonen.noheaders
+##         if edit_button:
+##             if not view_button:
+##                 for zeile in daten:
+##                     del zeile[1]
+##                     noheaders -= 1
+##         else:
+##             for zeile in daten:
+##                 del zeile[0]
+##                 noheaders -= 1
+##             if not view_button:
+##                 for zeile in daten:
+##                     del zeile[0]
+##                     noheaders -= 1
         return bezugspersonen
 
-
-        bisherige_kontakte = h.FieldsetDataTable(
-            legend = 'Liste der bisherigen Kontakte',
-            empty_msg = "Bisher keine Kontakte eingetragen.",
-            headers = ('Mitarbeiter', 'Art', 'Datum', 'Dauer', 'Notiz'),
-            daten =  [[h.String(string = b['mit_id__na']),
-                       h.String(string = b['art__name']),
-                       h.Datum(date =  b.getDate('k')),
-                       h.String(string = b['dauer__name']),
-                       h.String(string = b['no']),]
-                      for b in beratungskontakte],
-            )
     def get_beratungskontakte(self, beratungskontakte,
                                  aktueller_fall=None, # falls False, kein Hinzufügen-Button, inaktive edit/view buttons
                                  edit_button=False, # falls False, kein edit button
