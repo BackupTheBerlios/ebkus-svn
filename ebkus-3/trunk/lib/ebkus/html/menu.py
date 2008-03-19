@@ -295,6 +295,18 @@ class menu(Request.Request, akte_share):
                              ),
                     ]],
             )
+
+        if config.SQL_ABFRAGE:
+            sql_abfrage = h.FieldsetInputTable(
+                legend='SQL Abfragen',
+                daten=[[h.Button(value='Abfragen',
+                                 onClick="go_to_url('sql_abfrage')",
+                                 tip="Ergebnis einer SQL-Abfrage als CSV-Datei herunterladen",
+                                 ),
+                        ]],
+                )
+        else:
+            sql_abfrage = None
         from ebkus.app.protocol import is_on
         if is_on():
             from ebkus.app.protocol import get_protocol_limit
@@ -339,6 +351,9 @@ class menu(Request.Request, akte_share):
                          ),
                   h.Pair(left=merkmalskataloge,
                          right=strassenkatalog,
+                         ),
+                  h.Pair(left=sql_abfrage,
+                         right='',
                          ),
                   protokoll,
                   ),
