@@ -143,6 +143,7 @@ def getClassesToBePublished():
     from ebkus.html.protokoll_login import check_protokoll_login
     from ebkus.html.ebkushilfe import ebkus_help_document, ebkus_help_tree, ebkus_help
     from ebkus.html.strkat import strkat, strkatimport, strkatexport
+    from ebkus.html.sql_abfrage import sql_abfrage
     from ebkus.html.statistik_ergebnis import auszergebnis
     from ebkus.html.altdaten import altlist, altimport
     return makeObject(locals())
