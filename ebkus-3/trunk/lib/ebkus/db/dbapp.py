@@ -219,17 +219,14 @@ class DBObjekt(UserDict):
         self.data = sql.tuple2dict(res[0], self.querySQL.fieldnames)
         self.data['__p__'] = 1
         _cache.cache(self)
-        ##     if self._test_data():
-        ##       print self._test_data()
-        ##       print self.data
-        ##       raise AttributeError, 'in __getitem__'
-        
         
     def __cmp__(self, other):
-        try:
-            return self[self.primarykey].__cmp__(other[other.primarykey])
-        except:
-            return self == other
+        if self.__class__ == other.__class__:
+            try:
+                return self[self.primarykey].__cmp__(other[other.primarykey])
+            except:
+                pass
+        return id(self).__cmp__(id(other))
 
 
     def init(self, **kw):
