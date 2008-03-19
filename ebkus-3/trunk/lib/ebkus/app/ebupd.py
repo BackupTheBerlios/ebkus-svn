@@ -1392,7 +1392,8 @@ def _jgh07_check(form, jgh):
     jgh.setDate('bg',
                 check_date(form, 'bg',
                            "Fehler im Datum für den Beginn", nodayallowed = 1 ) )
-    if fall and fall['bgy'] > jgh['bgy'] or fall['bgm'] > jgh['bgm']:
+    if fall and (fall['bgy'] > jgh['bgy'] or
+                 (fall['bgy'] == jgh['bgy'] and fall['bgm'] > jgh['bgm'])):
         raise EE("Beginndatum in der Jugendhilfestatistik vor Fallbeginn")
     if jahr < jgh['bgy']:
         raise EE("Fehler im Jahr: liegt vor Fallbeginn")
