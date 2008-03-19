@@ -424,6 +424,17 @@ class InputTable(object):
             pr("<tr>")
             pr(str(self.button))
             pr("</tr>\n")
+        elif self.buttons:
+            # Wenn mehrere Button reinsollen, besser eine eigene Tabelle
+            class _TableDataTable(Table, DataTable):
+                def _init(self):
+                    super(_TableDataTable, self)._init()
+                    self.set_rows()
+            button_zeile = _TableDataTable(
+                daten=[self.buttons],
+                colspan=max(1, max_cols),
+                )
+            pr(str(button_zeile))
         self.rows = buf.getvalue()
                             
 
