@@ -268,7 +268,7 @@ m;Mehrfachkategorie;verwtyp
 3;Lehre;fsqualij
 4;Arbeitslos;fsqualij
 5;berufstätig;fsqualij
-5;Berufsförderung;fsqualij
+8;Berufsförderung;fsqualij
 6;sonstige;fsqualij
 7;entfällt (unter 14);fsqualij
 999;keine Angabe;fsqualij
