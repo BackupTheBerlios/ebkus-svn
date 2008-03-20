@@ -120,7 +120,10 @@ ORDER BY b.id
                              'darf keine Leerzeichen enthalten.<br />'
                              'Das Datenbankschema ist in der Datei <code>'
                              '&lt;ebkus-installationsverzeichnis&gt;/ebkus/lib/ebkus/gen/schemadata.py '
-                             '</code> dokumentiert.</small>',
+                             '</code> dokumentiert.<br />'
+                             'Zulässige SELECT-Syntax: '
+                             '<a href="http://dev.mysql.com/doc/refman/4.1/en/select.html">'
+                             'MySQL Handbuch 3.23, 4.0, 4.1</a></small>' ,
                                    ),
                     ],
                    [h.TextareaItem(label='Feldnamen',
