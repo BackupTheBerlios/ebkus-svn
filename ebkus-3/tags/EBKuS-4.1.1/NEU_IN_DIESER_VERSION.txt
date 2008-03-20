@@ -1,0 +1,66 @@
+EBKuS 4.1.1 (18. März 2008)
+===========================
+
+ACHTUNG:
+Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
+aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
+nach wie vor gültig.
+
+
+Konfiguration
+-------------
+
+Neue Konfigurationsvariable in ``ebkus.conf``:
+
+* ``sql_abfrage``: Nur wenn diese Variable den Wert ``true`` hat,
+  kann die Maske zum Absetzen von SQL-Abfragen vom
+  Administrationsmenü aus aufgerufen werden. Standardwert ist
+  ``false``. 
+
+* *Hinweis zum Datenschutz*: Da über diese Schnittstelle alle
+  vorhandenen Daten abrufbar sind, empfehlen wird, diese Variable
+  generell auf ``false`` zu lassen und nur für gezielte
+  Auswertungen vorübergehend auf ``true`` zu setzen.
+
+SQL-Abfragen
+------------
+
+Vom Administrationsmenü aus kann eine Maske zum Absetzen von
+SQL-Abfragen an die Datenbank aufgerufen werden. Das
+tabellarische Ergebnis wird als CSV-Datei zurückgegeben, die
+direkt in eine Tabellenkalkulation (OpenOffice Calc, Excel)
+eingelesen werden kann. 
+
+Optional können in der Maske Spaltenüberschriften definiert
+werden.
+
+Damit kann der Anwender beliebige Auswertungen über die
+vorhandenen Daten vornehmen.
+
+Es sind über diese Schnittstelle nur SELECT-Ausdrücke zulässig,
+Modifikation der Datenbank über INSERT, DELETE und UPDATE sind
+ausgeschlossen. 
+
+
+Auswertung Neumeldungen und Abschlüsse
+--------------------------------------
+
+* Die letzte Spalte der Tabelle wurde von 'z.d.A.' nach
+  'abgeschl. Bundesstatistik' umbenannt. Damit wird verdeutlicht,
+  dass ein Fall in dieser Spalte aufgrund des Ende-Datums der
+  Bundesstatistik erscheint und nicht aufgrund des z.d.A.-Datums
+  (obwohl das meisten auf dasselbe hinausläuft). 
+
+
+Bezugsperson
+------------
+
+* Fehler in der Darstellung behoben (Tabellenüberschriften waren
+  verschoben.) 
+
+Bundesstatistik
+---------------
+
+* Fehler beim Abspeichern der Bundesstatistik behoben (falsche
+  Fehlermeldung z.B. bei Anmeldung im Dezember und
+  Leistungsbeginn im Januar).

@@ -1,0 +1,210 @@
+#
+# EBKuS Konfigurationsdatei
+#
+
+# Dokumentation 
+# lokal:
+# ../doc/EBKuS_Handbuch.html#konfiguration
+# ../doc/administration.txt, darin Abschnitt 'Konfiguration' 
+# WWW:
+# http://ebkus.berlios.de/ebkus/dok/EBKuS_Handbuch.html#konfiguration
+#
+# Bei Fragen oder Problemen: 
+# Albrecht Schmiedel <atms@alibi.in-berlin.de>
+#
+#
+# Die meisten Parameter sind auskommentiert 
+# (vorangestelltes '#' = Kommentarzeile).
+# D.h. sie könnten genauso gut weggelassen werden. 
+# Sie stehen hier, weil sie dokumentierten, welche Parameter 
+# es gibt und welchen Standardwert sie haben, wenn man sie
+# nicht explizit setzt.
+#
+# Die Parameter
+#   install_dir
+#   instance_name
+#   port
+# haben keine Standardwerte und muessen explizit
+# gesetzt werden.
+
+
+
+[DEFAULT]
+
+install_dir: %(INSTALL_DIR)s
+#ebkus_home: %%(install_dir)s/ebkus
+
+
+[ebkus]
+
+download_dir: %(DOWNLOAD_DIR)s
+python_executable: %(PYTHON_EXECUTABLE)s
+mysql_dir: %(MYSQL_DIR)s
+
+#database_admin_host: localhost
+#database_admin_user: root
+
+# Wenn hier 'ASK' eingetragen wird, wird das Passwort
+# bei Bedarf interaktiv abgefragt.
+# database_admin_password:
+
+
+[apache]
+
+# Wenn hier 'localhost' steht, ist EBKuS nur lokal und 
+# nicht über das Netz verfügbar.
+# Name oder IP-Nummer
+server_name: %(SERVER_NAME)s
+server_admin: %(SERVER_ADMIN)s
+#apache_log_dir: %%(ebkus_home)s/log
+#ssl_certificate_file: %%(ebkus_home)s/ebkus_ssl_certificates/ebkusserver.cert
+#ssl_certificate_key_file: %%(ebkus_home)s/ebkus_ssl_certificates/ebkusserver.key
+
+
+[openssl]
+
+#staat: DE
+#land: Berlin
+#ort:  Berlin
+#organisation: EFB
+#organisationseinheit: EFB
+#output_password: polo
+openssl_executable: %(OPENSSL_EXECUTABLE)s
+
+
+##############################
+# Minimale Instanz mit Standardwerten und Demodaten
+
+[demo]
+
+# Name muss identisch sein mit Namen der Sektion (hier: 'demo')
+instance_name:          demo
+
+# Bitte hier was sinnvolles eintragen!
+admin_name:    Demo Admin
+admin_email:   admin@demo
+admin_tel:     123 456 789
+# Wichtig! Jede Instanz benoetigt einen eigenen Port.
+port: 50010
+
+##############################
+# Minimale Instanz mit Standardwerten ohne Demodaten
+
+[muster_efb]
+
+# Name muss identisch sein mit Namen der Sektion (hier: 'muster_efb')
+instance_name:          muster_efb
+# Titel erscheint ueber der Login-Maske
+instance_title:        Muster EFB ohne Beispieldaten
+
+# Bitte hier was sinnvolles eintragen!
+admin_name:    Demo Admin
+admin_email:   admin@demo
+admin_tel:     123 456 789
+
+#log_file:      %%(instance_home)s/%%(instance_name)s.log
+# CRITICAL, ERROR, WARNING, INFO, DEBUG
+#log_level:      INFO
+
+# Wichtig! Jede Instanz benoetigt einen eigenen Port.
+port: 50011
+# Muss nur veraendert werden, wenn die Instanz auf einem
+# anderen Rechner laeuft als der Apache Server.
+#host: localhost
+
+database_name: muster_efb
+#database_host: localhost
+database_user: muster_efb
+database_password: muster_efb
+
+#loeschfrist: 36
+wiederaufnahmefrist: 6
+#session_time: 120
+berliner_version: false
+beratungskontakte: true
+fallunabhaengige_aktivitaeten_bs: true
+
+
+###########################
+#
+# Um die beiden folgenden Instanzen zu aktivieren,
+# das erste Kommentarzeichen ('#') in jeder Zeile entfernen.
+#
+###########################
+
+
+#[demo_braunschweig]
+#
+#instance_name:          demo_braunschweig
+## Langname, Leer- und Sonderzeichen moeglich
+##instance_title:        Demo Braunschweig
+#
+##instance_home:          %%(ebkus_home)s/%%(instance_name)s
+#
+## Bitte hier was sinnvolles eintragen!
+#admin_name:    Demo_Braunschweig Admin
+#admin_email:   admin@demo_wolfenbuettel
+#admin_tel:     987 654 321
+#
+##log_file:      %%(instance_home)s/%%(instance_name)s.log
+## CRITICAL, ERROR, WARNING, INFO, DEBUG
+##log_level:      INFO
+#
+## Wichtig! Jede Instanz benoetigt einen eigenen Port.
+#port: 50012
+## Muss nur veraendert werden, wenn die Instanz auf einem
+## anderen Rechner laeuft als der Apache Server.
+##host: localhost
+#
+#database_name: demo_braun
+##database_host: localhost
+#database_user: demo_braun
+#database_password: demo_braun
+#
+##loeschfrist: 36
+##wiederaufnahmefrist: 1
+##session_time: 120
+#berliner_version: false
+#beratungskontakte: true
+#beratungskontakte_bs: true
+#fallunabhaengige_aktivitaeten_bs: true
+#strassenkatalog: braunschweig
+#strassensuche: ort ortsteil samtgemeinde
+#
+#
+#[demo_berlin]
+#
+#instance_name:          demo_berlin
+## Langname, Leer- und Sonderzeichen moeglich
+##instance_title:        Demo Berlin
+#
+##instance_home:          %%(ebkus_home)s/%%(instance_name)s
+#
+## Bitte hier was sinnvolles eintragen!
+#admin_name:    Demo_Berlin Admin
+#admin_email:   admin@demo_berlin
+#admin_tel:     987 654 321
+#
+##log_file:      %%(instance_home)s/%%(instance_name)s.log
+## CRITICAL, ERROR, WARNING, INFO, DEBUG
+##log_level:      INFO
+#
+## Wichtig! Jede Instanz benoetigt einen eigenen Port.
+#port: 50013
+## Muss nur veraendert werden, wenn die Instanz auf einem
+## anderen Rechner laeuft als der Apache Server.
+##host: localhost
+#
+##database_name: demo_berlin
+##database_host: localhost
+##database_user: demo_berlin
+##database_password: demo_berlin
+#
+##loeschfrist: 36
+##wiederaufnahmefrist: 1
+##session_time: 120
+#berliner_version: true
+#beratungskontakte: true
+#strassenkatalog: berlin
+#strassenkatalog_vollstaendig: true
+#strassensuche: ort bezirk
