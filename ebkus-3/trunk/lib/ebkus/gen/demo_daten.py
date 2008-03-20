@@ -56,7 +56,7 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
 ##     fake_today = None
 
     n_akten = 100
-    n_bearbeiter = 4
+    n_bearbeiter = 2
     n_stellen = 2
     von_jahr = Date(2006)
     bis_jahr = None
@@ -69,6 +69,7 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
     if logf:
         global log
         log = logf
+    #handle_stellen_einrichtung_muster(n_stellen)
     handle_stellen_einrichtung(n_stellen)
     log("Heutiges Datum: %s" % today())
     ort = config.STRASSENKATALOG
@@ -96,8 +97,8 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
     else:
         DemoDaten.ort = Code(kat_code='kr', sort=1)['name']
     # die beiden protokoll-Berechtigten
-    DemoDaten().fake_mitarbeiter(benr=cc('benr', 'protokol'), ben='pr1')
-    DemoDaten().fake_mitarbeiter(benr=cc('benr', 'protokol'), ben='pr2')
+##     DemoDaten().fake_mitarbeiter(benr=cc('benr', 'protokol'), ben='pr1')
+##     DemoDaten().fake_mitarbeiter(benr=cc('benr', 'protokol'), ben='pr2')
 
     ## gf1 wob1 wf1 bs1
     ## gf_verw wob_verw
@@ -140,6 +141,10 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
     DemoDaten().fake_mitarbeiter(benr=cc('benr', 'bearb'),
                                  ben='test',
                                  vn='Test', na='Tester',
+                                 stz=stellen[0]['id']) # immer Stelle A
+    DemoDaten().fake_mitarbeiter(benr=cc('benr', 'verw'),
+                                 ben='verw',
+                                 vn='Verw', na='Verwaltungskraft',
                                  stz=stellen[0]['id']) # immer Stelle A
     DemoDaten.mitarbeiter = MitarbeiterList(where = 'stat = %s and benr = %s' %
                                             (cc('status', 'i'), cc('benr', 'bearb')))
@@ -455,7 +460,7 @@ class DemoDaten(object):
         if zdadatum == Date(0,0,0):
 ##             log(zdadatum)
             return
-        if zdadatum.add_month(1) > today():
+        if zdadatum.add_month(int(config.WIEDERAUFNAHMEFRIST)) > today():
 ##             log(zdadatum)
 ##             log(zdadatum.add_month(1))
 ##             log(zdadatum == Date(0,0,0))
@@ -813,5 +818,41 @@ def handle_stellen_einrichtung(n_stellen):
                       ' '.join([("Stelle %s;" % s) for s in stellen_codes]) })
     # umbenennen des vordefinierten Stellenzeichens
     Code(kat_code='stzei', code='A').update({'name': 'Stelle BS', 'code': 'BS'})
+    for i in range(1, n_stellen):
+        DemoDaten().fake_stelle(i, code=stellen_codes[i])
+
+def handle_stellen_einrichtung_muster(n_stellen):
+    stellen_codes = ('A', 'B', 'C', 'D')
+    kreise = ('Braunschweig', 'Gifhorn', 'Wolfenbüttel', 'Wolfsburg')
+    einrnr_codes = (
+        ('100100', 'A_Einrichtungsnummmer'),
+        ('200200', 'B_Einrichtungsnummer'),
+        ('300300', 'C_Einrichtungsnummer'),
+        ('400400', 'D_Einrichtungsnummer'),
+        )
+    CodeList(where="kat_code='einrnr'").deleteall()
+    kat_code = 'einrnr'
+    for i, (c, n) in enumerate(einrnr_codes):
+        code = Code()
+        code.init(
+            kat_id=Kategorie(code=kat_code)['id'],
+            kat_code=kat_code,
+            code=c,
+            name=n,
+            sort=i+1,
+            off=0,
+            dok='Stelle %s; # Bei dieser Stelle steht dieses Merkmal oben' % stellen_codes[i]
+            )
+        code.new()
+        code.insert()
+            
+    for i, (st, kr) in enumerate(zip(stellen_codes, kreise)):
+        kr_code = Code(name=kr)
+        kr_code.update({'dok': "Stelle %s; # kommt bei St. %s nach oben" % (st, st) })
+    land_code = Code(name='Niedersachsen')
+    land_code.update({'dok': "%s # kommt bei diesen Stellen nach oben" %
+                      ' '.join([("Stelle %s;" % s) for s in stellen_codes]) })
+    # umbenennen des vordefinierten Stellenzeichens
+    Code(kat_code='stzei', code='A').update({'name': 'Stelle A',})
     for i in range(1, n_stellen):
         DemoDaten().fake_stelle(i, code=stellen_codes[i])
