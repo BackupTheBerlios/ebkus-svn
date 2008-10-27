@@ -8,6 +8,7 @@ import ebkus.html.htmlgen as h
 
 import gdchart
 import cStringIO
+import tempfile
 
 class auszergebnis(Request.Request):
     """Eine Auszählung.
@@ -183,5 +184,53 @@ class Chart(object):
         gdchart.chart(*args)
         return data.getvalue()
 
+class Chart2(object):
+    """Verantworlich für die Generierung eines Charts. Verwender gdchart2"""
+    def __init__(self,
+                 title=None,
+                 xtitle=None,
+                 ytitle=None,
+                 names=[],
+                 frequencies=[]):
+        logging.debug("Chart: t: %s x: %s y: %s names: %s freqs: %s" %
+                 (title,
+                 xtitle,
+                 ytitle,
+                 names,
+                 frequencies))
+        chart = self.chart = gdchart.Bar3D()
+        chart.bg_color = "white"
+        #chart.bg_color = 0x54A3DB
+        #chart.line_color = "red"
+        #chart.grid_color = "yellow"
+        #chart.vol_color = "green"
+        #chart.plot_color = "blue"
+        chart.plot_color = 0x307BAF
+        chart.width = 600
+        chart.height = 600
+        chart.xtitle = xtitle
+        chart.ytitle = ytitle
+        chart.title = title
+        chart.image_type = "GIF"
+        # das waere fuer jeden Balken
+        #chart.ext_color = [ "white", "yellow", "red", "blue", "green"]
+        #logging.info(frequencies)
+        chart.setData(frequencies)
+        # bei laengeren Namen harter Absturz, ohne Exception
+        names = [n[:23] for n in names]
+        #logging.info(names)
+        chart.setLabels(names)
+
+    def draw(self):
+        """Erstellt Chart als GIF. Gibt das GIF als string zurück."""
+        from tempfile import TemporaryFile
+        f = TemporaryFile()
+        self.chart.draw(f)
+        f.seek(0)
+        return f.read()
 
 
+
+if not hasattr(gdchart, 'option'):
+    # es ist gdchart2 installiert
+    Chart = Chart2
