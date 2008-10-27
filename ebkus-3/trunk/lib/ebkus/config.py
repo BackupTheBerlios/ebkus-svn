@@ -9,6 +9,9 @@ class ConfigError(Exception):
 
 config = None
 
+import ebkus
+_ebkus_version = ebkus.Version
+
 # (section, Name fuer config Nutzer, Name in config Datei, typ, Default)  
 # typ: p path, s string, i int, b boolean
 # default modifier: i interpolate, e eval, s literal
@@ -20,6 +23,7 @@ _params = (
 ##     ('ebkus', 'SW_WIN32_DIR', 'sw_win32_dir', 'p', 'i:%(install_dir)s/../win32'),
     ('ebkus', 'EBKUS_HOME', 'ebkus_home', 'p', 'i:%(install_dir)s/ebkus'),
     ('ebkus', 'PYTHON_EXECUTABLE', 'python_executable', 'p', 'e:sys.executable'),
+    ('ebkus', 'EBKUS_VERSION', 'ebkus_version', 's', 'e:_ebkus_version'),
     ('ebkus', 'MYSQL_DIR', 'mysql_dir', 'p', 's:'),
     ('ebkus', 'EBKUS_PYTHON_PATH', 'ebkus_python_path', 'p', 'i:%(ebkus_home)s/lib'),
     ('ebkus', 'EBKUS_DOCUMENT_ROOT', 'ebkus_document_root', 'p', 'i:%(ebkus_home)s/htdocs/ebkus'),
