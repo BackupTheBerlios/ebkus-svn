@@ -342,7 +342,7 @@ class abfr4(_abfr):
                                 + ' and akte_id__stzbg = %d' % stelle['id'],
                                 order = 'bgm' )
         asdliste = [f for f in neumeldungen
-                    if f['anmeldung'] and f['anmeldung'][0]['zm__name'] == 'ASD']
+                    if f['anmeldung'] and f['anmeldung'][0]['zm__code'] == '3']
         zdaliste = JGHList(where = 'ey = %s' % jahr
                                 + ' and stz = %d' % stelle['id'],
                                 order = 'em' )
