@@ -72,7 +72,7 @@ class _einr(Request.Request, akte_share):
             einr_daten.append([
                 h.String(string="%(nobed__name)s: %(no)s" % einr,
                        n_col=5,
-                       class_=cc('notizbed', 't')==einr['nobed'] and 'tabledatabold'
+                       class_=cc('notizbed', 't')==einr['nobed'] and 'tabledatared'
                                or 'tabledata')
                 ])
         einrichtungskontakte = h.FieldsetDataTable(

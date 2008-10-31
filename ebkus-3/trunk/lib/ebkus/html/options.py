@@ -186,8 +186,11 @@ class options(object):
             sel = [int(s) for s in str(sel).split()]
         elif isinstance(sel, (int, long)):
             sel = [sel]
-        tmpl = """<option value="%(fall_id)s"%(xxsel)s>%(mit__na)s | %(fall__akte__vn)s %(fall__akte__na)s, %(fall__akte__gb)s | %(fall__fn)s </option>"""
-        tmpl_kurz = """<option value="%(fall_id)s"%(xxsel)s>%(fall__akte__vn)s %(fall__akte__na)s | %(fall__fn)s</option>"""
+#         tmpl = """<option value="%(fall_id)s"%(xxsel)s>%(mit__na)s | %(fall__akte__vn)s %(fall__akte__na)s, %(fall__akte__gb)s | %(fall__fn)s </option>"""
+#         tmpl_kurz = """<option value="%(fall_id)s"%(xxsel)s>%(fall__akte__vn)s %(fall__akte__na)s | %(fall__fn)s</option>"""
+        # Probehalber Name, Vorname
+        tmpl = """<option value="%(fall_id)s"%(xxsel)s>%(mit__na)s | %(fall__akte__na)s, %(fall__akte__vn)s, %(fall__akte__gb)s | %(fall__fn)s </option>"""
+        tmpl_kurz = """<option value="%(fall_id)s"%(xxsel)s>%(fall__akte__na)s, %(fall__akte__vn)s | %(fall__fn)s</option>"""
         if kurz:
             tmpl = tmpl_kurz
         if empty_option:

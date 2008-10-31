@@ -295,7 +295,8 @@ class klkarte(Request.Request, akte_share):
             )
         anmeldekontakte = h.FieldsetDataTable(
             legend= 'Anmeldungskontakte',
-            headers= ('Gemeldet von', 'Telefon', 'Empf.', 'durch', 'Gemeldet am', 'Anmeldegrund'),
+            headers= ('Gemeldet von', 'Telefon', 'Empf.', 'durch', 
+                      'Gemeldet am', 'Anmeldegrund', 'Notiz'),
             noheaders=1,
             daten= [[aktueller_fall == a['fall'] and
                      h.Icon(href= 'updanm?anmid=%(id)d' % a,
@@ -307,7 +308,9 @@ class klkarte(Request.Request, akte_share):
                      h.String(string= a['zm__name']),
                      h.String(string= a['me']),
                        h.Datum(date=a['fall'].getDate('bg')),
-                     h.String(string= a['mg'])]
+                     h.String(string= a['mg']),
+                     h.String(string= a['no']),
+                     ]
                     for a in anmeldekontakte_list],
             button= (aktueller_fall and not aktueller_fall['anmeldung'] and
                      h.Button(value= "Hinzufügen",
@@ -319,7 +322,7 @@ class klkarte(Request.Request, akte_share):
 
         einrichtungskontakte = h.FieldsetDataTable(
             legend= 'Einrichtungskontakte',
-            headers= ('Art', 'Name', 'Telefon 1', 'Telefon 2', 'Aktuell'),
+            headers= ('Art', 'Name', 'Telefon 1', 'Telefon 2', 'Aktuell', 'Notiz'),
             noheaders=2,
             daten= [[aktueller_fall and
                      h.Icon(href= 'updeinr?einrid=%(id)d' % e,
@@ -334,8 +337,13 @@ class klkarte(Request.Request, akte_share):
                      h.String(string= e['insta__name']),
                      h.String(string= e['na']),
                      h.String(string= e['tl1']),
-                      h.String(string= e['tl2']),
-                     h.String(string= e['status__code'])]
+                     h.String(string= e['tl2']),
+                     h.String(string= e['status__code']),
+                     h.String(string= e['no'],
+                              class_=ebapi.cc('notizbed', 't')==e['nobed'] and 'tabledatared'
+                                     or 'tabledata'
+                              ),
+                     ]
                     for e in einrichtungskontakte_list],
             button= (aktueller_fall and
                      h.Button(value= "Hinzufügen",
@@ -358,7 +366,7 @@ class klkarte(Request.Request, akte_share):
                               h.String(string= "%(vn)s %(na)s" % b),
                               h.String(string= b['no']),
                               h.String(string= b['nobed__name'],
-                                     class_=ebapi.cc('notizbed', 't')==b['nobed'] and 'tabledatabold'
+                                     class_=ebapi.cc('notizbed', 't')==b['nobed'] and 'tabledatared'
                                      or 'tabledata'),
                               ])
         for e in einrichtungskontakte_list:
@@ -367,7 +375,7 @@ class klkarte(Request.Request, akte_share):
                               h.String(string= "%(insta__name)s %(na)s" % e),
                               h.String(string= e['no']),
                               h.String(string= e['nobed__name'],
-                                     class_=ebapi.cc('notizbed', 't')==e['nobed'] and 'tabledatabold'
+                                     class_=ebapi.cc('notizbed', 't')==e['nobed'] and 'tabledatared'
                                      or 'tabledata'),
                               ])
         for a in anmeldekontakte_list:

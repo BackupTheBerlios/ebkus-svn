@@ -141,10 +141,10 @@ class akte_share(options):
                               ),
                     ],
                    [h.TextItem(label='Geburtstag',
-                              name='gb',
-                              value=data['gb'],
+                               name='gb',
+                               value=data['gb'],
                                class_='textbox52',
-                              readonly=True,
+                               readonly=True,
                               ),
                     h.TextItem(label='Geschl.',
                                name='gs',
@@ -178,8 +178,15 @@ class akte_share(options):
                                tip="Bestimmt den Zeitraum, für den die Akte aufbewahrt werden muss",
                                n_col=4,
                                ) or h.DummyItem(n_col=4),
-                    h.DummyItem(),
-                    h.DummyItem(),
+                    h.TextItem(label='Notiz',
+                               name='no',
+                               value=data['no'],
+                               readonly=True,
+                               class_='textbox310',
+                               n_col=4,
+                              ),
+                    #h.DummyItem(),
+                    #h.DummyItem(),
                     ],
                    ],
             button=button,
@@ -422,7 +429,7 @@ class akte_share(options):
                            ):
         bezugspersonen = h.FieldsetDataTable(
             legend= 'Bezugspersonen',
-            headers= ('Art', 'Vorname', 'Nachname', 'Telefon 1', 'Telefon 2'),
+            headers= ('Art', 'Vorname', 'Nachname', 'Telefon 1', 'Telefon 2', 'Notiz'),
             noheaders=3,
             daten= [[aktueller_fall and edit_button and
                      h.Icon(href='updpers?akid=%(akte_id)d&bpid=%(id)d' % b,
@@ -448,6 +455,10 @@ class akte_share(options):
                      h.String(string= b['na']),
                      h.String(string= b['tl1']),
                      h.String(string= b['tl2']),
+                     h.String(string= b['no'],
+                              class_=cc('notizbed', 't')==b['nobed'] and 'tabledatared'
+                              or 'tabledata',
+                              ),
                      ]
                     for b in bezugspersonen_list],
             button= (aktueller_fall and hinzufuegen_button and
