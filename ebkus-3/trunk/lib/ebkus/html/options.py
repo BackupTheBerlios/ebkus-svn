@@ -3,7 +3,8 @@
 #äöü
 
 from ebkus.app.ebapih import get_codes, get_all_codes, make_option_list
-from ebkus.app.ebapi import KategorieList, ZustaendigkeitList, today, AbfrageList
+from ebkus.app.ebapi import KategorieList, ZustaendigkeitList, today, AbfrageList, \
+    BezugspersonList
 from ebkus.db.sql import SQL
 from ebkus.config import config
 
@@ -154,7 +155,7 @@ class options(object):
 
 
 
-    def get_aktuelle_zustaendigkeiten(self):
+    def get_aktuelle_zustaendigkeiten(self, order=None):
         """Generiert alle Zuständigkeiten für den angemeldeten Mitarbeiter"""
         wherestr = 'ed = 0'
         benr = self.mitarbeiter['benr__code']
@@ -162,20 +163,33 @@ class options(object):
             if benr == 'bearb':
                 wherestr += ' and mit_id = %s' % self.mitarbeiter['id']
             zustaendigkeiten = ZustaendigkeitList(where=wherestr)
-            zustaendigkeiten.sort('mit_id__na', 'fall_id__akte_id__na',
-                                  'fall_id__akte_id__vn')
+            if order == 'akte_na':
+                zustaendigkeiten.sort('fall_id__akte_id__na',
+                                      'fall_id__akte_id__vn')
+            else:
+                zustaendigkeiten.sort('mit_id__na', 'fall_id__akte_id__na',
+                                      'fall_id__akte_id__vn')
             for z in zustaendigkeiten:
                 if z['fall_id__akte_id__stzbg'] == self.stelle['id']:
                     yield z
 
-    def get_aktuelle_bezugspersonen(self):
+    def get_aktuelle_bezugspersonen(self, order=None):
+        res = []
         for z in self.get_aktuelle_zustaendigkeiten():
             for b in z['fall__akte__bezugspersonen']:
-                b['fn'] = z['fall__fn'] # drangepappt für das Template unten was Fallnummer braucht
-                yield b
+                b['fn'] = z['fall__fn'] # drangepappt für das Template unten,
+                                        # was Fallnummer braucht
+                res.append(b)
+        if not res:
+            return
+        bezugsperson_list = BezugspersonList(data=res)
+        if order == 'bp_na':
+            bezugsperson_list.sort('na', 'vn')
+        for b in bezugsperson_list:
+            yield b
 
     # TBD Verzockt besser mit make_option_list
-    def for_klienten(self, sel=None, kurz=False, empty_option=False):
+    def for_klienten(self, sel=None, kurz=False, empty_option=False, order=None):
         """Optionen für Klientenauswahl"""
         selected = ' selected="selected" '
         if not sel:
@@ -197,7 +211,7 @@ class options(object):
             options = "<option value="" >&nbsp;</option>"
         else:
             options = ''
-        for z in self.get_aktuelle_zustaendigkeiten():
+        for z in self.get_aktuelle_zustaendigkeiten(order):
             if z['fall_id'] in sel:
                 z['xxsel'] = selected
             else:
@@ -207,10 +221,10 @@ class options(object):
                 del z['xxsel']
         return options
 
-    def for_bezugspersonen(self):
+    def for_bezugspersonen(self, order=None):
         """Optionen für Bezugspersonenauswahl"""
-        tmpl = """<option value="%(id)s">%(na)s %(vn)s | %(fn)s</option>"""
+        tmpl = """<option value="%(id)s">%(na)s, %(vn)s | %(fn)s</option>"""
         options = ''
-        for b in self.get_aktuelle_bezugspersonen():
+        for b in self.get_aktuelle_bezugspersonen(order):
                 options += tmpl % b
         return options

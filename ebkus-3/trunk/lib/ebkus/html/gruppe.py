@@ -15,7 +15,7 @@ class menugruppe(Request.Request, akte_share):
     permissions = Request.MENUGRUPPE_PERM
     def for_gruppen(self):
         """Optionen für Gruppenauswahl erstellen"""
-        option_t = '<option value="%(gruppe_id)s">%(mit_id__na)s | %(gruppe_id__name)s</option>\n'
+        option_t = '<option value="%(gruppe_id)s">%(mit_id__na)s | %(gruppe_id__name)s | %(gruppe_id__gn)s</option>\n'
         options = ''
         where = "gruppe.stz=%s" % self.stelle['id']
         if self.mitarbeiter['benr__code'] == 'bearb':
@@ -172,7 +172,7 @@ class gruppeteilnausw(Request.Request, akte_share):
                                  multiple=True,
                                  class_="listbox220",
                                  tip="Alle offene Fälle, für die Sie Zugriffsrechte haben",
-                                 options=self.for_klienten(kurz=True),
+                                 options=self.for_klienten(kurz=True,order='akte_na'),
                                  nolabel=True,
                                  ),
                     ]])
@@ -183,7 +183,7 @@ class gruppeteilnausw(Request.Request, akte_share):
                                  multiple=True,
                                  class_="listbox220",
                                  tip="Alle Bezugspersonen von offenen Fällen, für die Sie Zugriffsrechte haben",
-                                 options=self.for_bezugspersonen(),
+                                 options=self.for_bezugspersonen(order='bp_na'),
                                  nolabel=True,
                                  ),
                     ]])
