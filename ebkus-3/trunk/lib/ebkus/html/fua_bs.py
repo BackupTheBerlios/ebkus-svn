@@ -24,12 +24,15 @@ class _fua(Request.Request, akte_share):
                  ):
         # evt. einbauen, falls Rolle=verw
         kein_mitarbeiter = fua['mit_id']==None and True or False
+        multi_mit = (file=='fuabseinf')
         fua_bearbeiten = h.FieldsetInputTable(
             legend = legendtext,
             daten = [[h.SelectItem(label='Mitarbeiter',
                                    name='mitid',
                                    options=self.for_mitarbeiter(sel=fua['mit_id'],
                                                                 empty_option=kein_mitarbeiter),
+                                   multiple=multi_mit,
+                                   size=multi_mit and 6 or None,
                                    ),
                       h.DatumItem(label='Datum',
                                   name='k',
@@ -82,6 +85,8 @@ class _fua(Request.Request, akte_share):
 ##                        ]
 ##                       for b in self.get_beratungskontakte()],
 ##             )
+        year = today().year
+        month = today().month
         res = h.FormPage(
             title=title,
             name="fua_bs",action="fua",method="post",
@@ -95,9 +100,8 @@ class _fua(Request.Request, akte_share):
             rows=(fua_bearbeiten,
                   #konseq_jgh,
                   h.SpeichernZuruecksetzenAbbrechen(),
-                  self.get_fua_bs(today().year,
-                                  today().month,
-                                  'Bisherige Aktivitäten'),
+                  self.get_fua_bs(year, month, 
+                                  'Bisherige Aktivitäten für %s/%s' % (month, year)),
                   )
             )
         return res.display()
@@ -116,7 +120,7 @@ class _fua(Request.Request, akte_share):
         if monat:
             where += " and km=%s" % monat
         aktivitaeten_list = Fua_BSList(where=where , order="ky desc, km desc, kd desc")
-        aktivitaeten_list.sort('mit__na')
+        aktivitaeten_list.sort('mit__na', 'ky', 'km', 'kd')
         bisherige_aktivitaeten = h.FieldsetDataTable(
             legend=legend,
             empty_msg="Bisher keine Aktivitäten eingetragen.",

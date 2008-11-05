@@ -536,13 +536,23 @@ def fuabseinf(form):
     fuaid = check_int_not_empty(form, 'fuaid', "Aktivitäts-ID fehlt")
     check_not_exists(fuaid, Fua_BS,
                      "Aktivität (id: %(id)s) existiert bereits")
-    fua = Fua_BS()
-    _fua_bs_check(form, fua)
-    try:
-        fua.insert(fuaid)
-    except:
-        try: fua.delete()
-        except: pass
+    # Bei neuen Fua sind mehrere Mitarbeiter erlaubt
+    # Es werden dann identische Einträge für jeden Mitarbeiter getrennt
+    # vorgenommen.
+    mit_ids = check_list(form, 'mitid', 'Keine Mitarbeiter')
+    fua_ids = [fuaid] + [None for i in mit_ids[1:]]
+    #print 'MITIDS', mit_ids
+    for mit_id, fua_id in zip(mit_ids,fua_ids):
+        form['mitid'] = mit_id
+        if fua_id == None:
+            fua_id = Fua_BS().getNewId()
+        fua = Fua_BS()
+        _fua_bs_check(form, fua)
+        try:
+            fua.insert(fua_id)
+        except:
+            try: fua.delete()
+            except: pass
     
 def updfuabs(form):
     """Update der fallunabhängigen Aktivität."""
