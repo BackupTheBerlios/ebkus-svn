@@ -53,8 +53,14 @@ class CustomizeFachstatistik(object):
             return (self.fd[feld]['flag'])&1
         return False
 
+
+    def single_jokf_feld(self, feld):
+        # nur True bei jokf-Feld und mit flag-bit 2
+        return self.jokerfeld_eigenstaendig(feld) and bool(self.get(feld)['flag']&2)
+        
     def multifeld(self, feld):
-        return self.get(feld)['verwtyp'] == cc('verwtyp', 'm')
+        return (self.get(feld)['verwtyp'] == cc('verwtyp', 'm') and not
+                self.single_jokf_feld(feld))
     def jokerfeld(self, feld):
         # Name fängt mit jok an
         return feld.startswith('jok')

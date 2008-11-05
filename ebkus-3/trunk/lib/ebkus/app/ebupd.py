@@ -401,7 +401,7 @@ def _bkont_check(form, bkont):
         bkont['art_bs'] = check_code(form, 'art_bs', 'kabs', "Fehler in Beratungskontaktart")
         mc = check_multi_code(form, 'teilnehmer_bs', 'teilnbs',
                               "Fehler in Teilnehmer",
-                              default='0') # TODO auf 0 stellen nach neuer DB
+                              default=[cc('teilnbs', '0')])
         #print 'MULTICODE', mc, type(mc)
         bkont['teilnehmer_bs'] = mc
         bkont['offenespr'] = check_code(form, 'offenespr', 'ja_nein', "", cn('ja_nein', 'nein'))
@@ -1148,12 +1148,20 @@ def updfskonfig(form):
             kat = Kategorie(kat_id)
             f_obj.update({'kat_code': kat['code']})
             f_obj.update({'kat_id': kat['id']})
+#         if f in fsc.joker_frei:
+#             mehrfach = form.get('%s_m' % f)
+#             if mehrfach:
+#                 f_obj.update({'verwtyp': cc('verwtyp', 'm')})
+#             else:
+#                 f_obj.update({'verwtyp': cc('verwtyp', 'k')})
         if f in fsc.joker_frei:
             mehrfach = form.get('%s_m' % f)
+            flag = f_obj['flag']
+            # Präsenz von bit 2 signalisiert einfach
             if mehrfach:
-                f_obj.update({'verwtyp': cc('verwtyp', 'm')})
+                f_obj.update({'flag': flag&~2})
             else:
-                f_obj.update({'verwtyp': cc('verwtyp', 'k')})
+                f_obj.update({'flag': flag|2})
 
     
 def jgheinf(form):

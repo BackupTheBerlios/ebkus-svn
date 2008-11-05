@@ -34,7 +34,7 @@ class UpdateDB(object):
     """
     # diese Listen definieren für welche Datenbankversionen diese Klasse funktioniert
     ist_moeglich = ['4.1', '4.1.1']
-    soll_moeglich = ['4.1.1']
+    soll_moeglich = ['4.2']
 
     def __init__(self):
         # Protokoll stoert
@@ -108,6 +108,13 @@ class UpdateDB(object):
     def update_4_1_nach_4_1_1(self):
         self.fsqualij_code_reparieren()
 
+    def update_4_1_1_nach_4_2(self):
+        self.mehrfach_joker_felder_reparieren()
+
+    def update_4_1_nach_4_2(self):
+        self.fsqualij_code_reparieren()
+        self.mehrfach_joker_felder_reparieren()
+
     def fsqualij_code_reparieren(self):
         try:
             # Code '5' kommt zweimal vor, durch '9' ersetzen, falls noch frei
@@ -174,4 +181,39 @@ class UpdateDB(object):
                 s.update({'fall_fn': new_fn})
             logging.info("Fallnummer repariert: fall_id=%s: %s --> %s" %
                          (fall_id, fn, new_fn))
+
+
+
+    def _get_jokf_int_felder(self):
+        res = []
+        cols = SQL("SHOW COLUMNS FROM fachstat LIKE 'jokf%%'").execute()
+        for c in cols:
+            if c[1].startswith('int'):
+                res.append(c[0])
+        logging.info("Fachstatistik INT-jokf<n>-Felder: %s" % res)
+        return res
+
+    def mehrfach_joker_felder_reparieren(self):
+        # werte sichern
+        # auf string umstellen
+        # werte schreiben
+        # feld anpassen
+        felder = self._get_jokf_int_felder()
+        for f in felder:
+            werte = SQL("SELECT id, %s FROM fachstat" % f).execute()
+            SQL("ALTER TABLE fachstat MODIFY %s VARCHAR(255)" % f).execute()
+            for id, val in werte:
+                if val == None:
+                    SQL("""UPDATE fachstat SET %s=NULL WHERE id=%s""" % (f,id)).execute()
+                else:
+                    val = str(val)
+                    SQL("""UPDATE fachstat SET %s='%s' WHERE id=%s""" % (f,val,id)).execute()
+            feld = Feld(tab_id=Tabelle(tabelle='fachstat')['id'], feld=f)
+            if feld['verwtyp__code'] == 'k':
+                # war single vorher, soll so bleiben, wird in flag als bit 2 kodiert
+                feld.update({'flag': feld['flag']|2})
+            # Trotzdem alle auf 'm' stellen, da nur so die strings im Feld
+            # richtig interpretiert werden.
+            feld.update({'verwtyp': cc('verwtyp', 'm')})
+            logging.info("Fachstatistik Feld %s umgestellt" % f)
             

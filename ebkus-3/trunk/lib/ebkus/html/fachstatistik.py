@@ -63,7 +63,8 @@ class _fachstatistik(Request.Request, akte_share):
             feld = fs_customize.fd[item.name]
             kat_code = feld['kat_code']
             if kat_code:
-                multiple = feld['verwtyp'] == cc('verwtyp', 'm')
+                #multiple = feld['verwtyp'] == cc('verwtyp', 'm')
+                multiple = fs_customize.multifeld(item.name)
                 if fs_customize.jokerfeld_eigenstaendig(item.name):
                     self._legend = feld['name']
                     item.label = ''

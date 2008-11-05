@@ -1012,13 +1012,20 @@ def check_code(dict, key, kat_code, errorstring, default = None):
     return code
 
 def check_multi_code(dict, key, kat_code, errorstring, default = None):
-    """mehrere code ids als string in einem Feld"""
+    """mehrere code ids als string in einem Feld
+    default kann sein:
+    - Liste von Code-Objekten 
+    - String mit Ids
+    - ein Objekt, wo mit key der Wert nachgeschlagen wird
+    """
     code = dict.get(key)
     #print key, kat_code, code
     if code is None or code == '':
         if not default is None:
             if type(default) == type(''):
-                return cc(kat_code, default)
+                return default
+            elif isinstance(default, (list,tuple)):
+                return ' '.join([str(o['id']) for o in default])
             else:
                 return k_or_val(key, default)
     if not isinstance(code, list):
