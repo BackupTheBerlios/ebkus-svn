@@ -152,6 +152,14 @@ table {
      text-align: left;
      padding:.1em;
  }
+.tabledatared {
+     background-color:#FFFFFF;
+     font-size:10pt;
+     font-weight:bold;
+     text-align: left;
+     color: red;
+     padding:.1em;
+ }
 
 .buttonbig {font-size:10pt;height:18pt;width:120pt;background-color:#CCCCCC}
 .button {font-size:10pt;height:18pt;width:90pt;background-color:#CCCCCC}
