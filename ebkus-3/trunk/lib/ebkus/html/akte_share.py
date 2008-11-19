@@ -395,6 +395,57 @@ class akte_share(options):
             )
         return gruppendaten
 
+
+    def get_anmeldekontakt(self, anmeldung):
+        anm = anmeldung
+        fall = anm['fall']
+        anmeldekontakt = h.FieldsetInputTable(
+            legend='Anmeldekontakt',
+            daten=[[h.TextItem(label='Gemeldet von',
+                               name='von',
+                               value=anm['von'],
+                               ),
+                    h.TextItem(label='Telefon',
+                               name='mtl',
+                               value=anm['mtl'],
+                               ),
+                    ],
+                   [h.SelectItem(label='Empfohlen von',
+                                 name='zm',
+                                 options=self.for_kat('fszm', anm['zm']),
+                                 ),
+                    h.TextItem(label='durch',
+                               name='me',
+                               value=anm['me'],
+                               ),
+                    ],
+                   fall and [h.DatumItem(label='Gemeldet am',
+                                name='xxx',
+                                date=anm['fall'].getDate('bg'),
+                                readonly=True,
+                                tip='gleich Fallbeginn',
+                                ),
+                    h.DummyItem(),
+                    ] or None,
+                   [h.TextItem(label='Anmeldegrund',
+                               name='mg',
+                               value=anm['mg'],
+                               class_='textboxverylarge',
+                               maxlength=250,
+                               n_col=4
+                               ),
+                    ],
+                   [h.TextItem(label='Notiz',
+                               name='anm_no',
+                               value=anm['no'],
+                               class_='textboxverylarge',
+                               maxlength=250,
+                               n_col=4
+                               ),
+                    ],
+            ]
+            )
+        return anmeldekontakt
     def get_zustaendigkeiten(self, zustaendigkeiten_list):
         zustaendigkeiten = h.FieldsetDataTable(
             legend='Zuständigkeiten',

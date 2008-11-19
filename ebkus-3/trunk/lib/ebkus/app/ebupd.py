@@ -64,11 +64,17 @@ def akteeinf(form):
     leist['stz'] = check_code(form, 'lestz', 'stzei',
                               "Kein Stellenzeichen für die Leistung",
                               stelle['id'])
+
+    if config.ANMELDUNGSDATEN_OBLIGATORISCH:
+        anm = _check_anmeinf(form)
     try:
         akte.insert(akid)
         fall['akte_id'] = akte['id']
         fall.new()
         fall.insert()
+        if config.ANMELDUNGSDATEN_OBLIGATORISCH:
+            anm['fall_id'] = fall['id']
+            anm.insert()
         zust['fall_id'] = fall['id']
         zust.new()
         zust.insert()
@@ -257,25 +263,32 @@ def updeinr(form):
 def removeeinr(form):
     einr = check_exists(form, 'einrid', Einrichtungskontakt, "Einrichtungskontaktid fehlt")
     einr.delete()
-    
-def anmeinf(form):
-    """Neue Anmeldung."""
-    
+
+
+def _check_anmeinf(form):
     anmid = check_int_not_empty(form, 'anmid', "Anmeldungsid fehlt")
     check_not_exists(anmid, Anmeldung,
       "Anmeldung (id: %(id)s, Von: %(von)s) existiert bereits")
     anm = Anmeldung()
+    anm['id'] = anmid
+    get_string_fields(anm, form, ['von','mtl','me', 'mg', 'anm_no'],'')
+    if anm['von'] == '':
+        raise EE("Kein Feld 'von wem gemeldet'")
+    anm['no'] = anm['anm_no']
+    del anm['anm_no']
+    anm['zm'] = check_code(form, 'zm', 'fszm', "Fehler im Zugangsmodus")
+    return anm
+
+def anmeinf(form):
+    """Neue Anmeldung."""
+    anm = _check_anmeinf(form)
     anm['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
     fall = Fall(anm['fall_id'])
     vorhandene_anmeldung = fall['anmeldung']
     if len(vorhandene_anmeldung) > 0:
         raise EE("Anmeldung für Fall %(fn)s schon vorhanden" % fall)
-    get_string_fields(anm, form, ['von','mtl','me', 'mg', 'no'],'')
-    if anm['von'] == '':
-        raise EE("Kein Feld 'von wem gemeldet'")
-    anm['zm'] = check_code(form, 'zm', 'fszm', "Fehler im Zugangsmodus")
     try:
-        anm.insert(anmid)
+        anm.insert()
     except:
         try: anm.delete()
         except: pass
@@ -286,10 +299,12 @@ def updanm(form):
     """Update der Anmeldung."""
     anmold = check_exists(form, 'anmid', Anmeldung, "Keine Anmeldungsid")
     anm = Anmeldung()
-    get_string_fields(anm, form, ['von','mtl','me', 'mg', 'no'], anmold)
+    get_string_fields(anm, form, ['von','mtl','me', 'mg', 'anm_no'], anmold)
     if anm['von'] == '':
         raise EE("Kein Feld 'von wem gemeldet'")
     anm['zm'] = check_code(form, 'zm', 'fszm', "Fehler im Zugangsmodus", anmold)
+    anm['no'] = anm['anm_no']
+    del anm['anm_no']
     anmold.update(anm)
     _stamp_akte(anmold['akte'])
     

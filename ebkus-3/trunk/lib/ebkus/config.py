@@ -76,7 +76,8 @@ _params = (
     ('instance', 'STRASSENKATALOG_VOLLSTAENDIG', 'strassenkatalog_vollstaendig', 'b', 'e:False'),
     ('instance', 'STRASSENSUCHE', 'strassensuche', 's', 's:'), # ort ortsteil bezirk samtgemeinde
     ('instance', 'PLANUNGSRAUMFELD', 'planungsraumfeld', 's', 's:plraum'), # deprecated
-    ('instance', 'SQL_ABFRAGE', 'sql_abfrage', 'b', 'e:False')
+    ('instance', 'SQL_ABFRAGE', 'sql_abfrage', 'b', 'e:False'),
+    ('instance', 'ANMELDUNGSDATEN_OBLIGATORISCH', 'anmeldungsdaten_obligatorisch', 'b', 'e:False'),
     )
 
 # werden von show/dump nicht angezeigt

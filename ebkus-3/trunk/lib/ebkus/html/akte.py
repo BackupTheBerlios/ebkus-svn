@@ -7,7 +7,7 @@ import string,time
 from ebkus.db.sql import SQL
 from ebkus.app import Request
 from ebkus.config import config
-from ebkus.app.ebapi import Akte, Fall, FallList, Altdaten, \
+from ebkus.app.ebapi import Akte, Fall, FallList, Altdaten, Anmeldung, \
      Zustaendigkeit, today, cc, check_list, check_code, check_int_not_empty, EE
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.akte_templates import *
@@ -22,6 +22,7 @@ class _akte(Request.Request, akte_share):
                  title,
                  file,
                  akte,
+                 anmeldung,
                  formname,
                  hidden,
                  force_strkat=None,
@@ -84,6 +85,8 @@ class _akte(Request.Request, akte_share):
                                 tip="Suche in den Altdaten aus früheren EDV-Systemen",
                                 ),
                 )
+        if config.ANMELDUNGSDATEN_OBLIGATORISCH and file=='akteeinf':
+            anmeldung = self.get_anmeldekontakt(anmeldung)
         res = h.FormPage(
             title=title,
             name=formname,action="klkarte",method="post",
@@ -100,6 +103,7 @@ class _akte(Request.Request, akte_share):
                          right=(altdaten, anschrift),
                          ),
                   notiz,
+                  anmeldung,
                   falldaten,
                   leistung,
                   h.SpeichernZuruecksetzenAbbrechen(),
@@ -153,13 +157,27 @@ class akteneu(_akte):
             lage=(config.STRASSENKATALOG and  cc('lage', '0') or
                   cc('lage', '1')),
             )
+        hidden = (('stzbg', akte['stzbg']),
+                  )
+        if config.ANMELDUNGSDATEN_OBLIGATORISCH:
+            anm = Anmeldung()
+            anm.init(
+                id=Anmeldung().getNewId(),
+                zm=cc('fszm', '999'),
+                )
+            # Nachname und Telefon des Klienten
+            # im Formular anbieten.
+            anm['von'] = akte['na']
+            anm['mtl'] = akte['tl1']
+            hidden += (('anmid', anm['id']),)
+        
         return self._process(
             title='Neue Akte anlegen',
             file='akteeinf',
             akte=akte,
+            anmeldung=anm,
             formname='akteform',
-            hidden=(('stzbg', akte['stzbg']),
-                    )
+            hidden=hidden,
             )
 
 class waufnneu(_akte):
@@ -175,6 +193,7 @@ class waufnneu(_akte):
                  title="Wiederaufnahme des Klienten",
                  file='waufneinf',
                  akte=akte,
+                 anmeldung=None,
                  formname='akteform',
                  hidden=(('fallid', Fall().getNewId()),
                          ('status', cc('stand', 'l')),
@@ -202,6 +221,7 @@ class updakte(_akte):
             title='Akte aktualisieren',
             file='updakte',
             akte=akte,
+            anmeldung=None,
             formname='akteform',
             hidden=(),
             force_strkat=force_strkat,
