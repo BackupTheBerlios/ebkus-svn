@@ -146,6 +146,7 @@ def getClassesToBePublished():
     from ebkus.html.sql_abfrage import sql_abfrage
     from ebkus.html.statistik_ergebnis import auszergebnis
     from ebkus.html.altdaten import altlist, altimport
+    from ebkus.html.adressen import adressen
     return makeObject(locals())
     
     

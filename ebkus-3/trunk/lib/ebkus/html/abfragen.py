@@ -15,7 +15,178 @@ import ebkus.html.htmlgen as h
 from ebkus.html.akte_share import akte_share
 
 
-class _abfr(Request.Request, akte_share):
+class fall_abfrage(Request.Request, akte_share):
+    
+
+    def fall_auswahl_form(self):
+        default_sort = ('bgy', 'fn_count', 'akte__na',
+                        'zuletzt_zustaendig__mit__na',
+                        'has_fachstatistik', 'has_jghstatistik')
+        default_sort_code = '012345' # Indizes in default_sort
+        tmpl = '<option value="%s"%s>%s</option>'
+        # erster Wert ist Index in default_sort
+        sort_options_data = (
+            (0, 'Jahr des Fallbeginns'),
+            (1, 'Fallnummer'),
+            (2, 'Name des Klienten'),
+            (3, 'Name des Mitarbeiters'),
+            (4, 'Fachstatistik vorhanden'),
+            (5, 'Bundesstatistik vorhanden'),
+            )
+        welche = check_str_not_empty(self.form, 'w', "Keine Fallart", 'laufend')
+        jahr = check_int_not_empty(self.form, 'jahr', "Fehler in ab Jahr", '')
+        fn_count = check_int_not_empty(self.form, 'fnc', "Fehler in laufender Nummer", '')
+        bis_jahr = check_int_not_empty(self.form, 'bis_jahr', "Fehler in bis Jahr", '')
+        bis_fn_count = check_int_not_empty(self.form, 'bis_fnc', 
+                                           "Fehler in bis laufender Nummer", '')
+        ab_jahr_zda = check_int_not_empty(self.form, 'ab_jahr_zda', 
+                                          "Fehler in ab Jahr Abschluss", '')
+        bis_jahr_zda = check_int_not_empty(self.form, 'bis_jahr_zda', 
+                                          "Fehler in ab Jahr Abschluss", '')
+
+        if fn_count and not jahr:
+            raise EE("Ab laufende Fallnummer nur zusammen mit ab Jahr")
+        if bis_fn_count and not bis_jahr:
+            raise EE("Bis laufende Fallnummer nur zusammen mit bis Jahr")
+        if ab_jahr_zda or bis_jahr_zda:
+            # in diesem Fall nur abgeschlossene Fälle
+            welche = 'abgeschlossen'
+        mit_id = check_str_not_empty(self.form, 'mitid', "Kein Mitarbeiter", '')
+        seq = check_str_not_empty(self.form, 'seq', "Keine Sortierung", default_sort_code)
+        seq = [int(x) for x in seq]
+        seq_new = check_str_not_empty(self.form, 'seqn', "Keine Sortierung", '1')
+        if seq_new:
+            seq_new = int(seq_new)
+            assert seq_new in seq, 'Fehler beim Sortieren'
+            if seq_new == 1:
+                seq.remove(1)
+                seq.remove(0)
+                seq = [0,1] + seq
+            else:
+                seq.remove(seq_new)
+                seq = [seq_new] + seq
+        sort = tuple([default_sort[i] for i in seq])
+
+        mitarbeiter = None
+        if self.mitarbeiter['benr__code'] == 'verw':
+            if mit_id:
+                mitarbeiter = Mitarbeiter(mit_id)
+        elif self.mitarbeiter['benr__code'] == 'bearb':
+            mitarbeiter = self.mitarbeiter
+        legend='Anzuzeigende Beratungen',
+        return dict(welche=welche,
+                    ab_jahr=jahr,
+                    ab_fallnummer=fn_count,
+                    bis_jahr=bis_jahr,
+                    bis_fallnummer=bis_fn_count,
+                    ab_jahr_zda=ab_jahr_zda,
+                    bis_jahr_zda=bis_jahr_zda,
+                    mitarbeiter=mitarbeiter,
+                    sort_options_data=sort_options_data,
+                    sort_sel=seq_new, # index der auswahl
+                    sort_seq=seq,     # liste von indices
+                    sort=sort,        # tuple der sortier-felder
+                    )
+        
+
+    def get_fall_auswahl(self, legend, welche, ab_jahr, ab_fn_count,
+                         bis_jahr, bis_fn_count,
+                         ab_jahr_zda, bis_jahr_zda, 
+                         mitarbeiter, sort_options_data, sort_sel,
+                         submitop='op',
+                         ):
+        tmpl = '<option value="%s"%s>%s</option>'
+        selected = ' selected="selected"'
+        welche_options = '\n'.join([tmpl % (v,
+                                            v==welche and selected or '',
+                                            v.capitalize())
+                                    for v in ('laufend', 'abgeschlossen', 'alle')])
+        sel = mitarbeiter and mitarbeiter['id'] or None
+        alle_sel = (not mitarbeiter) and selected or ''
+        mitarbeiter_options = (tmpl % ('', alle_sel, 'Alle')
+                               + self.for_mitarbeiter(sel=sel))
+        sort_options = '\n'.join([tmpl % (c, c==sort_sel and selected or '', n)
+                                  for c, n in sort_options_data])
+        anzeige = h.FieldsetInputTable(
+            legend=legend,
+            daten=[[h.SelectItem(label='Welche',
+                                 name='w',
+                                 options=welche_options,
+    tip='Nur laufende, nur abgeschlossene, oder alle Fälle zeigen',
+                                 ),
+                    h.SelectItem(label='Fallbeginn ab Jahr',
+                                 name='jahr',
+                                 class_='listbox45',
+                                 tip='Nur Fälle ab dem gewählten Jahr zeigen',
+                                 options=self.for_jahre(sel=ab_jahr,
+                                                        erster_eintrag='Alle'),
+                                 ),
+                    h.TextItem(label='ab laufender Nummer',
+                               name='fnc',
+                               class_='textboxmid',
+                               value=ab_fn_count,
+                               tip='z.B. 9, 23, etc.',
+                               ),
+                    ],
+                    [self.mitarbeiter['benr__code'] == 'verw' and
+                     h.SelectItem(label='Mitarbeiter',
+                                  name='mitid',
+                                  tip='Nur Fälle des gewählten Mitarbeiters zeigen',
+                                  options=mitarbeiter_options,
+                                  ) or
+                    h.TextItem(label='Mitarbeiter',
+                               name='xxx',
+                               value=mitarbeiter['na'],
+                               readonly=True,
+                               ),
+                    h.SelectItem(label='Fallbeginn bis Jahr',
+                                 name='bis_jahr',
+                                 class_='listbox45',
+                                 tip='Nur Fälle bis zu dem gewählten Jahr zeigen',
+                                 options=self.for_jahre(sel=bis_jahr,
+                                                        erster_eintrag='Alle'),
+                                 ),
+                    h.TextItem(label='bis laufender Nummer',
+                               name='bis_fnc',
+                               class_='textboxmid',
+                               value=bis_fn_count,
+                               tip='z.B. 9, 23, etc.',
+                               ),
+                    ],
+                    [h.SelectItem(label='Sortieren nach',
+                                  name='seqn',
+                                  tip='Wonach die Fälle sortiert sein sollen',
+                                  options=sort_options,
+                                  ),
+                    h.SelectItem(label='Fallabschluss ab Jahr',
+                                 name='ab_jahr_zda',
+                                 class_='listbox45',
+                                 tip='Nur Fälle zeigen, die ab dem gewählten Jahr abgeschlossen wurden',
+                                 options=self.for_jahre(sel=ab_jahr_zda,
+                                                        erster_eintrag='Alle'),
+                                 ),
+                    h.SelectItem(label='Fallabschluss bis Jahr',
+                                 name='bis_jahr_zda',
+                                 class_='listbox45',
+                                 tip='Nur Fälle zeigen, die bis zu dem gewählten Jahr abgeschlossen wurden',
+                                 options=self.for_jahre(sel=bis_jahr_zda,
+                                                        erster_eintrag='Alle'),
+                                 ),
+                    ],
+                   [h.Dummy(n_col=8)],
+                   [h.Button(value="Anzeigen",
+                             name=submitop,
+                             tip="Beratungen anzeigen",
+                             type='submit',
+                             n_col=8,
+                             ),
+                    ],
+                   ],
+            )
+        return anzeige
+
+#class _abfr(Request.Request, akte_share):
+class _abfr(fall_abfrage):
     "Superklasse für Abfragen"
     def get_table_daten(self, elems, fields):
         "Element von fields kann ein Tupel sein: string, url"
@@ -31,7 +202,10 @@ class _abfr(Request.Request, akte_share):
                     # TODO very dirty hack!!!!
                     zeile.append(h.Datum(date=e[f]))
                 else:
-                    zeile.append(h.String(string=e[f]))
+                    v = e[f]
+                    if v == None:
+                        v = ''
+                    zeile.append(h.String(string=v))
             daten.append(zeile)
         return daten
 
@@ -77,7 +251,85 @@ class abfr1(_abfr):
 ##     def beratungen(...):
 ##         pass
     
+
     def processForm(self, REQUEST, RESPONSE):
+        params = self.fall_auswahl_form()
+
+        welche = params['welche']
+        ab_jahr =  params['ab_jahr']
+        ab_fallnummer =  params['ab_fallnummer']
+        mitarbeiter = params['mitarbeiter']
+        sort_options_data = params['sort_options_data']
+        sort_sel = params['sort_sel']
+        sort_seq = params['sort_seq']
+        sort = params['sort']
+        bis_jahr = params['bis_jahr']
+        bis_fallnummer = params['bis_fallnummer']
+        ab_jahr_zda =  params['ab_jahr_zda']
+        bis_jahr_zda =  params['bis_jahr_zda']
+
+
+        title = (welche=='laufend' and 'Laufende' or
+                 welche=='abgeschlossen' and 'Abgeschlossene' or
+                 welche=='alle' and 'Alle' or '') + ' Beratungen'
+        if ab_fallnummer:
+            legend_app = ' ab Fallnummer %s-%s%s' % (ab_fallnummer, ab_jahr, self.stelle['code'])
+        elif ab_jahr:
+            legend_app = ' ab Jahr %s' % (ab_jahr,)
+        else:
+            legend_app = ''
+
+        #print 'PARAMS: ', params    
+
+        anzeige = self.get_fall_auswahl('Anzuzeigende Beratungen', welche, 
+                                        ab_jahr, ab_fallnummer, 
+                                        bis_jahr, bis_fallnummer, 
+                                        ab_jahr_zda, bis_jahr_zda,
+                                        mitarbeiter, 
+                                        sort_options_data, sort_sel)
+        beratungen = self.beratungen(welche=welche,
+                                     stelle=self.stelle,
+                                     mitarbeiter=mitarbeiter,
+                                     ab_jahr=ab_jahr,
+                                     ab_fallnummer=ab_fallnummer,
+                                     bis_jahr=bis_jahr,
+                                     bis_fallnummer=bis_fallnummer,
+                                     ab_jahr_zda=ab_jahr_zda,
+                                     bis_jahr_zda=bis_jahr_zda,
+                                     sort=sort)
+
+        #faelle = ('fn', 'vn', 'na', 'gb', 'fallbeginn', 'fallende', 'mitarbeiter', 'fs', 'jgh')
+        report = h.FieldsetDataTable(
+            legend=title + legend_app,
+            headers=('Fallnr.', 'Vorname', 'Name', 'Geb.', 'Beginn', 'z.d.A', 'Zuständig', 'FS', 'BS'),
+            daten=[[h.Link(string=fall['fn'],
+                           url='klkarte?akid=%(akte_id)s' % fall),
+                    h.String(string=fall['akte__vn']),
+                    h.String(string=fall['akte__na']),
+                    h.String(string=fall['akte__gb']),
+                    h.Datum(date=fall.getDate('bg')),
+                    h.Datum(date=fall.getDate('zda')),
+                    h.String(string=fall['zuletzt_zustaendig__mit__na']),
+                    h.String(string=fall['has_fachstatistik']),
+                    h.String(string=fall['has_jghstatistik']),
+            ] for fall in beratungen],
+            )
+
+        res = h.FormPage(
+            title=title,
+            name='beratungen',action="abfr1",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ),
+            hidden=(("seq", ''.join([('%s' % i) for i in sort_seq])),
+                    ),
+            rows=(self.get_auswertungs_menu(),
+                  anzeige,
+                  report,
+                  ),
+            )
+        return res.display()
+        
+    def xprocessForm(self, REQUEST, RESPONSE):
         default_sort = ('bgy', 'fn_count', 'akte__na',
                         'zuletzt_zustaendig__mit__na',
                         'has_fachstatistik', 'has_jghstatistik')

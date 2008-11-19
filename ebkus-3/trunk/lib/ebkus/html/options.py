@@ -4,7 +4,7 @@
 
 from ebkus.app.ebapih import get_codes, get_all_codes, make_option_list
 from ebkus.app.ebapi import KategorieList, ZustaendigkeitList, today, AbfrageList, \
-    BezugspersonList
+    BezugspersonList, MitarbeiterGruppeList
 from ebkus.db.sql import SQL
 from ebkus.config import config
 
@@ -64,6 +64,10 @@ class options(object):
                       <option value="nothing">
                       <option value="nothing">[ Gruppen ]
                       <option value="abfr8">- Gruppen&uuml;berblick
+                      <option value="nothing">
+                      <option value="nothing">[ Adressen exportieren ]
+                      <option value="adressen?wel=fall">- Fälle
+                      <option value="adressen?wel=gruppe">- Gruppen
                       <option value="nothing">
                       <option value="nothing">[ Fach- und Bundesstatistik ]
                       <option value="statabfr">- Statistik
@@ -228,3 +232,28 @@ class options(object):
         for b in self.get_aktuelle_bezugspersonen(order):
                 options += tmpl % b
         return options
+
+    def for_gruppen(self, sel=None):
+        """Optionen für Gruppenauswahl erstellen"""
+        option_t = '<option value="%(gruppe_id)s"%(xxsel)s>%(mit_id__na)s | %(gruppe_id__name)s | %(gruppe_id__gn)s</option>\n'
+        options = ''
+        where = "gruppe.stz=%s" % self.stelle['id']
+        if self.mitarbeiter['benr__code'] == 'bearb':
+            where += ' and mit_id = %s' % self.mitarbeiter['id']
+        elif self.mitarbeiter['benr__code'] == 'verw':
+            pass
+        else:
+            raise EE('Keine Berechtigung')
+        mitarbeitergruppenl = MitarbeiterGruppeList(
+                where=where,
+                join=[('gruppe', 'mitarbeitergruppe.gruppe_id=gruppe.id')])
+        if sel:
+            sel = [int(s) for s in sel]
+        else:
+            sel = []
+        mitarbeitergruppenl.sort('mit_id__na', 'gruppe_id__name')
+        for m in mitarbeitergruppenl:
+            m['xxsel'] = (m['gruppe_id'] in sel) and ' selected ' or ''
+            options += option_t % m
+        return options
+        

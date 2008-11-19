@@ -11,6 +11,77 @@ EBKuS Versionsgeschichte
 .. include:: NEU_IN_DIESER_VERSION.txt
 
 
+EBKuS 4.2 (??. November 2008)
+=============================
+
+
+Klientenakte
+------------
+
+Notizen
+.......
+
+[Rev. 159,160]
+Notizen werden in einer eigenen Spalte neben den Einträgen
+dargestellt, auf die sie sich beziehen. Der Notizblock unten
+bleibt erhalten. Als wichtig deklarierte Notizen werden in roter
+Schrift dargestellt.
+
+
+Anmeldung als Pflichtfeld
+.........................
+
+??
+
+Fachstatistik
+-------------
+
+[Rev. 161]
+Fehler bei frei konfigurierbaren Feldern behoben.
+
+für alle Felder jokf5 - 8 beim Update:
+- auf string umstellen, dabei evt. vorhandene id übernehmen
+- im feld-Eintrag verwtyp auf 'm' setzen für alle, dabei merken,
+  was vorher da stand.
+- Falls vorher im verwtyp 'k' stand, entsprechende flag
+  setzen (bit 2). Falls gesetzt, ist nur ein Eintrag erlaubt.
+
+im Code:
+- check_multi ist wohl nicht ganz korrekt
+- in fachstatistik.py muss das customizen angepasst werden: 
+  bei jokf<n>-Feldern multiple nur wenn kein flag gesetzt ist.
+- bei ebupd.fskonfig: wenn kein mehrfach gesetzt ist, muss die
+  flag auch gesetzt werden, verwtyp bleibt trotzdem 'm'.
+  Wenn flag gesetzt ist, wird immer nur die erste id des Feldes
+  verwendet, die anderen werden aber nicht weggeworfen. Wenn
+  umkonfiguriert wird, sind die Werte wieder da.
+- bei ebupd._fs_check: prüfen, dass jokf<n>-Feldern richtig
+  behandelt werden.
+
+
+Fallunabhaengige Aktivitaeten Bs
+
+
+[Rev. 162]
+Sortierung nach Nachname + Datum (vorher nur Nachname)
+Bei Einführung einer neuen FUA können mehrere Mitarbeiter
+angegeben werden. Dann gibts einen identischen Eintrag für jeden
+dieser Mitarbeiter. Spätere Veränderung nur über jeden
+Einzelnen. Kann auch von einem Mitarbeiter durchgeführt werden.
+
+
+Sortierung der Klienten und der Bezugspersonen bei der
+Gruppenteilnehmerauswahl
+jetzt grundsätzlich nur nach Nachname der Klienten bzw. der
+Bezugspersonen 
+[Rev. 163]
+
+
+Neues Modul Adressenexport
+
+
+
+
 EBKuS 4.1 (19. Februar 2008)
 ============================
 

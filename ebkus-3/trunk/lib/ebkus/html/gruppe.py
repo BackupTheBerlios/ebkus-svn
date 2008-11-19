@@ -13,25 +13,6 @@ from ebkus.html.akte_share import akte_share
 class menugruppe(Request.Request, akte_share):
     """Hauptmenü der Gruppenkartei (Tabellen: Gruppe, MitarbeiterGruppe)."""
     permissions = Request.MENUGRUPPE_PERM
-    def for_gruppen(self):
-        """Optionen für Gruppenauswahl erstellen"""
-        option_t = '<option value="%(gruppe_id)s">%(mit_id__na)s | %(gruppe_id__name)s | %(gruppe_id__gn)s</option>\n'
-        options = ''
-        where = "gruppe.stz=%s" % self.stelle['id']
-        if self.mitarbeiter['benr__code'] == 'bearb':
-            where += ' and mit_id = %s' % self.mitarbeiter['id']
-        elif self.mitarbeiter['benr__code'] == 'verw':
-            pass
-        else:
-            raise EE('Keine Berechtigung')
-        mitarbeitergruppenl = MitarbeiterGruppeList(
-                where=where,
-                join=[('gruppe', 'mitarbeitergruppe.gruppe_id=gruppe.id')])
-        mitarbeitergruppenl.sort('mit_id__na', 'gruppe_id__name')
-        for m in mitarbeitergruppenl:
-            options += option_t % m
-        return options
-        
     def processForm(self, REQUEST, RESPONSE):
         gruppe = h.FieldsetFormInputTable(
             action='grkarte',
@@ -44,7 +25,7 @@ class menugruppe(Request.Request, akte_share):
                                  class_="listbox280",
                                  tip="Alle Gruppen, für die Sie Zugriffsrechte haben",
                                  options=self.for_gruppen(),
-                                 n_col=4,
+                                 n_col=6,
                                  nolabel=True,
                                  ),
                     ],
@@ -59,17 +40,22 @@ class menugruppe(Request.Request, akte_share):
                                 value='grdok',
                                 tip='Gruppendokumente für ausgewählte Gruppe ansehen',
                                 ),
+                    h.RadioItem(label='Gruppenadressen',
+                                name='file',
+                                value='gradr',
+                                tip='Adressen für ausgewählte Gruppe herunterladen',
+                                ),
                     ],
                    [h.DummyItem(n_col=4)],
                    [h.Button(value='Ok',
                              type='submit',
-                             n_col=2,
+                             n_col=3,
                              ),
                     h.Button(value='Neue Gruppe',
                              type='button',
                              onClick="go_to_url('gruppeneu')",
                              tip='Neue Gruppe anlegen',
-                             n_col=2,
+                             n_col=3,
                              ),
                     ],
                    ],

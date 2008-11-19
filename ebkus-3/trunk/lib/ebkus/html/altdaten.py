@@ -280,7 +280,7 @@ class altimport(Request.Request, akte_share):
                    ],
             )
         altdimport = h.FieldsetFormInputTable(
-            legend='Altdaten importieren (evt. bereits vorhandene werden ersetzt)',
+            legend='Altdaten importieren (evt. bereits vorhandene aus einem früheren Import werden überschrieben)',
             name='altimport',action="altimport",method="post",
             daten=[[h.UploadItem(label='Lokaler Dateiname',
                                  name='datei',

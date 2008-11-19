@@ -232,28 +232,6 @@ class Tr(_HTML):
     tmpl = "<tr>%(cells)s</tr>\n"
     
 # <tr>-Elemente
-class Pair(_HTML):
-    """left, right
-    erwartet in left bzw right: <tr>,
-    also z.B. mehrere Fieldsets
-    liefert: <tr> mit einer Zelle
-    """
-    def display(self):
-        self._init()
-        if self.left or self.right:
-            return self.tmpl % self
-        else:
-            return ''
-    tmpl = """<tr><td width="100%%">
-  <table width="100%%">
-  <tr><td width="50%%"><table width="100%%">
-  %(left)s
-  </table></td><td width="50%%"><table width="100%%">
-  %(right)s
-  </table></td></tr>
-  </table>
-</td></tr>
-"""
 
 class Table(_HTML):
     """obligat: rows
@@ -287,6 +265,29 @@ class Table(_HTML):
         self.fieldset_end = fieldset_end
 
 
+class Pair(Table):
+    """left, right
+    optional: colspan - wird in die einzelne Zelle eingesetzt
+    erwartet in left bzw right: <tr>,
+    also z.B. mehrere Fieldsets
+    liefert: <tr> mit einer Zelle
+    """
+    def display(self):
+        self._init()
+        if self.left or self.right:
+            return self.tmpl % self
+        else:
+            return ''
+    tmpl = """<tr><td width="100%%"%(colspan_attr)s">
+  <table width="100%%">
+  <tr><td width="50%%"><table width="100%%">
+  %(left)s
+  </table></td><td width="50%%"><table width="100%%">
+  %(right)s
+  </table></td></tr>
+  </table>
+</td></tr>
+"""
 
 class Fieldset(Table):
     def _init(self):
@@ -390,7 +391,13 @@ class DataTable(object):
                     daten=[self.buttons],
                     colspan=max(1, max_cols),
                     )
-                pr(str(button_zeile))
+                if self.buttons_left:
+                    pair = Pair(left=button_zeile,
+                                right=Tr(cells=[Dummy()]),
+                                colspan=max(1, max_cols))
+                    pr(str(pair))
+                else:
+                    pr(str(button_zeile))
         if not self.daten and self.empty_msg and not has_button:
             self.colspan = max(1, max_cols)
             pr("<tr>")

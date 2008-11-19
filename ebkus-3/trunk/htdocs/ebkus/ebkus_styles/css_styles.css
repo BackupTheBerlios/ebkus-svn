@@ -160,6 +160,27 @@ table {
      color: red;
      padding:.1em;
  }
+.tabledatagrey {
+     background-color:#EEEEEE;
+     font-size:10pt;
+     font-weight:normal;
+     text-align: left;
+     padding:.1em;
+ }
+.tabledatableu {
+     background-color:#DDDDEE;
+     font-size:10pt;
+     font-weight:normal;
+     text-align: left;
+     padding:.1em;
+ }
+.tabledatajaune {
+     background-color:#EEEECC;
+     font-size:10pt;
+     font-weight:normal;
+     text-align: left;
+     padding:.1em;
+ }
 
 .buttonbig {font-size:10pt;height:18pt;width:120pt;background-color:#CCCCCC}
 .button {font-size:10pt;height:18pt;width:90pt;background-color:#CCCCCC}

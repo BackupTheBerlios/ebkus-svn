@@ -56,6 +56,13 @@ class grkarte(Request.Request, akte_share):
                 return self.EBKuSError(REQUEST, RESPONSE)
             RESPONSE.redirect('grdok?gruppeid=%s' % gruppeid)
             return ''
+        if file == 'gradr':
+            gruppeid = self.form.get('gruppeid')
+            if not gruppeid:
+                self.last_error_message = "Keine Men&uuml;auswahl erhalten"
+                return self.EBKuSError(REQUEST, RESPONSE)
+            RESPONSE.redirect('adressen?wel=gruppe&grid=%s' % gruppeid)
+            return ''
         if file == 'hauptmenue':
             RESPONSE.redirect('menu')
             return ''

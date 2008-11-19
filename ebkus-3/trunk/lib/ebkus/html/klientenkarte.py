@@ -294,14 +294,14 @@ class klkarte(Request.Request, akte_share):
                     or None),
             )
         anmeldekontakte = h.FieldsetDataTable(
-            legend= 'Anmeldungskontakte',
+            legend= 'Anmeldekontakte',
             headers= ('Gemeldet von', 'Telefon', 'Empf.', 'durch', 
                       'Gemeldet am', 'Anmeldegrund', 'Notiz'),
             noheaders=1,
             daten= [[aktueller_fall == a['fall'] and
                      h.Icon(href= 'updanm?anmid=%(id)d' % a,
                             icon= "/ebkus/ebkus_icons/edit_button.gif",
-                            tip= 'Anmeldungskontakt bearbeiten')
+                            tip= 'Anmeldekontakt bearbeiten')
                      or h.Dummy(),
                      h.String(string= a['von']),
                      h.String(string= a['mtl']),

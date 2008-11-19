@@ -869,12 +869,16 @@ class akte_share(options):
             ]]
             )
 
-    def get_auswertungs_menu(self):
+    def get_auswertungs_menu(self, gruppenmenu=False):
         menu = h.FieldsetInputTable(
             daten=[[h.Button(value="Hauptmenü",
                              tip="Zum Hauptmenü",
                              onClick="go_to_url('menu')",
                              ),
+                    gruppenmenu and h.Button(value="Gruppenmenü",
+                             tip="Zum Gruppenmenü",
+                             onClick="go_to_url('menugruppe')",
+                             ) or None,
                     h.String(string='Andere Auswertungen:',
                              align='right', 
                              class_='labeltext'),
@@ -889,10 +893,15 @@ class akte_share(options):
                     ]])
         return menu
 
-    def beratungen(self, welche, mitarbeiter=None,
+    def beratungen(self, welche, 
+                   mitarbeiter=None,
                    stelle=None,
                    ab_jahr=None,
                    ab_fallnummer=None,
+                   bis_jahr=None,
+                   bis_fallnummer=None,
+                   ab_jahr_zda=None,
+                   bis_jahr_zda=None,
                    sort=()):
         assert welche in ('laufend', 'abgeschlossen', 'alle')
         assert ab_jahr and ab_fallnummer or not ab_fallnummer
@@ -911,6 +920,12 @@ class akte_share(options):
             where += ' and akte.stzbg=%s' % stelle['id']
         if ab_jahr:
             where += ' and fall.bgy >= %s' % ab_jahr
+        if bis_jahr:
+            where += ' and fall.bgy <= %s' % bis_jahr
+        if ab_jahr_zda:
+            where += ' and fall.zday >= %s' % ab_jahr_zda
+        if bis_jahr_zda:
+            where += ' and fall.zday <= %s and fall.zday > 0' % bis_jahr_zda
         fall_list = FallList(
             where=where,
             join=[('zustaendigkeit', 'zustaendigkeit.fall_id=fall.id'),
@@ -922,6 +937,12 @@ class akte_share(options):
                 c = fall['fn_count'] # Fallnummerzähler, definiert in ebapi.py
                 return  j > ab_jahr or (j == ab_jahr and c >= ab_fallnummer)
             fall_list = fall_list.filter(ab_fn)
+        if bis_jahr and bis_fallnummer:
+            def bis_fn(fall):
+                j = fall['bgy']
+                c = fall['fn_count'] # Fallnummerzähler, definiert in ebapi.py
+                return  j < bis_jahr or (j == bis_jahr and c <= bis_fallnummer)
+            fall_list = fall_list.filter(bis_fn)
         fall_list.sort(*sort)
         return fall_list
 
