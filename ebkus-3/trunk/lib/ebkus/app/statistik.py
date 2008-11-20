@@ -203,7 +203,8 @@ def xcountitem(kat_code, d_list, d_item):
     Anwendung:
     zugangsarten = xcountitem('fszm', fachstatliste, 'zm') """
     res = []
-    codelist = get_all_codes(kat_code)
+    #codelist = get_all_codes(kat_code)
+    codelist = get_codes(kat_code) # nur gültige codes (??)
     values = [x[d_item] for x in d_list]
     for c in codelist:
         freq = values.count(c['id'])
@@ -223,7 +224,8 @@ def xcountmultiitem(kat_code, d_list, d_item):
     Anwendung:
     zugangsarten = xcountitem('fspbk', fachstatliste, 'kindprobleme') """
     res = []
-    codelist = get_all_codes(kat_code)
+    #codelist = get_all_codes(kat_code)
+    codelist = get_codes(kat_code) # nur gültige codes (??)
     def get_ids():
         for x in d_list:
             val = x[d_item]
