@@ -227,9 +227,10 @@ def xcountmultiitem(kat_code, d_list, d_item):
     #codelist = get_all_codes(kat_code)
     codelist = get_codes(kat_code) # nur gültige codes (??)
     def get_ids():
+        """ """
         for x in d_list:
             val = x[d_item]
-            print 'VAL', val
+            #print 'VAL', val
             if val != None:
                 for i in val.split():
                     yield int(i)
@@ -238,7 +239,7 @@ def xcountmultiitem(kat_code, d_list, d_item):
     for c in codelist:
         if size:
             freq = values.count(c['id'])
-            a = (c['name'], freq, ((float(freq)*100)/float(size)))
+            a = (c['name'], freq, ((float(freq)*100)/float(len(d_list))))
         else:
             a = (c['name'], 0, 0.0)
         res.append(a)
