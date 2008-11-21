@@ -85,7 +85,8 @@ class _akte(Request.Request, akte_share):
                                 tip="Suche in den Altdaten aus früheren EDV-Systemen",
                                 ),
                 )
-        if config.ANMELDUNGSDATEN_OBLIGATORISCH and file=='akteeinf':
+        anmeldung = None
+        if config.ANMELDUNGSDATEN_OBLIGATORISCH and file in ('akteeinf', 'waufneinf'):
             anmeldung = self.get_anmeldekontakt(anmeldung)
         res = h.FormPage(
             title=title,
@@ -159,6 +160,7 @@ class akteneu(_akte):
             )
         hidden = (('stzbg', akte['stzbg']),
                   )
+        anm = None
         if config.ANMELDUNGSDATEN_OBLIGATORISCH:
             anm = Anmeldung()
             anm.init(
@@ -189,15 +191,28 @@ class waufnneu(_akte):
         if not akid:
             raise EE("Keine ID fuer die Akte erhalten")
         akte = Akte(akid)
+        hidden=(('fallid', Fall().getNewId()),
+                ('status', cc('stand', 'l')),
+                )
+        anm = None
+        if config.ANMELDUNGSDATEN_OBLIGATORISCH:
+            anm = Anmeldung()
+            anm.init(
+                id=Anmeldung().getNewId(),
+                zm=cc('fszm', '999'),
+                )
+            # Nachname und Telefon des Klienten
+            # im Formular anbieten.
+            anm['von'] = akte['na']
+            anm['mtl'] = akte['tl1']
+            hidden += (('anmid', anm['id']),)
         return self._process(
                  title="Wiederaufnahme des Klienten",
                  file='waufneinf',
                  akte=akte,
-                 anmeldung=None,
+                 anmeldung=anm,
                  formname='akteform',
-                 hidden=(('fallid', Fall().getNewId()),
-                         ('status', cc('stand', 'l')),
-                         ),
+                 hidden=hidden,
                  )
         
 class updakte(_akte):
