@@ -273,7 +273,7 @@ def _check_anmeinf(form):
     anm['id'] = anmid
     get_string_fields(anm, form, ['von','mtl','me', 'mg', 'anm_no'],'')
     if anm['von'] == '':
-        raise EE("Kein Feld 'von wem gemeldet'")
+        raise EE("Kein Feld 'Gemeldet von'")
     anm['no'] = anm['anm_no']
     del anm['anm_no']
     anm['zm'] = check_code(form, 'zm', 'fszm', "Fehler im Zugangsmodus")
@@ -1023,10 +1023,15 @@ def waufneinf(form):
     leist['stz'] = check_code(form, 'lestz', 'stzei',
                               "Kein Stellenzeichen für die Leistung",
                               stelle['id'])
+    if config.ANMELDUNGSDATEN_OBLIGATORISCH:
+        anm = _check_anmeinf(form)
     
     try:
         akteold.update(akte)
         fall.insert(fallid)
+        if config.ANMELDUNGSDATEN_OBLIGATORISCH:
+            anm['fall_id'] = fall['id']
+            anm.insert()
         zust['fall_id'] = fall['id']
         zust.new()
         zust.insert()
