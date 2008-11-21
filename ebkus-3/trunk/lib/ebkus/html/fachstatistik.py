@@ -74,6 +74,7 @@ class _fachstatistik(Request.Request, akte_share):
                     item.multiple = True
                     item.size = 8
                 if self._fs: # fachstat Objekt vorhanden, wir sind in updfs
+                    print 'FS CUSTOMIZE', self._fs[item.name], type(self._fs[item.name])
                     item.options = self.for_kat(kat_code, self._fs[item.name])
                 elif multiple: # initialisieren
                     item.options = self.for_kat(kat_code, None)
@@ -89,7 +90,10 @@ class _fachstatistik(Request.Request, akte_share):
                  title,
                  file,
                  fs,
+                 fsjok=None,
                  ):
+        if fsjok == None:
+            fsjok = fs
         falldaten = h.FieldsetInputTable(
             legend='Falldaten',
             daten = [[h.TextItem(label='Fallnummer',
@@ -193,20 +197,20 @@ class _fachstatistik(Request.Request, akte_share):
                       ],
                      [h.SelectItem(label='Joker 1',
                                    name='joka1',
-                                   options=self.for_kat('fsjoka1', fs['joka1']),
+                                   options=self.for_kat('fsjoka1', fsjok['joka1']),
                                    ),
                       h.SelectItem(label='Joker 2',
                                    name='joka2',
-                                   options=self.for_kat('fsjoka2', fs['joka2']),
+                                   options=self.for_kat('fsjoka2', fsjok['joka2']),
                                    ),
                       ],
                      [h.SelectItem(label='Joker 3',
                                    name='joka3',
-                                   options=self.for_kat('fsjoka3', fs['joka3']),
+                                   options=self.for_kat('fsjoka3', fsjok['joka3']),
                                    ),
                       h.SelectItem(label='Joker 4',
                                    name='joka4',
-                                   options=self.for_kat('fsjoka4', fs['joka4']),
+                                   options=self.for_kat('fsjoka4', fsjok['joka4']),
                                    ),
                       ],
                      ]
@@ -321,7 +325,7 @@ class _fachstatistik(Request.Request, akte_share):
                                  name='jokf5',
                                  class_='listbox310',
                                  label_width=label_width,
-                                 options=self.for_kat('fsjokf5', fs['jokf5']),
+                                 options=self.for_kat('fsjokf5', fsjok['jokf5']),
                                  )
                     ]],
             )
@@ -331,7 +335,7 @@ class _fachstatistik(Request.Request, akte_share):
                                  name='jokf6',
                                  class_='listbox310',
                                  label_width=label_width,
-                                 options=self.for_kat('fsjokf6', fs['jokf6']),
+                                 options=self.for_kat('fsjokf6', fsjok['jokf6']),
                                  )
                     ]],
             )
@@ -341,7 +345,7 @@ class _fachstatistik(Request.Request, akte_share):
                                  name='jokf7',
                                  class_='listbox310',
                                  label_width=label_width,
-                                 options=self.for_kat('fsjokf7', fs['jokf7']),
+                                 options=self.for_kat('fsjokf7', fsjok['jokf7']),
                                  )
                     ]],
             )
@@ -351,7 +355,7 @@ class _fachstatistik(Request.Request, akte_share):
                                  name='jokf8',
                                  class_='listbox310',
                                  label_width=label_width,
-                                 options=self.for_kat('fsjokf8', fs['jokf8']),
+                                 options=self.for_kat('fsjokf8', fsjok['jokf8']),
                                  )
                     ]],
             )
@@ -426,23 +430,25 @@ class _fachstatistik(Request.Request, akte_share):
                                ),
             ]],
             )
-        if file == 'updfs':
-            fstat = fs
-        else:
-            fstat = None
-        rows = self._customize(fstat, (
-            falldaten,
-            angabenklient,
-            ba1, ba2,
-            pbk, pbe,
-            anmprobleme,
-            kindprobleme,
-            elternprobleme,
-            jokf5, jokf6, jokf7, jokf8, 
-            eleistungen,
-            termine,
-            notiz,
-            ))
+#         if file == 'updfs':
+#             fstat = fs
+#         else:
+#             fstat = None
+        #rows = self._customize(fstat, (
+        rows = self._customize(fsjok, # wird nur für joker verwendet
+                               (
+                falldaten,
+                angabenklient,
+                ba1, ba2,
+                pbk, pbe,
+                anmprobleme,
+                kindprobleme,
+                elternprobleme,
+                jokf5, jokf6, jokf7, jokf8, 
+                eleistungen,
+                termine,
+                notiz,
+                ))
         res = h.FormPage(
             title=title,
             help=False,
@@ -589,9 +595,27 @@ class updfs(_fachstatistik):
         else:
             self.last_error_message = "Keine ID für die Fachstatistik erhalten"
             return self.EBKuSError(REQUEST, RESPONSE)
+        joker_felder = ('joka1', 'joka2', 'joka3', 'joka4',
+                        'jokf5', 'jokf6', 'jokf7', 'jokf8',)
+
+        # Für den Fall, dass ein Joker aktiviert wird und Fachstatistik
+        # bereits vorhanden ist.
+        # Diese Lösung führt dazu, dass alte Statistiken nicht mehr
+        # abspeicherbar sind, wenn man keinen Wert einträgt. Das ist aber
+        # akzeptabel.
+        fsjok = {} # Ersatzobjekt, da echtem fs keine Werte zugewiesen werden dürfen
+        for f in joker_felder:
+            print 'FS: ', f, fs[f], fs_customize.multifeld(f)
+            if fs[f] == None and not fs_customize.multifeld(f):
+                print 'FS SINGLE: ', f, fs[f]
+                fsjok[f] = ' ' # leere, selektierte Option, es muss aktiv ausgewählt werden
+            else:
+                print 'FS MULTI: ', f, fs[f]
+                fsjok[f] = fs[f]
         return self._process(title='Fachstatistik &auml;ndern',
                              file='updfs',
                              fs=fs,
+                             fsjok=fsjok,
                              )
 
 
