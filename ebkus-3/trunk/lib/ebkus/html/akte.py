@@ -85,9 +85,10 @@ class _akte(Request.Request, akte_share):
                                 tip="Suche in den Altdaten aus früheren EDV-Systemen",
                                 ),
                 )
-        anmeldung = None
         if config.ANMELDUNGSDATEN_OBLIGATORISCH and file in ('akteeinf', 'waufneinf'):
-            anmeldung = self.get_anmeldekontakt(anmeldung)
+            anmeldungf = self.get_anmeldekontakt(anmeldung)
+        else:
+            anmeldungf = None
         res = h.FormPage(
             title=title,
             name=formname,action="klkarte",method="post",
@@ -104,7 +105,7 @@ class _akte(Request.Request, akte_share):
                          right=(altdaten, anschrift),
                          ),
                   notiz,
-                  anmeldung,
+                  anmeldungf,
                   falldaten,
                   leistung,
                   h.SpeichernZuruecksetzenAbbrechen(),
