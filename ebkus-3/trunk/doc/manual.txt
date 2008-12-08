@@ -7,7 +7,7 @@ Klientenverwaltung, Aktendokumentation, Gruppenverwaltung und Statistik für Erzi
 --------------------------------------------------------------------------------------------------------------------
 
 :Autor: Jürg Huber (juerg@pantau.in-berlin.de)
-:Autor: Albrecht Schmiedel (atms@alibi.in-berlin.de)
+:Autor: Albrecht Schmiedel (albrecht.schmiedel@ebkus.org)
 :Homepage: http://www.ebkus.org
 :Revision: $Revision: 1.4 $
 :Date: $Date: 2007/01/12 11:44:21 $
