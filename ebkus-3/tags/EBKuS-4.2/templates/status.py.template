@@ -1,0 +1,39 @@
+#!%(PYTHON_EXECUTABLE)s
+# coding: latin-1
+
+
+import sys, socket, os, traceback
+
+port = int(%(PORT)s)
+host = '%(HOST)s'
+
+tosend = 'XX6859236XXstatus'
+
+def usage():
+    s = """\
+status.py
+    Status des Servers abfragen. 
+    Antwort ist: 'Ok' (Exit-Code 0) oder
+                 'Not running' (Exit-Code 3)
+"""    
+    sys.exit(1)
+
+if '--help' in sys.argv or '-h' in sys.argv:
+    usage()
+
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((host, port))
+    s.send(tosend)
+    s.shutdown(1)
+    data = s.recv(1024)
+    s.close()
+    if data != 'Ok':
+        raise sys.exit(3)
+    print 'Ok'
+except:
+    #traceback.print_exc()
+    print 'Not running'
+    sys.exit(3)
+
+sys.exit(0)
