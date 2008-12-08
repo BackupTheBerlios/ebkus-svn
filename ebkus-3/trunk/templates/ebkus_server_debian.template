@@ -16,7 +16,7 @@
 # Description:    Start ebkus_%(INSTANCE_NAME)s server
 ### END INIT INFO
 
-# Author: Albrecht Schmiedel <atms@alibi.in-berlin.de>
+# Author: Albrecht Schmiedel <albrecht.schmiedel@ebkus.org>
 
 EBKUS_USER="%(EBKUS_USER)s"
 PYTHON_BIN="%(PYTHON_EXECUTABLE)s"

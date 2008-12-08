@@ -57,7 +57,7 @@ case "$1" in
 	echo -n "Starting ebkus_%(INSTANCE_NAME)s"
         # startproc funktioniert nicht, da sich damit
         # nur eine Instanz starten laesst.
-        #   (Weiss jemand wie man das macht? --> atms@alibi.in-berlin.de)
+        #   (Weiss jemand wie man das macht? --> albrecht.schmiedel@ebkus.org)
         # startproc -u 503 -g 100 $EBKUS_START
         sudo -u $EBKUS_USER $PYTHON_BIN $EBKUS_START &
 	# Remember status and be verbose
