@@ -4,7 +4,7 @@
 """Bringt die EBKuS Dokumentation auf den neuesten Stand.
 
 Setzt voraus, dass das Paket ``docutils`` installiert ist,
-(rst2html.py, rst2latex.py).
+(rst2html, rst2latex).
 Quelle: http://docutils.sourceforge.net/
 
 Dieses Paket definiert eine Syntax für Textdateien, die dann
@@ -113,7 +113,7 @@ make.py [-h, --help, -r, --readme] [html|latex|pdf|clean]
    Teil bei Bedarf generiert.
 
    Setzt voraus, dass das Paket ``docutils`` installiert ist,
-   (rst2html.py, rst2latex.py).
+   (rst2html, rst2latex).
    Quelle: http://docutils.sourceforge.net/
 
    Setzt ferner voraus, dass das Kommando pdflatex installiert ist.
@@ -146,7 +146,7 @@ def html_uptodate():
 def make_latex():
     if not latex_uptodate():
         pre_process('manual.txt', 'manual_for_latex.txt', latex_spezifisch)
-        run_cmd('rst2latex.py manual_for_latex.txt manual.tex')
+        run_cmd('rst2latex manual_for_latex.txt manual.tex')
         print "postprocessing 'manual.tex'"
         post_process_latex('manual.tex')
     
@@ -155,7 +155,9 @@ def make_readme():
     "HTML-Versionen der Dokumentation im Distributionsverzeichnis erstellen."
     docs = ('NEU_IN_DIESER_VERSION', 'VERSIONS_GESCHICHTE',)
     for d in docs:
-        os.system("rst2html.py --input-encoding=latin1 --stylesheet-path=manual.css " +
+#         os.system("rst2html.py --input-encoding=latin1 --stylesheet-path=manual.css " +
+#                   "--config=docutils.conf --initial-header-level=3 ../%s.txt ../%s.html" % (d, d))
+        os.system("rst2html --input-encoding=latin1 --stylesheet-path=manual.css " +
                   "--config=docutils.conf --initial-header-level=3 ../%s.txt ../%s.html" % (d, d))
 
 if __name__ == '__main__':
@@ -198,7 +200,7 @@ if __name__ == '__main__':
                 os.remove(f)
         sys.exit(0)
     
-    if os.system('rst2html.py --version') != 0:
+    if os.system('rst2html --version') != 0:
         # keine docutils, downloaden
         print "docutils zum Generieren des Handbuchs sind nicht installiert"
         url_dir = 'http://ebkus.berlios.de/ebkus-3.3/'
@@ -228,7 +230,7 @@ if __name__ == '__main__':
                 print "html uptodate"
             else:
                 pre_process('manual.txt', 'manual_for_html.txt', html_spezifisch)
-                run_cmd('rst2html.py manual_for_html.txt EBKuS_Handbuch.html')
+                run_cmd('rst2html manual_for_html.txt EBKuS_Handbuch.html')
         if latex:
             if latex_uptodate():
                 print 'latex uptodate'
