@@ -46,7 +46,7 @@ class Adresse(dict):
             self[k] = v
         self.set_key()
     def set_key(self):
-        self.key = sha.new(self.rolle+self.fallnummer+
+        self.key = sha.new(self.rolle+self.fallnummer+(self.gruppennummer or '')+
                            self.vorname+self.nachname).hexdigest()
 class GruppeAddresse(Adresse):
     _felder = (
