@@ -1,4 +1,4 @@
-EBKuS 4.1
+EBKuS 4.2
 =========
 
 Klientenverwaltung, Aktendokumentation, Gruppenverwaltung 
@@ -7,7 +7,7 @@ und Statistik für Erziehungs- und Familienberatungsstellen
 Copyright (1997-2008) Jürg Huber, Albrecht Schmiedel 
 Lizenz: GNU General Public License (GPL)
 
-E-Mail: juerg@pantau.in-berlin.de, atms@alibi.in-berlin.de
+E-Mail: juerg@pantau.in-berlin.de, albrecht.schmiedel@ebkus.org
 WWW: http://www.ebkus.org/
 
 
@@ -47,8 +47,8 @@ WWW:
 
 VERALTET!
 
-- http://ebkus.berlios.de/ebkus-3.3/EBKuS_Handbuch.html
-- http://ebkus.berlios.de/ebkus-3.3/EBKuS_Handbuch.pdf
+- http://ebkus.org/doc/EBKuS_Handbuch.html
+- http://ebkus.org/doc/EBKuS_Handbuch.pdf
 
 Installation
 ------------
