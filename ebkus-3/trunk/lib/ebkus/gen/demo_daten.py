@@ -56,7 +56,7 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
 ##     fake_today = None
 
     n_akten = 100
-    n_bearbeiter = 2
+    n_bearbeiter = 4
     n_stellen = 2
     von_jahr = Date(2006)
     bis_jahr = None
