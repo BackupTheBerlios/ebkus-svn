@@ -1,0 +1,34 @@
+#!%(PYTHON_EXECUTABLE)s
+# coding: latin-1
+
+
+import sys, socket, os, traceback
+
+port = int(%(PORT)s)
+host = '%(HOST)s'
+
+tosend = 'XX6859236XXquit'
+
+def usage():
+    s = """\
+stop.py
+    Server stoppen
+"""    
+    sys.exit(1)
+
+if __name__ == '__main__':
+    if '--help' in sys.argv or '-h' in sys.argv:
+        usage()
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
+        s.send(tosend)
+        s.shutdown(1)
+        s.close()
+    except:
+        #traceback.print_exc()
+        #print 'Something went wrong'
+        sys.exit(1)
+
+    sys.exit(0)
