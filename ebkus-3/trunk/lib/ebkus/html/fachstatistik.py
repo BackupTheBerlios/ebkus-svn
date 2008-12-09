@@ -74,7 +74,7 @@ class _fachstatistik(Request.Request, akte_share):
                     item.multiple = True
                     item.size = 8
                 if self._fs: # fachstat Objekt vorhanden, wir sind in updfs
-                    print 'FS CUSTOMIZE', self._fs[item.name], type(self._fs[item.name])
+                    #print 'FS CUSTOMIZE', self._fs[item.name], type(self._fs[item.name])
                     item.options = self.for_kat(kat_code, self._fs[item.name])
                 elif multiple: # initialisieren
                     item.options = self.for_kat(kat_code, None)
@@ -605,12 +605,12 @@ class updfs(_fachstatistik):
         # akzeptabel.
         fsjok = {} # Ersatzobjekt, da echtem fs keine Werte zugewiesen werden dürfen
         for f in joker_felder:
-            print 'FS: ', f, fs[f], fs_customize.multifeld(f)
+            #print 'FS: ', f, fs[f], fs_customize.multifeld(f)
             if fs[f] == None and not fs_customize.multifeld(f):
-                print 'FS SINGLE: ', f, fs[f]
+                #print 'FS SINGLE: ', f, fs[f]
                 fsjok[f] = ' ' # leere, selektierte Option, es muss aktiv ausgewählt werden
             else:
-                print 'FS MULTI: ', f, fs[f]
+                #print 'FS MULTI: ', f, fs[f]
                 fsjok[f] = fs[f]
         return self._process(title='Fachstatistik &auml;ndern',
                              file='updfs',

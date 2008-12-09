@@ -529,7 +529,7 @@ class strkatimport(Request.Request, akte_share):
         raise EE(message)
 
     def processForm(self, REQUEST, RESPONSE):
-        print self.form
+        #print self.form
         example = self.form.get('example')
         datei = self.form.get('datei')
         replace = self.form.get('replace')
