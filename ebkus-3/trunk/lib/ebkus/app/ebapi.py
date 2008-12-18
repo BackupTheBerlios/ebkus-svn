@@ -212,7 +212,7 @@ class Date(object):
         """Works only if dates have been checked true. If a date is all zero,
         it compares greater than any other date."""
         if not isinstance(other, Date):
-            raise TypeError("Kein Date-Objekt: %s" % repr(other))
+            return 1
         try:
             return cmp(self.to_py_date(), other.to_py_date())
         except:
