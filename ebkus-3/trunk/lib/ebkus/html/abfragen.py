@@ -504,9 +504,9 @@ class abfr3(_abfr):
             join=join,
             )
         sort = ('na', 'vn',
-        'bezugsperson__akte__letzter_fall__bgy',
-        'bezugsperson__akte__letzter_fall__bgm',
-        'bezugsperson__akte__letzter_fall__bgd',
+        'akte__letzter_fall__bgy',
+        'akte__letzter_fall__bgm',
+        'akte__letzter_fall__bgd',
         )
         bezugsperson_list.sort(*sort)
         return bezugsperson_list
