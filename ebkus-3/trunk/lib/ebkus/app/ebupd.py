@@ -416,7 +416,8 @@ def _bkont_check(form, bkont):
         bkont['art_bs'] = check_code(form, 'art_bs', 'kabs', "Fehler in Beratungskontaktart")
         mc = check_multi_code(form, 'teilnehmer_bs', 'teilnbs',
                               "Fehler in Teilnehmer",
-                              default=[cc('teilnbs', '0')])
+                              #default=[cc('teilnbs', '0')]) # falsch!
+                              default=[Code(kat_code='teilnbs', code='0')])
         #print 'MULTICODE', mc, type(mc)
         bkont['teilnehmer_bs'] = mc
         bkont['offenespr'] = check_code(form, 'offenespr', 'ja_nein', "", cn('ja_nein', 'nein'))
