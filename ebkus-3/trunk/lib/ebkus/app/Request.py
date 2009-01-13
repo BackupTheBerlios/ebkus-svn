@@ -50,6 +50,10 @@ def getRequest():
     global _current_request
     return _current_request
 
+def get_traceback():
+    import traceback
+    s = "<pre>%s</pre>" % ''.join(traceback.format_exception(*sys.exc_info()))
+    return s
 
 class NichtIdentifiziert(Exception):
     pass
@@ -77,6 +81,7 @@ class Request(object):
                 self.form = self.REQUEST.form
                 opendb()
                 self.checkAuth()
+                #print 'FORM: ', self.form
                 return self.processForm(REQUEST, RESPONSE)
             except NichtIdentifiziert:
                 return self.nichtIdentifiziert(REQUEST, RESPONSE)
@@ -86,9 +91,9 @@ class Request(object):
                 # ist nie von Anwender zu verantworten, also ein interner Fehler
                 t = sys.exc_info()[0]
                 logging.exception("Datenbankfehler: %s: %s", t, e)
-                self.last_error_message = "Datenbankfehler: %s: %s" % (t, e)
+                self.last_error_message = "Datenbankfehler: \n%s" % get_traceback()
                 RESPONSE.setStatus('InternalError')
-                return self.EBKuSError(REQUEST, RESPONSE)
+                return self.EBKuSInternalError(REQUEST, RESPONSE)
             except EBUpdateDataError, e:
                 # in der Regel ausgelöst durch die Eingaben des Anwenders
                 logging.debug("Eingabefehler: %s", e)
@@ -98,25 +103,26 @@ class Request(object):
                 # schwerer Fehler, der geloggt werden soll
                 t = sys.exc_info()[0]
                 logging.exception("%s: %s", t, e)
-                self.last_error_message = "%s: %s" % (t, e)
+                self.last_error_message = get_traceback()
                 RESPONSE.setStatus('InternalError')
-                return self.EBKuSError(REQUEST, RESPONSE)
+                return self.EBKuSInternalError(REQUEST, RESPONSE)
             except Exception, e:
                 # ist nie (wenn doch, ist es ein Bug) vom Anwender zu verantworten,
                 # also ein interner Fehler
                 t = sys.exc_info()[0]
                 logging.exception("Interner Fehler: %s: %s", t, e)
-                self.last_error_message = "%s: %s" % (t, e)
+                self.last_error_message = get_traceback()
                 RESPONSE.setStatus('InternalError')
-                return self.EBKuSError(REQUEST, RESPONSE)
+                return self.EBKuSInternalError(REQUEST, RESPONSE)
         finally:
             _current_request = None
 
     def checkAuth(self):
         """Holt Benutzername aus der Session, prüft Benutzerberechtigung.
         Setzt self.user, self.mitarbeiter, self.stelle"""
-        # auto_user = 'atms' # so ist das Entwickeln einfacher
         auto_user = ''   # so sollte es im Betrieb sein
+        #auto_user = 'test' # so ist das Entwickeln einfacher
+        #auto_user = 'Admin' # so ist das Entwickeln einfacher
         if auto_user:
             self.session = get_session(self.REQUEST, self.RESPONSE)
             if self.session:
@@ -175,6 +181,25 @@ class Request(object):
                   ),
             ).display()
             
+            
+    def EBKuSInternalError(self, REQUEST, RESPONSE):
+        RESPONSE.setHeader('content-type', 'text/html')
+        return h.Meldung(
+            title='Interner Fehler',
+            legend='Fehlerbeschreibung',
+            align='left',
+            zeilen=(
+                "<strong>Es handelt sich höchstwahrscheinlich um einen "
+                "internen (Programmier-) Fehler in EBKuS. Bitte die folgende Meldung "
+                "markieren, kopieren und in eine Email an den Entwickler "
+                "(albrecht.schmiedel@ebkus.org) einfügen. ",
+                "<strong>Danke!</strong>",
+                str(self.last_error_message),
+                '&nbsp;',
+                '&nbsp;',
+                'Zurück ...',
+                  ),
+            ).display()
             
     def getMitarbeiterliste(self):
         stz_id = self.stelle['id']

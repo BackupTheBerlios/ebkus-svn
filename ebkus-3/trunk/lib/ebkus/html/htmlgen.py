@@ -477,24 +477,31 @@ class FieldsetFormDataTable(FieldsetForm, DataTable):
 
 class Meldung(FormPage):
     """obligat: legend, zeilen
-    optional: title
+    optional: title, align
     """
     onClick = "javascript:history.back()"
     empty_row = '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>'
     def _init(self):
         if self.weiter:
             self.onClick = "go_to_url('%s')" % self.weiter
+        if not self.align:
+            self.align = 'center'
+        self.expand_attr('align')
+        self.zeile_t = '<tr><td %(align_attr)s>%%s</td></tr>' % self
+        print 'ZEILE_T', self.zeile_t
         self.set_rows()
         super(Meldung, self)._init()
         if not self.title:
             self.title = self.legend
     def set_rows(self):
         rows = [self.empty_row]*3
-        rows += ['<tr><td align="center">%s</td></tr>' % z for z in self.zeilen]
+        #rows += ['<tr><td align="center">%s</td></tr>' % z for z in self.zeilen]
+        rows += [(self.zeile_t % z) for z in self.zeilen]
         rows += [self.empty_row]*3
         button = Button(value="Ok",
                         onClick=self.onClick,
                         tip="Zurück",
+                        align=self.align,
                         )
         rows.append('<tr>%s</tr>' % str(button)) 
         self.rows = (Fieldset(legend=self.legend,
