@@ -2520,11 +2520,13 @@ def updcode(form):
     codeold = check_exists(form, 'codeid', Code, "Merkmalsid fehlt")
     code = Code()
     code['code'] = check_str_not_empty(form, 'code',
-                                       "Merkmalscode fehlt", codeold)
+                                       "Merkmalscode fehlt", codeold['code'])
     code['kat_code'] = check_str_not_empty(form, 'katcode',
-                                           "Kategoriencode fehlt", codeold)
+                                           "Kategoriencode fehlt", codeold['kat_code'])
+# orig
     code['kat_id'] = check_fk(form, 'katid', Kategorie,
-                              "Kategorienid fehlt", codeold)
+                              "Kategorienid fehlt", codeold['kat_id'])
+#    code['kat_id'] = codeold
     code['name'] = check_str_not_empty(form, 'name',
                                        "Merkmalsname fehlt", codeold)
     if form.get('mini') or form.get('maxi') or code['kat_code'] == 'dbsite':
