@@ -6,7 +6,8 @@ from ebkus.app.ebapi import cc, cn, getNewFallnummer, Date, today, str2date, get
      Beratungskontakt, FeldList, \
      Zustaendigkeit, Bezugsperson, Einrichtungskontakt, CodeList, \
      StrassenkatalogNeuList, Fachstatistik, Jugendhilfestatistik, Jugendhilfestatistik2007, \
-     Altdaten
+     Altdaten, \
+     calc_age, bcode
 from ebkus.app.ebapih import  get_codes
 from ebkus.app.ebupd import akteeinf, fseinf, jgheinf, jgh07einf, miteinf, codeeinf, \
      leisteinf, zdaeinf, waufneinf, perseinf, einreinf
@@ -58,7 +59,7 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
     n_akten = 100
     n_bearbeiter = 4
     n_stellen = 2
-    von_jahr = Date(2006)
+    von_jahr = Date(2007)
     bis_jahr = None
     fake_today = None
 
@@ -613,7 +614,18 @@ class DemoDaten(object):
         form['stz'] = akte['stzbg']
         form['plr'] = akte['plraum']
         form['gs'] = akte['gs']
-        form['ag'] = self.choose_code_id('fsag')
+
+        alter = calc_age(akte['gb'], fall.getDate('bg'))
+        def altersgruppe():
+            ag = cc('fsag','999')
+            try:
+                ag = bcode('fsag', alter)['id']
+            except:
+                pass # kein bereich gefunden
+            return ag
+        form['ag'] = altersgruppe()
+        #form['ag'] = self.choose_code_id('fsag')
+
         form['fs'] = self.choose_code_id('fsfs')
         form['zm'] = self.choose_code_id('fszm')
         form['qualij'] = self.choose_code_id('fsqualij')
@@ -720,7 +732,12 @@ class DemoDaten(object):
         form['hilf_ort'] = self.choose_code_id('hilf_ort')
         form['traeger'] = self.choose_code_id('traeger')
         form['gs'] = self.choose_code_id('gs')
-        setDate(form, 'ge', self.choose_date(Date(1990), today().add_month(-20)))
+        dmy = [int(e) for e in fall['akte__gb'].split('.')]
+        dmy.reverse()
+        geburtsdatum = Date(*dmy)
+        form['gey'] = geburtsdatum.year
+        form['gem'] = geburtsdatum.month
+        #setDate(form, 'ge', self.choose_date(Date(1990), today().add_month(-20)))
         form['aort_vor'] = self.choose_code_id('auf_ort')
         form['sit_fam'] = self.choose_code_id('shf')
         form['ausl_her'] = self.choose_code_id('ja_ne_un')
