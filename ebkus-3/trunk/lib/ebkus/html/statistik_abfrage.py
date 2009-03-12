@@ -139,7 +139,7 @@ class statabfr(_statistik):
             hidden = (),
             rows=(self.get_auswertungs_menu(),
                   self.grundgesamtheit(show_quartal=False,
-                                       show_welche=False,
+                                       show_welche=True,
                                        welche='abgeschlossen'),
                   teilmenge,
                   auszaehlung,
@@ -467,11 +467,49 @@ class _statistik_ergebnis(Request.Request, akte_share):
                klass(where=where_kein_fall + where)
                )
         return ggl
+
+# mit welche
+    def get_grundgesamtheit(self, stz_list, von_jahr, bis_jahr, welche, klass):
+        "Liefert alle FS bzw. JGH-Objekte (abhängig von klass) der"
+        "angegebenen Stellen und Jahre."
+        "Je nach dem Wert von 'welche' werden nur abgeschlossene, nur laufende oder alle Fälle genommen."
+        "Statistiken mir fehlender fall_id werden immer zu den abgeschlossenen Fällen gezählt"
+
+        if klass == JugendhilfestatistikList:
+            assert welche == 'abgeschlossenen'
+        if klass in (JugendhilfestatistikList,):
+            jahr = 'ey'
+        # neue Bundesstatistik hat ein jahr-Feld, das für abgeschlossene Fälle
+        # identisch sein muss mit ey (Endejahr der Hilfe)
+        elif klass in (FachstatistikList, Jugendhilfestatistik2007List):
+            jahr = 'jahr'
+        else:
+            raise EE('Interner Fehler in get_grundgesamtheit')
+        stellen = ','.join(stz_list)
+        where_fall = 'fall.zday %s 0 and ' % (welche=='laufend' and '=' or
+                                              welche=='abgeschlossen' and '>' or
+                                              welche=='alle' and '>='
+                                              )
+        where_kein_fall = "fall_id IS NULL and "
+        where = """%(jahr)s  >= %(von_jahr)s and %(jahr)s  <= %(bis_jahr)s and 
+        stz in ( %(stellen)s )""" % locals()
+        ggl = klass(where=where_fall + where,
+                    join=[('fall', '%s.fall_id=fall.id' % klass.resultClass.table)]
+                    )
+        if welche in ('alle', 'abgeschlossen'):
+            ggl += klass(where=where_kein_fall + where)
+        return ggl
                      
-    def get_grundgesamtheit_anzeige(self, stz_list, von_jahr, bis_jahr,
+    def get_grundgesamtheit_anzeige(self, stz_list, von_jahr, bis_jahr, welche,
                                     fs, jgh, jgh07, anzahl_gg):
         "Liefert ein Paar, z.B. "
         "Stelle A und Jahre 1999 - 2003, Alle Fälle mit Bundesstatistik (45 Klienten)"
+        
+        if welche in ('laufend', 'abgeschlossen'):
+            suffix = 'e'
+        else:
+            suffix = ''
+        welche_str = "%s%s Fälle" % (welche, suffix)
         if von_jahr == bis_jahr:
             jahr_str = 'Jahr %s' % bis_jahr
         else:
@@ -483,7 +521,7 @@ class _statistik_ergebnis(Request.Request, akte_share):
             stellen_str = 'Stellen %s' % stellen
         bs = jgh and "(alter) Bundesstatistik" or jgh07 and "Bundesstatistik" or ''
         fs = fs and "Fachstatistik" or ''
-        return ('%s und %s' % (jahr_str, stellen_str),
+        return ('%s und %s, %s' % (jahr_str, stellen_str, welche_str),
                 "Alle Fälle mit %s (%s Klient%s)" %
                 (fs and bs and "%s und %s" % (fs, bs) or fs or bs,
                  anzahl_gg,
@@ -556,18 +594,6 @@ class statergebnis(_statistik_ergebnis):
         von_jahr = check_int_not_empty(self.form, 'von_jahr', "Jahr fehlt", bis_jahr)
         if von_jahr > bis_jahr:
             von_jahr = bis_jahr
-
-##         von_jahr = self.form.get('von_jahr')
-##         bis_jahr = check_int_not_empty(self.form, 'bis_jahr', "Jahr fehlt")
-##         if not von_jahr or von_jahr > bis_jahr:
-##             von_jahr = bis_jahr
-# TODO
-##         if von_jahr <= 2006 and bis_jahr >= 2007:
-##             return h.Meldung(legend='Ungültige Jahresangaben',
-##                              zeilen=('Bitte entweder nur Jahre bis 2006 (alte Bundesstatistik)',
-##                                      ' oder nur Jahre ab 2007 (neue Bundesstatistik) angeben!',
-##                                      ),
-##                              ).display()
         stz = check_list(self.form, 'stz', 'Keine Stelle')
         item_auswahl = check_list(self.form, 'item_auswahl', 'Bitte gewünschte Auszählung ankreuzen.')
         teilm = self.form.get('teilm')
@@ -576,7 +602,7 @@ class statergebnis(_statistik_ergebnis):
             query = Query(abfr)
         else:
             query = Query()
-        fs, jgh, jgh07 = self.check_params(von_jahr, bis_jahr, stz, item_auswahl, query)
+        fs, jgh, jgh07 = self.check_params(von_jahr, bis_jahr, stz, item_auswahl, query, welche)
 ##         # jgh-Liste dabei?
 ##         jgh = 'jgh_gesamt' in item_auswahl or query.jgh
 ##         # fs-Liste dabei?
@@ -592,13 +618,13 @@ class statergebnis(_statistik_ergebnis):
 ##             # Bei Regionen problematisch, weil dadurch die GG festgelegt wird.
 ##             fs = True
         if fs:
-            fs_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr,
+            fs_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr, welche,
                                               FachstatistikList)
         if jgh:
-            jgh_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr,
+            jgh_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr, welche,
                                                JugendhilfestatistikList)
         if jgh07:
-            jgh_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr,
+            jgh_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr, welche,
                                                Jugendhilfestatistik2007List)
         if fs and (jgh or jgh07):
             # beide nötig: erzeugt wird eine Liste von Paaren (fs, jgh) für jeden Fall
@@ -610,11 +636,11 @@ class statergebnis(_statistik_ergebnis):
             ggl = fs_ggl
         else:
             ggl = jgh_ggl
-        anzeige_gg = self.get_grundgesamtheit_anzeige(stz, von_jahr, bis_jahr,
+        anzeige_gg = self.get_grundgesamtheit_anzeige(stz, von_jahr, bis_jahr, welche,
                                                       fs, jgh, jgh07, len(ggl))
         if not ggl:
             raise EE("Keine Datensätze für die gewünschte Grundgesamtheit:"
-                     "\n\n%s\n%s" % anzeige_gg)
+                     "\n\n%s\n und %s" % anzeige_gg)
         if query.always_true():
             ggl_teilm = ggl
         else:
@@ -631,7 +657,7 @@ class statergebnis(_statistik_ergebnis):
             item_auswahl=item_auswahl,
             )
 
-    def check_params(self, von_jahr, bis_jahr, stz, item_auswahl, query):
+    def check_params(self, von_jahr, bis_jahr, stz, item_auswahl, query, welche):
         assert item_auswahl and von_jahr and bis_jahr and query and stz
         fs = jgh = jgh07 = False
         for k in ('fs_gesamt', 'regional', 'teilmengen'):
@@ -654,6 +680,10 @@ class statergebnis(_statistik_ergebnis):
             raise EE("Statistik vor 2007 nicht möglich mit Teilmenge '%s'" % query.name)
         if von_jahr < 2007 and bis_jahr >= 2007 and 'jgh_gesamt' in item_auswahl:
             raise EE("Bundesstatistik entweder nur bis 2006 oder ab 2007 möglich")
+        if welche in ('laufend', 'alle') and von_jahr != bis_jahr:
+            raise EE("Auswertung über mehrere Jahre hinweg nur für abgeschlossene Fälle möglich.")
+        if welche in ('laufend', 'alle') and jgh:
+            raise EE("Auswertung von laufenden Fällen für alte Bundesstatistik nicht möglich.")
         assert not (jgh and jgh07)
         assert fs or jgh or jgh07
         return fs, jgh, jgh07
