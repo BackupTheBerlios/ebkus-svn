@@ -4,14 +4,15 @@ import sys, os, time, sha
 from ebkus.app.ebapi import cc, cn, getNewFallnummer, Date, today, str2date, getDate, setDate, \
      Kategorie, Code, Mitarbeiter, MitarbeiterList, Akte, Fall, FallList, Leistung, \
      Beratungskontakt, FeldList, \
-     Zustaendigkeit, Bezugsperson, Einrichtungskontakt, CodeList, \
+     Zustaendigkeit, Bezugsperson, Einrichtungskontakt, Anmeldung, CodeList, \
      StrassenkatalogNeuList, Fachstatistik, Jugendhilfestatistik, Jugendhilfestatistik2007, \
      Altdaten, \
      calc_age, bcode
 from ebkus.app.ebapih import  get_codes
 from ebkus.app.ebupd import akteeinf, fseinf, jgheinf, jgh07einf, miteinf, codeeinf, \
-     leisteinf, zdaeinf, waufneinf, perseinf, einreinf
+     leisteinf, zdaeinf, waufneinf, perseinf, einreinf, anmeinf
 from ebkus.html.strkat import split_hausnummer
+from ebkus.html.akte_share import akte_share
 from random import choice, randrange, sample, random, seed
 
 import logging
@@ -59,6 +60,13 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
     n_akten = 100
     n_bearbeiter = 4
     n_stellen = 2
+    von_jahr = Date(2007)
+    bis_jahr = None
+    fake_today = None
+
+    n_akten = 40
+    n_bearbeiter = 2
+    n_stellen = 1
     von_jahr = Date(2007)
     bis_jahr = None
     fake_today = None
@@ -151,6 +159,17 @@ def create_schulungs_daten(iconfig,                    # config Objekt für die e
                                             (cc('status', 'i'), cc('benr', 'bearb')))
     for i in range(1, n_akten+1):
         DemoDaten().fake_akte()
+    # Statistik für jeden zweiten laufenden Fall für das vergangene Jahr
+    letztes_jahr = today().year - 1
+    faelle = akte_share().beratungen(welche='laufend', bis_jahr=letztes_jahr)
+    log('Anzahl der laufenden Fälle bis %s: %s' % (letztes_jahr, len(faelle)))
+    for f in faelle:
+        if random() < .5:
+            if not f['has_fachstatistik']:
+                self.fake_fachstatistik(f, Date(letztes_jahr))
+            if not f['has_jghstatistik']:
+                self.fake_jghstatistik(f, Date(letztes_jahr), abgeschlossen=False)
+    
     # ohne feld 'id'
     fields = [f['feld'] for f in FeldList(
         where="tabelle.tabelle='altdaten'",
@@ -541,6 +560,7 @@ class DemoDaten(object):
         fall = Akte(self.akte_id)['letzter_fall']
         log("Akte %s" % akte_id)
         log("Fall %s" % fall['fn'])
+        self.fake_anmeldung(fall)
         for i in range(randrange(1,4)): # 1 - 3
             self.fake_bezugsperson()
         for i in range(randrange(3)):   # 0 - 2
@@ -600,6 +620,20 @@ class DemoDaten(object):
         form['status'] = self.choose_code_id('einrstat')
         einreinf(form)
         log("Einrichtung %s" % einr_id)
+
+    def fake_anmeldung(self, fall):
+        form = {}
+        anm_id = Anmeldung().getNewId()
+        form['anmid'] = anm_id
+        form['fallid'] = fall['id']
+        form['von'] = "Gemeldet von: %s" % anm_id
+        form['mtl'] = "123456%s" % anm_id
+        form['me'] = "Empfohlen von: %s" % anm_id
+        form['mg'] = "Anmeldegrund: %s" % anm_id
+        form['anm_no'] =  "Notiz für Anmeldung: %s" % anm_id
+        form['zm'] =  self.choose_code_id('fszm')
+        anmeinf(form)
+        log("Anmeldung %s" % anm_id)
 
 
     def fake_fachstatistik(self, fall, ende_datum):
