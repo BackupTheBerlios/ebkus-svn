@@ -409,9 +409,17 @@ class bkontbsabfr(Request.Request, akte_share):
         def row(name, tupl):
             netto, brutto = tupl
             row = [h.String(string=name)]
+            summe_netto = 0
+            summe_brutto = 0
             for ka in kontakt_arten:
+                summe_netto += netto[ka]
+                summe_brutto += brutto[ka]
                 row.append(h.String(string="%s / %s" %
                                     (netto[ka], brutto[ka]),
+                                    tip='Netto/Brutto')
+                           )
+            row.append(h.String(string="%s / %s" %
+                                    (summe_netto, summe_brutto),
                                     tip='Netto/Brutto')
                            )
             return row
@@ -419,7 +427,7 @@ class bkontbsabfr(Request.Request, akte_share):
                              for m in mitarbeiter]
         stellen_row = row(', '.join([Code(s)['name'] for s in stellen_ids]),
                           res['summe'])
-        headers = [''] + [c['name'] for c in get_codes('kabs')]
+        headers = [''] + [c['name'] for c in get_codes('kabs')] + ['Summe']
         fuer = ''
         if von_jahr < bis_jahr:
             fuer += " für %(von_jahr)s bis %(bis_jahr)s" % locals()
