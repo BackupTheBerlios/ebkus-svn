@@ -120,6 +120,16 @@ class options(object):
                     for j in (1,2,3,4)]
         return '\n'.join(options)
 
+    def for_monat(self, sel=None, erster_eintrag=None):
+        "Optionen für Monate 1,2,3,4,5,6,7,8,9,10,11,12"
+        options = []
+        select_attr = ' selected="selected" '
+        if erster_eintrag:
+            options.append(self.option_tmpl % ('', '', erster_eintrag))
+        options += [self.option_tmpl % (j, j==sel and select_attr or '', j)
+                    for j in (1,2,3,4,5,6,7,8,9,10,11,12)]
+        return '\n'.join(options)
+
     def for_kat(self, kat, sel=None, all=False):
         if sel in ('', ' ',):
             empty_option = True

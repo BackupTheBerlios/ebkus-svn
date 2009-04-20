@@ -296,7 +296,7 @@ class bkontbsabfr(Request.Request, akte_share):
             # Offene Sprechstunde
             netto['offenespr'] += dauer
             brutto['offenespr'] += bkont['brutto']
-    def count(self, stz_list, von_jahr, bis_jahr, quartal=None):
+    def count(self, stz_list, von_jahr, bis_jahr, quartal=None, monat=None):
         """Kontaktzeiten auszählen.
         Ergebnis ist abhängig von Berechtigungen:
         - verw: alle Mitarbeiter der spezifierten Stellen
@@ -333,6 +333,12 @@ class bkontbsabfr(Request.Request, akte_share):
         if quartal:
             assert von_jahr == bis_jahr
             monate = range(1,13)[3*quartal-3:3*quartal]
+            where += " and km in (%s)" % ','.join([str(i) for i in monate])
+        if monat:
+            assert not quartal
+            assert von_jahr == bis_jahr
+            #monate = range(1,13)[3*quartal-3:3*quartal]
+            monate = [monat]
             where += " and km in (%s)" % ','.join([str(i) for i in monate])
         bkont_list = BeratungskontaktList(where=where)
         benr_id = self.mitarbeiter['benr']
@@ -388,7 +394,17 @@ class bkontbsabfr(Request.Request, akte_share):
                 raise EE('Quartalsauswertungen nur in einem Jahr möglich')
         else:
             quartal == None
-        mitarbeiter, res = self.count(stellen_ids, von_jahr, bis_jahr, quartal)
+        monat = self.form.get('monat')
+        if monat:
+            monat = check_int_not_empty(self.form, 'monat', 'Fehler im Monat')
+            if von_jahr != bis_jahr:
+                raise EE('Monatsauswertungen nur in einem Jahr möglich')
+        else:
+            monat == None
+        if monat and quartal:
+            raise EE('Monats- und Quartalsauswertung nicht gleichzeitig möglich')
+        mitarbeiter, res = self.count(stellen_ids, von_jahr, bis_jahr,
+                                      quartal, monat)
         kontakt_arten = [c['code'] for c in get_codes('kabs')]
         def row(name, tupl):
             netto, brutto = tupl
@@ -411,6 +427,8 @@ class bkontbsabfr(Request.Request, akte_share):
             fuer += " für %(bis_jahr)s" % locals()
         if quartal:
             fuer += " Quartal %(quartal)s" % locals()
+        if monat:
+            fuer += " Monat %(monat)s" % locals()
         tabelle_mitarbeiter = h.FieldsetDataTable(
             legend='Beratungskontaktzeiten Mitarbeiter' + fuer,
             headers=headers,
@@ -431,6 +449,8 @@ class bkontbsabfr(Request.Request, akte_share):
                   self.grundgesamtheit(von_jahr=von_jahr,
                                        bis_jahr=bis_jahr,
                                        quartal=quartal,
+                                       monat=monat,
+                                       show_monat=True,
                                        stellen_ids=stellen_ids,
                                        legend='Jahr und Stelle wählen',
                                        submit_value='Anzeigen'),

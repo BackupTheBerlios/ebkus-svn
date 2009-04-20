@@ -833,11 +833,14 @@ class akte_share(options):
             )
         return gruppendaten
 
-    def grundgesamtheit(self, bis_jahr=None, von_jahr=None, quartal=None,
+    def grundgesamtheit(self, bis_jahr=None, von_jahr=None,
+                        quartal=None, 
+                        monat=None,
                         stellen_ids=None,
                         legend='Grundgesamtheit',
                         submit_value=None,
                         show_quartal=True,
+                        show_monat=False,
                         show_welche=False,
                         welche=None):
         "Für Auswertungen. Legt Jahre und Stellen fest."
@@ -863,7 +866,13 @@ class akte_share(options):
                                  name='w',
                                  options=welche_options,
                                  tip='Auszählung nur für laufende, abgeschlossene oder alle Fälle',
-                                 ) or
+                                 ) or h.DummyItem(),
+                    show_monat and h.SelectItem(label='Monat',
+                                 name='monat',
+                                 class_='listbox30',
+                                 tip='Wählen Sie den Monat, für den eine Auszählung erfolgen soll',
+                                 options=self.for_monat(sel=monat, erster_eintrag=' '),
+                                 ) or h.DummyItem(),
                     show_quartal and h.SelectItem(label='Quartal',
                                  name='quartal',
                                  class_='listbox30',
@@ -888,8 +897,8 @@ class akte_share(options):
                    [h.SelectItem(label='Frühere Jahre einbeziehen ab',
                                  name='von_jahr',
                                  class_='listbox45',
-                                 n_label=3,
-                                 n_col=4,
+                                 n_label=7,
+                                 n_col=1,
                                  tip='Nur für Auswertungen über mehrere Jahre hinweg',
                                  options=self.for_jahre(sel=von_jahr,
                                                         erster_eintrag=erster_eintrag),
