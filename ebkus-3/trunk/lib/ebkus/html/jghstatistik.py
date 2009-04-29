@@ -791,7 +791,7 @@ class _jgh07(Request.Request, akte_share):
                 item['ro'] = 'readonly'
                 item['tip'] = ''
                 return fb_text_item_t % item
-            if not default:
+            if default == None:
                 default = item.get('default')
                 if default and default != ' ':
                     default = cc(kat_code, default)
@@ -816,7 +816,7 @@ class _jgh07(Request.Request, akte_share):
             item['size'] = len(str(maxl))
             name = item['name']
             default = jgh.get(name)
-            if not default:
+            if default == None:
                 default = item.get('default')
                 if default == None:
                     default = ''
