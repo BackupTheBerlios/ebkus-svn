@@ -178,6 +178,7 @@ class Query(object):
                  name=None,
                  cgi_name='query1', # nur für HTML Generierung
         ):
+        #print 'abfragedef Query.__init__, arg, name', arg, name
         if not arg:
             arg = []
         self.cgi_name = cgi_name
@@ -185,11 +186,13 @@ class Query(object):
         if isinstance(arg, ebapi.Abfrage):
             query_string = arg['value']
             self.name =  arg['name']
-            query_list = query_string.split()
+            #query_list = query_string.split()
+            query_list = self.parse_query_string(query_string)
         elif isinstance(arg, list):
             query_list = [q for q in arg if q]
         elif isinstance(arg, basestring):
-            query_list = arg.split()
+            #query_list = arg.split()
+            query_list = self.parse_query_string(arg)
         else:
             raise ebapi.EE("Falsche Argumente für Query") # sollte nie passieren
         if not query_list:
@@ -198,6 +201,7 @@ class Query(object):
         if name != None:
             self.name = name
         try:
+            #print 'abfragedef Query.__init__, query_list', query_list
             self.raw_query_map = dict([(s.split('_')[0],
                                         s.split('_')[1])
                                        for s in query_list if s])
@@ -213,6 +217,20 @@ class Query(object):
         self.fs = self.uses[0]
         self.jgh = self.uses[1]
         self.ort = self.uses[2]
+
+    def parse_query_string(self, query_string):
+        res =  re.split("([0-9]+_)", query_string)
+        res = [r for r in res if r]
+        query_list = []
+        pair = None
+        for el in res:
+            if pair:
+                query_list.append(pair + el.strip())
+                pair = None
+            else:
+                pair = el
+        return query_list
+
     def get_query_list(self):
         return ['%s_%s' % (i,v) for i,v in self.raw_query_map.items()]
     def get_query_string(self):
