@@ -620,7 +620,9 @@ Grundsicherung im Alter und bei Erwerbsminderung oder Sozialhilfe (SGB XII)',
                      'typ': ('int', 1, 999,),
                      'name': 'nbkakt',
                      'default': ' ',
-                     'extra': 'Falls leer, wird die aus den Beratungskontakten berechnete Anzahl eingesetzt.',
+                     'extra': (config.BERATUNGSKONTAKTE and 
+                               'Falls leer, wird die aus den Beratungskontakten berechnete Anzahl eingesetzt.' or 
+                               'Mindestens 1 Kontakt angeben'),
                      },
                     ),
      }, 
@@ -660,7 +662,9 @@ Grundsicherung im Alter und bei Erwerbsminderung oder Sozialhilfe (SGB XII)',
                      'typ': ('int', 1, 999,),
                      'name': 'nbkges',
                      'default': ' ',
-                     'extra': 'Falls leer, wird die aus den Beratungskontakten berechnete Anzahl eingesetzt.',
+                     'extra': (config.BERATUNGSKONTAKTE and 
+                               'Falls leer, wird die aus den Beratungskontakten berechnete Anzahl eingesetzt.' or 
+                               'Mindestens 1 Kontakt angeben'),
                      },
                     {'frage': 'Letzter Beratungskontakt liegt mehr als sechs Monate zurück',
                      'typ': ('kat', 'ja_nein',),
