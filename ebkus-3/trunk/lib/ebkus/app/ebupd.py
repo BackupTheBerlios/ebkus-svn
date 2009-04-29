@@ -1467,12 +1467,18 @@ def _jgh07_check(form, jgh):
         raise_if_int(form, ('nbkges',),
                      "Nur bei beendeter Hilfe ausfüllen: %s" % item_M)
         jgh['nbkges'] = None
+        assert isinstance(jgh['nbkakt'], (int, long))
+        if jgh['nbkakt'] < 1:
+            raise EE("Es muss mindestens 1 Beratungskontakt geben: %s" % item_J)
     else:
         jgh['nbkges'] = check_int_not_empty(form, 'nbkges',
                             "Fehlt: %s" % item_M, default=nbkges)
         raise_if_int(form, ('nbkakt',),
                      "Nur bei andauernder Hilfe ausfüllen: %s" % item_J)
         jgh['nbkakt'] = None
+        assert isinstance(jgh['nbkges'], (int, long))
+        if jgh['nbkges'] < 1:
+            raise EE("Es muss mindestens 1 Beratungskontakt geben: %s" % item_M)
     if fall:
         fall['akte'].akte_undo_cached_fields()
 
@@ -2463,7 +2469,10 @@ def codeeinf(form):
     except dbapp.DBAppError:
         # Ok, existiert nicht
         pass
-    code['kat_id'] = check_fk(form, 'katid', Kategorie, "Kategorienid fehlt")
+    #code['kat_id'] = Kategorie(code=code['kat_code'])['id']
+    code['kat_id'] = check_fk(form, 'katid', Kategorie, 
+                              "Kategorienid fehlt",
+                              Kategorie(code=code['kat_code'])['id'])
     code['name'] = check_str_not_empty(form, 'name', "Merkmalsname fehlt")
     if form.get('mini') or form.get('maxi') or code['kat_code'] == 'dbsite':
         code['mini'] = check_int_not_empty(form, 'mini',
