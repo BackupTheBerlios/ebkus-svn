@@ -61,6 +61,7 @@ class options(object):
                       <option value="nothing">[ Klientenzahl ]
                       <option value="abfr4">- Neumeldungen u. Abschl&uuml;sse
                       <option value="abfr5">- Klienten pro Mitarbeiter
+                      <option value="wartezeiten">- Wartezeiten
                       <option value="nothing">
                       <option value="nothing">[ Gruppen ]
                       <option value="abfr8">- Gruppen&uuml;berblick

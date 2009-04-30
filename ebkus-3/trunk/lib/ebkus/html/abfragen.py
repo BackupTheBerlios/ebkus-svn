@@ -10,7 +10,7 @@ from ebkus.app.ebapi import JugendhilfestatistikList, Jugendhilfestatistik2007Li
      Tabelle, Code, Feld, Mitarbeiter, MitarbeiterList, MitarbeiterGruppeList, \
      today, cc, check_int_not_empty, \
      check_str_not_empty, EBUpdateDataError, EE, getQuartal, get_rm_datum, Date
-        
+from ebkus.app.statistik import BereichsKategorieAuszaehlung        
 import ebkus.html.htmlgen as h
 from ebkus.html.akte_share import akte_share
 
@@ -917,3 +917,116 @@ class abfr8(_abfr):
             )
         return res.display()
         
+class wartezeiten(_abfr):
+    """Tabelle mit Wartezeiten zwischen Anmeldung und Erstleistung."""
+    permissions = Request.ABFR_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        jahr = check_int_not_empty(self.form, 'jahr', "Fehler im Jahr", '')
+        if not jahr:
+            jahr = today().year
+        anzeige = h.FieldsetInputTable(
+            legend='Jahr wählen',
+            daten=[[h.SelectItem(label='Jahr',
+                                 name='jahr',
+                                 class_='listbox45',
+                                 tip='Wartezeiten für das gewählte Jahr',
+                                 options=self.for_jahre(sel=jahr),
+                                 ),
+                    h.Button(value="Anzeigen",
+                             name='op',
+                             tip="Tabelle mit Wartezeiten anzeigen",
+                             type='submit',
+                             n_col=2,
+                             ),
+                    ],
+                   ],
+            )
+        # Fälle ermitteln, wo der Leistungsbeginn in dem gewählten
+        # Jahr liegt
+        faelle = self.beratungen(welche='alle',
+                                 stelle=self.stelle,
+                                 ab_jahr=jahr-1, # Vorjahr mit einbeziehen
+                                 bis_jahr=jahr,
+                                 sort=('bg',))
+        faelle = faelle.filter(lambda x: x['leistungsbeginn'].year==jahr)
+
+        auszaehlung = BereichsKategorieAuszaehlung(faelle,
+                                                   'wartezeit', 
+                                                   'wartez',
+                                                   title='Verteilung der Wartezeiten',
+                                                   )
+        ausz_res = auszaehlung.get_result()
+        summe_haeufigkeiten = sum([m[1] for m in ausz_res])
+        summe_prozent = sum([m[2] for m in ausz_res])
+        haeufigkeiten = h.FieldsetDataTable(
+            legend='Wartezeiten für Fälle mit erster Leistung im Jahr %s' % jahr,
+            headers=('', 'Häufigkeit', 'Prozent',),
+            daten=[[h.String(string=m[0]),
+                    h.String(string=m[1],
+                             class_="tabledataright",),
+                    h.String(string="%.2f" % m[2],
+                             class_="tabledataright",),
+            ] for m in ausz_res] + 
+            [[h.String(string='Summe',
+                       class_='tabledatabold',
+                       ),
+              h.String(string=summe_haeufigkeiten,
+                       class_='tabledataboldright',
+                       align="right",
+                       ),
+              h.String(string="%.2f" % summe_prozent,
+                       align="right",
+                       class_='tabledataboldright',
+                       ),
+              ]
+             ]
+            )
+
+        faelle.sort('wartezeit')
+#         for f in faelle:
+#             print f['fn'], f['bg'], f['leistungsbeginn'], f['wartezeit']
+        if len(faelle) > 0:
+            median = faelle[(len(faelle)/2)]['wartezeit']
+            mittelwert = sum([f['wartezeit'] for f in
+                              faelle])/float(len(faelle))
+        else:
+            median = 'NA'
+            mittelwert = 'NA'
+        
+        mittel = h.FieldsetDataTable(
+            legend='Mittelwert und Median der Wartezeiten in '
+            'Kalendertagen für Fälle mit erster Leistung im Jahr %s' % jahr,
+            daten=[[h.String(string='Mittelwert (n=%s)' % len(faelle),
+                             class_='tabledatabold',
+                             ),
+                    h.String(string="%s" % (isinstance(mittelwert,
+                                                       (int,long,float))
+                                            and ("%.2f" % mittelwert)
+                                            or mittelwert,),
+                             align="right",
+                             class_='tabledataboldright',
+                             ),
+                    ],
+                   [h.String(string='Median (n=%s)' % len(faelle),
+                             class_='tabledatabold',
+                             ),
+                     h.String(string="%s" % median,
+                              align="right",
+                              class_='tabledataboldright',
+                              ),
+                    ],
+                   ]
+            )
+        res = h.FormPage(
+            title='Wartezeiten',
+            name='wartezeiten',action="wartezeiten",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ),
+            hidden=(),
+            rows=(self.get_auswertungs_menu(),
+                  anzeige,
+                  haeufigkeiten,
+                  mittel,
+                  ),
+            )
+        return res.display()

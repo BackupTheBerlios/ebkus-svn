@@ -25,6 +25,7 @@ def update():
     u.keep_alive_anpassen()
     u.fallnummer_pruefen_und_reparieren()
     u.fsqualij_code_reparieren()
+    u.wartezeit_bereichskategorie_eintragen() # todo rausnehmen
     if u.update_noetig():
         u.update()
         
@@ -33,8 +34,10 @@ class UpdateDB(object):
     Die Software der höheren Version muss bereits eingespielt sein.
     """
     # diese Listen definieren für welche Datenbankversionen diese Klasse funktioniert
-    ist_moeglich = ['4.1', '4.1.1']
-    soll_moeglich = ['4.2']
+    #ist_moeglich = ['4.1', '4.1.1']
+    #soll_moeglich = ['4.2']
+    ist_moeglich = ['4.2']
+    soll_moeglich = ['4.3']
 
     def __init__(self):
         # Protokoll stoert
@@ -80,7 +83,10 @@ class UpdateDB(object):
             return None
 
     def update_noetig(self):
-        if self.ist == self.soll:
+        if not self.ist:
+            logging.error("Version der Datenbank nicht feststellbar, Update nicht möglich.")
+            return False
+        elif self.ist == self.soll:
             logging.info("Datenbankversion und Softwareversion stimmen überein.")
             logging.info("Keine Update erforderlich")
             return False
@@ -114,6 +120,68 @@ class UpdateDB(object):
     def update_4_1_nach_4_2(self):
         self.fsqualij_code_reparieren()
         self.mehrfach_joker_felder_reparieren()
+
+    def update_4_2_nach_4_3(self):
+        self.wartezeit_bereichskategorie_eintragen()
+#         self.fua_bs_tabelle_neue_spalte_fuer_identitaet()
+#         self.fua_bs_identitaeten_nachtragen()
+
+
+    def wartezeit_bereichskategorie_eintragen(self):
+        kat_code = 'wartez'
+        try:
+            k = Kategorie(code=kat_code)
+            return
+        except:
+            pass # Kategorie gibts noch nicht
+        k = Kategorie()
+        k.new()
+        k.init(
+            code=kat_code,
+            name='Wartezeit zwischen Anmeldung und erster Leistung',
+            flag=1,  # ist Bereichskategorie
+            zeit=int(time()),
+            )
+        k.insert()
+        kat_id = k['id']
+        logging.info("Bereichskategorie 'wartez' hinzugefügt")
+        assert isinstance(kat_id, (int, long))
+        code_data = (
+            ('1', 'am selben Tag', 0, 0, ),
+            ('2', 'bis 1 Woche', 1, 7, ),
+            ('3', 'bis 2 Wochen', 8, 14, ),
+            ('4', 'bis 3 Wochen', 15, 21, ),
+            ('5', 'bis 1 Monat', 22, 30, ),
+            ('6', 'bis 3 Monate', 31, 91, ),
+            ('7', 'bis 6 Monate', 92, 183, ),
+            ('6', 'mehr als 6 Monate', 184, 9999, ),
+            )
+        sort = 0
+        for code, name, mini, maxi in code_data:
+            sort += 1
+            c = Code()
+            c.new()
+            c.init(
+                code=code,
+                name=name,
+                kat_id=kat_id,
+                kat_code=kat_code,
+                sort=sort,
+                off=0,
+                zeit=int(time()),
+                mini=mini,
+                maxi=maxi,
+                )
+            assert c['kat_code'] == kat_code == k['code'] == 'wartez'
+            c.insert()
+            logging.info("Code für 'wartez' hinzugefügt: code=%s name=%s" % (code, name))
+
+    def fua_bs_tabelle_neue_spalte_fuer_identitaet(self):
+        SQL("ALTER TABLE fua_bs ADD COLUMN beteiligt VARCHAR(255)").execute()
+
+    def fua_bs_identitaeten_nachtragen(self):
+        # identität ist ein string aus allen beteiligten fua_bs-ids, sortiert nach Größe
+        Fua_BSList(where='', order='ky, km, kd, art, dauer')
 
     def fsqualij_code_reparieren(self):
         try:

@@ -1,6 +1,7 @@
 # coding: latin-1
 
 # TODO: die xcount*-Funktionen sollten Methoden der Klassen werden.
+# TODO: wenn liste leer ist, gibts exception, außer bei xcountbereich
 
 from ebkus.app.ebapi import Code, Tabelle, Feld, today, cc, sorted
 from ebkus.app.ebapih import get_codes, get_all_codes
@@ -34,15 +35,18 @@ class _Auszaehlung(object):
         # die Zahl hat nichts zu sagen, nur damit es nicht
         # genau die Adresse des Objekts ist :-)
         self.id = str(id(self)+785423)
-        el0 = self.liste[0] 
-        if isinstance(el0, tuple): # Liste kann auch aus Paaren bestehen
-            el0 = el0[0]
-        class_ = el0.__class__.__name__
-        self.auswertungs_ueberschrift = \
-                                      kw.get('auswertungs_ueberschrift',
-                                             "%sauswertung vom %s" % (
-            Tabelle(klasse=class_)['name'],
-            "%(day)d.%(month)d.%(year)d." % today()))
+        if self.liste:
+            el0 = self.liste[0] 
+            if isinstance(el0, tuple): # Liste kann auch aus Paaren bestehen
+                el0 = el0[0]
+            class_ = el0.__class__.__name__
+            self.auswertungs_ueberschrift = \
+                kw.get('auswertungs_ueberschrift',
+                       "%sauswertung vom %s" % (
+                        Tabelle(klasse=class_)['name'],
+                        "%(day)d.%(month)d.%(year)d." % today()))
+        else:
+            self.auswertungs_ueberschrift = 'Unbekannt'
         self.kategorie = kw.get('kategorie', self.feld and self.feld['kat']
                                 or None)
         self.title = kw.get('title', self.feld and self.feld['name'] or 'Kein Titel')
@@ -331,10 +335,15 @@ def xcountbereich(kat_code, d_list, d_item):
                 bereichs_code = c['id']
                 break
         x.append(bereichs_code)
-    for c in codelist:
-        freq = x.count(c['id'])
-        a = [c['name'], freq, ((float(freq)*100)/float(len(d_list)))]
-        res.append(a)
+    if len(d_list) > 0:
+        for c in codelist:
+            freq = x.count(c['id'])
+            a = [c['name'], freq, ((float(freq)*100)/float(len(d_list)))]
+            res.append(a)
+    else:
+        for c in codelist:
+            a = [c['name'], 0, 0]
+            res.append(a)
     return res
 
 def xcountnlist(nlist, d_list, d_item, count_feld='id', name_feld='na'):

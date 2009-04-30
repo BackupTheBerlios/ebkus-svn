@@ -581,6 +581,12 @@ def _fall_leistungsbeginn(self, key):
     leistungen.sort('bgy', 'bgm', 'bgd')
     return leistungen[0].getDate('bg')
 
+def _fall_wartezeit(self, key):
+    # Anzahl der Tage zwischen Anmeldung und erster Leistung
+    return (self['leistungsbeginn'].to_py_date() - 
+            self['bg'].to_py_date()).days
+
+    
 Fall.attributemethods['name'] = _fall_name
 Fall.attributemethods['aktuell'] = _aktuell_fall
 Fall.attributemethods['zustaendig'] = _zustaendig_fall
@@ -593,6 +599,7 @@ Fall.attributemethods['bg'] = getDate
 Fall.attributemethods['zda'] = getDate
 Fall.attributemethods['beratungskontakte'] = _fall_beratungskontakte
 Fall.attributemethods['leistungsbeginn'] = _fall_leistungsbeginn
+Fall.attributemethods['wartezeit'] = _fall_wartezeit
 
 
 def _prev_zust(self, key):

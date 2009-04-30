@@ -145,6 +145,20 @@ table {
      text-align: left;
      padding:.1em;
  }
+.tabledataright {
+     background-color:#FFFFFF;
+     font-size:10pt;
+     font-weight:normal;
+     text-align: right;
+     padding:.1em;
+ }
+.tabledataboldright {
+     background-color:#FFFFFF;
+     font-size:10pt;
+     font-weight:bold;
+     text-align: right;
+     padding:.1em;
+ }
 .tabledatabold {
      background-color:#FFFFFF;
      font-size:10pt;

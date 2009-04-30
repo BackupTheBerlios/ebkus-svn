@@ -126,7 +126,7 @@ def getClassesToBePublished():
     from ebkus.html.gruppe import menugruppe, gruppeneu, updgruppe, gruppeteilnausw, \
          updteiln, rmteiln
     from ebkus.html.abfragen import \
-         abfr1, abfr3, abfr4, abfr5, abfr8
+         abfr1, abfr3, abfr4, abfr5, abfr8, wartezeiten
     from ebkus.html.statistik_abfrage import statabfr, statergebnis
     from ebkus.html.abfragedef import abfragedef
     from ebkus.html.datenaustausch import formabfrjghexport, jghexportfeedback, jghexportlist

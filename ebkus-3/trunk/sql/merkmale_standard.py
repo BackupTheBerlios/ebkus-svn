@@ -451,6 +451,14 @@ protocol;off;config
 1;Beratung;aufbew
 2;Therapie;aufbew
 3;Missbrauch;aufbew
+1;am selben Tag;wartez;0;0
+2;bis 1 Woche;wartez;1;7
+3;bis 2 Wochen;wartez;8;14
+4;bis 3 Wochen;wartez;15;21
+5;bis 1 Monat;wartez;22;30
+6;bis 3 Monate;wartez;31;91
+7;bis 6 Monate;wartez;92;183
+6;mehr als 6 Monate;wartez;184;9999
 """
 
 # Ergänzungen für die neue Bundesstatistik 2007
@@ -576,7 +584,7 @@ code_list_str += """
 #
 # Welche Kategorien sind Bereichskategorien?
 #
-bereichs_kategorien_str = "fskat fsag fsagel gsa dbsite jghag fskd kdbs fuadbs"
+bereichs_kategorien_str = "fskat fsag fsagel gsa dbsite jghag fskd kdbs fuadbs wartez"
 
 
 #
@@ -652,6 +660,7 @@ gfall;Geschwisterfall
 lage;Lage innerhalb oder außerhalb des Geltungsbereichs des Straßenkatalogs
 config;Konfigurationseinstellungen
 aufbew;Aufbewahrungskategorie
+wartez;Wartezeit zwischen Anmeldung und erster Leistung
 """
 
 # Ergänzungen für die neue Bundesstatistik 2007
