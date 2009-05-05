@@ -565,7 +565,7 @@ class akte_share(options):
         bisherige_kontakte = h.FieldsetDataTable(
             legend='Beratungskontakte',
             empty_msg="Bisher keine Kontakte eingetragen.",
-            noheaders=2,
+            noheaders=edit_button and 2 or 0,
             headers=headers,
             daten=[[(edit_button and (aktueller_fall and 
                                       h.Icon(href= updurl % b,
@@ -842,6 +842,7 @@ class akte_share(options):
                         show_quartal=True,
                         show_monat=False,
                         show_welche=False,
+                        show_stelle=True,
                         welche=None):
         "Für Auswertungen. Legt Jahre und Stellen fest."
         #print 'GG', von_jahr, bis_jahr
@@ -885,14 +886,14 @@ class akte_share(options):
                                  tip='Wählen Sie das Jahr, für das eine Auszählung erfolgen soll',
                                  options=self.for_jahre(sel=bis_jahr),
                                  ),
-                    h.SelectItem(label='Stelle',
+                    show_stelle and h.SelectItem(label='Stelle',
                                  name='stz',
                                  multiple=True,
                                  rowspan=2,
                                  tip='Eine oder mehrere Stellen auswählen',
                                  size=3,
                                  options=self.for_kat('stzei', sel=stellen_ids),
-                                 ),
+                                 ) or h.DummyItem(),
                     ],
                    [h.SelectItem(label='Frühere Jahre einbeziehen ab',
                                  name='von_jahr',
