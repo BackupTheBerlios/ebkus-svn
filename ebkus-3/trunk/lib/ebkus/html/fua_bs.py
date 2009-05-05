@@ -23,14 +23,15 @@ class _fua(Request.Request, akte_share):
                  file,
                  ):
         # evt. einbauen, falls Rolle=verw
-        kein_mitarbeiter = fua['mit_id']==None and True or False
-        multi_mit = (file=='fuabseinf')
+        #multi_mit = (file=='fuabseinf')
+        multi_mit = True
         fua_bearbeiten = h.FieldsetInputTable(
             legend = legendtext,
             daten = [[h.SelectItem(label='Mitarbeiter',
                                    name='mitid',
-                                   options=self.for_mitarbeiter(sel=fua['mit_id'],
-                                                                empty_option=kein_mitarbeiter),
+                                   options=self.for_mitarbeiter(
+                            sel=[m['id'] for m in fua['mitarbeiter']],
+                            empty_option=bool(fua['mitarbeiter'])),
                                    multiple=multi_mit,
                                    size=multi_mit and 6 or None,
                                    ),
@@ -62,29 +63,6 @@ class _fua(Request.Request, akte_share):
                       ],
                      ],
             )
-##         bisherige_kontakte = h.FieldsetDataTable(
-##             legend = 'Liste der bisherigen Kontakte',
-##             empty_msg = "Bisher keine Kontakte eingetragen.",
-##             headers = ('Datum', 'Mitarbeiter', 'Klienten', 'Art',
-##                        'Teilnehmer', 'Dauer (x10min)', 'Notiz'),
-##             daten =  [[h.Datum(date =  b.getDate('k')),
-##                        h.String(string=', '.join([b['mit%s__na'] % i
-##                                                   for i in ('', '1', '2')
-##                                                   if b['mit%s_id'] % i]),
-##                                 ),
-##                        h.String(string=', '.join([b['fall%s__name'] % i
-##                                                   for i in ('', '1', '2')
-##                                                   if b['fall%s_id'] % i]),
-##                                 ),
-##                        h.String(string=b['art__name']),
-##                        h.String(string=', '.join([Code(i)['name']
-##                                                   for i in b['teilnehmer'].split()]),
-##                                 ),
-##                        h.String(string=b['dauer']),
-##                        h.String(string=b['no']),
-##                        ]
-##                       for b in self.get_beratungskontakte()],
-##             )
         year = today().year
         month = today().month
         res = h.FormPage(
@@ -100,27 +78,82 @@ class _fua(Request.Request, akte_share):
             rows=(fua_bearbeiten,
                   #konseq_jgh,
                   h.SpeichernZuruecksetzenAbbrechen(),
-                  self.get_fua_bs(year, month, 
+                  #self.get_fua_bs(year, month, 
+                  self.get_fua_bs_new(year, month, 
                                   'Bisherige Aktivitäten für %s/%s' % (month, year)),
                   )
             )
         return res.display()
     
-    def get_fua_bs(self, jahr, monat, legend,
-                   edit_button=False,
-                   hinzufuegen_button=False):
 
-        
+    def get_fua_list(self, jahr, monat):
+        """Liste der fuA für Mitarbeiter bzw. Verwalter"""
         benr = self.mitarbeiter['benr__code']
         where = "ky=%s" % jahr
-        if benr == 'bearb':
-            where += " and mit_id=%s" % self.mitarbeiter['id']
-        elif benr == 'verw':
-            where += " and stz=%s" % self.stelle['id']
         if monat:
             where += " and km=%s" % monat
-        aktivitaeten_list = Fua_BSList(where=where , order="ky desc, km desc, kd desc")
-        aktivitaeten_list.sort('mit__na', 'ky', 'km', 'kd')
+        if benr == 'verw':
+            where += " and stz=%s" % self.stelle['id']
+            aktivitaeten_list = Fua_BSList(where=where)
+            aktivitaeten_list.sort('ky', 'km', 'kd')
+        elif benr == 'bearb':
+            where_old = where + " and mit_id=%s" % self.mitarbeiter['id']
+            aktivitaeten_list_old = Fua_BSList(where=where_old)
+            join = [('mitarbeiterfua_bs',
+                     'mitarbeiterfua_bs.mit_id=%s' % self.mitarbeiter['id'])]
+            aktivitaeten_list_new = Fua_BSList(where=where, 
+                                               join=join)
+            aktivitaeten_list = aktivitaeten_list_old + aktivitaeten_list_new
+        else:
+            aktivitaeten_list = []
+        aktivitaeten_list.sort('ky', 'km', 'kd')
+        return aktivitaeten_list
+
+
+#     def get_fua_bs(self, jahr, monat, legend,
+#                    edit_button=False,
+#                    hinzufuegen_button=False):
+#         benr = self.mitarbeiter['benr__code']
+#         where = "ky=%s" % jahr
+#         if benr == 'bearb':
+#             where += " and mit_id=%s" % self.mitarbeiter['id']
+#         elif benr == 'verw':
+#             where += " and stz=%s" % self.stelle['id']
+#         if monat:
+#             where += " and km=%s" % monat
+#         aktivitaeten_list = Fua_BSList(where=where)
+#         aktivitaeten_list.sort('mit__na', 'ky', 'km', 'kd')
+#         bisherige_aktivitaeten = h.FieldsetDataTable(
+#             legend=legend,
+#             empty_msg="Bisher keine Aktivitäten eingetragen.",
+#             headers=('Datum', 'Mitarbeiter', 'Art', 'Dauer in Minuten', 'Notiz'),
+#             daten=[[(edit_button and h.Icon(href= 'updfua?fuaid=%(id)d' % fua,
+#                                             icon= "/ebkus/ebkus_icons/edit_button.gif",
+#                                             tip= 'Aktivität bearbeiten') or None),
+#                     (edit_button and h.Icon(href='rmfua?fuaid=%(id)d' % fua,
+#                                             icon="/ebkus/ebkus_icons/del_button.gif",
+#                                             tip='Fallunabhängige Aktivität endgültig löschen') or None),
+#                     h.Datum(date =  fua.getDate('k')),
+#                     h.String(string=fua['mit__na']),
+#                     h.String(string=fua['art__name']),
+#                     h.String(string="%(dauer)s / %(brutto)s" % fua,
+#                              tip='Netto/Brutto'),
+#                     h.String(string=fua['no']),
+#                     ]
+#                    for fua in aktivitaeten_list],
+#             button=(hinzufuegen_button and
+#                     h.Button(value="Hinzufügen",
+#                              tip="Aktivität hinzufügen",
+#                              onClick="go_to_url('fuaneu')",
+#                              ) or None),
+#             )
+#         return bisherige_aktivitaeten
+        
+    def get_fua_bs_new(self, jahr, monat, legend,
+                       edit_button=False,
+                       hinzufuegen_button=False):
+        # neue Fassung mit Zuordnungstabelle
+        aktivitaeten_list = self.get_fua_list(jahr, monat)
         bisherige_aktivitaeten = h.FieldsetDataTable(
             legend=legend,
             empty_msg="Bisher keine Aktivitäten eingetragen.",
@@ -132,7 +165,7 @@ class _fua(Request.Request, akte_share):
                                             icon="/ebkus/ebkus_icons/del_button.gif",
                                             tip='Fallunabhängige Aktivität endgültig löschen') or None),
                     h.Datum(date =  fua.getDate('k')),
-                    h.String(string=fua['mit__na']),
+                    h.String(string=fua['mitarbeiternamen']),
                     h.String(string=fua['art__name']),
                     h.String(string="%(dauer)s / %(brutto)s" % fua,
                              tip='Netto/Brutto'),
@@ -146,7 +179,6 @@ class _fua(Request.Request, akte_share):
                              ) or None),
             )
         return bisherige_aktivitaeten
-        
 
 class fua(_fua):
     "Liste der fallunabhängigen Aktivitäten für ein Mitarbeiter."
@@ -195,7 +227,8 @@ class fua(_fua):
 ##                     ),
             rows=(self.get_hauptmenu(),
                   auswahl,
-                  self.get_fua_bs(jahr, monat, title,
+                  #self.get_fua_bs(jahr, monat, title,
+                  self.get_fua_bs_new(jahr, monat, title,
                                   edit_button=True,
                                   hinzufuegen_button=True),
                   )
@@ -331,10 +364,10 @@ class fuabsabfr(Request.Request, akte_share):
     def count(self, stz_list, von_jahr, bis_jahr, quartal=None, monat=None):
         """Aktivitätszeiten auszählen.
         Ergebnis ist abhängig von Berechtigungen:
-        - verw: alle Mitarbeiter der spezifierten Stellen
-                Summe über alle Mitarbeiter der spezifizierten Stellen
+        - verw: alle Mitarbeiter der Stelle
+                Summe über alle Mitarbeiter der Stelle
+                Summe über alle Aktivitäten der Stelle
         - bearb: der Mitarbeiter selber
-                 Summe über alle Mitarbeiter der spezifizierten Stellen
         """
         stellen = ','.join(["%s" % s for s in stz_list])
         where = ("ky is not NULL and "
@@ -351,7 +384,6 @@ class fuabsabfr(Request.Request, akte_share):
             monate = [monat]
             where += " and km in (%s)" % ','.join([str(i) for i in monate])
         fua_list = Fua_BSList(where=where)
-        benr_id = self.mitarbeiter['benr']
         benr = self.mitarbeiter['benr__code']
         mitarbeiter = []
         if benr == 'bearb':
@@ -367,9 +399,27 @@ class fuabsabfr(Request.Request, akte_share):
         for m in mitarbeiter:
             #id --> (netto, brutto)
             res[m['id']] = self._init_res()
+        # angebot_brutto_dummy nur damit dieselben Routinen benutzt
+        # werden können
+        angebot_summe, angebot_brutto_dummy = self._init_res()
+
+# Ist unten mit drin wg Definition von mitarbeiter
+#         for b in fua_list:
+#                 try:
+#                     netto, brutto = res[b['mit_id']]
+#                     self.count_row(netto, brutto, b)
+#                 except:
+#                     #import traceback
+#                     #traceback.print_exc()
+#                     pass # falls Mitarbeiter in fua, aber nicht in MitarbeiterList
+#                          # sollte nicht vorkommen, wenn doch, ignorieren
+        # mit Zuordnungstabelle
         for b in fua_list:
+            # Angebot nur einmal pro Aktivität zählen
+            self.count_row(angebot_summe, angebot_brutto_dummy, b)
+            for m in b['mitarbeiter']:
                 try:
-                    netto, brutto = res[b['mit_id']]
+                    netto, brutto = res[m['id']]
                     self.count_row(netto, brutto, b)
                 except:
                     #import traceback
@@ -381,6 +431,7 @@ class fuabsabfr(Request.Request, akte_share):
             self._add_res(summe_netto, netto)
             self._add_res(summe_brutto, brutto)
         res['summe'] = summe_netto, summe_brutto
+        res['angebot_summe'] = angebot_summe
         return mitarbeiter, res
             
     def processForm(self, REQUEST, RESPONSE):
@@ -394,8 +445,9 @@ class fuabsabfr(Request.Request, akte_share):
         von_jahr = check_int_not_empty(self.form, 'von_jahr', "Jahr fehlt", bis_jahr)
         if von_jahr > bis_jahr:
             von_jahr = bis_jahr
-        stellen_ids = [int(id) for id in check_list(self.form, 'stz', 'Keine Stelle',
-                                                    [self.stelle['id']])]
+#         stellen_ids = [int(id) for id in check_list(self.form, 'stz', 'Keine Stelle',
+#                                                     [self.stelle['id']])]
+        stellen_ids = [self.stelle['id']]
         quartal = self.form.get('quartal')
         if quartal:
             quartal = check_int_not_empty(self.form, 'quartal', 'Fehler im Quartal')
@@ -432,10 +484,29 @@ class fuabsabfr(Request.Request, akte_share):
                                     tip='Netto/Brutto')
                            )
             return row
+        def angebot_row(name, netto):
+            # nur netto auszählen, Vorbereitungszeiten sind hier
+            # sinnlos
+            # netto: kontakt_art --> Summe der angebotenen Minuten
+            row = [h.String(string=name)]
+            summe_netto = 0
+            for ka in aktivitaets_arten:
+                summe_netto += netto[ka]
+                row.append(h.String(string="%s" %
+                                    (netto[ka],),
+                                    tip='angebotene Minuten Netto')
+                           )
+            row.append(h.String(string="%s" %
+                                    (summe_netto,),
+                                    tip='Summe angebotene Minuten Netto')
+                           )
+            return row
         mitarbeiter_daten = [row(m['name'], res[m['id']])
                              for m in mitarbeiter]
         stellen_row = row(', '.join([Code(s)['name'] for s in stellen_ids]),
                           res['summe'])
+        angebot_row = angebot_row(', '.join([Code(s)['name'] for s in stellen_ids]),
+                                  res['angebot_summe'])
         headers = [''] + [c['name'] for c in get_codes('fuabs')] + ['Summe']
         fuer = ''
         if von_jahr < bis_jahr:
@@ -451,11 +522,20 @@ class fuabsabfr(Request.Request, akte_share):
             headers=headers,
             daten=mitarbeiter_daten,
             )
-        tabelle_stellen = h.FieldsetDataTable(
-            legend='Zeiten für fallunabhängige Aktivitäten summiert für Stellen' + fuer,
-            headers=headers,
-            daten=[stellen_row],
-            )
+        if self.mitarbeiter['benr__code'] == 'bearb':
+            tabelle_stellen = tabelle_angebote = None
+        else:
+            tabelle_stellen = h.FieldsetDataTable(
+                legend='Zeiten für fallunabhängige Aktivitäten summiert über Mitarbeiter' + fuer,
+                headers=headers,
+                daten=[stellen_row],
+                )
+            tabelle_angebote = h.FieldsetDataTable(
+                legend='Zeiten für fallunabhängige Aktivitäten summiert über Aktivitäten' + fuer,
+                headers=headers,
+                daten=[angebot_row],
+                )
+        
         res = h.FormPage(
             name="fuaform",action="fuabsabfr",method="post",
             title='Auswertung fallunabhängige Aktivitäten',
@@ -469,10 +549,12 @@ class fuabsabfr(Request.Request, akte_share):
                                        monat=monat,
                                        show_monat=True,
                                        stellen_ids=stellen_ids,
-                                       legend='Jahr und Stelle wählen',
+                                       show_stelle = False,
+                                       legend='Zeitraum wählen',
                                        submit_value='Anzeigen'),
                   tabelle_mitarbeiter,
                   tabelle_stellen,
+                  tabelle_angebote,
                   ),
             )
         return res.display()
