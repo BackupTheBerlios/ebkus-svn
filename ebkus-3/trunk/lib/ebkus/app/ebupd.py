@@ -415,9 +415,10 @@ def _bkont_check(form, bkont):
         bkont.setTime('k', zeit)
         bkont['art_bs'] = check_code(form, 'art_bs', 'kabs', "Fehler in Beratungskontaktart")
         mc = check_multi_code(form, 'teilnehmer_bs', 'teilnbs',
-                              "Fehler in Teilnehmer",
-                              #default=[cc('teilnbs', '0')]) # falsch!
-                              default=[Code(kat_code='teilnbs', code='0')])
+                              "Teilnehmerangabe fehlt",
+                              default=[Code(kat_code='teilnbs',
+                                            code='0')],
+                              )
         #print 'MULTICODE', mc, type(mc)
         bkont['teilnehmer_bs'] = mc
         bkont['offenespr'] = check_code(form, 'offenespr', 'ja_nein', "", cn('ja_nein', 'nein'))
@@ -531,7 +532,8 @@ def removebkont(form):
 # Fallunabhängige Aktivitäten Braunschweig
 def _fua_bs_check(form, fua):
     #print '_fua_bs_check', form
-    fua['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
+    #fua['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
+    fua['mit_id'] = None
     fua['art'] = check_code(form, 'art', 'fuabs', "Fehler in Aktivitätstart")
     fua['no'] = check_str_not_empty(form, 'no', 'Keine Notiz', '')
     if fua['art'] == cc('fuabs', '1'):
@@ -544,6 +546,16 @@ def _fua_bs_check(form, fua):
     fua.setDate('k', datum)
     fua['stz'] = check_code(form, 'stz', 'stzei',
                               "Kein Stellenzeichen für die Aktivität")
+def _fua_bs_upd_mitarbeiter(fua_bs, mit_ids):
+    Mitarbeiterfua_bsList(where='fua_bs_id=%(id)s' % fua_bs).deleteall()
+    for mit_id in mit_ids:
+        mb = Mitarbeiterfua_bs()
+        mb.init(
+            mit_id=int(mit_id),
+            fua_bs_id=fua_bs['id'],
+            )
+        mb.new()
+        mb.insert()
 
 def fuabseinf(form):
     """Neue Aktivität."""
@@ -552,37 +564,33 @@ def fuabseinf(form):
     fuaid = check_int_not_empty(form, 'fuaid', "Aktivitäts-ID fehlt")
     check_not_exists(fuaid, Fua_BS,
                      "Aktivität (id: %(id)s) existiert bereits")
-    # Bei neuen Fua sind mehrere Mitarbeiter erlaubt
-    # Es werden dann identische Einträge für jeden Mitarbeiter getrennt
-    # vorgenommen.
     mit_ids = check_list(form, 'mitid', 'Keine Mitarbeiter')
-    fua_ids = [fuaid] + [None for i in mit_ids[1:]]
-    #print 'MITIDS', mit_ids
-    for mit_id, fua_id in zip(mit_ids,fua_ids):
-        form['mitid'] = mit_id
-        if fua_id == None:
-            fua_id = Fua_BS().getNewId()
-        fua = Fua_BS()
-        _fua_bs_check(form, fua)
-        try:
-            fua.insert(fua_id)
-        except:
-            try: fua.delete()
-            except: pass
+    fua = Fua_BS()
+    _fua_bs_check(form, fua)
+    try:
+        fua.insert(fuaid)
+        _fua_bs_upd_mitarbeiter(fua, mit_ids)
+    except:
+        raise
+        try: fua.delete()
+        except: pass
     
 def updfuabs(form):
     """Update der fallunabhängigen Aktivität."""
     if not config.FALLUNABHAENGIGE_AKTIVITAETEN_BS:
         raise EBUpdateError("Aufruf von updfuabs ohne config.FALLUNABHAENGIGE_AKTIVITAETEN_BS")
     fuaold = check_exists(form,'fuaid', Fua_BS, "Keine Aktivitäts-ID")
+    mit_ids = check_list(form, 'mitid', 'Keine Mitarbeiter')
     fua = Fua_BS()
     _fua_bs_check(form, fua)
     fuaold.update(fua)
+    _fua_bs_upd_mitarbeiter(fuaold, mit_ids)
 
 def removefuabs(form):
     if not config.FALLUNABHAENGIGE_AKTIVITAETEN_BS:
         raise EBUpdateError("Aufruf von updfuabs ohne config.FALLUNABHAENGIGE_AKTIVITAETEN_BS")
     fua = check_exists(form,'fuaid', Fua_BS, "Keine Aktivitäts-ID")
+    _fua_bs_upd_mitarbeiter(fua, [])
     fua.delete()
     
 def zusteinf(form):

@@ -230,9 +230,15 @@ bezugsp_id, INT, Bezugspersonid, f, bezugsperson, fallberatungskontakte
 bkont_id, INT, Beratungskontaktid, f, beratungskontakt, fallberatungskontakte
 zeit, INT, Änderungszeit, p,
 
+table, mitarbeiterfua_bs, , Zuordnung Mitarbeiter-fallunabhängige Aktivitäten, Mitarbeiterfua_bs
+id, INT, id, s
+mit_id, INT, Mitarbeiterid, f, mitarbeiter, mitarbeiterfuaktivitaeten
+fua_bs_id, INT, Fua_bsid, f, fua_bs, mitarbeiterfuaktivitaeten
+zeit, INT, Änderungszeit, p,
+
 table, fua_bs, , Fallunabhängige Aktivitäten Braunschweig, Fua_BS
 id, INT, id, s,
-mit_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs
+mit_id, INT, Mitarbeiterid, f, mitarbeiter, fuaktivitaeten
 art, INT, Aktivitätsart, k, fuabs
 kd, INT, Aktivität Tag, p,
 km, INT, Aktivität Monat, p,

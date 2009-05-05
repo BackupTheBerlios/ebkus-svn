@@ -742,6 +742,23 @@ def _brutto_dauer_fua_bs(self, key):
         brutto = 0
     return brutto
 
+def _fua_bs_mitarbeiter(self, key):
+    if self['mit_id']:
+        mitarbeiter_list = MitarbeiterList([Mitarbeiter(self['mit_id'])])
+    else:
+        mitarbeiter_list = MitarbeiterList(
+            where='mitarbeiterfua_bs.fua_bs_id=%s' % self['id'],
+            join=[('mitarbeiterfua_bs',
+                   'mitarbeiterfua_bs.mit_id=mitarbeiter.id')])
+        mitarbeiter_list.sort('na')
+    return mitarbeiter_list
+    
+def _fua_bs_mitarbeiternamen(self, key):
+    """Ein String mit komma-getrennten Nachnamen der Mitarbeiter einer Fua."""
+    return ', '.join([m['na'] for m in self['mitarbeiter']])
+
+Fua_BS.attributemethods['mitarbeiter'] = _fua_bs_mitarbeiter
+Fua_BS.attributemethods['mitarbeiternamen'] = _fua_bs_mitarbeiternamen
 Fua_BS.attributemethods['brutto'] = _brutto_dauer_fua_bs
 
 ############################
