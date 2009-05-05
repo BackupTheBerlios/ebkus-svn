@@ -302,7 +302,6 @@ class bkontbsabfr(Request.Request, akte_share):
         - verw: alle Mitarbeiter der spezifierten Stellen
                 Summe über alle Mitarbeiter der spezifizierten Stellen
         - bearb: der Mitarbeiter selber
-                 Summe über alle Mitarbeiter der spezifizierten Stellen
 
         Berechnung der Summen für einen Mitarbeiter:
         - es gelten grundsätzlich die Zeiten, die ein Mitarbeiter aufwendet,
@@ -341,7 +340,6 @@ class bkontbsabfr(Request.Request, akte_share):
             monate = [monat]
             where += " and km in (%s)" % ','.join([str(i) for i in monate])
         bkont_list = BeratungskontaktList(where=where)
-        benr_id = self.mitarbeiter['benr']
         benr = self.mitarbeiter['benr__code']
         mitarbeiter = []
         if benr == 'bearb':
@@ -385,8 +383,9 @@ class bkontbsabfr(Request.Request, akte_share):
         von_jahr = check_int_not_empty(self.form, 'von_jahr', "Jahr fehlt", bis_jahr)
         if von_jahr > bis_jahr:
             von_jahr = bis_jahr
-        stellen_ids = [int(id) for id in check_list(self.form, 'stz', 'Keine Stelle',
-                                                    [self.stelle['id']])]
+#         stellen_ids = [int(id) for id in check_list(self.form, 'stz', 'Keine Stelle',
+#                                                     [self.stelle['id']])]
+        stellen_ids = [self.stelle['id']]
         quartal = self.form.get('quartal')
         if quartal:
             quartal = check_int_not_empty(self.form, 'quartal', 'Fehler im Quartal')
@@ -442,11 +441,14 @@ class bkontbsabfr(Request.Request, akte_share):
             headers=headers,
             daten=mitarbeiter_daten,
             )
-        tabelle_stellen = h.FieldsetDataTable(
-            legend='Beratungskontaktzeiten summiert für Stellen' + fuer,
-            headers=headers,
-            daten=[stellen_row],
-            )
+        if self.mitarbeiter['benr__code'] == 'bearb':
+            tabelle_stellen = None
+        else:
+            tabelle_stellen = h.FieldsetDataTable(
+                legend='Beratungskontaktzeiten summiert über Mitarbeiter' + fuer,
+                headers=headers,
+                daten=[stellen_row],
+                )
         res = h.FormPage(
             title='Auswertung Beratungskontaktzeiten',
             name="bkontform",action="bkontbsabfr",method="post",
@@ -459,8 +461,9 @@ class bkontbsabfr(Request.Request, akte_share):
                                        quartal=quartal,
                                        monat=monat,
                                        show_monat=True,
+                                       show_stelle = False,
                                        stellen_ids=stellen_ids,
-                                       legend='Jahr und Stelle wählen',
+                                       legend='Zeitraum wählen',
                                        submit_value='Anzeigen'),
                   tabelle_mitarbeiter,
                   tabelle_stellen,
