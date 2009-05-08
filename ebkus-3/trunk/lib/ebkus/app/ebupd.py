@@ -422,13 +422,15 @@ def _bkont_check(form, bkont):
         #print 'MULTICODE', mc, type(mc)
         bkont['teilnehmer_bs'] = mc
         bkont['offenespr'] = check_code(form, 'offenespr', 'ja_nein', "", cn('ja_nein', 'nein'))
-        bkont['dauer'] = check_int_not_empty(form, 'dauer', "Fehler in Dauer", 0)
         if Code(bkont['art_bs'])['code'] == '5':
             # ausgefallener Kontakt automatisch 20 Minuten
             bkont['dauer'] = 20
+            bkont['anzahl'] = 0
+        else:
+            bkont['dauer'] = check_int_not_empty(form, 'dauer', "Keine Dauer angegeben")
+            bkont['anzahl'] = check_int_not_empty(form, 'anzahl', "Fehler in Anzahl der Teilnehmer", 1)
         if not (bkont['dauer'] % 10) == 0:
             raise EE("Bitte Kontaktdauer nur in 10-er Schritten angeben, z.B. 20, 30, 60.")
-        bkont['anzahl'] = check_int_not_empty(form, 'anzahl', "Fehler in Anzahl der Teilnehmer", 0)
     else:
         bkont['art'] = check_code(form, 'art', 'fska', "Fehler in Beratungskontaktart")
         dauer_kat = check_code(form, 'dauer_kat', 'fskd', "Fehler in Kontaktdauer")
