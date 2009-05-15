@@ -1,0 +1,120 @@
+EBKuS 4.3 (15. Mai 2009)
+========================
+
+ACHTUNG:
+Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
+aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
+nach wie vor gültig.
+
+
+Update von 4.2 auf 4.3
+------------------------
+
+Das Datenbankschema hat sich aufgrund von Veränderungen bei den
+fallunabhängigen Aktivitäten verändert. Es wird nur noch eine
+Aktivität gespeichert, auch wenn mehrere Mitarbeiter beteiligt
+sind. Die Datenbanken sind nicht kompatibel. Beim ersten Neustart
+mit der Version 4.3 wird ein Update-Skript ausgeführt, das
+automatisch die Datenbank an die neue Version anpasst. 
+
+
+Fachstatistik-Konfiguration
+---------------------------
+
+[Rev 200]
+Fehler, der manchmal beim Neuanlegen von Merkmal-Codes auftrat,
+beseitigt. 
+
+
+Fach- und Bundesstatistik
+-------------------------
+
+[Rev 193,194]
+Laufende Fälle können in die Auswertung einbezogen werden.
+
+
+Teilmengendefinition
+....................
+
+[Rev 202]
+Fehler bei der Definition von Teilmengen aufgrund von
+Regionalkriteren behoben. Der Fehler trat auf, wenn beteiligte
+Namen ein Leerzeichen enthielten ("Boldecker Land").
+
+Bundesstatistik
+...............
+
+[Rev 199, 200, 201]
+Bei Betreuungsintensität (J und M) konnte 0 abegespeichert
+werden, wurde aber dann nicht angezeigt. Es gab Fälle, wo beim
+Export der Bunddesstatistik keine Beratungskontakte angegeben
+waren. Jetzt muss mindestens die Zahl 1 eingetragen werden, oder,
+falls BERATUNGSKONTAKTE konfiguriert sind, eine Anzahl größer 0
+aus den dokumentierten Beratungskontakten übernommen werden. Dies
+geschieht automatisch, wenn das Feld leer gelassen wird. 
+
+
+Auswertungen
+------------
+
+
+Beratungskontakte
+.................
+
+[Rev. 197]
+Zeilensummen in Auswertungstabellen eingefügt.
+
+[Rev. 196]
+Monatsweise Abfrage für fallunabhängige Aktivitäten ist jetzt möglich.
+
+[Rev. 205]
+Keine Stellenauswahl mehr, nur die eigene Stelle wird angezeigt.
+
+[Rev. 205]
+Bearbeiter sehen keine Summen mehr (es wurden ohnehin nur die
+eigenen Zeiten angezeigt), nur noch die Verwaltungskräfte.
+
+
+
+
+Fallunabhängige Aktivitäten
+...........................
+
+[Rev. 197]
+Zeilensummen in Auswertungstabellen eingefügt.
+
+[Rev. 198]
+Monatsweise Abfrage für fallunabhängige Aktivitäten ist jetzt möglich.
+
+[Rev. 206]
+Keine Stellenauswahl mehr, nur die eigene Stelle wird angezeigt.
+
+[Rev. 206]
+Bearbeiter sehen keine Summen mehr (es wurden ohnehin nur die
+eigenen Zeiten angezeigt), nur noch die Verwaltungskräfte.
+
+[Rev. 206,207]
+Verwalter sehen neben der Summe über Mitarbeiter wie bisher nun
+auch die Summe über die Aktivitäten. In diese Summe geht die Zeit
+der Aktivität nur einmal ein, egal wieviele Mitarbeiter an der
+Aktivität beteiligt waren.
+ACHTUNG: Die Summierung über die Aktivitäten erfolgt korrekt nur
+für solche Aktivitäten, die ab EBKuS 4.3 neu angelegt
+bzw. updatet wurden.
+
+Wartezeiten
+...........
+
+[Rev. 203]
+Auswertung Wartezeiten zwischen Anmeldung und erster Leistung
+eingeführt.
+
+
+Beratungskontakt anlegen bzw. bearbeiten
+----------------------------------------
+
+[Rev. 204]
+Fehlerhaft versetzte Spaltenüberschriften bei bisherigen
+Kontakten korrigiert. 
+
+

@@ -1,0 +1,21 @@
+RANDFILE		= .rnd
+
+[ req ]
+
+default_bits		= 1024
+default_keyfile 	= privkey.pem
+distinguished_name	= req_distinguished_name
+prompt                  = no
+output_password         = %(OUTPUT_PASSWORD)s
+
+[ req_distinguished_name ]
+
+countryName			= %(STAAT)s
+stateOrProvinceName		= %(LAND)s
+localityName			= %(ORT)s
+0.organizationName		= %(ORGANISATION)s
+organizationalUnitName		= %(ORGANISATIONSEINHEIT)s
+commonName			= %(SERVER_NAME)s
+emailAddress			= %(SERVER_ADMIN)s
+
+
