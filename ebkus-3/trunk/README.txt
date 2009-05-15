@@ -1,10 +1,10 @@
-EBKuS 4.2
+EBKuS 4.3
 =========
 
 Klientenverwaltung, Aktendokumentation, Gruppenverwaltung 
 und Statistik für Erziehungs- und Familienberatungsstellen
 
-Copyright (1997-2008) Jürg Huber, Albrecht Schmiedel 
+Copyright (1997-2009) Jürg Huber, Albrecht Schmiedel 
 Lizenz: GNU General Public License (GPL)
 
 E-Mail: juerg@pantau.in-berlin.de, albrecht.schmiedel@ebkus.org
@@ -24,9 +24,10 @@ GÜLTIG.
 Hinweis für Windows-Benutzer
 ----------------------------
 
-Bitte wordpad.exe oder einen anderen Texteditor zum Lesen/Ändern
+Bitte ``notepad++`` oder einen anderen Texteditor zum Lesen/Ändern
 der Textdateien (insbesondere der Konfigurationsdatei)
-verwenden. ``notepad.exe`` versteht die Zeilenstruktur nicht.
+verwenden. Der Windows-Standardeditor ``notepad`` versteht die
+Zeilenstruktur nicht. 
 
 EBKuS läuft nur auf Windows NT/2000/XP, nicht Windows 95/98/ME.
 Auf Windows NT ist das Service-Pack 6 erforderlich.

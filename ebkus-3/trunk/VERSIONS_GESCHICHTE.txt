@@ -12,6 +12,184 @@ EBKuS Versionsgeschichte
 
 
 
+EBKuS 4.2 (8. Dezember 2008)
+============================
+
+ACHTUNG:
+Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
+aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
+nach wie vor gültig.
+
+
+Update von 4.1.1 auf 4.2
+------------------------
+
+Das Datenbankschema hat sich aufgrund des Fehlers in der
+Fachstatistik (siehe unten) verändert. Die Datenbanken sind
+nicht kompatibel. Beim ersten Neustart mit der Version 4.2 wird
+ein Update-Skript, ausgeführt, das automatisch die Datenbank an
+die neue Version anpasst. 
+
+
+Klientenakte
+------------
+
+Nachname zuerst bei der Klientenauswahl
+.......................................
+
+Bei der Klientenauswahl wird jetzt zuerst der Nachname und dann
+der Vorname des Klienten angezeigt. Wie bisher wird zunächst nach
+dem Nachnamen des Mitarbeiters und dann nach dem Nachnamen des
+Klienten sortiert.
+
+
+Notizen nach oben
+.................
+
+[Rev. 159,160]
+Notizen erscheinen nicht mehr lediglich ganz unten auf der
+Klientenkarte, sondern außerdem in einer eigenen Spalte neben
+den Einträgen, auf die sie sich beziehen. Als wichtig deklarierte
+Notizen werden in roter Schrift dargestellt.
+
+
+Anmeldungsdaten als Pflichtangaben bei der Anmeldung
+....................................................
+
+[Rev. 165]
+Wenn in der Konfiguration einer Instanz (in der Datei
+``ebkus.conf``) die Konfigurationsvariable
+``anmeldungsdaten_obligatorisch`` auf ``true`` gesetzt ist,
+werden die Anmeldungsdaten direkt im Aufnahmeformular (zusammen
+mit Klientenstammdaten, Fallbeginn und erste Leistung)
+erhoben. Die entsprechenden Pflichfelder sind dabei
+auszufüllen. Eine spätere Bearbeitung der Anmeldungsdaten erfolgt
+wie bisher in einer eigenständigen Maske (analog der späteren
+Bearbeitung einer Leistung).
+
+
+Auswertungen
+------------
+
+Zusätzliche Kriterien zur Auswahl von Beratungen
+................................................
+
+Die Kriterien für die Fallauswahl wurden um folgende Punkte
+erweitert: 
+
+* bis Jahr Fallbeginn, bis Fallnummer
+
+* ab Jahr Fallabschluss, bis Jahr Fallabschluss
+
+
+Fehler behoben bei Neumeldungen und Abschlüsse 
+..............................................
+
+
+ASD-Fälle wurden nicht ausgezählt. Fehler behoben.
+
+
+Fachstatistik
+-------------
+
+Fehler mit potentiellem Datenverlust behoben bei frei konfigurierbaren Fragen
+.............................................................................
+
+
+[Rev. 161]
+In der vorherigen Version 4.1.1 gab es einen Fehler mit
+potentiellem Datenverlust bei den frei konfigurierbaren Fragen.
+
+Dieser Fehler konnte nur dann auftreten, falls die Option
+Mehrfachauswahl gewählt wurde ('Frei definierbare Items im
+jeweils eigenen Kasten' in der Maske 'Fachstatistik
+konfigurieren' als Administrator). Grundsätzlich konnte nur das
+erste gewählte Merkmal gespeichert werden, weitere angekreuzte
+Merkmale fielen unter den Tisch.
+
+Die Behebung dieses Fehlers erfordert eine Änderung des
+Datenbankschemas, das automatisch beim Update auf Version 4.2
+durchgeführt wird.
+
+Nach dem Update muss jede Fachstatistik, die eine frei
+konfigurierbare Frage mit Mehrfachauswahl verwendet,
+nachgebessert werden, falls mehr als ein Merkmal bei der
+betreffenden Frage zugeordnet werden soll.
+
+
+Fehler behoben bei deaktivierten Merkmalen
+..........................................
+
+[Rev. 166]
+Trotz Deaktivierung erschienen Merkmale in den Ergebnistabellen
+der Fachstatistikauszählung, was nun nicht mehr der Fall ist.
+
+
+
+Veränderter Bezugspunkt für Prozentangaben bei der Auszählung von Fragen mit Mehrfachauswahl
+............................................................................................
+
+[Rev. 167]
+Der Prozentsatz bezieht sich nunmehr auf die Zahl der Klienten in
+der ausgezählten Grundgesamtheit, nicht auf die Summe der
+zugeordneten Merkmale. Wegen der Mehrfachauswahl kann nun die
+Summe der Prozentsätze größer als 100 sein.
+
+
+Fallunabhängige Aktivitäten
+---------------------------
+
+Sortierung
+..........
+
+[Rev. 162]
+Bisherige Aktivitäten werden nach Nachname des Mitarbeiters und
+dann nach Datum sortiert (bisher nur nach Nachnamen).
+
+
+Mehrere Mitarbeiter
+...................
+
+Bei der Einführung einer neuen fallunabhängigen Aktivität können
+mehrere Mitarbeiter angegeben werden. Dann erfolgt ein
+identischer Eintrag für jeden der angegebenen Mitarbeitern. Diese
+Einträge können später aber nur von dem betreffenden Mitarbeiter
+selber bearbeitet werden. Nur die Verwaltungskraft sieht die
+Aktivitäten aller Mitarbeiter und kann diese auch bearbeiten.
+
+
+Gruppenteilnehmerauswahl
+------------------------
+
+Sortierung
+..........
+
+[Rev. 163]
+Sortierung der Klienten und der Bezugspersonen bei der
+Gruppenteilnehmerauswahl erfolgt nun grundsätzlich nur nach
+Nachname der Klienten bzw. der Bezugspersonen.
+
+
+
+Neues Modul Adressenexport
+--------------------------
+
+[Rev. 164]
+Im Hauptmenü unter Auswertungen gibt es unter der Rubrik
+"Adressen exportieren" zwei neue Menüpunkte, Fälle und Gruppen.
+Über eine Auswahl an Fällen (Kriterien wie bei "Beratungen")
+bzw. Gruppen kann eine Tabelle erzeugt werden, deren Zeilen
+u.a. die Adresse eines Klienten bzw. einer Bezugsperson
+enthalten. Alle Adressen, die zu einem Fall gehören (Klient und
+eine variable Anzahl von Bezugspersonen) sind farblich
+abgesetzt. Jede Zeile kann markiert werden, wodurch eine Auswahl
+von Adressen manuell getroffen werden kann. Die gewählten
+Adressen können als CSV-Datei exportiert werden (und bei Bedarf
+in einer Tabellenkalkulation weiter bearbeitet werden). Die
+CSV-Datei kann von anderen Programmen zur Erstellung von
+Serienbriefen, Adressaufklebern, etc. importiert werden.
+
+
 EBKuS 4.1.1 (18. März 2008)
 ===========================
 
@@ -32,7 +210,7 @@ Neue Konfigurationsvariable in ``ebkus.conf``:
   ``false``. 
 
 * *Hinweis zum Datenschutz*: Da über diese Schnittstelle alle
-  vorhandenen Daten abrufbar sind, empfehlen wird, diese Variable
+  vorhandenen Daten abrufbar sind, empfehlen wir, diese Variable
   generell auf ``false`` zu lassen und nur für gezielte
   Auswertungen vorübergehend auf ``true`` zu setzen.
 

@@ -488,7 +488,7 @@ class Meldung(FormPage):
             self.align = 'center'
         self.expand_attr('align')
         self.zeile_t = '<tr><td %(align_attr)s>%%s</td></tr>' % self
-        print 'ZEILE_T', self.zeile_t
+        #print 'ZEILE_T', self.zeile_t
         self.set_rows()
         super(Meldung, self)._init()
         if not self.title:

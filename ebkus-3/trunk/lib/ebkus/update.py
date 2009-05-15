@@ -22,10 +22,13 @@ except NameError:
 # public
 def update():
     u = UpdateDB()
+    # hack: künstlich auf 4.2 setzen, nur für demo_test
+    #from ebkus.app.ebapi import register_set
+    #register_set("Version", "4.2")
+    #u.ist = u.get_version()
     u.keep_alive_anpassen()
     u.fallnummer_pruefen_und_reparieren()
     u.fsqualij_code_reparieren()
-    u.wartezeit_bereichskategorie_eintragen() # todo rausnehmen
     if u.update_noetig():
         u.update()
         
@@ -123,8 +126,7 @@ class UpdateDB(object):
 
     def update_4_2_nach_4_3(self):
         self.wartezeit_bereichskategorie_eintragen()
-#         self.fua_bs_tabelle_neue_spalte_fuer_identitaet()
-#         self.fua_bs_identitaeten_nachtragen()
+        self.fua_bs_neue_tabelle_fuer_mitarbeiter_zuordnung()
 
 
     def wartezeit_bereichskategorie_eintragen(self):
@@ -176,12 +178,56 @@ class UpdateDB(object):
             c.insert()
             logging.info("Code für 'wartez' hinzugefügt: code=%s name=%s" % (code, name))
 
-    def fua_bs_tabelle_neue_spalte_fuer_identitaet(self):
-        SQL("ALTER TABLE fua_bs ADD COLUMN beteiligt VARCHAR(255)").execute()
 
-    def fua_bs_identitaeten_nachtragen(self):
-        # identität ist ein string aus allen beteiligten fua_bs-ids, sortiert nach Größe
-        Fua_BSList(where='', order='ky, km, kd, art, dauer')
+    def fua_bs_neue_tabelle_fuer_mitarbeiter_zuordnung(self):
+        if 'mitarbeiterfua_bs' in self.tables:
+            logging.info("Tabelle 'mitarbeiterfua_bs' existiert bereits")
+            return
+        try:
+            SQL("""CREATE TABLE mitarbeiterfua_bs (
+id int NOT NULL,
+mit_id int,
+fua_bs_id  int,
+zeit int,
+PRIMARY KEY (id)
+)""").execute()
+
+            t = Tabelle()
+            t.init(
+                tabelle="mitarbeiterfua_bs",
+                name="Zuordnung Mitarbeiter-fallunabhängige Aktivitäten",
+                klasse="Mitarbeiterfua_bs",
+                flag=0,
+                maxist=0
+                )
+            t.new()
+            t.insert()
+            felder = (
+                ('id', 'id', None, cc('verwtyp', 's'), None,),
+                ('mit_id', 'Mitarbeiterid', 'mitarbeiterfuaktivitaeten',
+                 cc('verwtyp', 'f'), Tabelle(tabelle='mitarbeiter')['id']),
+                ('fua_bs_id', 'Fua_bsid', 'mitarbeiterfuaktivitaeten',
+                 cc('verwtyp', 'f'), Tabelle(tabelle='fua_bs')['id']),
+                ('zeit', 'Änderungszeit', None, cc('verwtyp', 'p'), None),
+                )
+            for feld, name, inverse, verwtyp, ftab_id in felder:
+                f = Feld()
+                f.init(
+                    tab_id=t['id'],
+                    feld=feld,
+                    name=name,
+                    inverse=inverse,
+                    typ='INT',
+                    verwtyp=verwtyp,
+                    ftab_id=ftab_id,
+                    flag=0,
+                    )
+                f.new()
+                f.insert()
+            logging.info("Neue Tabelle 'mitarbeiterfua_bs' eingefuehrt")
+        except:
+            #raise
+            logging.error("************ Fehler beim Anlegen der Tabelle 'mitarbeiterfua_bs'")
 
     def fsqualij_code_reparieren(self):
         try:

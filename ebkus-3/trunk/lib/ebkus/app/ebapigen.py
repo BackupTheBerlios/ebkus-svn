@@ -326,6 +326,31 @@ class FallberatungskontaktList(Container):
     querySQL = resultClass.querySQL
 
 #####################################
+# Mitarbeiterfua_bs  (Tabelle 'mitarbeiterfua_bs')
+#####################################
+
+
+class Mitarbeiterfua_bs(DBObjekt):
+    table = 'mitarbeiterfua_bs'
+    fields =  ['id', 'mit_id', 'fua_bs_id', 'zeit']
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    multikatfieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = 'id'
+    otherkeys = []
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
+
+class Mitarbeiterfua_bsList(Container):
+    resultClass = Mitarbeiterfua_bs
+    querySQL = resultClass.querySQL
+
+#####################################
 # Fua_BS  (Tabelle 'fua_bs')
 #####################################
 
@@ -856,7 +881,9 @@ Mitarbeiterberatungskontakt.foreignfieldtypes['bkont_id'] = (Beratungskontakt, '
 Fallberatungskontakt.foreignfieldtypes['fall_id'] = (Fall, 'fallberatungskontakte')
 Fallberatungskontakt.foreignfieldtypes['bezugsp_id'] = (Bezugsperson, 'fallberatungskontakte')
 Fallberatungskontakt.foreignfieldtypes['bkont_id'] = (Beratungskontakt, 'fallberatungskontakte')
-Fua_BS.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'beratungskontakte_bs')
+Mitarbeiterfua_bs.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'mitarbeiterfuaktivitaeten')
+Mitarbeiterfua_bs.foreignfieldtypes['fua_bs_id'] = (Fua_BS, 'mitarbeiterfuaktivitaeten')
+Fua_BS.foreignfieldtypes['mit_id'] = (Mitarbeiter, 'fuaktivitaeten')
 Fua_BS.foreignfieldtypes['art'] = (Code, None)
 Fua_BS.foreignfieldtypes['stz'] = (Code, None)
 Zustaendigkeit.foreignfieldtypes['fall_id'] = (Fall, 'zustaendigkeiten')
@@ -992,7 +1019,9 @@ Beratungskontakt.inversefieldtypes['mitarbeiterberatungskontakte'] = (Mitarbeite
 Fall.inversefieldtypes['fallberatungskontakte'] = (FallberatungskontaktList, 'fall_id')
 Bezugsperson.inversefieldtypes['fallberatungskontakte'] = (FallberatungskontaktList, 'bezugsp_id')
 Beratungskontakt.inversefieldtypes['fallberatungskontakte'] = (FallberatungskontaktList, 'bkont_id')
-Mitarbeiter.inversefieldtypes['beratungskontakte_bs'] = (Fua_BSList, 'mit_id')
+Mitarbeiter.inversefieldtypes['mitarbeiterfuaktivitaeten'] = (Mitarbeiterfua_bsList, 'mit_id')
+Fua_BS.inversefieldtypes['mitarbeiterfuaktivitaeten'] = (Mitarbeiterfua_bsList, 'fua_bs_id')
+Mitarbeiter.inversefieldtypes['fuaktivitaeten'] = (Fua_BSList, 'mit_id')
 Fall.inversefieldtypes['zustaendigkeiten'] = (ZustaendigkeitList, 'fall_id')
 Mitarbeiter.inversefieldtypes['zustaendigkeiten'] = (ZustaendigkeitList, 'mit_id')
 Fall.inversefieldtypes['dokumente'] = (DokumentList, 'fall_id')
