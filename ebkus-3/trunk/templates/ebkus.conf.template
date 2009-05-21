@@ -87,6 +87,18 @@ admin_tel:     123 456 789
 # Wichtig! Jede Instanz benoetigt einen eigenen Port.
 port: 50010
 
+database_name: demo
+#database_host: localhost
+database_user: demo
+database_password: demo
+
+#loeschfrist: 36
+wiederaufnahmefrist: 6
+#session_time: 120
+berliner_version: false
+beratungskontakte: true
+fallunabhaengige_aktivitaeten_bs: true
+
 ##############################
 # Minimale Instanz mit Standardwerten ohne Demodaten
 
