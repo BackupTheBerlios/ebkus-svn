@@ -452,7 +452,9 @@ def main():
     
 if __name__ == "__main__": main()
 
-import sys, os, string, cgi, regex, regsub, CGIResponse
+import re
+#import sys, os, string, cgi, regex, regsub, CGIResponse
+import sys, os, string, cgi, CGIResponse
 from string import *
 from CGIResponse import Response
 from urllib import quote, unquote
@@ -511,8 +513,8 @@ class ModulePublisher:
             fslist=fs.list
             tuple_items={}
             
-            type_re=regex.compile(':[a-zA-Z][a-zA-Z0-9_]+')
-            type_search=type_re.search
+            #type_re=regex.compile(':[a-zA-Z][a-zA-Z0-9_]+')
+            type_re=re.compile(':[a-zA-Z][a-zA-Z0-9_]+')
             lt=type([])
             CGI_name=isCGI_NAME
             for item in fslist:
@@ -530,9 +532,14 @@ class ModulePublisher:
                         
                 seqf=None
                 
-                l=type_search(key)
-                while l >= 0:
-                    type_name=type_re.group(0)[1:]
+                #l=type_re.search(key)
+                mo=type_re.search(key)
+                #l=type_re.search(key) # index des ersten Treffers
+                #while l >= 0:
+                while mo:
+                    #type_name=type_re.group(0)[1:]
+                    type_name=mo.group(0)[1:]
+                    l = mo.start()
                     key=key[:l]+key[l+len(type_name)+1:]
                     if type_name == 'list':
                         seqf=list
@@ -541,7 +548,8 @@ class ModulePublisher:
                         tuple_items[key]=1
                     else:
                         item=type_converters[type_name](item)
-                    l=type_search(key)
+                    #l=type_re.search(key)
+                    mo=type_re.search(key)
                     
                     # Filter out special names from form:
                 if CGI_name(key) or key[:5]=='HTTP_': continue
@@ -601,7 +609,8 @@ class ModulePublisher:
                                   # why reveal that it exists?
     
     def badRequestError(self,name):
-        if regex.match('^[A-Z_0-9]+$',name) >= 0:
+        #if regex.match('^[A-Z_0-9]+$',name) >= 0:
+        if re.match('^[A-Z_0-9]+$',name):
             raise 'InternalError', self.html(
                 "Internal Error",
                 "Sorry, an internal error occurred in this resource.")
@@ -1037,11 +1046,11 @@ def field2string(v):
     else: v=str(v)
     return v
     
-def field2text(v, nl=regex.compile('\r\n\|\n\r'), sub=regsub.gsub):
-    if hasattr(v,'read'): v=v.read()
-    else: v=str(v)
-    v=sub(nl,'\n',v)
-    return v
+# def field2text(v, nl=regex.compile('\r\n\|\n\r'), sub=regsub.gsub):
+#     if hasattr(v,'read'): v=v.read()
+#     else: v=str(v)
+#     v=sub(nl,'\n',v)
+#     return v
     
 def field2required(v):
     if hasattr(v,'read'): v=v.read()
@@ -1071,38 +1080,38 @@ def field2long(v):
     if v: return atol(v)
     raise ValueError, 'Empty entry when <strong>integer</strong> expected'
     
-def field2Regex(v):
-    if hasattr(v,'read'): v=v.read()
-    else: v=str(v)
-    if v: return regex.compile(v)
+# def field2Regex(v):
+#     if hasattr(v,'read'): v=v.read()
+#     else: v=str(v)
+#     if v: return regex.compile(v)
     
-def field2regex(v):
-    if hasattr(v,'read'): v=v.read()
-    else: v=str(v)
-    if v: return regex.compile(v,regex.casefold)
+# def field2regex(v):
+#     if hasattr(v,'read'): v=v.read()
+#     else: v=str(v)
+#     if v: return regex.compile(v,regex.casefold)
     
-def field2Regexs(v):
-    if hasattr(v,'read'): v=v.read()
-    else: v=str(v)
-    v= map(lambda v: regex.compile(v), split(v))
-    if v: return v
+# def field2Regexs(v):
+#     if hasattr(v,'read'): v=v.read()
+#     else: v=str(v)
+#     v= map(lambda v: regex.compile(v), split(v))
+#     if v: return v
     
-def field2regexs(v):
-    if hasattr(v,'read'): v=v.read()
-    else: v=str(v)
-    v= map(lambda v: regex.compile(v, regex.casefold), split(v))
-    if v: return v
+# def field2regexs(v):
+#     if hasattr(v,'read'): v=v.read()
+#     else: v=str(v)
+#     v= map(lambda v: regex.compile(v, regex.casefold), split(v))
+#     if v: return v
     
 def field2tokens(v):
     if hasattr(v,'read'): v=v.read()
     else: v=str(v)
     return split(v)
     
-def field2lines(v, crlf=regex.compile('\r\n\|\n\r')):
-    if hasattr(v,'read'): v=v.read()
-    else: v=str(v)
-    v=regsub.gsub(crlf,'\n',v)
-    return split(v,'\n')
+# def field2lines(v, crlf=regex.compile('\r\n\|\n\r')):
+#     if hasattr(v,'read'): v=v.read()
+#     else: v=str(v)
+#     v=regsub.gsub(crlf,'\n',v)
+#     return split(v,'\n')
     
 def field2date(v):
     from DateTime import DateTime
@@ -1129,8 +1138,8 @@ type_converters = {
     'tuple':    field2tuple,
     'required': field2required,
     'tokens':   field2tokens,
-    'lines':    field2lines,
-    'text':     field2text,
+#    'lines':    field2lines,
+#    'text':     field2text,
     }
 
 
@@ -1242,8 +1251,10 @@ class Request:
     
     def __getitem__(self,key,
                     default=field2list, # Any special internal marker will do
-                    URLmatch=regex.compile('URL[0-9]$').match,
-                    BASEmatch=regex.compile('BASE[0-9]$').match,
+                    #URLmatch=regex.compile('URL[0-9]$').match,
+                    URLmatch=re.compile('URL[0-9]$').match,
+                    #BASEmatch=regex.compile('BASE[0-9]$').match,
+                    BASEmatch=re.compile('BASE[0-9]$').match,
                     ):
         """Get a variable value
         
@@ -1259,7 +1270,8 @@ class Request:
             if key=='REQUEST': return self
             return other[key]
             
-        if key[:1]=='U' and URLmatch(key) >= 0 and other.has_key('URL'):
+        #if key[:1]=='U' and URLmatch(key) >= 0 and other.has_key('URL'):
+        if key[:1]=='U' and URLmatch(key) and other.has_key('URL'):
             n=ord(key[3])-ord('0')
             URL=other['URL']
             for i in range(0,n):
@@ -1276,7 +1288,8 @@ class Request:
             
         if key=='REQUEST': return self
         
-        if key[:1]=='B' and BASEmatch(key) >= 0 and other.has_key('URL'):
+        #if key[:1]=='B' and BASEmatch(key) >= 0 and other.has_key('URL'):
+        if key[:1]=='B' and BASEmatch(key) and other.has_key('URL'):
             n=ord(key[4])-ord('0')
             URL=other['URL']
             baselen=len(self.base)
@@ -1322,33 +1335,72 @@ isCGI_NAME = {
 
 
 
+# def parse_cookie(text,
+#                  result=None,
+#                  qparmre=regex.compile(
+#                      '\([\0- ]*'
+#                      '\([^\0- ;,=\"]+\)="\([^"]*\)\"'
+#                      '\([\0- ]*[;,]\)?[\0- ]*\)'
+#                      ),
+#                  parmre=regex.compile(
+#                      '\([\0- ]*'
+#                      '\([^\0- ;,=\"]+\)=\([^\0;-=\"]*\)'
+#                      '\([\0- ]*[;,]\)?[\0- ]*\)'
+#                      ),
+#                  ):
+
+#     print 'cgi_module_publisher COOKIE: ', text
+
+#     if result is None: result={}
+#     already_have=result.has_key
+    
+#     if qparmre.match(text) >= 0:
+#         # Match quoted correct cookies
+#         name=qparmre.group(2)
+#         value=qparmre.group(3)
+#         l=len(qparmre.group(1))
+#     elif parmre.match(text) >= 0:
+#         # Match evil MSIE cookies ;)
+#         name=parmre.group(2)
+#         value=parmre.group(3)
+#         l=len(parmre.group(1))
+#     else:
+#         if not text or not strip(text): return result
+#         raise "InvalidParameter", text
+        
+#     if not already_have(name): result[name]=value
+    
+#     return apply(parse_cookie,(text[l:],result))
+
 def parse_cookie(text,
                  result=None,
-                 qparmre=regex.compile(
-                     '\([\0- ]*'
-                     '\([^\0- ;,=\"]+\)="\([^"]*\)\"'
-                     '\([\0- ]*[;,]\)?[\0- ]*\)'
+                 qparmre=re.compile(
+        r'([\000- ]*([^\000- ;,="]+)="([^"]*)"([\000- ]*[;,])?[\000- ]*)'
                      ),
-                 parmre=regex.compile(
-                     '\([\0- ]*'
-                     '\([^\0- ;,=\"]+\)=\([^\0;-=\"]*\)'
-                     '\([\0- ]*[;,]\)?[\0- ]*\)'
+                 parmre=re.compile(
+        r'([\000- ]*([^\000- ;,="]+)=([^\000;-="]*)([\000- ]*[;,])?[\000- ]*)'
+         '([\x00- ]*([^\x00- ;,="]+)="([^"]*)"([\x00- ]*[;,])?[\x00- ]*)'
                      ),
                  ):
 
+    #print 'cgi_module_publisher COOKIE: ', text
+
     if result is None: result={}
     already_have=result.has_key
-    
-    if qparmre.match(text) >= 0:
+    moq = qparmre.match(text)
+    mo = parmre.match(text)
+    if moq:
         # Match quoted correct cookies
-        name=qparmre.group(2)
-        value=qparmre.group(3)
-        l=len(qparmre.group(1))
-    elif parmre.match(text) >= 0:
+        name=moq.group(2)
+        value=moq.group(3)
+        l=len(moq.group(1))
+        #print 'MOQ', name, ' ==== ', value, '  ', l
+    elif mo:
         # Match evil MSIE cookies ;)
-        name=parmre.group(2)
-        value=parmre.group(3)
-        l=len(parmre.group(1))
+        name=mo.group(2)
+        value=mo.group(3)
+        l=len(mo.group(1))
+        #print 'MO', name, ' ==== ', value, '  ', l
     else:
         if not text or not strip(text): return result
         raise "InvalidParameter", text

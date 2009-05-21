@@ -56,7 +56,8 @@ $Id: CGIResponse.py,v 1.2 2004/10/16 17:14:42 atms Exp $'''
 #
 __version__='$Revision: 1.2 $'[11:-2]
 
-import string, types, sys, regex, regsub
+#import string, types, sys, regex, regsub
+import string, types, sys, re
 from string import find, rfind, lower, upper, strip, split, join
 
 status_reasons={
@@ -143,11 +144,15 @@ status_codes={
     'zerodivisionerror':500,
     }
 
-end_of_header_re=regex.compile('</head>',regex.casefold)
+#end_of_header_re=regex.compile('</head>',regex.casefold)
+end_of_header_re=re.compile('</head>',re.IGNORECASE)
 
-absuri_re=regex.compile("[a-zA-Z0-9+.-]+:[^\0- \"\#<>]+\(#[^\0- \"\#<>]*\)?")
+#absuri_re=regex.compile("[a-zA-Z0-9+.-]+:[^\0- \"\#<>]+\(#[^\0- \"\#<>]*\)?")
+absuri_re=re.compile(r'[a-zA-Z0-9+.-]+:[^\000- "\#<>]+(#[^\000- "\#<>]*)?')
 
-bogus_str=regex.compile(" [a-fA-F0-9]+>$")
+#bogus_str=regex.compile(" [a-fA-F0-9]+>$")
+bogus_str=re.compile(" [a-fA-F0-9]+>$")
+
 accumulate_header={'set-cookie': 1}.has_key
 
 _tbopen, _tbclose = '<!--', '-->'
@@ -251,7 +256,8 @@ class Response:
         body=str(body)
         l=len(body)
         if (find(body,'>')==l-1 and body[:1]=='<' and l < 200 and
-            bogus_str.search(body) > 0):
+            #bogus_str.search(body) > 0):
+            bogus_str.search(body)):
             raise 'NotFound', (
                 "Sorry, the requested document does not exist.<p>"
                 "\n%s\n%s\n%s" % (_tbopen, body[1:-1], _tbclose))
@@ -276,8 +282,10 @@ class Response:
         self.insertBase()
         
     def insertBase(self,
-                   base_re=regex.compile('\(<base[\0- ]+[^>]+>\)',
-                                         regex.casefold)
+                   # base_re=regex.compile('\(<base[\0- ]+[^>]+>\)',
+                   #                       regex.casefold)
+                   base_re=re.compile(r'(<base[\000- ]+[^>]+>)',
+                                      re.IGNORECASE)
                    ):
         if (self.headers.has_key('content-type') and
             self.headers['content-type']!='text/html'): return
@@ -285,10 +293,14 @@ class Response:
         if self.base:
             body=self.body
             if body:
-                e=end_of_header_re.search(body)
-                if e >= 0:
-                    b=base_re.search(body)
-                    if b < 0:
+                #e=end_of_header_re.search(body)
+                moe=end_of_header_re.search(body)
+                #if e >= 0:
+                if moe:
+                    e = moe.start() 
+                    mob=base_re.search(body)
+                    #if b < 0:
+                    if not mob:
                         self.body=('%s\t<base href="%s">\n%s' %
                                    (body[:e],self.base,body[e:]))
                         
@@ -365,14 +377,24 @@ class Response:
     def isHTML(self,str):
         return lower(strip(str)[:6]) == '<html>' or find(str,'</') > 0
         
+    # def quoteHTML(self,text,
+    #               character_entities=(
+    #                   (regex.compile('&'), '&amp;'),
+    #                   (regex.compile("<"), '&lt;' ),
+    #                   (regex.compile(">"), '&gt;' ),
+    #                   (regex.compile('"'), '&quot;'))): #"
+    #     for re,name in character_entities:
+    #         text=regsub.gsub(re,name,text)
+    #     return text
+        
     def quoteHTML(self,text,
                   character_entities=(
-                      (regex.compile('&'), '&amp;'),
-                      (regex.compile("<"), '&lt;' ),
-                      (regex.compile(">"), '&gt;' ),
-                      (regex.compile('"'), '&quot;'))): #"
+                      ('&', '&amp;'),
+                      ("<", '&lt;' ),
+                      (">", '&gt;' ),
+                      ('"', '&quot;'))): #"
         for re,name in character_entities:
-            text=regsub.gsub(re,name,text)
+            text=text.replace(re, name)
         return text
         
         
@@ -429,8 +451,10 @@ class Response:
         
         try:
             # Try to capture exception info for bci calls
-            et=regsub.gsub('\n',' ',str(t))
-            ev=regsub.gsub('\n',' ',str(v))
+            #et=regsub.gsub('\n',' ',str(t))
+            et=str(t).replace('\n', ' ')
+            #ev=regsub.gsub('\n',' ',str(v))
+            ev=str(v).replace('\n', ' ')
             # Get the tb tail, which is the interesting part:
             while tb.tb_next is not None: tb=tb.tb_next
             el=str(tb.tb_lineno)
@@ -449,7 +473,8 @@ class Response:
         stb=None
         self.setStatus(t)
         if self.status >= 300 and self.status < 400:
-            if type(v) == types.StringType and absuri_re.match(v) >= 0:
+            #if type(v) == types.StringType and absuri_re.match(v) >= 0:
+            if type(v) == types.StringType and absuri_re.match(v):
                 if self.status==300: self.setStatus(302)
                 self.setHeader('location', v)
                 tb=None
@@ -457,7 +482,8 @@ class Response:
             else:
                 try:
                     l,b=v
-                    if type(l) == types.StringType and absuri_re.match(l) >= 0:
+                    #if type(l) == types.StringType and absuri_re.match(l) >= 0:
+                    if type(l) == types.StringType and absuri_re.match(l):
                         if self.status==300: self.setStatus(302)
                         self.setHeader('location', l)
                         self.setBody(b)
@@ -478,7 +504,8 @@ class Response:
                     'Sorry, a SERIOUS APPLICATION ERROR occurred.<p>'
                      + self._traceback(t,v,tb)))
                 
-        elif type(b) is not types.StringType or regex.search('[a-zA-Z]>',b) < 0:
+        #elif type(b) is not types.StringType or regex.search('[a-zA-Z]>',b) < 0:
+        elif type(b) is not types.StringType or not re.search('[a-zA-Z]>',b):
             tb=self.setBody(
                 (str(t),
                  'Sorry, an error occurred.<p>'
@@ -526,10 +553,15 @@ class Response:
                 self.setHeader('content-type',c)
             else:
                 isHTML = headers['content-type']=='text/html'
-            if isHTML and end_of_header_re.search(self.body) < 0:
-                htmlre=regex.compile('<html>',regex.casefold)
-                lhtml=htmlre.search(body)
-                if lhtml >= 0:
+            #if isHTML and end_of_header_re.search(self.body) < 0:
+            if isHTML and not end_of_header_re.search(self.body):
+                #htmlre=regex.compile('<html>',regex.casefold)
+                htmlre=re.compile('<html>',re.IGNORECASE)
+                #lhtml=htmlre.search(body)
+                mo=htmlre.search(body)
+                #if lhtml >= 0:
+                if mo:
+                    lhtml = mo.start()
                     lhtml=lhtml+6
                     body='%s<head></head>\n%s' % (body[:lhtml],body[lhtml:])
                 else:
@@ -586,7 +618,8 @@ class Response:
         
         """
         self.body=self.body+data
-        if end_of_header_re.search(self.body) >= 0:
+        #if end_of_header_re.search(self.body) >= 0:
+        if end_of_header_re.search(self.body):
             headers=self.headers
             if headers.has_key('content-length'):
                 del headers['content-length']
