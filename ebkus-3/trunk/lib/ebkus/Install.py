@@ -1070,7 +1070,25 @@ class ComponentEbkusInstance(Component):
         if self.check_instance_database():
             self.log("Datenbank betriebsbereit: name=%s" % self.config.DATABASE_NAME)
         else:
-            self.create_database()
+            try:
+                path = self.config.INITIAL_CONTENT
+            except:
+                path = None
+            if path:
+                self.log("Datenbank initialisieren mit: %s" % path, push=True)
+                ext = path and path.lower()[-3:] or None
+                if isfile(path):
+                    if ext in ('zip','sql'):
+                        if ext == 'zip':
+                            self.restore_instance(path)
+                        elif ext == 'sql':
+                            self.create_database(path)
+                    else:
+                        self.log("Fehler: Keine .sql oder .zip Datei: %s" % path, pop=True)
+                else:
+                    self.log("Fehler: Datei existiert nicht: %s" % path, pop=True)
+            if not self.check_instance_database():
+                self.create_database()
         if win32:
             srv_conf = join(self.config.INSTANCE_HOME, 'srvstart.conf')
             self.log("Datei erzeugen: %s" % srv_conf)

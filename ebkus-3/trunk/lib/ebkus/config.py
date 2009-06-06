@@ -53,6 +53,7 @@ _params = (
     ('instance', 'DATABASE_PASSWORD', 'database_password', 's', 'i:%(instance_name)s'),
     ('instance', 'DATABASE_TYPE', 'database_type', 's', 's:MySQLdb'),
     ('instance', 'DOCUMENT_ROOT', 'document_root', 'p', 'i:%(instance_home)s/htdocs'),
+    ('instance', 'INITIAL_CONTENT', 'initial_content', 'p', 'i:'),
     ('instance', 'PORT', 'port', 'i', None),
     ('instance', 'HOST', 'host', 's', 's:localhost'),
     ('instance','LOG_FILE',  'log_file', 'p', 'i:%(instance_home)s/%(instance_name)s.log'),
