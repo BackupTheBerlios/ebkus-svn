@@ -100,54 +100,15 @@ class _fua(Request.Request, akte_share):
             where_old = where + " and mit_id=%s" % self.mitarbeiter['id']
             aktivitaeten_list_old = Fua_BSList(where=where_old)
             join = [('mitarbeiterfua_bs',
-                     'mitarbeiterfua_bs.mit_id=%s' % self.mitarbeiter['id'])]
-            aktivitaeten_list_new = Fua_BSList(where=where, 
-                                               join=join)
+                     'mitarbeiterfua_bs.fua_bs_id = fua_bs.id and '
+                     'mitarbeiterfua_bs.mit_id=%s' % self.mitarbeiter['id']
+                     )]
+            aktivitaeten_list_new = Fua_BSList(where=where, join=join)
             aktivitaeten_list = aktivitaeten_list_old + aktivitaeten_list_new
         else:
             aktivitaeten_list = []
         aktivitaeten_list.sort('ky', 'km', 'kd')
         return aktivitaeten_list
-
-
-#     def get_fua_bs(self, jahr, monat, legend,
-#                    edit_button=False,
-#                    hinzufuegen_button=False):
-#         benr = self.mitarbeiter['benr__code']
-#         where = "ky=%s" % jahr
-#         if benr == 'bearb':
-#             where += " and mit_id=%s" % self.mitarbeiter['id']
-#         elif benr == 'verw':
-#             where += " and stz=%s" % self.stelle['id']
-#         if monat:
-#             where += " and km=%s" % monat
-#         aktivitaeten_list = Fua_BSList(where=where)
-#         aktivitaeten_list.sort('mit__na', 'ky', 'km', 'kd')
-#         bisherige_aktivitaeten = h.FieldsetDataTable(
-#             legend=legend,
-#             empty_msg="Bisher keine Aktivitäten eingetragen.",
-#             headers=('Datum', 'Mitarbeiter', 'Art', 'Dauer in Minuten', 'Notiz'),
-#             daten=[[(edit_button and h.Icon(href= 'updfua?fuaid=%(id)d' % fua,
-#                                             icon= "/ebkus/ebkus_icons/edit_button.gif",
-#                                             tip= 'Aktivität bearbeiten') or None),
-#                     (edit_button and h.Icon(href='rmfua?fuaid=%(id)d' % fua,
-#                                             icon="/ebkus/ebkus_icons/del_button.gif",
-#                                             tip='Fallunabhängige Aktivität endgültig löschen') or None),
-#                     h.Datum(date =  fua.getDate('k')),
-#                     h.String(string=fua['mit__na']),
-#                     h.String(string=fua['art__name']),
-#                     h.String(string="%(dauer)s / %(brutto)s" % fua,
-#                              tip='Netto/Brutto'),
-#                     h.String(string=fua['no']),
-#                     ]
-#                    for fua in aktivitaeten_list],
-#             button=(hinzufuegen_button and
-#                     h.Button(value="Hinzufügen",
-#                              tip="Aktivität hinzufügen",
-#                              onClick="go_to_url('fuaneu')",
-#                              ) or None),
-#             )
-#         return bisherige_aktivitaeten
         
     def get_fua_bs_new(self, jahr, monat, legend,
                        edit_button=False,
