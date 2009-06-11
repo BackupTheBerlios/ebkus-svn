@@ -1,5 +1,6 @@
 # coding: latin-1
 
+import sys
 import logging
 from ebkus.app import Request
 from ebkus.app_surface.standard_templates import *
@@ -219,7 +220,10 @@ class Chart2(object):
         # bei laengeren Namen harter Absturz, ohne Exception
         names = [n[:23] for n in names]
         #logging.info(names)
-        chart.setLabels(names)
+        if sys.version_info >= (2,5):
+            chart.xtitle = 'Leider keine Namen aufgrund eines Softwarefehlers'
+        else:
+            chart.setLabels(names)
 
     def draw(self):
         """Erstellt Chart als GIF. Gibt das GIF als string zurück."""
