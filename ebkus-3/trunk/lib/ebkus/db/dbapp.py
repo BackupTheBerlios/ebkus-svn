@@ -226,7 +226,7 @@ class DBObjekt(UserDict):
                 return self[self.primarykey].__cmp__(other[other.primarykey])
             except:
                 pass
-        return id(self).__cmp__(id(other))
+        return cmp(id(self), id(other))
 
 
     def init(self, **kw):
