@@ -6,12 +6,15 @@ Klasse EBKuS."""
 import sys
 import warnings
 # weg mit der 'rotor is deprecated' Warnung
-warnings.filterwarnings('ignore', '', DeprecationWarning, 'ebkus\.html\.administration', 11)
-warnings.filterwarnings('ignore', '', DeprecationWarning, 'ebkus\.app\.protocol', 11)
-# weg mit der 'regsub, regex is deprecated' Warnung
-warnings.filterwarnings('ignore', '', DeprecationWarning, 'ebkus\.bobo\.cgi_module_publisher', 455)
-warnings.filterwarnings('ignore', '', DeprecationWarning, 'ebkus\.bobo\.CGIResponse', 59)
-warnings.filterwarnings('ignore', '', DeprecationWarning, 'regsub', 15)
+# warnings.filterwarnings('ignore', '', DeprecationWarning, 'ebkus\.html\.administration', 11)
+# warnings.filterwarnings('ignore', '', DeprecationWarning, 'ebkus\.app\.protocol', 11)
+# # weg mit der 'regsub, regex is deprecated' Warnung
+# warnings.filterwarnings('ignore', '', DeprecationWarning, 'ebkus\.bobo\.cgi_module_publisher', 455)
+# warnings.filterwarnings('ignore', '', DeprecationWarning, 'ebkus\.bobo\.CGIResponse', 59)
+# warnings.filterwarnings('ignore', '', DeprecationWarning, 'regsub', 15)
+
+# Keine Warnungen mehr wg. veralteten Modulen
+warnings.filterwarnings('ignore', '', DeprecationWarning)
 
 from ebkus.db import sql
 sql.debug = 0
