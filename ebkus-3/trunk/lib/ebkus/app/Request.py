@@ -173,10 +173,19 @@ class Request(object):
 
     def EBKuSError(self, REQUEST, RESPONSE):
         RESPONSE.setHeader('content-type', 'text/html')
+        le = str(self.last_error_message)
+        close = False
+        # schneller Hack: wenn die Fehlermeldung mit 'XXX' beginnt, wird das Fenster
+        # geschlossen, anstatt history.back() gemacht.
+        # Für die Fälle, wo ein neues Fenster aufgemacht wurde.
+        if le.startswith('XXX'):
+            close = True
+            le = le[3:]
         return h.Meldung(
             title='Fehlermeldung',
             legend='Fehlerbeschreibung',
-            zeilen=(str(self.last_error_message),
+            close=close,
+            zeilen=(le,
                   'Zurück ...',
                   ),
             ).display()
