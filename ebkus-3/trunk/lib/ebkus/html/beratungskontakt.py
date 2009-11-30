@@ -266,26 +266,6 @@ class bkontbsabfr(Request.Request, akte_share):
     def _add_res(self, summe, summand):
         for k,v in summand.items():
             summe[k] += v
-##     def count_row(self, netto, brutto, bkont):
-##         "Einen Kontakt auszählen"
-##         art = bkont['art_bs__code']
-##         dauer = bkont['dauer']
-##         if art == '5':
-##             # ausgefallen
-##             netto[art] += 20
-##             brutto[art] += 20
-##         elif art in ('3', '7', '9'):
-##             # Fahrzeiten
-##             netto[art] += dauer
-##             brutto[art] += dauer
-##         else:
-##             # alles andere +40% Vor- und Nachbereitung
-##             netto[art] += dauer
-##             brutto[art] += dauer + (dauer*.4)
-##         if bkont['offenespr'] == cn('ja_nein', 'ja'):
-##             # Offene Sprechstunde
-##             netto['offenespr'] += dauer
-##             brutto['offenespr'] += dauer + (dauer*.4)
     def count_row(self, netto, brutto, bkont):
         "Einen Kontakt auszählen"
         art = bkont['art_bs__code']
@@ -471,21 +451,6 @@ class bkontbsabfr(Request.Request, akte_share):
             )
         return res.display()
 
-##     def processForm(self, REQUEST, RESPONSE):
-##         res = h.FormPage(
-##             title='Abfrage Beratungskontaktzeiten',
-##             name="bkontform",action="bkontbsabfr",method="post",
-##             breadcrumbs = (('Hauptmenü', 'menu'),
-##                            ),
-##             hidden = (),
-##             rows=(self.get_auswertungs_menu(),
-##                   self.grundgesamtheit(legend='Jahr und Stelle wählen'),
-##                   h.SpeichernZuruecksetzenAbbrechen(value='Anzeigen'),
-##                   ),
-##             )
-##         return res.display()
-
-
 def hatte_kontakt_im_abschlussjahr(fall, jahr):
     # nur auf Fälle anwenden, wo es überhaupt Beratungskontakte gibt
     kontakte_im_jahr, kontakte_insgesamt = get_jgh_kontakte(fall, jahr)
@@ -539,3 +504,42 @@ def get_fs_kontakte(fall, fs):
             fs[feld] += anzahl
             summe += anzahl
         fs['kat'] = summe
+
+
+class bkontdruck(Request.Request, akte_share):
+    permissions = Request.ABFR_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        #print 'FORM', self.form
+        fall_id = self.form.get('fallid')
+        if not fall_id:
+            self.last_error_message = "Keine Fall-ID für Beratungskontakte erhalten"
+            return self.EBKuSError(REQUEST, RESPONSE)
+        fall = Fall(fall_id)
+        beratungskontakt_list = fall['beratungskontakte']
+        if not beratungskontakt_list:
+            return 'Keine Beratungskontakte vorhanden'
+        titelstr = ("Beratungskontakte für %s " % (fall['name']) +
+                    "bis %(day)d.%(month)d.%(year)d " % today() +
+                    '(Fallnummer: %s)' % fall['fn'])
+        ueberschrift = h.TableDataTable(
+            daten=[[h.String(string=titelstr,
+                                   class_='tabledatabold'),
+                    ],
+                   [h.Dummy()],
+                   ],
+            )
+
+        beratungskontakte = self.get_beratungskontakte(
+            beratungskontakt_list,
+            cls=h.TableDataTable,
+            )
+        res = h.Page(
+            title='Beratungskontakte %(fn)s ' % fall + \
+                'bis %(day)d.%(month)d.%(year)d)' % today(),
+            ueberschrift=ueberschrift,
+            rows=(ueberschrift,
+                  beratungskontakte,
+                  ),
+            )
+        return res.display()
+

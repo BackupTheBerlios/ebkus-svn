@@ -106,7 +106,7 @@ def getClassesToBePublished():
     from ebkus.html.einrichtungskontakt import einrneu, updeinr, rmeinr
     from ebkus.html.leistung import leistneu, updleist, rmleist
     if config.BERATUNGSKONTAKTE:
-        from ebkus.html.beratungskontakt import bkontneu, updbkont, rmbkont
+        from ebkus.html.beratungskontakt import bkontneu, updbkont, rmbkont, bkontdruck
         if config.BERATUNGSKONTAKTE_BS:
             from ebkus.html.beratungskontakt import bkontbsabfr
     if config.FALLUNABHAENGIGE_AKTIVITAETEN_BS:

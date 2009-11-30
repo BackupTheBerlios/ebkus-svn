@@ -49,12 +49,14 @@ class akte_share(options):
              h.SelectGoto(name='Auswahl2', options =
 """<option value="nothing">[ Anzeige ]</option>
 <option value="newXX vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
+<option value="newXX bkontdruck?akid=%(akte_id)d&fallid=%(id)d">- Beratungskontakte</option>
 <option value="kldok?akid=%(akte_id)d&fallid=%(id)d">- Klientendokumente</option>
 """ % aktueller_fall)
              or
              h.SelectGoto(name='Auswahl2', options =
 """<option value="nothing">[ Anzeige ]</option>
-<option value="vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
+<option value="newXX vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
+<option value="newXX bkontdruck?akid=%(akte_id)d&fallid=%(id)d">- Beratungskontakte</option>
 <option value="kldok?akid=%(akte_id)d&fallid=%(id)d">- Klientendokumente</option>
 """ % letzter_fall ))
 
@@ -548,7 +550,10 @@ class akte_share(options):
                                  aktueller_fall=None, # falls False, kein Hinzufügen-Button, inaktive edit/view buttons
                                  edit_button=False, # falls False, kein edit button
                                  hinzufuegen_button=False, # falls False, kein hinzufügen button
+                                 cls=None, # Falls hier eine Klasse steht, wird die genommen anstatt FieldsetDataTable
                                  ):
+        if not cls:
+            cls = h.FieldsetDataTable
         BS = config.BERATUNGSKONTAKTE_BS
         if BS:
             art_feld = 'art_bs'
@@ -562,7 +567,7 @@ class akte_share(options):
         if aktueller_fall:
             updurl = 'updbkont?bkontid=%%(id)d&fallid=%s' % aktueller_fall['id']
             rmurl =   'rmbkont?bkontid=%%(id)d&fallid=%s' % aktueller_fall['id']
-        bisherige_kontakte = h.FieldsetDataTable(
+        bisherige_kontakte = cls(
             legend='Beratungskontakte',
             empty_msg="Bisher keine Kontakte eingetragen.",
             noheaders=edit_button and 2 or 0,
