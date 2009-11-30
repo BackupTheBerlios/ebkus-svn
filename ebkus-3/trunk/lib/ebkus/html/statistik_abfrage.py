@@ -539,9 +539,10 @@ class statergebnis(_statistik_ergebnis):
             ggl = jgh_ggl
         anzeige_gg = self.get_grundgesamtheit_anzeige(stz, von_jahr, bis_jahr, welche,
                                                       fs, jgh, jgh07, len(ggl), ohne_bk_raus)
+        
         if not ggl:
             raise EE("Keine Datensätze für die gewünschte Grundgesamtheit:"
-                     "\n\n%s\n und %s" % anzeige_gg)
+                     "\n\n%s\n und %s" % (anzeige_gg[0], anzeige_gg[1]))
         if query.always_true():
             ggl_teilm = ggl
         else:
