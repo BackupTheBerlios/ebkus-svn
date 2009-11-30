@@ -387,7 +387,7 @@ class _statistik_ergebnis(Request.Request, akte_share):
         self.session.data[session_key]['anzahl'] = len(liste)
         # siehe statistik_ergebnis.auszergebnis.add_tabelle
         taball_url = "newXX auszergebnis?typ=taball&session_key=%s" % (session_key,)
-        csvall_url = "auszergebnis?typ=csvall&session_key=%s" % (session_key,)
+        csvall_url = "newXX auszergebnis?typ=csvall&session_key=%s" % (session_key,)
         menu = h.FieldsetInputTable(
             legend='Auswahlmenü',
             daten=[[h.SelectGoto(name='Auswahl',

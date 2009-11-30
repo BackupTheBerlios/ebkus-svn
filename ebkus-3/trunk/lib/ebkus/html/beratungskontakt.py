@@ -517,7 +517,7 @@ class bkontdruck(Request.Request, akte_share):
         fall = Fall(fall_id)
         beratungskontakt_list = fall['beratungskontakte']
         if not beratungskontakt_list:
-            return 'Keine Beratungskontakte vorhanden'
+            raise EE('XXXKeine Beratungskontakte vorhanden')
         titelstr = ("Beratungskontakte für %s " % (fall['name']) +
                     "bis %(day)d.%(month)d.%(year)d " % today() +
                     '(Fallnummer: %s)' % fall['fn'])

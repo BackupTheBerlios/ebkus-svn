@@ -16,6 +16,17 @@ table.pageframe {
         width: 800px;
  }
 
+
+/* Damit auf dem IE (in Version 6 ist das der Fall, später weiß ich nicht)
+  beim Drucken der rechte Rand nicht abgeschnitten wird. (Man kann aber auch
+  quer ausdrucken.)
+*/
+@media print {
+table.pageframe { 
+        width: 680px;
+}
+}
+
 .textareanormal { 
            font-family: Arial, Helvetica, sans-serif;
            font-size: 10pt;

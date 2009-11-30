@@ -16,7 +16,7 @@ head_normal_ohne_help_t = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transi
 vkopf_t = """
 </head>
 <body bgcolor="#FFFFFF">
-<table align="center" bgcolor="#CCCCCC" width="95%%">
+<table class="pageframe">
   <tr>
     <td colspan="3">
       <table border=1 cellpadding="0" cellspacing="0" width=100%% bordercolor="#CCCCCC">

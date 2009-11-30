@@ -50,6 +50,7 @@ class auszergebnis(Request.Request):
         except KeyError:
             return h.Meldung(
                 legend='Abfrageergebnis veraltet',
+                close=True,
                 zeilen=('Die Abfrageergebnisse stammen aus einer fr&uuml;heren Session.',
                         'Bitte wiederholen Sie die Anfrage.',
                       'Zurück ...',

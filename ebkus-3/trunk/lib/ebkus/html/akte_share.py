@@ -44,21 +44,44 @@ class akte_share(options):
 <option value="zdar?akid=%(akte_id)d&fallid=%(id)d">- zdA R&uuml;ckg&auml;ngig</option>
 """ % letzter_fall))
 
+
+
     def get_button_klienten_anzeige(self, aktueller_fall, letzter_fall):
-            return (aktueller_fall and
-             h.SelectGoto(name='Auswahl2', options =
-"""<option value="nothing">[ Anzeige ]</option>
+        if aktueller_fall:
+            fall =  aktueller_fall
+        else:
+            fall = letzter_fall
+        if config.BERATUNGSKONTAKTE:
+            bkont = '<option value="newXX bkontdruck?akid=%(akte_id)d&fallid=%(id)d">- Beratungskontakte</option>\n' % fall
+        else:
+            bkont = ''
+        options = """<option value="nothing">[ Anzeige ]</option>
 <option value="newXX vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
-<option value="newXX bkontdruck?akid=%(akte_id)d&fallid=%(id)d">- Beratungskontakte</option>
-<option value="kldok?akid=%(akte_id)d&fallid=%(id)d">- Klientendokumente</option>
-""" % aktueller_fall)
-             or
-             h.SelectGoto(name='Auswahl2', options =
-"""<option value="nothing">[ Anzeige ]</option>
-<option value="newXX vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
-<option value="newXX bkontdruck?akid=%(akte_id)d&fallid=%(id)d">- Beratungskontakte</option>
-<option value="kldok?akid=%(akte_id)d&fallid=%(id)d">- Klientendokumente</option>
-""" % letzter_fall ))
+%%s<option value="kldok?akid=%(akte_id)d&fallid=%(id)d">- Klientendokumente</option>
+""" % fall
+        options = options % bkont
+        return h.SelectGoto(name='Auswahl2', options=options)
+
+#              h.SelectGoto(name='Auswahl2', options =
+# """<option value="nothing">[ Anzeige ]</option>
+# <option value="newXX vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
+# <option value="newXX bkontdruck?akid=%(akte_id)d&fallid=%(id)d">- Beratungskontakte</option>
+# <option value="kldok?akid=%(akte_id)d&fallid=%(id)d">- Klientendokumente</option>
+# """ % aktueller_fall)
+#             return (aktueller_fall and
+#              h.SelectGoto(name='Auswahl2', options =
+# """<option value="nothing">[ Anzeige ]</option>
+# <option value="newXX vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
+# <option value="newXX bkontdruck?akid=%(akte_id)d&fallid=%(id)d">- Beratungskontakte</option>
+# <option value="kldok?akid=%(akte_id)d&fallid=%(id)d">- Klientendokumente</option>
+# """ % aktueller_fall)
+#              or
+#              h.SelectGoto(name='Auswahl2', options =
+# """<option value="nothing">[ Anzeige ]</option>
+# <option value="newXX vorblatt?akid=%(akte_id)d&fallid=%(id)d">- Vorblatt</option>
+# <option value="newXX bkontdruck?akid=%(akte_id)d&fallid=%(id)d">- Beratungskontakte</option>
+# <option value="kldok?akid=%(akte_id)d&fallid=%(id)d">- Klientendokumente</option>
+# """ % letzter_fall ))
 
 # Im aktuellen Fall gab es den Wordexport, der aber unseres Wissens nie
 # verwendet wurde. Ich verstehe es auch nicht. Soll raus.

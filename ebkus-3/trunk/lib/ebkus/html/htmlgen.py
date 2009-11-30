@@ -477,9 +477,12 @@ class Meldung(FormPage):
     """
     onClick = "javascript:history.back()"
     empty_row = '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>'
+    close = False
     def _init(self):
         if self.weiter:
             self.onClick = "go_to_url('%s')" % self.weiter
+        if self.close:
+            self.onClick = "javascript:window.close()"
         if not self.align:
             self.align = 'center'
         self.expand_attr('align')
