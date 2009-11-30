@@ -16,6 +16,7 @@ from ebkus.app.ebapih import get_codes, mksel, get_all_codes
 from ebkus.html.statistik_ergebnis import auszergebnis
 from ebkus.app.statistik import CodeAuszaehlung, WertAuszaehlung
 from ebkus.html.abfragedef import Query
+from ebkus.html.beratungskontakt import hatte_kontakt_im_abschlussjahr
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.abfragen_templates import *
 from ebkus.app import ebupd
@@ -96,21 +97,6 @@ class statabfr(_statistik):
                                 value='teilmengen',
                                 ),
                     ],
-
-## Vielleicht später mal
-##                    [h.SelectItem(label='Einzelne Items auswählen (Fachstatistik)',
-##                                  name='item_auswahl',
-##                                  class_='listbox170',
-##                                  multiple=True,
-##                                  size=10,
-##                                  ),
-##                     h.SelectItem(label='Einzelne Items auswählen (Bundesstatistik)',
-##                                  name='item_auswahl',
-##                                  class_='listbox170',
-##                                  multiple=True,
-##                                  size=10,
-##                                  ),
-##                     ],
                    ]
             )
 
@@ -120,16 +106,6 @@ class statabfr(_statistik):
                      tip="Auswertung durchführen",
                      type='submit',
                      ),
-##             h.Button(value="Weiter",
-##                      name='op',
-##                      tip="Weiter bearbeiten ohne zu speichern",
-##                      type='submit'
-##                      ),
-##             h.Button(value="Abbrechen",
-##                      name='op',
-##                      tip="Zurück zur Statistikabfrage ohne zu speichern",
-##                      type='submit',
-##                      ),
             ]])
         res = h.FormPage(
             title='Statistikabfrage',
@@ -140,7 +116,9 @@ class statabfr(_statistik):
             rows=(self.get_auswertungs_menu(),
                   self.grundgesamtheit(show_quartal=False,
                                        show_welche=True,
-                                       welche='abgeschlossen'),
+                                       welche='abgeschlossen',
+                                       show_ohne_bk_raus=config.BERATUNGSKONTAKTE,
+                                       ),
                   teilmenge,
                   auszaehlung,
                   #h.SpeichernZuruecksetzenAbbrechen(),
@@ -181,19 +159,6 @@ class statabfr(_statistik):
             ebupd.rmabfr(self.form)
         return self._process()
 
-##         if file in ('abfreinf', 'updabfr', 'rmabfr'):
-##             # Nicht zurück zu abfragedef falls Speichern gedrückt wurde
-##             # oder endgültig gelöscht werden soll.
-##             if file == 'rmabfr':
-##                 ebupd.rmabfr(form)
-##             elif op == 'Speichern':
-##                 if file == 'abfreinf':
-##                     ebupd.abfreinf(form)
-##                 elif file == 'updabfr':
-##                     ebupd.updabfr(form)
-##             else:
-##                 file = 'abfragedef'
-
 class _statistik_ergebnis(Request.Request, akte_share):
     """Oberklasse für alle Fachstatistikabfragen, die bisher
     fstat_ausgabe benutzt haben.
@@ -217,13 +182,6 @@ class _statistik_ergebnis(Request.Request, akte_share):
         app = auszaehlungen.append # Abkürzung
         app(OA(liste, 'mit_id', self.getMitarbeiterliste(), 'na',
                title="Mitarbeiter", session_key=session_key))
-##         app(WA(liste, 'bz', title="Planungsraum", file=file))
-##         app(RWA(liste, 'fall__akte__ort', title="Ort", file=file))
-##         app(RWA(liste, 'fall__akte__ortsteil', title="Ortsteil", file=file))
-##         app(RWA(liste, 'fall__akte__samtgemeinde', title="Samtgemeinde", file=file))
-##         app(RWA(liste, 'fall__akte__bezirk', title="Bezirk", file=file))
-##         app(RWA(liste, 'fall__akte__plz', title="PLZ", file=file))
-##         app(RWA(liste, 'fall__akte__plraum', title="Planungsraum (Strkat)", file=file))
         return auszaehlungen
                              
     def get_jgh07_auszaehlungen(self, liste, session_key):
@@ -379,10 +337,13 @@ class _statistik_ergebnis(Request.Request, akte_share):
                 FA(liste, name_functions, title="Benutzerdefinierte Teilmengen",
                    session_key=session_key)]
 
-    def stat_ausgabe(self, res, liste, item_auswahl):
+    def stat_ausgabe(self, res, liste, item_auswahl, anzeige_gg, query):
         """Ausgabe der Fachstatistik für die verschiedenen Abfragen.
         Parameter res ist eine Liste, an die HTML-Strings angehängt
         werden. Die Strings sind <tr>-Elemente.
+        Die Auszählungsergebnisse, die textuelle Beschreibung der Abfrage (anzeige_gg) und
+        das query-Objekt werden in der Session gespeichert, so dass
+        sie für weitere Abfragen zur Verfügung stehen.
         """
         if not liste:
             raise EE("Keine Datensätze")
@@ -412,16 +373,37 @@ class _statistik_ergebnis(Request.Request, akte_share):
 ##             # In der Regel das letzte Element löschen
 ##             del auszaehlungen[-1]
         self.session.data[session_key] = {} # alle früheren in der Session löschen
+        self.session.data[session_key]['seq'] = [] # Liste mit auszählungen, so dass Ergebnisse in der 
+                                              # richtigen Reihenfolge ausgegeben werden können
         # im session-Objekt ablegen
+        seq = self.session.data[session_key]['seq']
         for a in auszaehlungen:
             if not isinstance(a, Ueberschrift):
                 self.session.data[session_key][a.id] = a
-        # Menu
-        res.append(jghstat_menue_head_t)
-        res.append(jghstat_menue_t % ("top","- Gehe zu ..."))
-        for a in auszaehlungen:
-            res.append(jghstat_menue_t % (a.identname, a.title))
-        res.append(jghstat_menue_end_t)
+            seq.append(a)
+        # fuer die druckfreundliche Ausgabe
+        self.session.data[session_key]['query'] = query
+        self.session.data[session_key]['anzeige_gg'] = anzeige_gg
+        self.session.data[session_key]['anzahl'] = len(liste)
+        # siehe statistik_ergebnis.auszergebnis.add_tabelle
+        taball_url = "newXX auszergebnis?typ=taball&session_key=%s" % (session_key,)
+        csvall_url = "auszergebnis?typ=csvall&session_key=%s" % (session_key,)
+        menu = h.FieldsetInputTable(
+            legend='Auswahlmenü',
+            daten=[[h.SelectGoto(name='Auswahl',
+                                 options='<option value="#top">- Gehe zu ...</option>\n' + '\n'.join([
+                                '<option value="#%s">%s' % (a.identname, a.title)
+                                for a in auszaehlungen])),
+                    h.Button(value="Drucken",
+                             tip="Druckfreundliche Ausgabe aller Tabellen",
+                             onClick="go_to_url('%s')" % taball_url,
+                             ),
+                    h.Button(value="CSV-Datei",
+                             tip="Alle Daten im CSV-Format für die Tabellenkalkulation exportieren",
+                             onClick="go_to_url('%s')" % csvall_url,
+                             ),
+                    ]])
+        res.append(menu.display())
         # Ergebnistabellen mit links auf Einzeltabelle und Chart hinzufügen
         for a in auszaehlungen:
             if isinstance(a, Ueberschrift):
@@ -431,49 +413,13 @@ class _statistik_ergebnis(Request.Request, akte_share):
                 erg.auszaehlung = a
                 erg.add_tabelle(res)
         
-##     def get_grundgesamtheit(self, stz_list, von_jahr, bis_jahr, klass):
-##         "Liefert alle FS bzw. JGH-Objekte (abhängig von klass) der"
-##         "angegebenen Stellen und Jahre."
-##         "Geordnet nach id"
-##         if klass == FachstatistikList:
-##             jahr = 'jahr'
-##         else:
-##             jahr = 'ey'
-##         stellen = ','.join(stz_list)
-##         ggl = klass(where="%(jahr)s is not NULL and "
-##                     "%(jahr)s  >= %(von_jahr)s and %(jahr)s  <= %(bis_jahr)s and "
-##                     "stz in ( %(stellen)s )" % locals())
-##         return ggl
-                     
-# TODO: welche mit einbeziehen
-    def get_grundgesamtheit(self, stz_list, von_jahr, bis_jahr, klass):
-        "Liefert alle FS bzw. JGH-Objekte (abhängig von klass) der"
-        "angegebenen Stellen und Jahre."
-        "Nur abgeschlossene Fälle, oder Statistiken mir fehlender fall_id"
-        if klass in (Jugendhilfestatistik2007List, JugendhilfestatistikList):
-            jahr = 'ey'
-        elif klass in (FachstatistikList,):
-            jahr = 'jahr'
-        else:
-            raise EE('Interner Fehler in get_grundgesamtheit')
-        stellen = ','.join(stz_list)
-        where_fall = "fall.zday > 0 and "
-        where_kein_fall = "fall_id IS NULL and "
-        where = """%(jahr)s  >= %(von_jahr)s and %(jahr)s  <= %(bis_jahr)s and 
-        stz in ( %(stellen)s )""" % locals()
-        ggl = (klass(where=where_fall + where,
-                     join=[('fall', '%s.fall_id=fall.id' % klass.resultClass.table)]
-                     ) +
-               klass(where=where_kein_fall + where)
-               )
-        return ggl
-
-# mit welche
-    def get_grundgesamtheit(self, stz_list, von_jahr, bis_jahr, welche, klass):
+    def get_grundgesamtheit(self, stz_list, von_jahr, bis_jahr, welche, klass, ohne_bk_raus):
         "Liefert alle FS bzw. JGH-Objekte (abhängig von klass) der"
         "angegebenen Stellen und Jahre."
         "Je nach dem Wert von 'welche' werden nur abgeschlossene, nur laufende oder alle Fälle genommen."
         "Statistiken mir fehlender fall_id werden immer zu den abgeschlossenen Fällen gezählt"
+        "Wenn ohne_bk_raus True liefert, werden solche abgeschlossenen Fälle herausgenommen, "
+        "die im Abschlussjahr keine Kontakte im Sinne der Bundesstatistik aufweisen."
 
         if klass == JugendhilfestatistikList:
             assert welche == 'abgeschlossenen'
@@ -496,12 +442,14 @@ class _statistik_ergebnis(Request.Request, akte_share):
         ggl = klass(where=where_fall + where,
                     join=[('fall', '%s.fall_id=fall.id' % klass.resultClass.table)]
                     )
+        if welche in ('alle', 'abgeschlossen') and ohne_bk_raus:
+            ggl = [el for el in ggl if hatte_kontakt_im_abschlussjahr(el['fall'], el[jahr])]
         if welche in ('alle', 'abgeschlossen'):
             ggl += klass(where=where_kein_fall + where)
         return ggl
                      
     def get_grundgesamtheit_anzeige(self, stz_list, von_jahr, bis_jahr, welche,
-                                    fs, jgh, jgh07, anzahl_gg):
+                                    fs, jgh, jgh07, anzahl_gg, ohne_bk_raus):
         "Liefert ein Paar, z.B. "
         "Stelle A und Jahre 1999 - 2003, Alle Fälle mit Bundesstatistik (45 Klienten)"
         
@@ -521,33 +469,18 @@ class _statistik_ergebnis(Request.Request, akte_share):
             stellen_str = 'Stellen %s' % stellen
         bs = jgh and "(alter) Bundesstatistik" or jgh07 and "Bundesstatistik" or ''
         fs = fs and "Fachstatistik" or ''
-        return ('%s und %s, %s' % (jahr_str, stellen_str, welche_str),
-                "Alle Fälle mit %s (%s Klient%s)" %
-                (fs and bs and "%s und %s" % (fs, bs) or fs or bs,
-                 anzahl_gg,
-                 anzahl_gg > 1 and 'en' or '')
-                )
-
-##     def join_fs_jgh_list(self, fs_list, jgh_list):
-##         "Beide Listen müssen nach id geordnet sein."
-##         "Es wird eine Liste aus Paaren (fs, jgh) gebildet, mit je gleicher id."
-##         res = []
-##         fm, jm = len(fs_list), len(jgh_list)
-##         i = j = 0
-##         while i<fm and j<jm:
-##             fs = fs_list[i]
-##             jgh = jgh_list[j]
-##             fs_id = fs['id']
-##             jgh_id = jgh['id']
-##             if fs_id == jgh_id:
-##                 res.append((fs,jgh))
-##                 i += 1
-##                 j += 1
-##             elif fs_id < jgh_id:
-##                 i += 1
-##             else:
-##                 j += 1
-##         return res
+        ohne_bk = ''
+        if ohne_bk_raus:
+            ohne_bk = " (keine abgeschlossene Fälle ohne Kontakt im Abschlussjahr)"
+        res = ['%s und %s, %s%s' % (jahr_str, stellen_str, welche_str, ohne_bk)]
+        # if ohne_bk_raus:
+        #     res.append("Keine Fälle ohne Kontakt im Abschlussjahr")
+        res.append("Alle Fälle mit %s (%s Klient%s)" %
+                   (fs and bs and "%s und %s" % (fs, bs) or fs or bs,
+                    anzahl_gg,
+                    anzahl_gg > 1 and 'en' or '')
+                   )
+        return res
 
     def join_fs_jgh_list(self, fs_list, jgh_list):
         "Beide Listen müssen nicht geordnet sein."
@@ -559,25 +492,6 @@ class _statistik_ergebnis(Request.Request, akte_share):
         res = [(fs_dict[k], jgh_dict[k]) for k in keys if fs_dict.has_key(k)]
         return res
 
-##     def twin_getter(self, fs_list, jgh_list):
-##         fm, jm = len(fs_list), len(jgh_list)
-##         i = j = 0
-##         while i<fm and j<jm:
-##             fs = fs_list[i]
-##             jgh = jgh_list[j]
-##             fs_id = fs['id']
-##             jgh_id = jgh['id']
-##             if fs_id == jgh_id:
-##                 yield fs,jgh
-##                 i += 1
-##                 j += 1
-##             elif fs_id < jgh_id:
-##                 i += 1
-##             else:
-##                 j += 1
-
-
-
 class statergebnis(_statistik_ergebnis):
     "Ergebnisse der Fach- und Bundesstatistikauszählung"
     permissions = Request.ABFR_PERM
@@ -585,6 +499,7 @@ class statergebnis(_statistik_ergebnis):
     def processForm(self, REQUEST, RESPONSE):
         #print 'FORM', self.form
         welche = self.form.get('w')
+        ohne_bk_raus = self.form.get('ohne_bk_raus')
         von_jahr = self.form.get('von_jahr')
         bis_jahr = self.form.get('bis_jahr')
         if bis_jahr:
@@ -603,29 +518,15 @@ class statergebnis(_statistik_ergebnis):
         else:
             query = Query()
         fs, jgh, jgh07 = self.check_params(von_jahr, bis_jahr, stz, item_auswahl, query, welche)
-##         # jgh-Liste dabei?
-##         jgh = 'jgh_gesamt' in item_auswahl or query.jgh
-##         # fs-Liste dabei?
-##         fs = 'fs_gesamt' in item_auswahl or query.fs
-##         #############
-##         # Statistik nur für Fälle, wo beide Formulare ausgefüllt sind
-##         # und wo bei der Bundesstatistik das Endejahr eingetragen ist.
-##         fs = jgh = True
-##         #############
-##         if not jgh and not fs:
-##             # Diese Annahme ist falsch für Teilmengenauswertung, weil manche sich
-##             # auf jgh beziehen können.
-##             # Bei Regionen problematisch, weil dadurch die GG festgelegt wird.
-##             fs = True
         if fs:
             fs_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr, welche,
-                                              FachstatistikList)
+                                              FachstatistikList, ohne_bk_raus)
         if jgh:
             jgh_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr, welche,
-                                               JugendhilfestatistikList)
+                                               JugendhilfestatistikList, ohne_bk_raus)
         if jgh07:
             jgh_ggl = self.get_grundgesamtheit(stz, von_jahr, bis_jahr, welche,
-                                               Jugendhilfestatistik2007List)
+                                               Jugendhilfestatistik2007List, ohne_bk_raus)
         if fs and (jgh or jgh07):
             # beide nötig: erzeugt wird eine Liste von Paaren (fs, jgh) für jeden Fall
             # für den beide Statistiken vorliegen
@@ -637,7 +538,7 @@ class statergebnis(_statistik_ergebnis):
         else:
             ggl = jgh_ggl
         anzeige_gg = self.get_grundgesamtheit_anzeige(stz, von_jahr, bis_jahr, welche,
-                                                      fs, jgh, jgh07, len(ggl))
+                                                      fs, jgh, jgh07, len(ggl), ohne_bk_raus)
         if not ggl:
             raise EE("Keine Datensätze für die gewünschte Grundgesamtheit:"
                      "\n\n%s\n und %s" % anzeige_gg)
@@ -688,7 +589,6 @@ class statergebnis(_statistik_ergebnis):
         assert fs or jgh or jgh07
         return fs, jgh, jgh07
 
-
     def _display_ergebnis(self,
                           liste,
                           anzeige_gg,
@@ -705,44 +605,8 @@ class statergebnis(_statistik_ergebnis):
                              onClick="go_to_url('statabfr')",
                              ),
                     ]])
-        abfrage = h.FieldsetDataTable(
-            legend = 'Abfrage',
-            daten=[[h.String(string="Grundgesamtheit:",
-                             align='right',
-                             class_='tabledatabold',
-                             ),
-                    h.String(string=anzeige_gg[0],
-                             class_='tabledata',
-                             ),
-                    ],
-                   [h.String(string="",
-                             align='right',
-                             class_='tabledatabold',
-                             ),
-                    h.String(string=anzeige_gg[1],
-                             class_='tabledata',
-                             ),
-                    ]] + (not query.always_true() and
-                   [[h.String(string="Teilmenge:",
-                              align='right',
-                              class_='tabledatabold',
-                              ),
-                     h.String(string="%s (%s Klient%s)" % (query.name, len(liste),
-                                                           len(liste) > 1 and 'en' or ''),
-                              class_='tabledata',
-                             ),
-                     ],
-                    [h.String(string="Teilmengendefinition:",
-                              align='right',
-                              class_='tabledatabold',
-                              ),
-                     h.String(string=query.get_anzeige(),
-                              class_='tabledata',
-                              ),
-                     ]] or [])
-            )
         res = []
-        self.stat_ausgabe(res, liste, item_auswahl)
+        self.stat_ausgabe(res, liste, item_auswahl, anzeige_gg, query)
         tabellen = ''.join(res)
         res = h.FormPage(
             title='Statistikauszählung',
@@ -752,9 +616,62 @@ class statergebnis(_statistik_ergebnis):
                            ),
             hidden = (),
             rows=(menu,
-                  abfrage,
+                  get_abfrage(anzeige_gg, query, len(liste)),
                   tabellen,
                   ),
             )
         return res.display()
 
+
+# als Funktion herausgezogen, damit das auch von in statistik_ergebnis 
+# für druckerfreundliche Ausgabe genutzt werden kann
+def get_abfrage(anzeige_gg, query, anzahl, cls=None):
+    if not cls:
+        cls = h.FieldsetDataTable
+    abfrage = cls(
+        legend = 'Abfrage',
+        daten=[[h.String(string="Grundgesamtheit:",
+                         align='right',
+                         class_='tabledatabold',
+                         ),
+                h.String(string=anzeige_gg[0],
+                         class_='tabledata',
+                         ),
+                ],
+               [h.String(string="",
+                         align='right',
+                         class_='tabledatabold',
+                         ),
+                h.String(string=anzeige_gg[1],
+                         class_='tabledata',
+                         ),
+                ]] 
+        + ((len(anzeige_gg) > 2) and 
+                [[h.String(string="",
+                           align='right',
+                           class_='tabledatabold',
+                           ),
+                  h.String(string=anzeige_gg[2],
+                           class_='tabledata',
+                           ),
+          ]] or [])
+        + (not query.always_true() and
+                [[h.String(string="Teilmenge:",
+                          align='right',
+                          class_='tabledatabold',
+                          ),
+                 h.String(string="%s (%s Klient%s)" % (query.name, anzahl,
+                                                       anzahl > 1 and 'en' or ''),
+                          class_='tabledata',
+                         ),
+                 ],
+                [h.String(string="Teilmengendefinition:",
+                          align='right',
+                          class_='tabledatabold',
+                          ),
+                 h.String(string=query.get_anzeige(),
+                          class_='tabledata',
+                          ),
+                 ]] or [])
+        )
+    return abfrage

@@ -383,11 +383,7 @@ class DataTable(object):
                 pr("</tr>\n")
             elif self.buttons:
                 # Wenn mehrere Button reinsollen, besser eine eigene Tabelle
-                class _TableDataTable(Table, DataTable):
-                    def _init(self):
-                        super(_TableDataTable, self)._init()
-                        self.set_rows()
-                button_zeile = _TableDataTable(
+                button_zeile = TableDataTable(
                     daten=[self.buttons],
                     colspan=max(1, max_cols),
                     )
@@ -405,6 +401,10 @@ class DataTable(object):
             pr("</tr>\n")
         self.rows = buf.getvalue()
 
+class TableDataTable(Table, DataTable):
+    def _init(self):
+        super(TableDataTable, self)._init()
+        self.set_rows()
 
 class InputTable(object):
     """oblig: daten
@@ -433,11 +433,7 @@ class InputTable(object):
             pr("</tr>\n")
         elif self.buttons:
             # Wenn mehrere Button reinsollen, besser eine eigene Tabelle
-            class _TableDataTable(Table, DataTable):
-                def _init(self):
-                    super(_TableDataTable, self)._init()
-                    self.set_rows()
-            button_zeile = _TableDataTable(
+            button_zeile = TableDataTable(
                 daten=[self.buttons],
                 colspan=max(1, max_cols),
                 )

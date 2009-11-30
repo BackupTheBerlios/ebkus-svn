@@ -6,6 +6,7 @@ from ebkus.app import Request
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.abfragen_templates import *
 import ebkus.html.htmlgen as h
+from ebkus.app.ebapi import today
 
 import gdchart
 import cStringIO
@@ -39,7 +40,13 @@ class auszergebnis(Request.Request):
         self.typ = self.form.get('typ')
         self.session_key = self.form.get('session_key')
         try:
-            self.auszaehlung = self.session.data[self.session_key][self.id]
+            #self.auszaehlung = self.session.data[self.session_key][self.id]
+            self.auszaehlungen = self.session.data[self.session_key]['seq']
+            self.query = self.session.data[self.session_key]['query']
+            self.anzeige_gg = self.session.data[self.session_key]['anzeige_gg']
+            self.anzahl = self.session.data[self.session_key]['anzahl']
+            if self.id:
+                self.auszaehlung = self.session.data[self.session_key][self.id]
         except KeyError:
             return h.Meldung(
                 legend='Abfrageergebnis veraltet',
@@ -51,6 +58,9 @@ class auszergebnis(Request.Request):
         if self.typ == 'tab':
             # Einzeltabelle zum Drucken
             return self.show_tabelle()
+        elif self.typ == 'taball':
+            # Alle Tabellen zum Drucken
+            return self.show_tabelle_all()
         elif self.typ == 'chart':
             # HTML-Rahmen für Chart
             return self.show_chart()
@@ -60,6 +70,9 @@ class auszergebnis(Request.Request):
         elif self.typ == 'csv':
             # csv-Datei für Tabellenkalkulation
             return self.export_csv()
+        elif self.typ == 'csvall':
+            # csv-Datei für Tabellenkalkulation mit allen Ergebnissen
+            return self.export_csv_all()
         
 
     def generate_chart(self):
@@ -96,6 +109,43 @@ class auszergebnis(Request.Request):
                                 'attachment; filename=%s' % ident + '.csv')
         self.RESPONSE.setBody(res)
 
+    def export_csv_all(self):
+        """Generiert ein CSV-Datei für alle Tabellen"""
+        from  ebkus.html.statistik_abfrage import get_abfrage, Ueberschrift
+        #abfrage = get_abfrage(self.anzeige_gg, self.query, self.anzahl, h.TableDataTable)
+        res = 'Statistikauswertung vom %(day)d.%(month)d.%(year)d;;\r\n' % today()
+        res += ';;\r\n'
+        res += 'Grundgesamtheit;%s;\r\n' % self.anzeige_gg[0]
+        res += ';%s;\r\n' % self.anzeige_gg[1]
+        if not self.query.always_true():
+            tm = "%s (%s Klient%s)" % (self.query.name, self.anzahl,
+                                       self.anzahl > 1 and 'en' or '')
+            res += 'Teilmenge;%s;\r\n' % tm
+            res += 'Teilmengendefinition;%s;\r\n' % self.query.get_anzeige()
+        res += ';;\r\n'
+        res += 'Merkmal;Häufigkeit;Prozentsatz\r\n'
+        for auszaehlung in self.auszaehlungen:
+            res += ';;\r\n'
+            if isinstance(auszaehlung, Ueberschrift):
+                res += '%s;;\r\n' % auszaehlung.ueberschrift
+                continue
+            counts = auszaehlung.get_result()
+            title = auszaehlung.title
+            names=[i[0][:65] for i in counts]
+            frequencies=[i[1] for i in counts]
+            percentages=[i[2] for i in counts]
+            res += '"%s";;\r\n' % (title,)
+            res += '\r\n'.join(['"%s";%s;%s' % (t[0], t[1], ("%.2f" % t[2]).replace('.', ','))
+                               for t in zip(names, frequencies, percentages)])
+            res += '\r\n'
+        #print 'CSV', res
+        filename = 'Statistikauswertung_%(year)d-%(month)d-%(day)d.' % today(),
+        self.RESPONSE.setHeader('content-type',
+                                #"text/comma-separated-values; charset=iso-8859-1")
+                                "text/csv; charset=iso-8859-1")
+        self.RESPONSE.setHeader('content-disposition',
+                                'attachment; filename=%s' % filename + '.csv')
+        self.RESPONSE.setBody(res)
     def show_chart(self):
         """Zeigt eine eine HTML-Seite für eine Ergebnistabelle,
         die als einzigen Inhalt einen Link auf das Chart-Image hat."""
@@ -118,6 +168,86 @@ class auszergebnis(Request.Request):
         res.append(fsergebnis_ende_tab_t)
         return ''.join(res)
 
+    # def show_tabelle_all(self):
+    #     """Zeigt alle Ergebnistabellen"""
+    #     from  ebkus.html.statistik_abfrage import get_abfrage
+    #     abfrage = get_abfrage(self.anzeige_gg, self.query, self.anzahl, h.TableDataTable)
+    #     res = []
+    #     res.append(abfrage.display())
+    #     tabellen = []
+    #     for auszaehlung in self.auszaehlungen:
+    #         res.append(head_normal_ohne_help_t % auszaehlung.auswertungs_ueberschrift)
+    #         res.append(fsergebnis1_tab_t)
+    #         res.append(thkategoriejgh_tab_t % auszaehlung.title)
+    #         for i, data in enumerate(auszaehlung.get_result()):
+    #             template = i%2 and item_tab_g_t or item_tab_w_t
+    #             res.append(template % (data[0],  data[1], data[2]) )
+    #         res.append(item_ende_tab_t)
+    #         res.append(fsergebnis_ende_tab_t)
+    #     # for auszaehlung in self.auszaehlungen:
+    #     #     res.append(head_normal_ohne_help_t % auszaehlung.auswertungs_ueberschrift)
+    #     #     res.append(fsergebnis1_tab_t)
+    #     #     res.append(thkategoriejgh_tab_t % auszaehlung.title)
+    #     #     for i, data in enumerate(auszaehlung.get_result()):
+    #     #         template = i%2 and item_tab_g_t or item_tab_w_t
+    #     #         res.append(template % (data[0],  data[1], data[2]) )
+    #     #     res.append(item_ende_tab_t)
+    #     #     res.append(fsergebnis_ende_tab_t)
+    #     return ''.join(res)
+
+    # def show_tabelle_all(self):
+    #     """Zeigt alle Ergebnistabellen"""
+    #     from  ebkus.html.statistik_abfrage import get_abfrage
+    #     abfrage = get_abfrage(self.anzeige_gg, self.query, self.anzahl, h.TableDataTable)
+    #     tabellen = []
+    #     for auszaehlung in self.auszaehlungen:
+    #         tabellen.append(
+    #             h.TableDataTable(
+    #                 headers=(auszaehlung.title, 'S', '%'),
+    #                 daten=[[
+    #                         h.String(string=data[0]),
+    #                         h.String(string=data[1]),
+    #                         h.String(string=data[2]),
+    #                         ]
+    #                        for data in auszaehlung.get_result()
+    #                        ],
+    #                 )
+    #             )
+    #     res = h.Page(
+    #         title='Statistikauswertung vom %(day)d.%(month)d.%(year)d.' % today(),
+    #         rows=[abfrage,] + tabellen,
+    #         )
+    #     return res.display()
+
+    def show_tabelle_all(self):
+        """Zeigt alle Ergebnistabellen druckerfreundlich"""
+        from  ebkus.html.statistik_abfrage import get_abfrage, Ueberschrift
+        abfrage = get_abfrage(self.anzeige_gg, self.query, self.anzahl, h.TableDataTable)
+        daten = []
+        for auszaehlung in self.auszaehlungen:
+            daten.append([h.Dummy(n_col=3)])
+            if isinstance(auszaehlung, Ueberschrift):
+                daten.append([h.String(string=auszaehlung.ueberschrift, 
+                                       class_='titeltext',
+                                       n_col=3),])
+                continue
+            daten.append([h.String(string=auszaehlung.title, 
+                                   class_='tabledatabold'),
+                          h.String(string='S', 
+                                   class_='tabledatabold'),
+                          h.String(string='%', 
+                                   class_='tabledatabold'),])
+            for data in auszaehlung.get_result():
+                daten.append([h.String(string=data[0]),
+                              h.String(string=data[1]),
+                              h.String(string="%.2f" % data[2]),])
+        res = h.Page(
+            title='Statistikauswertung vom %(day)d.%(month)d.%(year)d.' % today(),
+            rows=(abfrage,
+                  h.TableDataTable(daten=daten),
+                  ),
+            )
+        return res.display()
 
     def add_tabelle(self, res):
         """Fügt eine Ergebnistabelle mit Links auf die Einzeltabelle

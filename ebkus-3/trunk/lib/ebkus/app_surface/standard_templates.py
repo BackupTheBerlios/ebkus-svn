@@ -351,6 +351,16 @@ jghstat_menue_end_t = """
 </select>
 </form>
 </td>
+<td class="buttoncell" align="center" >
+      <input type="button" 
+       class="button" name=""
+       value="Drucken" onClick="go_to_url('%s')"  title="Druckfreundliche Ausgabe aller Tabellen" onMouseOver="window.status='Druckfreundliche Ausgabe aller Tabellen';return true;" onMouseOut="window.status='Druckfreundliche Ausgabe aller Tabellen';return true;" >
+</td>
+<td class="buttoncell" align="center" >
+      <input type="button" 
+       class="button" name=""
+       value="CSV-Datei" onClick="go_to_url('%s')"  title="" onMouseOver="window.status='Alle Daten im CSV-Format für die Tabellenkalkulation exportieren';return true;" onMouseOut="window.status='Alle Daten im CSV-Format für die Tabellenkalkulation exportieren';return true;" >
+</td>
 </tr>
 </table>
 </fieldset></td>

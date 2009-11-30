@@ -485,6 +485,18 @@ class bkontbsabfr(Request.Request, akte_share):
 ##             )
 ##         return res.display()
 
+
+def hatte_kontakt_im_abschlussjahr(fall, jahr):
+    # nur auf Fälle anwenden, wo es überhaupt Beratungskontakte gibt
+    kontakte_im_jahr, kontakte_insgesamt = get_jgh_kontakte(fall, jahr)
+    #print 'KONTAKTE', kontakte_insgesamt, kontakte_im_jahr,
+    if not kontakte_insgesamt:
+        return True
+    if kontakte_im_jahr:
+        return True
+    return False
+    
+
 def get_jgh_kontakte(fall, jahr):
     """Ermittelt Anzahl der Kontakte sowohl für den ganzen Fall
     als auch für das gegebene Jahr.

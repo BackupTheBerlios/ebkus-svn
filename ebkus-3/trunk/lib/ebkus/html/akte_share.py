@@ -833,16 +833,20 @@ class akte_share(options):
             )
         return gruppendaten
 
+
+
     def grundgesamtheit(self, bis_jahr=None, von_jahr=None,
                         quartal=None, 
                         monat=None,
                         stellen_ids=None,
                         legend='Grundgesamtheit',
+                        ohne_bk_raus = False,
                         submit_value=None,
                         show_quartal=True,
                         show_monat=False,
                         show_welche=False,
                         show_stelle=True,
+                        show_ohne_bk_raus=False,
                         welche=None):
         "Für Auswertungen. Legt Jahre und Stellen fest."
         #print 'GG', von_jahr, bis_jahr
@@ -905,7 +909,17 @@ class akte_share(options):
                                                         erster_eintrag=erster_eintrag),
                                  ),
                     ],
-                   [h.Dummy(n_col=4)],
+                   [show_ohne_bk_raus and h.CheckItem(
+                        label='Keine Fälle ohne Kontakt im Abschlussjahr',
+                        name='ohne_bk_raus',
+                        value=1,
+                        checked=ohne_bk_raus,
+                        n_label=7,
+                        n_col=8,
+                        tip='Fälle aus der Statistik herausnehmen, bei denen es im Jahr des Fallabschlusses keinen Kontakt im Sinne der Bundesstatistik gab.',
+                        ),
+                    ],
+                   [h.Dummy(n_col=8)],
                    ],
             button=submit_value and h.Button(value=submit_value,
                                              name='op',
