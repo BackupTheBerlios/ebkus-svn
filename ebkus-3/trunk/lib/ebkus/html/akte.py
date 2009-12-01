@@ -7,7 +7,7 @@ import string,time
 from ebkus.db.sql import SQL
 from ebkus.app import Request
 from ebkus.config import config
-from ebkus.app.ebapi import Akte, Fall, FallList, Altdaten, Anmeldung, \
+from ebkus.app.ebapi import Akte, Fall, Gruppe, FallList, GruppeList, Altdaten, Anmeldung, \
      Zustaendigkeit, today, cc, check_list, check_code, check_int_not_empty, EE
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.akte_templates import *
@@ -473,9 +473,13 @@ class rmaktenf(Request.Request, akte_share):
     permissions = Request.ADMIN_PERM
     def processForm(self, REQUEST, RESPONSE):
         fn = self.form.get('fn')
+        gn = self.form.get('gn')
+        if fn and gn:
+            raise EE("Es kann entweder ein Fall oder eine Gruppe gelöscht werden, nicht beides zugleich")
         statistik_auch = (self.form.get('statistik_auch') == '1')
         ok = self.form.get('ok')
         fall_id = self.form.get('fallid')
+        gruppe_id = self.form.get('gruppeid')
         if fn and not ok and not fall_id:
             faelle = FallList(where="fn = '%s'" % fn)
             if len(faelle) < 1:
@@ -525,6 +529,36 @@ class rmaktenf(Request.Request, akte_share):
                 hidden=hidden,
                 zeilen=zeilen,
                 ).display()
+        elif gn and not ok and not gruppe_id:
+            gruppen = GruppeList(where="gn = '%s'" % gn)
+            if len(gruppen) < 1:
+                raise EE("Kein Gruppe mit dieser Gruppennummer gefunden.")
+            elif len(gruppen) > 1:
+                # darf nicht passieren
+                raise EE("Mehrere passende Gruppen gefunden.")
+            else:
+                gruppe = gruppen[0]
+            if gruppe['ey']:
+                raise EE(("Gruppe <em>%s</em> hat eine Endedatum, ist also abgeschlossen. " +
+                         "Es können nur laufende Gruppen gelöscht werden.")
+                         % gn)
+            if gruppe['faelle'] or gruppe['bezugspersonen']:
+                raise EE(("Die Gruppe <em>%s</em> hat Teilnehmer. " +
+                         "Es können nur Gruppen ohne Teilnehmer gelöscht werden.")
+                         % gn)
+            legend = 'Gruppe endgültig löschen'
+            zeilen=("Soll die Gruppe <em>%(gn)s (%(name)s)</em> endgültig gelöscht werden?" % gruppe,
+                        )
+            hidden = (('gruppeid', gruppe['id']),
+                      ('ok', '1'),
+                )
+            return h.SubmitOrBack(
+                legend=legend,
+                action='rmaktenf',
+                method='post',
+                hidden=hidden,
+                zeilen=zeilen,
+                ).display()
         elif fall_id and ok == '1':
             fall = Fall(fall_id)
             akte = fall['akte']
@@ -561,6 +595,30 @@ class rmaktenf(Request.Request, akte_share):
                       ),
                 )
             return res.display()
+        elif gruppe_id and ok == '1':
+            gruppe = Gruppe(gruppe_id)
+            gn = gruppe['gn']
+            name = gruppe['name']
+            from ebkus.app.ebupd import remove_fall, remove_akte, remove_gruppe
+            remove_gruppe(gruppe)
+            legend = "Gruppe gelöscht"
+            geloeschte_gruppe = h.FieldsetDataTable(
+                legend=legend,
+                headers=('Gruppennummer', 'Name'),
+                daten=[[h.String(string=gn),
+                        h.String(string=name),
+                        ]],
+                )
+            res = h.Page(
+                title=legend,
+                breadcrumbs = (('Aministratorhauptmenü', 'menu'),
+                               ('Einzelne Gruppe löschen', None),
+                               ),
+                rows=(self.get_hauptmenu(),
+                      geloeschte_gruppe,
+                      ),
+                )
+            return res.display()
             
         auswahl = h.FieldsetFormInputTable(
             name="rmfallanzeigen",
@@ -588,12 +646,34 @@ class rmaktenf(Request.Request, akte_share):
                             n_col=4,
                             ),
             )
+        auswahl_gruppe = h.FieldsetFormInputTable(
+            name="rmgruppeanzeigen",
+            action="rmaktenf",
+            method="post",
+            legend='Gruppennummer der zu löschenden Gruppe',
+            daten=[[h.TextItem(label='Gruppennummer',
+                               name='gn',
+                               value='',
+                               tip='Gruppennummer der zu löschenden Gruppe'
+                               ),
+                    h.DummyItem(label_width="50%", class_="textbox280"), # breites Dummy aus optischen Gründen
+                    ],
+                   [h.Dummy(n_col=4)],
+                   ],
+            button=h.Button(value="Löschen",
+                            name='op',
+                            tip="Gruppe mit der angegebenen Nummer endgültig löschen",
+                            type='submit',
+                            n_col=4,
+                            ),
+            )
         res = h.Page(
             title='Einzelnen Fall löschen',
             breadcrumbs = (('Aministratorhauptmenü', 'menu'),
                            ),
             rows=(self.get_hauptmenu(),
                   auswahl,
+                  auswahl_gruppe,
                   ),
             )
         return res.display()

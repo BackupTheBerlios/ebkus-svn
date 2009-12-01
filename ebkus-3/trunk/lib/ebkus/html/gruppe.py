@@ -279,7 +279,7 @@ class rmteiln(Request.Request):
                     ('gruppeid', gruppe['id']),
                     hidden_val,
                     ),
-            zeilen=('Soll der Teilnehmer %s aus der Gruppe %s(%s) entfernt werden?' %
+            zeilen=('Soll der Teilnehmer %s aus der Gruppe %s (%s) entfernt werden?' %
                     (name, gruppe['name'], gruppe['gn'],),
             )
             ).display()
