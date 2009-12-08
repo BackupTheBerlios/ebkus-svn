@@ -532,6 +532,7 @@ class bkontdruck(Request.Request, akte_share):
         beratungskontakte = self.get_beratungskontakte(
             beratungskontakt_list,
             cls=h.TableDataTable,
+            header_class='tabledatabold',
             )
         res = h.Page(
             title='Beratungskontakte %(fn)s ' % fall + \
