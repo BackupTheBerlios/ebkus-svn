@@ -1,0 +1,98 @@
+#!%(PYTHON_EXECUTABLE)s
+# coding: latin-1
+
+# Diese Datei wird generiert.
+
+import os, sys, getopt
+
+def usage():
+    s = """\
+dienst.py Option [mysql] [apache]
+
+Falls mysql oder apache angegeben sind, bezieht
+sich die verwendete Option darauf, ansonsten
+auf die EBKuS-Instanz dieses Verzeichnisses.
+
+Optionen:
+   --start           den Dienst starten
+   --stop            den Dienst stoppen
+   --restart         den Dienst neu starten, damit eine neue Konfiguration
+                     eingelesen werden kann
+   --status          Status des Dienste feststellen
+   --install         als Dienst installieren
+   --remove          als Dienst entfernen
+"""
+    print s
+    sys.exit(1)
+
+if __name__ == '__main__':
+    import init
+
+    try:
+        optlist, args = getopt.getopt(sys.argv[1:],
+                                      'h',
+                                      ['install', 'remove', 'start', 'stop', 'restart',
+                                       'status', 'help'])
+    except getopt.GetoptError, m:
+        print str(m)
+        print '------------'
+        usage()
+
+    component = None    
+    if args:
+        try:
+            assert len(args) == 1
+            component = args[0].lower()
+            assert component in ('apache', 'mysql')
+        except:
+            usage()
+    install = remove = restart = start = stop = status = None
+    for option, value in optlist:
+        if option in ('--install',):
+            install = True
+        elif option in ('--remove',):
+            remove = True
+        elif option in ('--status',):
+            status = True
+        elif option in ('--start',):
+            start = True
+        elif option in ('--restart',):
+            restart = True
+        elif option in ('--stop',):
+            stop = True
+        else:
+            usage()
+    if install == remove == restart == start == stop == status == None:
+        usage()
+    from ebkus.Install import InstallFromInstance
+    from ebkus.config import config
+    installer = InstallFromInstance(config)
+    installer.init()
+    if component:
+        instance = installer[component]
+    else:
+        instance = installer.ebkus[config.INSTANCE_NAME]
+
+    if start:
+        instance.start_service()
+    elif stop:
+        instance.stop_service()
+    elif install:
+        instance.install_service()
+    elif remove:
+        instance.uninstall_service()
+    elif status:
+        if instance.is_started_service():
+            print 'gestartet'
+        elif instance.is_installed_service():
+            print 'gestoppt'
+        else:
+            print 'nicht installiert'
+    elif restart:
+        if instance.is_started_service():
+            instance.stop_service()
+        instance.start_service()
+
+
+
+
