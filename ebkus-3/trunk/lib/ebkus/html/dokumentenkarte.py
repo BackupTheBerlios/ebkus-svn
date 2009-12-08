@@ -15,21 +15,6 @@ import ebkus.html.htmlgen as h
 from ebkus.html.akte_share import akte_share
 
 class _dok(Request.Request, akte_share):
-##     def _processForm(self, karte, kartenid_name, kartenid_path, REQUEST, RESPONSE):
-##         file = self.form.get('file')
-##         if not file or file == karte:
-##             id = self.form.get(kartenid_name)
-##             if not id:
-##                 self.last_error_message = "Keine Men&uuml;auswahl erhalten"
-##                 return self.EBKuSError(REQUEST, RESPONSE)
-##             return self._display_dokkarte()
-##         if self.einfuege_oder_update_operationen.get(file, kartenid_path):
-##             id = self.einfuegen_oder_update(file)
-##             # damit Dokumentenkarte nicht als Ergebnis eines POST
-##             # dargestellt wird
-##             RESPONSE.redirect('%s?%s=%s' % (karte, kartenid_name, id))
-##             return ''
-##         return self.ebkus.dispatch(file, REQUEST, RESPONSE)
     def einfuegen_oder_update(self, file, path):
         function = getattr(ebupd, file)
         function(self.form)
@@ -79,7 +64,7 @@ class _dok(Request.Request, akte_share):
                             tip= 'Dokument löschen') or
                      h.Dummy(),
                      h.Icon(href=view % dok,
-                            target="_new",
+                            target="_blank",
                             icon= "/ebkus/ebkus_icons/view_details.gif",
                             tip= 'Dokument ansehen'),
                      h.Datum(date=dok.getDate('v')),
@@ -98,87 +83,6 @@ class _dok(Request.Request, akte_share):
                       ),
              ] or None,
             )
-##     def _display_dokkarte(self):
-##         gruppeid = self.form.get('gruppeid')
-##         gruppe = Gruppe(gruppeid)
-##         dokumente_list = GruppendokumentList(
-##             where = 'gruppe_id = %s and art != %s'
-##             % (gruppe['id'], cc('dokart', 'bnotiz')),
-##             order = 'vy,vm,vd')
-##         beraternotizen = GruppendokumentList(
-##             where = 'gruppe_id = %s and art = %s and mit_id = %s' %
-##             (gruppe['id'], cc('dokart', 'bnotiz'), self.mitarbeiter['id']),
-##             order = 'vy,vm,vd')
-        
-##         dokumente_list = self.get_dokumente_list()
-##         menu = h.FieldsetInputTable(
-##             daten=[[
-##             h.Button(value="Hauptmenü",
-##                    tip="Zum Hauptmenü",
-##                    onClick="go_to_url('menu')",
-##                    ),
-##             h.Button(value="Gruppenmenü",
-##                    tip="Zum Gruppenmenü",
-##                    onClick="go_to_url('menugruppe')",
-##                    ),
-##             h.Button(value="Gruppenkarte",
-##                      tip="Gruppenkarte ansehen",
-##                      class_='buttonbig',
-##                      onClick="go_to_url('grkarte?gruppeid=%(id)s')" % gruppe,
-##                    ),
-##             h.SelectGoto(name='Auswahl1',
-##                          options =
-## """<option value="nothing">[ Neu ]</option>
-## """
-##                          ),
-##             ]],
-##             )
-##         dokumente = h.FieldsetDataTable(
-##             legend= 'Dokumente',
-##             headers= ('Datum', 'Betreff', 'Aufgenommen von'),
-##             noheaders=2, # keine header für edit bzw. view icon
-##             daten= [[is_binary(dok['mtyp']) and h.Dummy() or
-##                      h.Icon(href=
-##                             "gruppenkarte?gruppeid=%(gruppe_id)d&dokid=%(id)d&file=updgrverm" % dok,
-##                             icon= "/ebkus/ebkus_icons/edit_button.gif",
-##                             tip= 'Dokument bearbeiten'),
-##                      h.Icon(href="dokview?gruppeid=%(gruppe_id)d&dokid=%(id)d" % dok,
-##                             target="_new",
-##                             icon= "/ebkus/ebkus_icons/view_details.gif",
-##                             tip= 'Dokument ansehen'),
-##                      h.Datum(date=dok.getDate('v')),
-##                      h.String(string="%(art__name)s: %(betr)s" % dok),
-##                      h.String(string="%(mit_id__na)s" % dok)]
-##                     for dok in dokumente_list],
-##             buttons=[h.Button(value="Hinzufügen",
-##                               tip="Dokument hinzufügen (hochladen)",
-##                               onClick=
-##                               "go_to_url('upload?gruppeid=%(id)s')" % gruppe,
-##                             ),
-##                      h.Button(value="Drucken (TXT)",
-##                               tip="Dokumente im Text-Format zum Drucken zusammenstellen",
-##                               onClick=
-##                               "go_to_url('newXX dokview2?gruppeid=%(id)d&art=anotiz')" % gruppe,
-##                             ),
-##                      h.Button(value="Drucken (PDF)",
-##                               tip="Dokumente im PDF-Format zum Drucken zusammenstellen",
-##                               onClick=
-##                               "go_to_url('newXX printgr_pdf?gruppeid=%(id)d&art=anotiz')" % gruppe,
-##                             ),
-##                      ],
-##             )
-
-##         res = h.FormPage(
-##             title='Gruppendokumente',
-##             help='gruppendoumente', # TODO hier muss neues Kapitel 'Gruppendokumente' rein
-##             breadcrumbs = (('Hauptmenü', 'menu'),
-##                            ('Gruppenmenü', 'menugruppe'),
-##                            ),
-##             rows=(menu,
-##                   dokumente,
-##                   )
-##             )
-##         return res.display()
 
 class grdok(_dok):
     """Dokumentenkarte."""
@@ -258,40 +162,6 @@ class grdok(_dok):
             aktueller_fall=None,
             art='bnotiz')
 
-##         dokumente = h.FieldsetDataTable(
-##             legend= 'Dokumente',
-##             headers= ('Datum', 'Betreff', 'Aufgenommen von'),
-##             noheaders=2, # keine header für edit bzw. view icon
-##             daten= [[is_binary(dok['mtyp']) and h.Dummy() or
-##                      h.Icon(href=
-##                             "gruppenkarte?gruppeid=%(gruppe_id)d&dokid=%(id)d&file=updgrverm" % dok,
-##                             icon= "/ebkus/ebkus_icons/edit_button.gif",
-##                             tip= 'Dokument bearbeiten'),
-##                      h.Icon(href="dokview?gruppeid=%(gruppe_id)d&dokid=%(id)d" % dok,
-##                             target="_new",
-##                             icon= "/ebkus/ebkus_icons/view_details.gif",
-##                             tip= 'Dokument ansehen'),
-##                      h.Datum(date=dok.getDate('v')),
-##                      h.String(string="%(art__name)s: %(betr)s" % dok),
-##                      h.String(string="%(mit_id__na)s" % dok)]
-##                     for dok in dokumente_list],
-##             buttons=[h.Button(value="Hinzufügen",
-##                               tip="Dokument hinzufügen (hochladen)",
-##                               onClick=
-##                               "go_to_url('upload?gruppeid=%(id)s')" % gruppe,
-##                             ),
-##                      h.Button(value="Drucken (TXT)",
-##                               tip="Dokumente im Text-Format zum Drucken zusammenstellen",
-##                               onClick=
-##                               "go_to_url('newXX dokview2?gruppeid=%(id)d&art=anotiz')" % gruppe,
-##                             ),
-##                      h.Button(value="Drucken (PDF)",
-##                               tip="Dokumente im PDF-Format zum Drucken zusammenstellen",
-##                               onClick=
-##                               "go_to_url('newXX printgr_pdf?gruppeid=%(id)d&art=anotiz')" % gruppe,
-##                             ),
-##                      ],
-##             )
 
         res = h.FormPage(
             title='Gruppendokumente',
@@ -423,44 +293,6 @@ class kldok(_dok):
             container=aktueller_fall or letzter_fall,
             aktueller_fall=aktueller_fall,
             art='bnotiz')
-##         dokumente = h.FieldsetDataTable(
-##             legend= 'Dokumente',
-##             headers= ('Datum', 'Betreff', 'Aufgenommen von'),
-##             noheaders=2, # keine header für edit bzw. view icon
-##             daten= [[is_binary(dok['mtyp']) and h.Dummy() or
-##                      h.Icon(href=
-##                             "updverm?gruppeid=%(gruppe_id)d&dokid=%(id)d" % dok,
-##                             icon= "/ebkus/ebkus_icons/edit_text_button.gif",
-##                             tip= 'Dokument bearbeiten'),
-##                      h.Icon(href="rmdok?gruppeid=%(gruppe_id)d&dokid=%(id)d" % dok,
-##                             icon= "/ebkus/ebkus_icons/del_text_button.gif",
-##                             tip= 'Dokument löschen'),
-##                      h.Icon(href="dokview?gruppeid=%(gruppe_id)d&dokid=%(id)d" % dok,
-##                             target="_new",
-##                             icon= "/ebkus/ebkus_icons/view_details.gif",
-##                             tip= 'Dokument ansehen'),
-##                      h.Datum(date=dok.getDate('v')),
-##                      h.String(string="%(art__name)s: %(betr)s" % dok),
-##                      h.String(string="%(mtyp__code)s" % dok),
-##                      h.String(string="%(mit_id__na)s" % dok)]
-##                     for dok in dokumente_list],
-##             buttons=[h.Button(value="Hinzufügen",
-##                               tip="Dokument hinzufügen (hochladen)",
-##                               onClick=
-##                               "go_to_url('upload?gruppeid=%(id)s')" % gruppe,
-##                             ),
-##                      h.Button(value="Drucken (TXT)",
-##                               tip="Dokumente im Text-Format zum Drucken zusammenstellen",
-##                               onClick=
-##                               "go_to_url('newXX dokview2?gruppeid=%(id)d&art=anotiz')" % gruppe,
-##                             ),
-##                      h.Button(value="Drucken (PDF)",
-##                               tip="Dokumente im PDF-Format zum Drucken zusammenstellen",
-##                               onClick=
-##                               "go_to_url('newXX printgr_pdf?gruppeid=%(id)d&art=anotiz')" % gruppe,
-##                             ),
-##                      ],
-##             )
 
         res = h.FormPage(
             title='Klientendokumente',
@@ -476,85 +308,5 @@ class kldok(_dok):
             )
         return res.display()
 
-##     def kldok_display(self, akid, fallid = None, mitid=None):
-##         "Darstellung der Dokumentenkarte."
-        
-##         if not akid and fallid:
-##             fall = Fall(fallid)
-##             akte = Akte(fall['akte_id'])
-##         else:
-##             akte = Akte(int(akid))
-            
-##         faelle = akte['faelle']
-##         faelle.sort('bgy', 'bgm', 'bgd')
-        
-##         # Aktueller bzw. letzter Fall, Wiederaufnehmbarkeit
-        
-##         letzter_fall = akte['letzter_fall']
-##         aktueller_fall = akte['aktueller_fall']
-        
-##         res = []
-##         res.append(head_normal_t %("Dokumentenindex der Akte"))
-##         res.append(kldok_start_t1)
-##         if aktueller_fall:
-##             res.append(menuedok_t % aktueller_fall)
-##         else:
-##             res.append(menuedokzda_t % letzter_fall)
-##         res.append(dokausgabe1_t % ('Aktendokumente der Akte %(vn)s %(na)s' %akte))
-##         for f in faelle:
-##             dokl = DokumentList(where = 'fall_id = %s'
-##                                    % (f['id']), order = 'vy,vm,vd')
-##             aktendokl = []
-##             for d in dokl:
-##                 if d['art'] != cc('dokart', 'bnotiz'):
-##                     aktendokl.append(d)
-##             for a in aktendokl:
-##                 if aktueller_fall:
-##                     if is_binary(a['mtyp']):
-##                         res.append(dokausgabe2_ohne_edit_t % a)
-##                     else:
-##                         res.append(dokausgabe2_mit_edit_t % a)
-##                 else:
-##                     res.append(dokausgabe2b_t % a)
-##         res.append(dokausgabe3_t)
-##         res.append(dokausgabe1_t % ('Beraternotizen der Akte %(vn)s %(na)s' %akte))
-##         for f in faelle:
-##             beraternotizen = DokumentList(where = 'fall_id = %s and art = %s and mit_id = %s'% (f['id'], cc('dokart', 'bnotiz'), self.mitarbeiter['id']),
-##                                    order = 'vy,vm,vd')
-##             for b in beraternotizen:
-##                 if aktueller_fall:
-##                     if is_binary(b['mtyp']):
-##                         res.append(dokausgabe2_ohne_edit_t % b)
-##                     else:
-##                         res.append(dokausgabe2_mit_edit_t % b)
-##                 else:
-##                     res.append(dokausgabe2b_t % b)
-##         res.append(dokausgabe3_t)
-##         if beraternotizen or aktendokl:
-##             res.append(dokausgabe1_t % ('Printausgabe'))
-##             if aktendokl and aktueller_fall:
-##                 res.append(dokausgabe5_t % aktueller_fall)
-##             elif aktendokl and letzter_fall:
-##                 res.append(dokausgabe5_t % letzter_fall)
-##             if beraternotizen and aktueller_fall:
-##                 res.append(dokausgabe4_t % aktueller_fall)
-##             elif beraternotizen and letzter_fall:
-##                 res.append(dokausgabe4_t % letzter_fall)
-##             res.append(dokausgabe6_t)
-##             ##*************************************************************************
-##             ##  Entfernt wegen UNIX Kommando agrep. Funktioniert nicht unter Win
-##             ##
-##             ##  MastaleckT 08.03.2002
-##             ##*************************************************************************
-##             #res.append(dokausgabe7a_t % ('Suche in den Texten', ''))
-##             #if aktueller_fall:
-##             #  res.append(formhiddennamevalues_t % ({'name' : 'fallid' ,
-##             #                                      'value' : aktueller_fall['id']}))
-##             #elif letzter_fall:
-##             #  res.append(formhiddennamevalues_t % ({'name' : 'fallid' ,
-##             #                                      'value' : letzter_fall['id']}))
-##             #res.append(dokausgabe7b_t)
-##         res.append(dokkarte_ende_t)
-##         return string.join(res, '')
         
         

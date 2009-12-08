@@ -1,5 +1,6 @@
 # coding: latin-1
 
+import re
 
 from  cStringIO import StringIO
 from ebkus.config import config
@@ -97,7 +98,11 @@ class _HTML(object):
         %(hidden_input)s""" % self
         self.form_begin = form_begin_t % self
         self.form_end = "</form>\n"
-
+    def get_data(self, res):
+        """Holt Daten aus den Items auf der Seite: <label> <value>
+        Wird für fachstatistik.viewfs gebraucht.
+        In Unterklassen überschreiben!"""
+        pass
 # Block
 class Base(_HTML):
     """oblig: title, content
@@ -211,7 +216,9 @@ class Page(Base):
         super(Page, self)._init()
         self.set_content()
 
-
+    def get_data(self, res):
+        for r in self.rows:
+            r.get_data(res)
 
 
 # <tr>-Elemente
@@ -307,6 +314,7 @@ class DataTable(object):
     optional: daten_before_headers - Zeilen, die vor headers eingefügt werden
               headers - Spaltenüberschriften, strings
               no_button_if_empty
+              header_class - Klasse für <th>-Zellen
     erwartet in headers: Seq von string
     erwartet in daten: Seq von Seq von <td>
     liefert string mit ein oder mehrere <tr>
@@ -332,6 +340,10 @@ class DataTable(object):
             has_button = not self.no_button_if_empty
         buf = StringIO()
         pr = buf.write
+        if self.header_class:
+            self.header_class = ' class="%s"' % self.header_class
+        else:
+            self.header_class = ''
         if self.daten_before_headers:
             for zeile in self.daten_before_headers:
                 if zeile:
@@ -347,7 +359,7 @@ class DataTable(object):
             cols = 0
             if self.noheaders:
                 for i in range(self.noheaders):
-                    pr("<th></th>")
+                    pr('<th></th>')
                     cols += 1
             else:
                 for i in self.daten[0]:
@@ -361,7 +373,7 @@ class DataTable(object):
                 cols += 1
                 if h != '':
                     h += ':'
-                pr("<th>%s</th>" % h)
+                pr('<th%s>%s</th>' % (self.header_class, h))
             pr("</tr>\n")
             max_cols = max(max_cols, cols)
         if self.daten:
@@ -439,8 +451,13 @@ class InputTable(object):
                 )
             pr(str(button_zeile))
         self.rows = buf.getvalue()
-                            
-
+    def get_data(self, res):
+        """Daten von allen enthaltenen Items an res ranhängen"""
+        for zeile in self.daten:
+            if zeile:
+                for spalte in zeile:
+                    if isinstance(spalte, InputItem):
+                        spalte.get_data(res)
 class FieldsetDataTable(Fieldset, DataTable):
     """liefert ein Fieldset dessen Inhalt von einer Datatable aufgefüllt wird.
     """
@@ -454,6 +471,10 @@ class FieldsetInputTable(Fieldset, InputTable):
     def _init(self):
         super(FieldsetInputTable, self)._init()
         self.set_rows()
+    def get_data(self, res):
+        """Daten von allen enthaltenen Items an res ranhängen"""
+        res.append(('legend', self.legend))
+        InputTable.get_data(self, res)
         
 class FieldsetFormInputTable(FieldsetForm, InputTable):
     """liefert ein Fieldset dessen Inhalt von einer InputTable aufgefüllt wird
@@ -690,7 +711,11 @@ class InputItem(Item):
             self.label_width_attr = ' width="%s" ' % self.label_width
         if self.value == None:
             self.value = ''
-
+    def get_data(self, res):
+        res.append((self.label, self.get_value()))
+    def get_value(self):
+        return self.value
+                 
 class DummyItem(InputItem):
     """optional: name, value
     damit wird ein hidden input gesetzt.
@@ -700,6 +725,8 @@ class DummyItem(InputItem):
         if self.name:
             self.hidden_attr = '<input type="hidden" name="%(name)s" value="%(value)s">' 
     tmpl = """<td class="%(label_class)s" %(tip)s%(label_width_attr)s%(rowspan_attr)s%(label_colspan_attr)s></td><td class="%(class_)s"%(tip)s%(colspan_attr)s%(rowspan_attr)s>%(hidden_attr)s</td>"""
+    def get_value(self):
+        return ''
     
 class TextItem(InputItem):
     """label,name,value
@@ -759,6 +786,8 @@ class CheckItem(InputItem):
      %(checked_attr)s%(readonly_attr)s%(onClick_attr)s%(onChange_attr)s>
     </td>
 """
+    def get_value(self):
+        return str(bool(self.checked))
 
 class RadioItem(InputItem):
     """label,name,value
@@ -776,6 +805,8 @@ class RadioItem(InputItem):
     <td align="left" class="%(label_class)s"%(label_width_attr)s%(tip)s%(label_colspan_attr)s>
     <label for="%(id)s">%(label)s</label></td>
 """
+    def get_value(self):
+        return str(bool(self.checked))
 
 class SelectItem(InputItem):
     """label,name,options
@@ -804,6 +835,9 @@ class SelectItem(InputItem):
     %(options)s
       </select></td>
 """
+    def get_value(self):
+        """Liste der Options, die selected sind."""
+        return re.findall('<option[^>]*selected[^>]*>([^<]*)</option>', self.options)
 
 class DatumItem(InputItem):
     """label,name,(year,month,day oder date)
@@ -853,6 +887,15 @@ class DatumItem(InputItem):
              name="%(yname)s"%(readonly_attr)s>%(time_input)s
     </nobr></td>
 """
+    def get_value(self):
+        res = ''
+        if self.day:
+            res += self.day + '.'
+        if self.month:
+            res += self.month + '.'
+        if self.year:
+            res += self.year
+        return res
 
 class SpeichernZuruecksetzenAbbrechen(_HTML):
     """

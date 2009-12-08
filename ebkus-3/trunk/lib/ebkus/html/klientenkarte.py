@@ -398,6 +398,10 @@ class klkarte(Request.Request, akte_share):
             daten= [[h.Icon(href= 'updfs?fsid=%(id)d' % fs,
                           icon= "/ebkus/ebkus_icons/edit_stat_button.gif",
                           tip= 'Fachstatistik bearbeiten'),
+                     h.Icon(href= 'viewfs?fsid=%(id)d' % fs,
+                            target='_blank',
+                            icon= "/ebkus/ebkus_icons/view_details.gif",
+                            tip= 'Fachstatistik ansehen/drucken'),
                      h.String(string= fs['fall_fn']),
                      h.String(string= fs['jahr'])]
                     for fs in fachstatistik_list],

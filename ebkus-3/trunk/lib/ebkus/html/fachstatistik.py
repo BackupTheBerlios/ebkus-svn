@@ -91,6 +91,7 @@ class _fachstatistik(Request.Request, akte_share):
                  file,
                  fs,
                  fsjok=None,
+                 pageonly=False
                  ):
         if fsjok == None:
             fsjok = fs
@@ -466,6 +467,8 @@ class _fachstatistik(Request.Request, akte_share):
                     ('gs', fs['gs']),
                     ),
             )
+        if pageonly:
+            return res
         return res.display()
 
 
@@ -618,16 +621,61 @@ class updfs(_fachstatistik):
                              fsjok=fsjok,
                              )
 
-
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+          
+class viewfs(_fachstatistik):
+    permissions = Request.STAT_PERM
+    def processForm(self, REQUEST, RESPONSE):
+        fsid = self.form.get('fsid')
+        if fsid:
+            fs = Fachstatistik(fsid)
+        else:
+            self.last_error_message = "Keine ID für die Fachstatistik erhalten"
+            return self.EBKuSError(REQUEST, RESPONSE)
+        title='Fachstatistik für Fallnummer %(fall_fn)s ' % fs + \
+            'am %(day)d.%(month)d.%(year)d' % today()
+        ueberschrift = h.TableDataTable(
+            daten=[[h.String(string=title,
+                                   class_='tabledatabold'),
+                    ],
+                   [h.Dummy()],
+                   ],
+            )
+        page = self._process(title='Fachstatistik ansehen',
+                             file='updfs',
+                             fs=fs,
+                             pageonly=True,
+                             )
+        data = []
+        page.get_data(data)
+        daten = []
+        for label, value in data:
+            if not label and not value:
+                continue
+            if label == 'legend':
+                daten.append( [h.String(string=value,
+                                   class_='tabledatabold'),
+                          h.String(string='')])
+            elif value and isinstance(value, (list, tuple)):
+                daten.append( [h.String(string=label),
+                          h.String(string=value[0]),
+                          ])
+                for v in value[1:]:
+                    daten.append( [h.String(string=''),
+                              h.String(string=v),
+                              ])
+            else:
+                daten.append( [h.String(string=label),
+                          h.String(string=value),
+                          ])
+        tabelle = h.TableDataTable(
+            headers=('Item', 'Wert'),
+            daten=daten,
+            )
+        res = h.Page(
+            title = title,
+            ueberschrift=ueberschrift,
+            rows=(ueberschrift,
+                  tabelle,
+                  ),
+            )
+        return res.display()

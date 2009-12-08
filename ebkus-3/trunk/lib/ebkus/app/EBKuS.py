@@ -116,7 +116,7 @@ def getClassesToBePublished():
     from ebkus.html.akte import zustneu, updzust
     # updfs wird auch als updfsform importiert weil es einen Nameclash zwischen
     # der Funktion ebupd.updfs und der Klasse updfs gibt. klkarte.py ist verzockt.
-    from ebkus.html.fachstatistik import fsneu, updfs, updfs as updfsform
+    from ebkus.html.fachstatistik import fsneu, updfs, updfs as updfsform, viewfs
     from ebkus.html.jghstatistik import jghneu, updjgh, jgh07neu, updjgh07, jgh_check, \
          updjgh as updjghform
     from ebkus.html.aktenvorblatt import vorblatt

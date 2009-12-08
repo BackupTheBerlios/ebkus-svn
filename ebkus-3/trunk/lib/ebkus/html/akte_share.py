@@ -574,6 +574,7 @@ class akte_share(options):
                                  edit_button=False, # falls False, kein edit button
                                  hinzufuegen_button=False, # falls False, kein hinzufügen button
                                  cls=None, # Falls hier eine Klasse steht, wird die genommen anstatt FieldsetDataTable
+                                 header_class=None,
                                  ):
         if not cls:
             cls = h.FieldsetDataTable
@@ -595,6 +596,7 @@ class akte_share(options):
             empty_msg="Bisher keine Kontakte eingetragen.",
             noheaders=edit_button and 2 or 0,
             headers=headers,
+            header_class=header_class,
             daten=[[(edit_button and (aktueller_fall and 
                                       h.Icon(href= updurl % b,
                                              icon= "/ebkus/ebkus_icons/edit_button.gif",
