@@ -42,6 +42,7 @@ template = \
 class %(lname)s(DBObjekt):
     table = '%(table)s'
     fields =  %(dbfields)s
+    fieldlengths = %(dbfieldlengths)s
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -122,10 +123,12 @@ def generate_ebapi(filename):
     for t in schemadata_tables:
         table, lname = t.tablename, t.classname
         dbfieldsl = [f.fieldname for f in t.fields]
+        dbfieldlengths = [f.max_len for f in t.fields]
         dbfields = formatFields(repr(dbfieldsl), MAXL, IND)
         primarykey = repr(t.primarykey)
         keys =  t.keys
         file.write(template % { 'dbfields' : dbfields,
+                                'dbfieldlengths' : dbfieldlengths,
                            'lname' : lname, 'table' : table,
                            'keys' : keys, 'primarykey' : primarykey})
         logging.info('Klassendefinition generiert: %s' % lname)

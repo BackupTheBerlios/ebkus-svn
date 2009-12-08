@@ -257,6 +257,20 @@ class DBObjekt(UserDict):
                     f['typ'].startswith('TEXT'))]
             return self.__class__._string_fields
 
+    def check_string_field_lengths(self):
+        """Wirft eine Exception, wenn ein String-Wert zu lang ist.
+        Sollte vor der insert oder update Operation aufgerufen werden."""
+        for fieldname, fieldlength in zip(self.fields, self.fieldlengths):
+            if not fieldlength:
+                # None (kein string-Feld) oder 0, keine Beschränkung
+                continue
+            val = self.data.get(fieldname)
+            if val and isinstance(val, basestring) and len(val) > fieldlength:
+                from ebkus.app.ebapi import get_feld, EE
+                feld = get_feld(fieldname, self.table)
+                raise EE("Eingabe '%s' in Feld '%s' zu lang (%s Zeichen, zulässig sind maximal %s Zeichen)" %
+                   (val, feld['name'], len(val), fieldlength))
+
     def _getKeyValue1(self, ktuple, dict):
         """Versucht, für jedes Element im tuple ktuple einen vWert in dict
         nachzuschlagen. Falls dieses gelingt, die vollständige Liste der Werte

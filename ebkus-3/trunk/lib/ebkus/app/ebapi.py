@@ -1076,8 +1076,12 @@ def get_string_fields(object, form, formnames, default = None, objectnames = Non
                 val = k_or_val(objname, default)
         elif type(val) != type(''): raise TypeError(fname)
         object[objname] = val
-        
-        
+    # Feldlängen prüfen für alle belegten Felder
+    # TODO prüfen ob alle Fälle abgedeckt werden
+    # Wenn Felder ohne get_string_fields() in ebupd aus der Form geholt werden,
+    # findet diese Prüfung nicht statt.
+    object.check_string_field_lengths()
+
         # Falls der Wert eines Feldes in der form None oder '' ist und kein Default-
         # wert angegeben ist,  wird der Wert auf None gesetzt.
         # Ansonsten wird überprüft, ob es sich um ein Integer handelt,

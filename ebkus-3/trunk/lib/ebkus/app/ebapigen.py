@@ -21,6 +21,7 @@ class Mitarbeiter(DBObjekt):
     table = 'mitarbeiter'
     fields =  ['id', 'vn', 'na', 'ben', 'anr', 'tl1', 'fax', 'mail', \
                        'stat', 'benr', 'stz', 'zeit', 'pass']
+    fieldlengths = [None, 35, 35, 25, 20, 25, 25, 50, None, None, None, None, 50]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -47,6 +48,7 @@ class Protokoll(DBObjekt):
     table = 'protokoll'
     fields =  ['nr', 'zeit', 'artdeszugriffs', 'benutzerkennung', \
                        'ipadresse']
+    fieldlengths = [None, 17, None, 25, 25]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -73,6 +75,7 @@ class StrassenkatalogNeu(DBObjekt):
     table = 'strkatalog'
     fields =  ['id', 'von', 'bis', 'gu', 'name', 'plz', 'ort', \
                        'ortsteil', 'samtgemeinde', 'bezirk', 'plraum']
+    fieldlengths = [None, 5, 5, 1, 60, 5, 60, 60, 60, 60, 60]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -100,6 +103,7 @@ class Akte(DBObjekt):
     fields =  ['id', 'vn', 'na', 'gb', 'gs', 'ber', 'aufbew', 'str', \
                        'hsnr', 'plz', 'plraum', 'lage', 'ort', 'tl1', 'tl2', \
                        'fs', 'no', 'stzbg', 'stzak', 'zeit']
+    fieldlengths = [None, 35, 35, 10, None, 30, None, 35, 5, 9, 60, None, 60, 25, 25, None, 255, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -126,6 +130,7 @@ class Fall(DBObjekt):
     table = 'fall'
     fields =  ['id', 'akte_id', 'fn', 'bgd', 'bgm', 'bgy', 'zdad', \
                        'zdam', 'zday', 'status']
+    fieldlengths = [None, None, 30, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -151,6 +156,7 @@ class FallList(Container):
 class Anmeldung(DBObjekt):
     table = 'anmeldung'
     fields =  ['id', 'fall_id', 'von', 'mtl', 'me', 'zm', 'mg', 'no']
+    fieldlengths = [None, None, 35, 25, 35, None, 255, 255]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -178,6 +184,7 @@ class Bezugsperson(DBObjekt):
     fields =  ['id', 'akte_id', 'vn', 'na', 'gb', 'gs', 'ber', 'str', \
                        'hsnr', 'lage', 'plz', 'ort', 'tl1', 'tl2', 'fs', \
                        'verw', 'no', 'nobed', 'vrt']
+    fieldlengths = [None, None, 35, 35, 10, None, 30, 35, 5, None, 9, 35, 25, 25, None, None, 255, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -204,6 +211,7 @@ class Einrichtungskontakt(DBObjekt):
     table = 'einrichtung'
     fields =  ['id', 'akte_id', 'na', 'tl1', 'tl2', 'insta', 'no', \
                        'nobed', 'status']
+    fieldlengths = [None, None, 80, 25, 25, None, 255, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -230,6 +238,7 @@ class Leistung(DBObjekt):
     table = 'leistung'
     fields =  ['id', 'fall_id', 'mit_id', 'le', 'bgd', 'bgm', 'bgy', \
                        'ed', 'em', 'ey', 'stz']
+    fieldlengths = [None, None, None, None, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -258,6 +267,7 @@ class Beratungskontakt(DBObjekt):
                        'teilnehmer', 'teilnehmer_bs', 'anzahl', 'kd', 'km', \
                        'ky', 'kh', 'kmin', 'jgh', 'dauer', 'dauer_f2f', \
                        'dauer_vornach', 'faktor', 'offenespr', 'no', 'stz']
+    fieldlengths = [None, None, None, None, None, 255, 255, None, None, None, None, None, None, None, None, None, None, 255, None, 255, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -283,6 +293,7 @@ class BeratungskontaktList(Container):
 class Mitarbeiterberatungskontakt(DBObjekt):
     table = 'mitarbeiterberatungskontakt'
     fields =  ['id', 'mit_id', 'bkont_id', 'zeit']
+    fieldlengths = [None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -308,6 +319,7 @@ class MitarbeiterberatungskontaktList(Container):
 class Fallberatungskontakt(DBObjekt):
     table = 'fallberatungskontakt'
     fields =  ['id', 'fall_id', 'bezugsp_id', 'bkont_id', 'zeit']
+    fieldlengths = [None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -333,6 +345,7 @@ class FallberatungskontaktList(Container):
 class Mitarbeiterfua_bs(DBObjekt):
     table = 'mitarbeiterfua_bs'
     fields =  ['id', 'mit_id', 'fua_bs_id', 'zeit']
+    fieldlengths = [None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -359,6 +372,7 @@ class Fua_BS(DBObjekt):
     table = 'fua_bs'
     fields =  ['id', 'mit_id', 'art', 'kd', 'km', 'ky', 'dauer', 'no', \
                        'stz']
+    fieldlengths = [None, None, None, None, None, None, None, 255, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -385,6 +399,7 @@ class Zustaendigkeit(DBObjekt):
     table = 'zustaendigkeit'
     fields =  ['id', 'fall_id', 'mit_id', 'bgd', 'bgm', 'bgy', 'ed', \
                        'em', 'ey']
+    fieldlengths = [None, None, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -411,6 +426,7 @@ class Dokument(DBObjekt):
     table = 'dokument'
     fields =  ['id', 'fall_id', 'mit_id', 'betr', 'fname', 'art', \
                        'vd', 'vm', 'vy', 'mtyp', 'dok', 'zeit']
+    fieldlengths = [None, None, None, 255, 255, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -437,6 +453,7 @@ class Gruppendokument(DBObjekt):
     table = 'gruppendokument'
     fields =  ['id', 'gruppe_id', 'mit_id', 'betr', 'fname', 'art', \
                        'vd', 'vm', 'vy', 'mtyp', 'dok', 'zeit']
+    fieldlengths = [None, None, None, 254, 254, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -464,6 +481,7 @@ class Gruppe(DBObjekt):
     fields =  ['id', 'gn', 'name', 'thema', 'tzahl', 'stzahl', 'bgd', \
                        'bgm', 'bgy', 'ed', 'em', 'ey', 'teiln', 'grtyp', 'stz', \
                        'zeit']
+    fieldlengths = [None, 20, 255, 255, None, None, None, None, None, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -490,6 +508,7 @@ class FallGruppe(DBObjekt):
     table = 'fallgruppe'
     fields =  ['id', 'fall_id', 'gruppe_id', 'bgd', 'bgm', 'bgy', \
                        'ed', 'em', 'ey', 'zeit']
+    fieldlengths = [None, None, None, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -516,6 +535,7 @@ class BezugspersonGruppe(DBObjekt):
     table = 'bezugspersongruppe'
     fields =  ['id', 'bezugsp_id', 'gruppe_id', 'bgd', 'bgm', 'bgy', \
                        'ed', 'em', 'ey', 'zeit']
+    fieldlengths = [None, None, None, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -542,6 +562,7 @@ class MitarbeiterGruppe(DBObjekt):
     table = 'mitarbeitergruppe'
     fields =  ['id', 'mit_id', 'gruppe_id', 'bgd', 'bgm', 'bgy', 'ed', \
                        'em', 'ey', 'zeit']
+    fieldlengths = [None, None, None, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -576,6 +597,7 @@ class Fachstatistik(DBObjekt):
                        'kindprobleme', 'elternprobleme', 'eleistungen', \
                        'joka1', 'joka2', 'joka3', 'joka4', 'jokf5', 'jokf6', \
                        'jokf7', 'jokf8', 'zeit']
+    fieldlengths = [None, None, None, 60, None, None, 9, 60, 60, 60, 60, 60, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, 255, 255, 255, 255, 255, 255, 255, None, None, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -606,6 +628,7 @@ class Jugendhilfestatistik(DBObjekt):
                        'gsu', 'zm', 'ba0', 'ba1', 'ba2', 'ba3', 'ba4', 'ba5', \
                        'ba6', 'ba7', 'ba8', 'ba9', 'schw', 'fbe0', 'fbe1', \
                        'fbe2', 'fbe3', 'zeit']
+    fieldlengths = [None, None, None, 20, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -637,6 +660,7 @@ class Jugendhilfestatistik2007(DBObjekt):
                        'wirt_sit', 'aip', 'ees', 'va52', 'rgu', 'hda', \
                        'nbkakt', 'gr1', 'gr2', 'gr3', 'em', 'ey', 'nbkges', \
                        'lbk6m', 'grende', 'aort_nac', 'unh', 'zeit']
+    fieldlengths = [None, None, 20, None, None, None, None, None, None, None, None, None, None, 1, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -664,6 +688,7 @@ class Code(DBObjekt):
     fields =  ['id', 'kat_id', 'kat_code', 'code', 'name', 'sort', \
                        'mini', 'maxi', 'off', 'dm', 'dy', 'dok', 'flag', \
                        'zeit']
+    fieldlengths = [None, None, 8, 8, 160, None, None, None, None, None, None, 255, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -689,6 +714,7 @@ class CodeList(Container):
 class Kategorie(DBObjekt):
     table = 'kategorie'
     fields =  ['id', 'code', 'name', 'kat_id', 'dok', 'flag', 'zeit']
+    fieldlengths = [None, 8, 60, None, 255, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -716,6 +742,7 @@ class Feld(DBObjekt):
     fields =  ['id', 'tab_id', 'feld', 'name', 'inverse', 'typ', \
                        'laenge', 'notnull', 'verwtyp', 'ftab_id', 'kat_id', \
                        'kat_code', 'flag', 'dok']
+    fieldlengths = [None, None, 30, 60, 60, 20, None, None, None, None, None, 8, None, 255]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -742,6 +769,7 @@ class Tabelle(DBObjekt):
     table = 'tabelle'
     fields =  ['id', 'tabelle', 'name', 'klasse', 'flag', 'dok', \
                        'maxist']
+    fieldlengths = [None, 30, 60, 60, None, 255, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -767,6 +795,7 @@ class TabelleList(Container):
 class Register(DBObjekt):
     table = 'register'
     fields =  ['id', 'regkey', 'value']
+    fieldlengths = [None, 255, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -792,6 +821,7 @@ class RegisterList(Container):
 class Abfrage(DBObjekt):
     table = 'abfrage'
     fields =  ['id', 'mit_id', 'name', 'dok', 'value', 'typ', 'zeit']
+    fieldlengths = [None, None, 255, None, None, 255, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -820,6 +850,7 @@ class Altdaten(DBObjekt):
                        'jahr', 'fallnummer', 'mitarbeiter', 'strasse', \
                        'hausnummer', 'plz', 'ort', 'telefon1', 'telefon2', \
                        'memo']
+    fieldlengths = [None, 35, 35, 10, 10, None, 20, 60, 35, 5, 9, 60, 25, 25, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}

@@ -92,6 +92,10 @@ class Field:
         self.table = table
         list[len(list):] = ['']*(6-len(list))
         self.fieldname, self.dbtype, self.lname, self.verwtyp, self.ref, self.inverse = list[:6]
+        self.max_len = None
+        lengths = re.findall('VARCHAR\((\d+)\)', self.dbtype)
+        if lengths:
+            self.max_len = int(lengths[0])
         if not self.verwtyp: self.verwtyp = 'p'
         if len(self.verwtyp) != 1 or self.verwtyp not in 'sfkmbp':
             raise 'Error in field definition'
