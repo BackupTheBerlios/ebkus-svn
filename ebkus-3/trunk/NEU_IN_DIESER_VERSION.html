@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
-<title>EBKuS 4.3 (15. Mai 2009)</title>
+<title>EBKuS 4.3.1 (8. Dezember 2009)</title>
 <style type="text/css">
 
 /*
@@ -256,103 +256,115 @@ ul.auto-toc {
 </style>
 </head>
 <body>
-<div class="document" id="ebkus-4-3-15-mai-2009">
-<h1 class="title">EBKuS 4.3 (15. Mai 2009)</h1>
+<div class="document" id="ebkus-4-3-1-8-dezember-2009">
+<h1 class="title">EBKuS 4.3.1 (8. Dezember 2009)</h1>
 
 <p>ACHTUNG:
 Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
 aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
 nach wie vor gültig.</p>
-<div class="section" id="update-von-4-2-auf-4-3">
-<h3>Update von 4.2 auf 4.3</h3>
-<p>Das Datenbankschema hat sich aufgrund von Veränderungen bei den
-fallunabhängigen Aktivitäten verändert. Es wird nur noch eine
-Aktivität gespeichert, auch wenn mehrere Mitarbeiter beteiligt
-sind. Die Datenbanken sind nicht kompatibel. Beim ersten Neustart
-mit der Version 4.3 wird ein Update-Skript ausgeführt, das
-automatisch die Datenbank an die neue Version anpasst.</p>
-</div>
-<div class="section" id="fachstatistik-konfiguration">
-<h3>Fachstatistik-Konfiguration</h3>
-<p>[Rev 200]
-Fehler, der manchmal beim Neuanlegen von Merkmal-Codes auftrat,
-beseitigt.</p>
+<div class="section" id="update-von-4-3-auf-4-3-1">
+<h3>Update von 4.3 auf 4.3.1</h3>
+<p>Das Datenbankschema hat sich nicht verändert. Die neuen Features
+stehen nach dem Kopieren der veränderten Dateien nach einem
+Neustart zur Verfügung.</p>
 </div>
 <div class="section" id="fach-und-bundesstatistik">
 <h3>Fach- und Bundesstatistik</h3>
-<p>[Rev 193,194]
-Laufende Fälle können in die Auswertung einbezogen werden.</p>
-<div class="section" id="teilmengendefinition">
-<h4>Teilmengendefinition</h4>
-<p>[Rev 202]
-Fehler bei der Definition von Teilmengen aufgrund von
-Regionalkriteren behoben. Der Fehler trat auf, wenn beteiligte
-Namen ein Leerzeichen enthielten (&quot;Boldecker Land&quot;).</p>
+<div class="section" id="ausschluss-abgeschlossener-f-lle-ohne-kontakt-im-abschlussjahr">
+<h4>Ausschluss abgeschlossener Fälle ohne Kontakt im Abschlussjahr</h4>
+<p>[Rev 218, 219]
+Abgeschlossene Fälle, bei denen im Abschlussjahr kein
+Beratungskontakt im Sinne der Bundesstatistik stattfand, können
+von der Statistik ausgeschlossen werden. Dies funktioniert nur,
+wenn EBKuS mit &quot;BERATUNGSKONTAKTE: true&quot; konfiguriert ist. In
+diesem Fall erscheint eine zusätzliche Checkbox mit dem Label
+&quot;Keine Fälle ohne Kontakt im Abschlussjahr&quot; im Kasten
+&quot;Grundgesamtheit&quot; der Statistikabfrage.</p>
+<p>Kontakte in diesem Sinne sind gegeben:</p>
+<p>1. ind der Konfiguration &quot;BERATUNGSKONTAKTE: true&quot; und
+&quot;BERATUNGSKONTAKTE_BS: true&quot; (Braunschweig):
+Die Kontaktart ist durch ein Item aus der Tabelle &quot;Art des
+Beratungskontakts (BS)&quot; beschrieben, bei denen in der
+Dokumentation &quot;bs:ja&quot; steht. Die Zeitdauer inkl. der von EBKuS
+berechneten Vor- und Nachbereitungszeit beträgt mindestens 30
+Minuten (= 1 Kontakt i.S. der Bundesstatistik).</p>
+<p>2. in der Konfiguration &quot;BERATUNGSKONTAKTE: true&quot; und
+&quot;BERATUNGSKONTAKTE_BS: false&quot;:
+Ein Beratungskontakt, dessen Dauer mindestens 30 Minuten
+beträgt.</p>
+<p>Es werden nur solche Fälle ausgeschlossen, für die überhaupt
+Beratungskontakte eingetragen sind (also solche aus dem Vorjahr).
+Wenn überhaupt keine Kontakte eingetragen sind, wird angenommen,
+dass für einen solchen Fall die Kontakte nicht mit EBKuS gepflegt
+werden, also auch nicht geschlossen werden kann, dass es im
+Abschlussjahr keine gegeben hat.</p>
 </div>
-<div class="section" id="bundesstatistik">
-<h4>Bundesstatistik</h4>
-<p>[Rev 199, 200, 201]
-Bei Betreuungsintensität (J und M) konnte 0 abegespeichert
-werden, wurde aber dann nicht angezeigt. Es gab Fälle, wo beim
-Export der Bunddesstatistik keine Beratungskontakte angegeben
-waren. Jetzt muss mindestens die Zahl 1 eingetragen werden, oder,
-falls BERATUNGSKONTAKTE konfiguriert sind, eine Anzahl größer 0
-aus den dokumentierten Beratungskontakten übernommen werden. Dies
-geschieht automatisch, wenn das Feld leer gelassen wird.</p>
+<div class="section" id="komplette-statistikergebnisse-druckfreundlich-darstellen">
+<h4>Komplette Statistikergebnisse druckfreundlich darstellen</h4>
+<p>[Rev 218, 219]
+Auf der Seite Statistikauszählung erscheinen zwei neue Buttons
+im Kasten &quot;Auswahlmenu&quot;, &quot;Drucken&quot; und &quot;CSV-Datei&quot;, die die
+gleiche Funktion haben, wie die bereits für jede Einzeltabelle
+vorhandenen Buttons.</p>
+<p>Beim Anklicken von &quot;Drucken&quot; erscheint eine druckfreundliche
+HTML-Seite in einem weiteren Tab bzw. Fenster, in der nur die
+Definition der Abfrage, das Abfragedatum sowie die einzelnen
+Tabellen stehen, die dann über den Browser ausgedruckt werden
+kann.</p>
 </div>
-</div>
-<div class="section" id="auswertungen">
-<h3>Auswertungen</h3>
-<div class="section" id="beratungskontakte">
-<h4>Beratungskontakte</h4>
-<p>[Rev. 197]
-Zeilensummen in Auswertungstabellen eingefügt.</p>
-<p>[Rev. 196]
-Monatsweise Abfrage für fallunabhängige Aktivitäten ist jetzt möglich.</p>
-<p>[Rev. 205]
-Keine Stellenauswahl mehr, nur die eigene Stelle wird angezeigt.</p>
-<p>[Rev. 205]
-Bearbeiter sehen keine Summen mehr (es wurden ohnehin nur die
-eigenen Zeiten angezeigt), nur noch die Verwaltungskräfte.</p>
-</div>
-<div class="section" id="fallunabh-ngige-aktivit-ten">
-<h4>Fallunabhängige Aktivitäten</h4>
-<p>[Rev. 197]
-Zeilensummen in Auswertungstabellen eingefügt.</p>
-<p>[Rev. 198]
-Monatsweise Abfrage für fallunabhängige Aktivitäten ist jetzt möglich.</p>
-<p>[Rev. 206]
-Keine Stellenauswahl mehr, nur die eigene Stelle wird angezeigt.</p>
-<p>[Rev. 206]
-Bearbeiter sehen keine Summen mehr (es wurden ohnehin nur die
-eigenen Zeiten angezeigt), nur noch die Verwaltungskräfte.</p>
-<p>[Rev. 206,207]
-Verwalter sehen neben der Summe über Mitarbeiter wie bisher nun
-auch die Summe über die Aktivitäten. In diese Summe geht die Zeit
-der Aktivität nur einmal ein, egal wieviele Mitarbeiter an der
-Aktivität beteiligt waren.
-ACHTUNG: Die Summierung über die Aktivitäten erfolgt korrekt nur
-für solche Aktivitäten, die ab EBKuS 4.3 neu angelegt
-bzw. updatet wurden.</p>
-</div>
-<div class="section" id="wartezeiten">
-<h4>Wartezeiten</h4>
-<p>[Rev. 203]
-Auswertung Wartezeiten zwischen Anmeldung und erster Leistung
-eingeführt.</p>
+<div class="section" id="komplette-statistikergebnisse-als-csv-datei">
+<h4>Komplette Statistikergebnisse als CSV-Datei</h4>
+<p>[Rev 218, 219]
+Auf der Seite Statistikauszählung erscheinen zwei neue Buttons
+im Kasten &quot;Auswahlmenu&quot;, &quot;Drucken&quot; und &quot;CSV-Datei&quot;, die die gleiche
+Funktion haben, wie die bereits für jede Einzeltabelle vorhandenen
+Buttons.</p>
+<p>Unter &quot;CSV-Datei&quot; wird eine CSV-Datei erzeugt, die alle
+Ergebnistabellen beinhaltet. Diese kann dann mit einem Schlag in
+die Tabellenkalkulation importiert werden.</p>
 </div>
 </div>
-<div class="section" id="beratungskontakt-anlegen-bzw-bearbeiten">
-<h3>Beratungskontakt anlegen bzw. bearbeiten</h3>
-<p>[Rev. 204]
-Fehlerhaft versetzte Spaltenüberschriften bei bisherigen
-Kontakten korrigiert.</p>
+<div class="section" id="klientenkarte">
+<h3>Klientenkarte</h3>
+<div class="section" id="beratungskontakte-ausdrucken">
+<h4>Beratungskontakte ausdrucken</h4>
+<p>[Rev 220,225]
+Die Liste der Beratungskontakte eines Falls inkl. Notizen werden
+ausdruckbar gemacht als Einlegeblatt für die Akte, analog dem
+Aktenvorblatt. Dazu gibt es im Dropdown-Menu &quot;Anzeige&quot; oben auf der
+Klientenkarte zusätzlich zu &quot;Aktenvorblatt&quot; und &quot;Klientendokument&quot;
+einen Eintrag &quot;Beratungskontakte&quot; (sofern EBKuS mit
+Beratungskontakten konfiguriert ist). Es werden nur die
+Beratungskontakte für den aktuellen Fall ausgegeben.</p>
+</div>
+<div class="section" id="ausgef-llte-fachstatistik-f-r-einen-fall-ausdrucken">
+<h4>Ausgefüllte Fachstatistik für einen Fall ausdrucken</h4>
+<p>[Rev 224]
+Auf der Klientenkarte neben der Fachstatistik erscheint
+zusätzlich zum Button &quot;Bearbeiten&quot; einen Button &quot;Ansehen/Drucken&quot;
+(wie bei Bezugspersonen), der eine Seite mit einer Tabelle mit
+den Fragen und den für den Fall ausgewählten Antworten ausgibt, die
+dann ohne die bekannten Probleme gedruckt werden kann.</p>
+</div>
+</div>
+<div class="section" id="administration">
+<h3>Administration</h3>
+<div class="section" id="gruppen-l-schen">
+<h4>Gruppen löschen</h4>
+<p>[Rev 223]
+Unter Administrationshauptmenü -&gt; Akten -&gt; Löschen/Fehlerkorrektur
+wird zusätzlich zu &quot;Fall löschen&quot; die Möglichkeit zum Löschen einer
+Gruppe angeboten. Zur Sicherheit können nur Gruppen gelöscht werden,
+die kein Abschlussdatum und die keine Teilnehmer haben (kann man bei
+Bedarf immer vorher löschen).</p>
+</div>
 </div>
 </div>
 <div class="footer">
 <hr class="footer" />
 <a class="reference external" href="NEU_IN_DIESER_VERSION.txt">View document source</a>.
-Generated on: 2009-05-15 12:13 UTC.
+Generated on: 2009-12-08 10:01 UTC.
 
 </div>
 </body>

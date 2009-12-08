@@ -36,18 +36,28 @@ class UpdateDB(object):
     """Zum Update einer EBKuS-Datenbank von einer Version auf eine höhere.
     Die Software der höheren Version muss bereits eingespielt sein.
     """
-    # diese Listen definieren für welche Datenbankversionen diese Klasse funktioniert
-    #ist_moeglich = ['4.1', '4.1.1']
-    #soll_moeglich = ['4.2']
+
+    # Die Software kann auch immer eine dreistellige Version sein (4.3.1).
+    # Die zugehörige DB-Version ist immer zweistellig. 
+    # Wenn das Schema geändert wird, muss sich die zweistellige Versionszahl
+    # erhöhen.
+
+    # Die Datenbank muss mindestens auf diesem Niveau sein, damit 
+    # ein Update möglich ist.
     ist_moeglich = ['4.2']
+    # Die Update Software kann die Datenbankversion auf dieses Niveau
+    # heben (d.h. es gibt eine update_<ist_möglich>_nach_<soll_möglich>
     soll_moeglich = ['4.3']
 
     def __init__(self):
         # Protokoll stoert
         from ebkus.app.protocol import temp_off
         temp_off()
-        # Sollversion ist immer die Version der Software
+        # Sollversion ist immer die Major-Version der Software (4.1, 4.4, ...)
         from ebkus import Version
+        # Minor-Version spielt keine Rolle
+        vt = Version.split('.')
+        self.soll2 = "%s.%s" % (vt[0], vt[1])
         self.soll = Version
         try:
             opendb()
@@ -93,11 +103,15 @@ class UpdateDB(object):
             logging.info("Datenbankversion und Softwareversion stimmen überein.")
             logging.info("Keine Update erforderlich")
             return False
+        elif self.ist == self.soll2:
+            logging.info("Datenbankversion und Softwareversion sind kompatibel.")
+            logging.info("Keine Update erforderlich")
+            return False
         else:
             logging.info("Datenbankversion: %s" % self.ist)
             logging.info("Softwareversion:  %s" % self.soll)
             logging.info("Update der Datenbank erforderlich")
-        if self.soll not in self.soll_moeglich:
+        if self.soll2 not in self.soll_moeglich:
             self.abort("Update auf Version %s nicht möglich" % self.soll)
         if not self.ist in self.ist_moeglich:
             self.abort("Update von Version %s nicht möglich" % self.ist)

@@ -1,5 +1,5 @@
-EBKuS 4.3
-=========
+EBKuS 4.3.1
+===========
 
 Klientenverwaltung, Aktendokumentation, Gruppenverwaltung 
 und Statistik für Erziehungs- und Familienberatungsstellen

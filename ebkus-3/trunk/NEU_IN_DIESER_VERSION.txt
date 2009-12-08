@@ -1,5 +1,5 @@
-EBKuS 4.3 (15. Mai 2009)
-========================
+EBKuS 4.3.1 (8. Dezember 2009)
+==============================
 
 ACHTUNG:
 Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
@@ -7,114 +7,116 @@ aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
 nach wie vor gültig.
 
 
-Update von 4.2 auf 4.3
+Update von 4.3 auf 4.3.1
 ------------------------
 
-Das Datenbankschema hat sich aufgrund von Veränderungen bei den
-fallunabhängigen Aktivitäten verändert. Es wird nur noch eine
-Aktivität gespeichert, auch wenn mehrere Mitarbeiter beteiligt
-sind. Die Datenbanken sind nicht kompatibel. Beim ersten Neustart
-mit der Version 4.3 wird ein Update-Skript ausgeführt, das
-automatisch die Datenbank an die neue Version anpasst. 
-
-
-Fachstatistik-Konfiguration
----------------------------
-
-[Rev 200]
-Fehler, der manchmal beim Neuanlegen von Merkmal-Codes auftrat,
-beseitigt. 
+Das Datenbankschema hat sich nicht verändert. Die neuen Features
+stehen nach dem Kopieren der veränderten Dateien nach einem
+Neustart zur Verfügung.
 
 
 Fach- und Bundesstatistik
 -------------------------
 
-[Rev 193,194]
-Laufende Fälle können in die Auswertung einbezogen werden.
+Ausschluss abgeschlossener Fälle ohne Kontakt im Abschlussjahr
+..............................................................
+
+[Rev 218, 219]
+Abgeschlossene Fälle, bei denen im Abschlussjahr kein
+Beratungskontakt im Sinne der Bundesstatistik stattfand, können
+von der Statistik ausgeschlossen werden. Dies funktioniert nur,
+wenn EBKuS mit "BERATUNGSKONTAKTE: true" konfiguriert ist. In
+diesem Fall erscheint eine zusätzliche Checkbox mit dem Label
+"Keine Fälle ohne Kontakt im Abschlussjahr" im Kasten
+"Grundgesamtheit" der Statistikabfrage. 
+
+Kontakte in diesem Sinne sind gegeben:
+
+1. In der Konfiguration "BERATUNGSKONTAKTE: true" und
+"BERATUNGSKONTAKTE_BS: true" (Braunschweig): 
+Die Kontaktart ist durch ein Item aus der Tabelle "Art des
+Beratungskontakts (BS)" beschrieben, bei denen in der
+Dokumentation "bs:ja" steht. Die Zeitdauer inkl. der von EBKuS
+berechneten Vor- und Nachbereitungszeit beträgt mindestens 30
+Minuten (= 1 Kontakt i.S. der Bundesstatistik).
+
+2. In der Konfiguration "BERATUNGSKONTAKTE: true" und
+"BERATUNGSKONTAKTE_BS: false": 
+Ein Beratungskontakt, dessen Dauer mindestens 30 Minuten
+beträgt. 
+
+Es werden nur solche Fälle ausgeschlossen, für die überhaupt
+Beratungskontakte eingetragen sind (also solche aus dem Vorjahr).
+Wenn überhaupt keine Kontakte eingetragen sind, wird angenommen,
+dass für einen solchen Fall die Kontakte nicht mit EBKuS gepflegt
+werden, also auch nicht geschlossen werden kann, dass es im
+Abschlussjahr keine gegeben hat.
+
+Komplette Statistikergebnisse druckfreundlich darstellen
+........................................................
+
+[Rev 218, 219]
+Auf der Seite Statistikauszählung erscheinen zwei neue Buttons
+im Kasten "Auswahlmenu", "Drucken" und "CSV-Datei", die die
+gleiche Funktion haben, wie die bereits für jede Einzeltabelle
+vorhandenen Buttons.
+
+Beim Anklicken von "Drucken" erscheint eine druckfreundliche
+HTML-Seite in einem weiteren Tab bzw. Fenster, in der nur die
+Definition der Abfrage, das Abfragedatum sowie die einzelnen
+Tabellen stehen, die dann über den Browser ausgedruckt werden
+kann. 
 
 
-Teilmengendefinition
-....................
+Komplette Statistikergebnisse als CSV-Datei 
+...........................................
 
-[Rev 202]
-Fehler bei der Definition von Teilmengen aufgrund von
-Regionalkriteren behoben. Der Fehler trat auf, wenn beteiligte
-Namen ein Leerzeichen enthielten ("Boldecker Land").
+[Rev 218, 219]
+Auf der Seite Statistikauszählung erscheinen zwei neue Buttons
+im Kasten "Auswahlmenu", "Drucken" und "CSV-Datei", die die gleiche
+Funktion haben, wie die bereits für jede Einzeltabelle vorhandenen
+Buttons.
 
-Bundesstatistik
+Unter "CSV-Datei" wird eine CSV-Datei erzeugt, die alle
+Ergebnistabellen beinhaltet. Diese kann dann mit einem Schlag in
+die Tabellenkalkulation importiert werden.
+
+
+Klientenkarte
+-------------
+
+Beratungskontakte für einen Fall ausdrucken
+...........................................
+
+[Rev 220,225]
+Die Liste der Beratungskontakte eines Falls inkl. Notizen werden
+ausdruckbar gemacht als Einlegeblatt für die Akte, analog dem
+Aktenvorblatt. Dazu gibt es im Dropdown-Menu "Anzeige" oben auf der
+Klientenkarte zusätzlich zu "Aktenvorblatt" und "Klientendokument"
+einen Eintrag "Beratungskontakte" (sofern EBKuS mit
+Beratungskontakten konfiguriert ist). Es werden nur die
+Beratungskontakte für den aktuellen Fall ausgegeben.
+
+Ausgefüllte Fachstatistik für einen Fall ausdrucken
+...................................................
+
+[Rev 224]
+Auf der Klientenkarte neben der Fachstatistik erscheint
+zusätzlich zum Button "Bearbeiten" einen Button "Ansehen/Drucken"
+(wie bei Bezugspersonen), der eine Seite mit einer Tabelle mit
+den Fragen und den für den Fall ausgewählten Antworten ausgibt, die
+dann ohne die bekannten Probleme gedruckt werden kann.
+
+
+Administration
+--------------
+
+Gruppen löschen
 ...............
 
-[Rev 199, 200, 201]
-Bei Betreuungsintensität (J und M) konnte 0 abegespeichert
-werden, wurde aber dann nicht angezeigt. Es gab Fälle, wo beim
-Export der Bunddesstatistik keine Beratungskontakte angegeben
-waren. Jetzt muss mindestens die Zahl 1 eingetragen werden, oder,
-falls BERATUNGSKONTAKTE konfiguriert sind, eine Anzahl größer 0
-aus den dokumentierten Beratungskontakten übernommen werden. Dies
-geschieht automatisch, wenn das Feld leer gelassen wird. 
-
-
-Auswertungen
-------------
-
-
-Beratungskontakte
-.................
-
-[Rev. 197]
-Zeilensummen in Auswertungstabellen eingefügt.
-
-[Rev. 196]
-Monatsweise Abfrage für fallunabhängige Aktivitäten ist jetzt möglich.
-
-[Rev. 205]
-Keine Stellenauswahl mehr, nur die eigene Stelle wird angezeigt.
-
-[Rev. 205]
-Bearbeiter sehen keine Summen mehr (es wurden ohnehin nur die
-eigenen Zeiten angezeigt), nur noch die Verwaltungskräfte.
-
-
-
-
-Fallunabhängige Aktivitäten
-...........................
-
-[Rev. 197]
-Zeilensummen in Auswertungstabellen eingefügt.
-
-[Rev. 198]
-Monatsweise Abfrage für fallunabhängige Aktivitäten ist jetzt möglich.
-
-[Rev. 206]
-Keine Stellenauswahl mehr, nur die eigene Stelle wird angezeigt.
-
-[Rev. 206]
-Bearbeiter sehen keine Summen mehr (es wurden ohnehin nur die
-eigenen Zeiten angezeigt), nur noch die Verwaltungskräfte.
-
-[Rev. 206,207]
-Verwalter sehen neben der Summe über Mitarbeiter wie bisher nun
-auch die Summe über die Aktivitäten. In diese Summe geht die Zeit
-der Aktivität nur einmal ein, egal wieviele Mitarbeiter an der
-Aktivität beteiligt waren.
-ACHTUNG: Die Summierung über die Aktivitäten erfolgt korrekt nur
-für solche Aktivitäten, die ab EBKuS 4.3 neu angelegt
-bzw. updatet wurden.
-
-Wartezeiten
-...........
-
-[Rev. 203]
-Auswertung Wartezeiten zwischen Anmeldung und erster Leistung
-eingeführt.
-
-
-Beratungskontakt anlegen bzw. bearbeiten
-----------------------------------------
-
-[Rev. 204]
-Fehlerhaft versetzte Spaltenüberschriften bei bisherigen
-Kontakten korrigiert. 
-
-
+[Rev 223]
+Unter Administrationshauptmenü -> Akten -> Löschen/Fehlerkorrektur
+wird zusätzlich zu "Fall löschen" die Möglichkeit zum Löschen einer
+Gruppe angeboten. Zur Sicherheit können nur Gruppen gelöscht werden,
+die kein Abschlussdatum und die keine Teilnehmer haben (kann man bei
+Bedarf immer vorher löschen).
