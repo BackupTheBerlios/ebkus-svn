@@ -120,3 +120,12 @@ wird zusätzlich zu "Fall löschen" die Möglichkeit zum Löschen einer
 Gruppe angeboten. Zur Sicherheit können nur Gruppen gelöscht werden,
 die kein Abschlussdatum und die keine Teilnehmer haben (kann man bei
 Bedarf immer vorher löschen).
+
+
+Eingabevalidierung
+------------------
+
+[Rev 228]
+Es kam vereinzelt zu kryptischen Fehlermeldungen, wenn zuviele
+Zeichen in Eingabefelder eingegeben wurden. Jetzt erscheint eine
+verständliche Meldung.
