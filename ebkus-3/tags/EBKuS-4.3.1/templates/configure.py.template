@@ -1,0 +1,88 @@
+#!%(PYTHON_EXECUTABLE)s
+# coding: latin-1
+
+
+import os, sys, getopt, errno
+assert sys.version_info >= (2,3), "Es wird Python 2.3 oder höher benötigt"
+from os.path import join, split, dirname, exists, isdir, normpath, normcase, abspath
+win32 = sys.platform == 'win32'
+
+def configure_instance(instance):
+    instance.configure()
+    if win32:
+        if instance.is_started_service():
+            instance.stop_service()
+        else:
+            instance.install_service()
+        instance.start_service()
+
+def usage():
+    s = """\
+configure.py ebkus
+    Installiert ebkus und alle konfigurierten Instanzen
+configure.py <Instanzname>
+    Installiert nur die benannte Instanz
+
+configure.py --help
+configure.py -h
+    Ausgabe dieser Hilfe
+
+Beispiele:
+
+python configure.py demo
+python configure.py ebkus
+
+"""
+    print s
+    sys.exit(1)
+
+if __name__ == '__main__':
+    try:
+        optlist, args = getopt.getopt(sys.argv[1:],
+                                      'h',
+                                      ['help'])
+    except getopt.GetoptError, m:
+        print str(m)
+        print '------------'
+        usage()
+
+    EBKUS_HOME = dirname(abspath(sys.argv[0]))
+    EBKUS_PYTHON_PATH = join(EBKUS_HOME, 'lib')
+    instance_name = None
+    ebkus = False
+    for option, value in optlist:
+        if option in ('--help', '-h'):
+            usage()
+
+    #print args
+    if len(args) > 1:
+        print "zuviele Argumente"
+        sys.exit(1)
+    if len(args) < 1:
+        print "keine Instanz angegeben"
+        sys.exit(1)
+    instance_name = args[0]
+    path = EBKUS_PYTHON_PATH
+    if path and path != sys.path[0]:
+        sys.path.insert(0, path)
+    from ebkus.Install import InstallFromHome
+    installer = InstallFromHome(EBKUS_HOME)
+    installer.init()
+    if instance_name == 'ebkus':
+        installer.ebkus.configure()
+        for i in installer.ebkus.instances:
+            configure_instance(i)
+        sys.exit(0)
+            
+    instance = installer.ebkus[instance_name]
+    if not instance:
+        print "%%s ist keine konfigurierte EBKuS-Instanz" %% instance_name
+        sys.exit(1)
+    configure_instance(instance)
+
+    if win32:
+        installer.apache.stop_service()
+        installer.apache.start_service()
+
+    sys.exit(0)
+ 

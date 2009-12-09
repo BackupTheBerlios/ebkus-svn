@@ -1,0 +1,878 @@
+========================
+EBKuS Versionsgeschichte
+========================
+
+[Überschriften und Inhaltsverzeichnis sind *gegenseitig* verlinkt]
+
+.. contents::
+
+.. sectnum::
+
+.. include:: NEU_IN_DIESER_VERSION.txt
+
+
+
+EBKuS 4.3 (15. Mai 2009)
+========================
+
+ACHTUNG:
+Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
+aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
+nach wie vor gültig.
+
+
+Update von 4.2 auf 4.3
+------------------------
+
+Das Datenbankschema hat sich aufgrund von Veränderungen bei den
+fallunabhängigen Aktivitäten verändert. Es wird nur noch eine
+Aktivität gespeichert, auch wenn mehrere Mitarbeiter beteiligt
+sind. Die Datenbanken sind nicht kompatibel. Beim ersten Neustart
+mit der Version 4.3 wird ein Update-Skript ausgeführt, das
+automatisch die Datenbank an die neue Version anpasst. 
+
+
+Fachstatistik-Konfiguration
+---------------------------
+
+[Rev 200]
+Fehler, der manchmal beim Neuanlegen von Merkmal-Codes auftrat,
+beseitigt. 
+
+
+Fach- und Bundesstatistik
+-------------------------
+
+[Rev 193,194]
+Laufende Fälle können in die Auswertung einbezogen werden.
+
+
+Teilmengendefinition
+....................
+
+[Rev 202]
+Fehler bei der Definition von Teilmengen aufgrund von
+Regionalkriteren behoben. Der Fehler trat auf, wenn beteiligte
+Namen ein Leerzeichen enthielten ("Boldecker Land").
+
+Bundesstatistik
+...............
+
+[Rev 199, 200, 201]
+Bei Betreuungsintensität (J und M) konnte 0 abegespeichert
+werden, wurde aber dann nicht angezeigt. Es gab Fälle, wo beim
+Export der Bunddesstatistik keine Beratungskontakte angegeben
+waren. Jetzt muss mindestens die Zahl 1 eingetragen werden, oder,
+falls BERATUNGSKONTAKTE konfiguriert sind, eine Anzahl größer 0
+aus den dokumentierten Beratungskontakten übernommen werden. Dies
+geschieht automatisch, wenn das Feld leer gelassen wird. 
+
+
+Auswertungen
+------------
+
+
+Beratungskontakte
+.................
+
+[Rev. 197]
+Zeilensummen in Auswertungstabellen eingefügt.
+
+[Rev. 196]
+Monatsweise Abfrage für fallunabhängige Aktivitäten ist jetzt möglich.
+
+[Rev. 205]
+Keine Stellenauswahl mehr, nur die eigene Stelle wird angezeigt.
+
+[Rev. 205]
+Bearbeiter sehen keine Summen mehr (es wurden ohnehin nur die
+eigenen Zeiten angezeigt), nur noch die Verwaltungskräfte.
+
+
+
+
+Fallunabhängige Aktivitäten
+...........................
+
+[Rev. 197]
+Zeilensummen in Auswertungstabellen eingefügt.
+
+[Rev. 198]
+Monatsweise Abfrage für fallunabhängige Aktivitäten ist jetzt möglich.
+
+[Rev. 206]
+Keine Stellenauswahl mehr, nur die eigene Stelle wird angezeigt.
+
+[Rev. 206]
+Bearbeiter sehen keine Summen mehr (es wurden ohnehin nur die
+eigenen Zeiten angezeigt), nur noch die Verwaltungskräfte.
+
+[Rev. 206,207]
+Verwalter sehen neben der Summe über Mitarbeiter wie bisher nun
+auch die Summe über die Aktivitäten. In diese Summe geht die Zeit
+der Aktivität nur einmal ein, egal wieviele Mitarbeiter an der
+Aktivität beteiligt waren.
+ACHTUNG: Die Summierung über die Aktivitäten erfolgt korrekt nur
+für solche Aktivitäten, die ab EBKuS 4.3 neu angelegt
+bzw. updatet wurden.
+
+Wartezeiten
+...........
+
+[Rev. 203]
+Auswertung Wartezeiten zwischen Anmeldung und erster Leistung
+eingeführt.
+
+
+Beratungskontakt anlegen bzw. bearbeiten
+----------------------------------------
+
+[Rev. 204]
+Fehlerhaft versetzte Spaltenüberschriften bei bisherigen
+Kontakten korrigiert. 
+
+
+EBKuS 4.2 (8. Dezember 2008)
+============================
+
+ACHTUNG:
+Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
+aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
+nach wie vor gültig.
+
+
+Update von 4.1.1 auf 4.2
+------------------------
+
+Das Datenbankschema hat sich aufgrund des Fehlers in der
+Fachstatistik (siehe unten) verändert. Die Datenbanken sind
+nicht kompatibel. Beim ersten Neustart mit der Version 4.2 wird
+ein Update-Skript, ausgeführt, das automatisch die Datenbank an
+die neue Version anpasst. 
+
+
+Klientenakte
+------------
+
+Nachname zuerst bei der Klientenauswahl
+.......................................
+
+Bei der Klientenauswahl wird jetzt zuerst der Nachname und dann
+der Vorname des Klienten angezeigt. Wie bisher wird zunächst nach
+dem Nachnamen des Mitarbeiters und dann nach dem Nachnamen des
+Klienten sortiert.
+
+
+Notizen nach oben
+.................
+
+[Rev. 159,160]
+Notizen erscheinen nicht mehr lediglich ganz unten auf der
+Klientenkarte, sondern außerdem in einer eigenen Spalte neben
+den Einträgen, auf die sie sich beziehen. Als wichtig deklarierte
+Notizen werden in roter Schrift dargestellt.
+
+
+Anmeldungsdaten als Pflichtangaben bei der Anmeldung
+....................................................
+
+[Rev. 165]
+Wenn in der Konfiguration einer Instanz (in der Datei
+``ebkus.conf``) die Konfigurationsvariable
+``anmeldungsdaten_obligatorisch`` auf ``true`` gesetzt ist,
+werden die Anmeldungsdaten direkt im Aufnahmeformular (zusammen
+mit Klientenstammdaten, Fallbeginn und erste Leistung)
+erhoben. Die entsprechenden Pflichfelder sind dabei
+auszufüllen. Eine spätere Bearbeitung der Anmeldungsdaten erfolgt
+wie bisher in einer eigenständigen Maske (analog der späteren
+Bearbeitung einer Leistung).
+
+
+Auswertungen
+------------
+
+Zusätzliche Kriterien zur Auswahl von Beratungen
+................................................
+
+Die Kriterien für die Fallauswahl wurden um folgende Punkte
+erweitert: 
+
+* bis Jahr Fallbeginn, bis Fallnummer
+
+* ab Jahr Fallabschluss, bis Jahr Fallabschluss
+
+
+Fehler behoben bei Neumeldungen und Abschlüsse 
+..............................................
+
+
+ASD-Fälle wurden nicht ausgezählt. Fehler behoben.
+
+
+Fachstatistik
+-------------
+
+Fehler mit potentiellem Datenverlust behoben bei frei konfigurierbaren Fragen
+.............................................................................
+
+
+[Rev. 161]
+In der vorherigen Version 4.1.1 gab es einen Fehler mit
+potentiellem Datenverlust bei den frei konfigurierbaren Fragen.
+
+Dieser Fehler konnte nur dann auftreten, falls die Option
+Mehrfachauswahl gewählt wurde ('Frei definierbare Items im
+jeweils eigenen Kasten' in der Maske 'Fachstatistik
+konfigurieren' als Administrator). Grundsätzlich konnte nur das
+erste gewählte Merkmal gespeichert werden, weitere angekreuzte
+Merkmale fielen unter den Tisch.
+
+Die Behebung dieses Fehlers erfordert eine Änderung des
+Datenbankschemas, das automatisch beim Update auf Version 4.2
+durchgeführt wird.
+
+Nach dem Update muss jede Fachstatistik, die eine frei
+konfigurierbare Frage mit Mehrfachauswahl verwendet,
+nachgebessert werden, falls mehr als ein Merkmal bei der
+betreffenden Frage zugeordnet werden soll.
+
+
+Fehler behoben bei deaktivierten Merkmalen
+..........................................
+
+[Rev. 166]
+Trotz Deaktivierung erschienen Merkmale in den Ergebnistabellen
+der Fachstatistikauszählung, was nun nicht mehr der Fall ist.
+
+
+
+Veränderter Bezugspunkt für Prozentangaben bei der Auszählung von Fragen mit Mehrfachauswahl
+............................................................................................
+
+[Rev. 167]
+Der Prozentsatz bezieht sich nunmehr auf die Zahl der Klienten in
+der ausgezählten Grundgesamtheit, nicht auf die Summe der
+zugeordneten Merkmale. Wegen der Mehrfachauswahl kann nun die
+Summe der Prozentsätze größer als 100 sein.
+
+
+Fallunabhängige Aktivitäten
+---------------------------
+
+Sortierung
+..........
+
+[Rev. 162]
+Bisherige Aktivitäten werden nach Nachname des Mitarbeiters und
+dann nach Datum sortiert (bisher nur nach Nachnamen).
+
+
+Mehrere Mitarbeiter
+...................
+
+Bei der Einführung einer neuen fallunabhängigen Aktivität können
+mehrere Mitarbeiter angegeben werden. Dann erfolgt ein
+identischer Eintrag für jeden der angegebenen Mitarbeitern. Diese
+Einträge können später aber nur von dem betreffenden Mitarbeiter
+selber bearbeitet werden. Nur die Verwaltungskraft sieht die
+Aktivitäten aller Mitarbeiter und kann diese auch bearbeiten.
+
+
+Gruppenteilnehmerauswahl
+------------------------
+
+Sortierung
+..........
+
+[Rev. 163]
+Sortierung der Klienten und der Bezugspersonen bei der
+Gruppenteilnehmerauswahl erfolgt nun grundsätzlich nur nach
+Nachname der Klienten bzw. der Bezugspersonen.
+
+
+
+Neues Modul Adressenexport
+--------------------------
+
+[Rev. 164]
+Im Hauptmenü unter Auswertungen gibt es unter der Rubrik
+"Adressen exportieren" zwei neue Menüpunkte, Fälle und Gruppen.
+Über eine Auswahl an Fällen (Kriterien wie bei "Beratungen")
+bzw. Gruppen kann eine Tabelle erzeugt werden, deren Zeilen
+u.a. die Adresse eines Klienten bzw. einer Bezugsperson
+enthalten. Alle Adressen, die zu einem Fall gehören (Klient und
+eine variable Anzahl von Bezugspersonen) sind farblich
+abgesetzt. Jede Zeile kann markiert werden, wodurch eine Auswahl
+von Adressen manuell getroffen werden kann. Die gewählten
+Adressen können als CSV-Datei exportiert werden (und bei Bedarf
+in einer Tabellenkalkulation weiter bearbeitet werden). Die
+CSV-Datei kann von anderen Programmen zur Erstellung von
+Serienbriefen, Adressaufklebern, etc. importiert werden.
+
+
+EBKuS 4.1.1 (18. März 2008)
+===========================
+
+ACHTUNG:
+Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
+aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
+nach wie vor gültig.
+
+
+Konfiguration
+-------------
+
+Neue Konfigurationsvariable in ``ebkus.conf``:
+
+* ``sql_abfrage``: Nur wenn diese Variable den Wert ``true`` hat,
+  kann die Maske zum Absetzen von SQL-Abfragen vom
+  Administrationsmenü aus aufgerufen werden. Standardwert ist
+  ``false``. 
+
+* *Hinweis zum Datenschutz*: Da über diese Schnittstelle alle
+  vorhandenen Daten abrufbar sind, empfehlen wir, diese Variable
+  generell auf ``false`` zu lassen und nur für gezielte
+  Auswertungen vorübergehend auf ``true`` zu setzen.
+
+SQL-Abfragen
+------------
+
+Vom Administrationsmenü aus kann eine Maske zum Absetzen von
+SQL-Abfragen an die Datenbank aufgerufen werden. Das
+tabellarische Ergebnis wird als CSV-Datei zurückgegeben, die
+direkt in eine Tabellenkalkulation (OpenOffice Calc, Excel)
+eingelesen werden kann. 
+
+Optional können in der Maske Spaltenüberschriften definiert
+werden.
+
+Damit kann der Anwender beliebige Auswertungen über die
+vorhandenen Daten vornehmen.
+
+Es sind über diese Schnittstelle nur SELECT-Ausdrücke zulässig,
+Modifikation der Datenbank über INSERT, DELETE und UPDATE sind
+ausgeschlossen. 
+
+
+Auswertung Neumeldungen und Abschlüsse
+--------------------------------------
+
+* Die letzte Spalte der Tabelle wurde von 'z.d.A.' nach
+  'abgeschl. Bundesstatistik' umbenannt. Damit wird verdeutlicht,
+  dass ein Fall in dieser Spalte aufgrund des Ende-Datums der
+  Bundesstatistik erscheint und nicht aufgrund des z.d.A.-Datums
+  (obwohl das meisten auf dasselbe hinausläuft). 
+
+
+Bezugsperson
+------------
+
+* Fehler in der Darstellung behoben (Tabellenüberschriften waren
+  verschoben.) 
+
+Bundesstatistik
+---------------
+
+* Fehler beim Abspeichern der Bundesstatistik behoben (falsche
+  Fehlermeldung z.B. bei Anmeldung im Dezember und
+  Leistungsbeginn im Januar).
+
+EBKuS 4.1 (19. Februar 2008)
+============================
+
+ACHTUNG:
+Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
+aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
+nach wie vor gültig.
+
+
+Update von 3.3 auf 4.1
+----------------------
+
+Das Datenbankschema hat sich verändert, die Datenbanken sind
+nicht kompatibel. Version 4.1 enthält ein Update-Skript, das
+automatisch die Datenbank an die neue Version anpasst (siehe
+README-Update-von-3.3-nach-4.1.txt). 
+
+
+Konfiguration
+-------------
+
+Neue Konfigurationsvariablen in ``ebkus.conf``:
+
+* ``instance_title``: Langname für die Instanz, erscheint bei der
+  Anmeldung und in der Statuszeile.
+
+* ``wiederaufnahmefrist``: Anzahl der Monate, innerhalb derer ein
+  abgeschlossener Fall wiederaufgenommen werden kann.
+
+* ``beratungskontakte``: Falls ``true`` können in der
+  Klientenakte einzelne Beratungskontakte eingetragen werden. Die
+  Summen werden in die Bundesstatistik und in die Fachstatistik übernommen.
+
+* ``beratungskontakte_bs``: Falls ``true`` (``beratungskontakte``
+  muss ebenfalls auf ``true`` stehen) treten Anpassungen speziell
+  für Braunschweig in Kraft.
+* ``fallunabhaengige_aktivitaeten_bs``: Falls ``true`` können
+  fallunabhängige Aktivitäten eingetragen und ausgewertet
+  werden. Speziell für Braunschweig.
+
+* ``strassenkatalog_vollstaendig``: Falls ``true`` wird
+  angenommen, dass der Straßenkatalog Einträge für jede einzelne
+  Hausnummer enthält anstatt Einträge nur für ganze Straßen
+  bzw. für bestimmte Intervalle von Hausnummern.
+
+* ``strassensuche``: bestimmt die Anzeige von Zusatzinfo aus dem
+  Straßenkatalog bei der Darstellung von Adressen (irrelevant,
+  wenn kein Straßenkatalog verwendet wird). Im folgenden Beispiel
+  wird so viel wie möglich angezeigt: 
+
+  ::
+
+    ``strassensuche: ort bezirk ortsteil samtgemeinde``
+
+  ``ort`` kann weggelassen werden, wenn im Straßenkatalog nur ein
+  Ort vorkommt. Die Felder ``ortsteil`` und ``samtgemeinde`` können
+  weggelassen werden, wenn im Straßenkatalog nur das Feld
+  ``bezirk`` Einträge enthält.
+
+
+Benutzeroberfläche
+------------------
+
+Alle Seiten haben oben eine Statuszeile mit 
+
+* Link zur relevanten Stelle im Handbuch (welches leider noch
+  nicht aktualisiert ist),
+
+* Pfad zur aktuellen Seite ("Breadcrumb"),
+
+* EBKuS-Version, Instanz(lang)name,
+
+* Benutzername (Kennung@Stelle, Rolle),
+
+* Link zum Abmelden.
+
+Die Oberfläche wurde überarbeitet und ist jetzt insgesamt
+konsistenter und übersichtlicher.
+
+Die Suche erfolgt jetzt direkt vom Hauptmenü aus.
+
+
+Klientenakte
+------------
+
+Übernahmen von Altdaten
+.......................
+
+Bei der Neuaufnahme können Name, Geburtsdatum, Geschlecht,
+Adresse und Telefonnummer aus eventuell vorhandenen Altdaten
+übernommen werden. Altdaten müssen zuvor über das
+Administrationsmenü als CSV-Datei importiert werden. Dort ist
+auch das Format der zu importierenden Datei erklärt.
+
+
+Stammdaten
+..........
+
+* Geschlecht wird bei Klientendaten eingetragen und in die Fach-
+  und Bundesstatistik übernommen.
+
+* Bei den Stammdaten wird eine Aufbewahrungskategorie vermerkt,
+  die beim Löschen von Akten berücksichtigt werden kann
+  (Missbrauchsfälle und Therapien müssen länger aufbewahrt werden
+  als Beratungen.)
+
+
+Straßenkatalog
+..............
+
+* Die Anwendung wurde stark vereinfacht.
+
+* Zum Abgleich können die ersten Buchstaben des Straßennames, des
+  Ortes, der Postleitzahl und - je nachdem, ob der Straßenkatalog
+  diese Angaben enthält - des Bezirks, des Ortsteils und der
+  Samtgemeinde verwendet werden.
+
+* Wenn die Angaben genau einen Treffer ergeben, wird die Adresse
+  direkt mit den Daten des Treffers vervollständigt ohne die
+  Straßenauswahl-Maske zu aktivieren.
+
+* Straßenkataloge können in einem fest definierten Format als
+  CSV-Dateien importiert und exportiert werden und auf diese
+  Weise gepflegt werden.
+
+
+Bezugsperson
+............
+
+* Name und Adresse sind mit Name und Adresse vom Klienten
+  vorbelegt, da hier am häufigsten Eltern oder Geschwister
+  eingetragen werden.
+
+* Geschlecht der Bezugsperson wird vorbelegt wenn '-vater' oder '-mutter' in der
+  Verwandtschaftsart vorkommen.
+
+
+Anmeldekontakt
+..............
+
+* Datum kann nicht mehr eingegeben werden, da der Fallbeginn als
+  Anmeldedatum  zugrundegelegt wird.
+
+
+Beratungskontakte
+.................
+
+* Neu in EBKuS 4
+
+* An einem Beratungskontakt können mehrere Mitarbeiter und
+  mehrere Klienten beteiligt sein. 
+
+* Der Klient, von dessen Klientenkarte der Kontakt hinzugefügt
+  wurde, ist als Beteiligter vorselektiert. Der für ihn
+  zuständige Mitarbeiter ist ebenfalls vorselektiert.
+
+* Die Summe der Beratungskontakte wird in die Fach- und
+  Bundesstatistik übernommen.
+
+
+Zuständigkeit
+.............
+
+* Beim Abspeichern wird gewährleistet, dass es für jeden
+  Zeitpunkt eines laufenden Falles ein zuständigen Mitarbeiter
+  gibt. 
+
+
+Fall
+....
+
+* Wo früher 'Fallbeginn' stand, steht nun 'Anmeldedatum', wodurch
+  das mit diesem Datum Gemeinte verdeutlicht wird.
+
+* Leistungsbeginn ist das Datum der ersten Leistung, welches als
+  'Beginn der Hilfegewährung' in die Bundesstatistik übernommen
+  wird.
+
+* Die Wiederaufnahmefrist (Anzahl der Monate, innerhalb derer ein
+  abgeschlossener Fall wiederaufgenommen werden kann) ist jetzt konfigurierbar.
+
+
+Löschen
+.......
+
+Bei aktuellen Fällen können einzelne Einträge für 
+
+* Bezugsperson,
+
+* Beratungskontakt, 
+
+* Einrichtungskontakt und 
+
+* Leistung gelöscht werden.
+
+
+Fachstatistik
+-------------
+
+* Regionaldaten (Ort, PLZ, Ortsteil, Bezirk, Samtgemeinde) werden
+  in die Fachstatistik übernommen falls vorhanden.
+
+* 'Qualifikation Jugendlicher' wurde umbenannt in 'Beschäftigung
+  Jugendlicher' und neues Merkmal 'entfällt (unter 14)' hinzugefügt.
+
+* 'Beruf Mutter/Vater' wurde umbenannt in 'Beschäftigung Mutter/Vater'
+  und einige Merkmalsbezeichnungen angepasst.
+
+* 'Problem 1/2 bei der Anmeldung' wurde zusammengefasst zu 'Probleme
+  bei der Anmeldung' mit der Möglichkeit, mehrere Merkmale
+  auszuwählen. 
+
+* 'Hauptproblematik Kind/Jugendliche' bzw. 'Hauptproblematik
+  Eltern' entfallen. 
+
+* Vorbelegungen:
+
+  * Geschlecht aus den Stammdaten
+
+  * Altersgruppe aus dem Geburtsdatum in den Stammdaten
+
+  * Altersgruppe der Eltern aus dem Geburtsdatum der Eltern falls
+    vorhanden
+
+  * Erbrachte Leistungen aus der Klientenakte
+
+  * Terminsummen aus den Beratungskontakten falls vorhanden
+
+* Fachstatistik ist über das Administrationsmenü konfigurierbar:
+
+  * Einzelne Fragen können abgeschaltet werden.
+
+  * Es können bis zu vier zusätzliche Fragen mit Einfachauswahl
+    frei konfiguriert werden.
+
+  * Es können bis zu vier zusätzliche Fragen mit Mehrfachauswahl
+    frei konfiguriert werden.
+
+  * Die Merkmalskataloge von allen Fragen können reduziert,
+    modifiziert und erweitert werden.
+
+  * Altersgruppen können in der Aufteilung modifiziert werden.
+
+Bundesstatistik
+---------------
+
+* Bundesstatistik erhält ebenso wie die Fachstatistik das Merkmal
+  'Jahr'. Bei abgeschlossenen Fällen muss es identisch sein mit
+  dem Jahr 'Ende der Hilfe', bei andauernder Hilfe das Jahr, für
+  die die Statistik gilt.
+
+* Vorbelegungen:
+
+  * Land-, Kreis- und Einrichtungsnummer können so vorkonfiguriert
+    werden, dass für die jeweilige Stelle der richtige Wert
+    automatisch oben steht und übernommen wird.
+
+  * Hilfebeginn aus dem Datum der ersten Leistung
+
+  * Geschlecht/Geburtsjahr/Geburtsmonat aus den Stammdaten
+
+  * 'Intensität der andauernden Beratung'
+    bzw. 'Betreuungsintensität'  aus der Summe der Beratungskontakte
+    falls vorhanen. Werden diese Felder freigelassen, wird beim
+    Speichern automatisch die Summen der Beratungskontakte eingefügt.
+
+
+Auswertungen
+------------
+
+Beratungen
+..........
+
+* Liste ist nach verschiedenen Kriterien sortierbar.
+
+* Für offene Fälle wird das Vorhandensein einer Bundes- oder
+  Fachstatistik angezeigt.
+
+
+Statistik
+.........
+
+* Teilmengendefinitionen: Durch logische Kombinationen beliebiger
+  Mermale der Fach- und Bundesstatistik lassen sich Teilmengen
+  von Fällen definieren, für die getrennte Auszählungen gemacht
+  werden können.
+
+* Durch die Übernahme von Regionaldaten in die Fachstatistik
+  lassen sich leicht separate Auszählungen für bestimmte Regionen
+  erstellen. Regionen können durch Ort, PLZ, Planungsraum sowie
+  Ortsteil, Bezirk und Samtgemeinde (falls über den
+  Straßenkatalog verfügbar) definiert werden.
+
+
+Administration
+--------------
+
+
+* Akten können nach Ablauf der Löschfrist
+  (konfigurationsabhängig) gelöscht werden.
+
+* Einzelne offene Fälle können mit oder ohne Statistik gelöscht
+  werden. Wenn es nur einen einzigen Fall gibt, wird die ganze
+  Akte gelöscht. So können fehlerhaft eingegebene Akten entfernt
+  werden. 
+
+* Altdaten lassen sich in Form einer CSV-Datei mit festgelegtem
+  Format importieren. Das Format wird auf der Import-Maske
+  erklärt. Die Daten können bei der Neuaufnahme übernommen
+  werden.
+
+* Straßenkataloge lassen sich in Form von CSV-Dateien importieren
+  und exportieren. Das  Format wird auf der Import-Maske
+  erklärt. Es lassen sich auch Teile eines Katalogs für
+  definierte Postleitzahlen exportieren, die dann z.B. korrigiert
+  und anschließend wieder importiert werden.
+
+* Konfigurierbarkeit der Fachstatistik:
+
+  * Einzelne Fragen lassen sich abstellen.
+
+  * Merkmale können deaktiviert, umbenannt oder hinzugefügt
+    werden.
+
+  * Es können bis zu vier zusätzliche Fragen mit Einfachauswahl
+    hinzugefügt werden. Text der Frage und Merkmale sind direkt
+    einzugeben.
+
+  * Bis zu vier weitere Fragen mit Mehrfachauswahl.
+
+
+EBKuS 3.3 (15. Januar 2007)
+===========================
+
+- neue Bundesstatistik ab 2007:
+
+  - Statistikformular
+  - Auswertung
+  - Export der veränderten Datensätze für das statistische
+    Landesamt 
+
+- aktualisierter Straßenkatalog mit neuen Planungsräumen für die
+  Berliner Version 
+- automatisches Update auf 3.3
+- EBKuS funktioniert jetzt auch mit Apache 2.0
+- beinhaltet alle Patches seit EBKuS 3.2
+- zahlreiche kleine Verbesserungen und Behebung von Fehlern
+- Umstellung der Versionsverwaltung von CVS auf Subversion
+- Achtung: Die Datenbankdumps der Version 3.2 und 3.3 sind nicht
+  kompatibel! Siehe README-Update-von-3.2-nach-3.3.txt.
+
+EBKuS 3.2 (17. Oktober 2004)
+============================
+
+- Neue Python-basierte Installationsskripte für Linux und Windows
+  NT/2000/XP
+- weitgehend automatische Installation aller benötigten
+  Komponenten unter Windows (Apache, MySQL)
+- Betrieb als Windows-Dienst
+- Unterstützung mehrerer Instanzen im Rahmen einer Installation
+- neue Konfigurations-Datei
+- Überarbeitung des Handbuchs
+
+  - neues Kapitel zur Installation und Konfiguration 
+  - Umstellung von Word auf Docutils (ermöglicht automatische
+    Generierung von HTML und PDF aus Textdateien)
+
+- großflächige Restrukturierung der Code-Basis im Interesse einer
+  verbesserten Wartbarkeit
+- Behebung von Fehlern
+- zahlreiche Verbesserungen im Detail
+- die Differenzierung in eine Standardversion und in eine Berliner Version
+
+EBKuS 3.0 (21. Mai 2002)
+========================
+
+- Version 3.0 wurde von der Firma msg systems ag in Absprache mit
+  einer Arbeitsgruppe der Familienberatungsstellen von Berlin und
+  der KoBIT (Geschäftsstelle zur Koordinierung und Beratung
+  bezirklicher IT-Verfahren) für den allgemeinen Einsatz
+  in den bezirklichen Erziehungsberatungsstellen von Berlin
+  erstellt.
+- neues HTML-Design in Absprache mit KoBIT (nach dem Windows Style-Guide)
+- Online-Hilfe
+- Generierung von Balkendiagrammen zur Visualisierung der
+  Statistik
+- Verwendung des Berliner Straßenkatalogs für die Adress-Eingabe
+- neue vorgefertigte Abfragen
+- Protokollierung aller Datenbankzugriffe
+- Open-SSL Verschlüsselung
+- Installationsskripte 
+
+
+EBKuS 2 (5. Juni 2001)
+======================
+
+- Zwei neue zentrale Klassen (EBKuS u. Request).  
+- Funktionen in die Requestklasse ausgelagert (wie z.B. Authorisierung). 
+- Die Funktionen für die HTML-Ausgabe sind als Klassen implementiert 
+  und in wenigen Dateien zusammengefasst worden. 
+- Die Klassen und Module werden mit dem zugehörigen Namensraum bzw. 
+  der Modulbezeichnung referiert und verwendet (kein globaler Import mehr). 
+- Aufteilung der verschiedenen Programmteile auf eigene Verzeichnisse.
+
+
+EBKuS 1.3.3 (20. Mai 2001)
+==========================
+
+- In den HTML-Formularen für akteneu.py, persneu.py, updakte,py, updpers.py
+  fsneu.py und jghneu.py die Tabellen übersichtlicher gestaltet.
+- In ebupd.py Exception Syntax korrigiert.
+- EBKuS und das Modul MySQLdb 0.3.5 mit Python 2.1 getestet (auf Linux).
+  (Warning: das Modul für regular Expression ist deprecated) 
+  EBKuS 1.3.3 läuft mit Modul MySQLdb 0.3.5 und Python 2.1 auf Linux.
+- Den Url-redirect in klkarte.py, dokkarte.py, gruppenkarte.py
+  von Moved Permanently auf Moved Temporarily geändert. Opera
+  reagiert mit einem reload auf Moved Permanently. Das führt 
+  zu einem 2. Versuch beim Speichern von Daten und zur Fehlermeldung,
+  dass der Datensatz in der DB schon existiert.  
+- Den File-Upload  serverseitig korrigiert, so dass er mit
+  Opera funktioniert (war bisher nur mit Netscape getestet).
+
+
+EBKuS 1.3.2
+===========
+
+- Patch des Datenbankadapters für die DB MySQL und das Modul MySQLdb
+  (der Patch ist notwendig, damit MySQL 3.23 und höher läuft).
+
+
+EBKuS 1.3.1
+===========
+
+- Pfad für das Modul reportlab.pdfbase korrigiert 
+  (verwies nicht auf die Distribution)
+- Icons-Pfad der Anwendungsbeschreibung verweist jetzt auf die Icons
+  in der Distribution   
+- Korrektur der Fachstastik (Ausgabemaske)
+
+
+EBKuS 1.3 (April 2001)
+======================
+
+Änderung und Erweiterung der Fachstatistik:
+
+- Die AG der Familienberatungsstellen in Friedrichshain-Kreuzberg
+  erstellte einen neuen, aktualisierten Merkmalskatalog für die 
+  Fachstatistik.
+  Aufgrunddessen ist das Tabellenschema um 2 Tabellen erweitert und
+  einige Felder der Fachstatistik-Tabelle sind geändert worden.
+- Anpassung der Eingabeformulare und der Abfragen für die Fachstatistik 
+  an den neuen Statistikkatalog. 
+- Alle Felder der Statistikformulare zeigen jetzt immer zuerst das Leerfeld. 
+- Achtung! Fachstatistiktabellen, welche mit der Version vor 1.3
+  generiert wurden, unterscheiden sich von denen in 1.3. Die
+  bisherigen Daten können per Skript in die neu generierte
+  Datenbank importiert werden.
+- Dokumentation (Anwendungsbeschreibung für EBKuS) ergänzt
+
+
+EBKuS 1.2 (Februar 2001)
+========================
+
+Änderungen und Erweiterungen (Mandantenfähigkeit der Datenbank):
+
+- Trennung von Dienststelle und Datenbanksite im Programm.
+  (Programm nach Dienststelle parametrisiert; mehrere Dienststellen
+  arbeiten auf einer Datenbanksite).
+- ID-Räume für mehrere DBSites sind im Admin-Interface frei konfigurierbar.
+- Differenzierung des Exports/Imports: Aussenstellen, welche keine
+  Netzverbindung zur Hauptdatenbank haben, können ihre Daten
+  in letztere importieren, die Hauptdatenbank exportiert nur die
+  gemeinsamen statistischen Merkmale und die Mitarbeiterstammdaten
+  in die Nebenstellen.
+- EBKuS an die neue Python 2.0 Version angepasst.
+- Diverse kleinere Fehler beseitigt.
+
+EBKuS 1.1 (Dezember 2000)
+=========================
+
+- EBKuS auf Windows konvertiert und unter Windows ME getestet.
+
+Änderungen und Erweiterungen (neue Module Dokumente, Gruppe, PDF-Bibliothek):
+
+- Aktendokumente, in den Formaten Text (ASCII), HTML, PDF.
+- Import von PDF-Dokumenten; 
+- Konvertieren von Text (ASCII) ins PDF-Format für Druck- und
+  Bildschirmausgaben.  
+- Aufnahme der Open-Source PDF-Bibliothek reportlab ins Programm.
+- Im- und Export unterschiedlicher Dokumentenformate (Mime Typen).
+- Verwalten von Gruppen und Gruppenteilnehmer.
+- Import von Dokumenten für Gruppen.
+- einfache Textsuche in Aktendokumenten.
+- Aufnahme einer Aufbewahrungs- und Löschfrist für die Akten in die
+  Konfiguration und ins Admin-GUI.
+- Ex- und Importprotokolle für Datenaustausch in das Admin-GUI aufgenommen.
+- Admin-GUI erweitert.
+- Kompatibel zum Python Standard DB-API 2.0. (Standard-SQL-Kompatabilität).
+
