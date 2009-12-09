@@ -142,6 +142,10 @@ class UpdateDB(object):
         self.wartezeit_bereichskategorie_eintragen()
         self.fua_bs_neue_tabelle_fuer_mitarbeiter_zuordnung()
 
+    def update_4_2_nach_4_3_1(self):
+        self.wartezeit_bereichskategorie_eintragen()
+        self.fua_bs_neue_tabelle_fuer_mitarbeiter_zuordnung()
+
 
     def wartezeit_bereichskategorie_eintragen(self):
         kat_code = 'wartez'
