@@ -79,6 +79,9 @@ _params = (
     ('instance', 'PLANUNGSRAUMFELD', 'planungsraumfeld', 's', 's:plraum'), # deprecated
     ('instance', 'SQL_ABFRAGE', 'sql_abfrage', 'b', 'e:False'),
     ('instance', 'ANMELDUNGSDATEN_OBLIGATORISCH', 'anmeldungsdaten_obligatorisch', 'b', 'e:False'),
+#    ('instance', 'FEHLER_BEI_FACHSTATISTIK_AKTE_DISKREPANZ', 'fehler_bei_fachstatistik_akte_diskrepanz', 'b', 'e:False'),
+    ('instance', 'WARNUNG_BEI_FACHSTATISTIK_AKTE_DISKREPANZ', 'warnung_bei_fachstatistik_akte_diskrepanz', 'b', 'e:False'),
+    ('instance', 'FACHSTATISTIK_AKTE_DISKREPANZ_NICHT_ZULASSEN', 'fachstatistik_akte_diskrepanz_nicht_zulassen', 'b', 'e:False'),
     )
 
 # werden von show/dump nicht angezeigt

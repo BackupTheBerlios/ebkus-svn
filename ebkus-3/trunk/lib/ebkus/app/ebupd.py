@@ -1078,11 +1078,11 @@ def _fs_check(form, fstat, fstatold=None):
                 fstat[a] = akte[a]
             if config.STRASSENKATALOG:
                 from ebkus.html.strkat import get_strasse
-                str = get_strasse(akte)
+                strasse = get_strasse(akte)
             else:
-                str = {}
+                strasse = {}
             for a in ('ortsteil', 'bezirk', 'samtgemeinde'):
-                fstat[a] = str.get(a, '')
+                fstat[a] = strasse.get(a, '')
     # ab hier abschaltbar
     from ebkus.html.fskonfig import fs_customize as fsc
     multicode = cc('verwtyp', 'm')
@@ -1114,6 +1114,44 @@ def _fs_check(form, fstat, fstatold=None):
                         fstat[f] = check_int_not_empty(form, f, "Fehlt: %s" % fobj['name'])
 ##             elif fname in fsc.termin_felder:
 ##                 fstat[fname] = check_int_not_empty(form, fname, "Keine Terminanzahl", 0)
+
+                        
+    if config.WARNUNG_BEI_FACHSTATISTIK_AKTE_DISKREPANZ:
+        diskr = form.get('diskr')
+        warnen = False
+        if diskr != '1' and fall:
+            warning = "Es besteht eine Diskrepanz zwischen Angaben in der Fachstatistik " + \
+                      "und in der Klientenakte.<br /><br /><br />"
+            warning += "<table>"
+            warning += '<tr><th>Angaben in der Akte:</th><th></th></tr><tr><td>&nbsp;</td><td>&nbsp;</td></tr>'
+            try:
+                a = set()
+            except:
+                from sets import Set as set
+            fall_leistungen = set(str(leist['le']) for leist in fall['leistungen'])
+            fs_leistungen = set(fstat['eleistungen'].split())
+            if fall_leistungen != fs_leistungen:
+                leistungen_name = list(set([leist['le__name'] for leist in fall['leistungen']]))
+                leistungen_name.sort()
+                warnen = True
+                warning += "<tr><td><strong>Erbrachte Leistungen:</strong></td>"
+                if leistungen_name:
+                    warning += "<td>%s</td></tr>" % leistungen_name[0]
+                    for leist in leistungen_name[1:]:
+                        warning += "<tr><td></td><td>%s</td></tr>" % leist
+            if fall['akte__fs'] != fstat['fs']:
+                warnen = True
+                warning += "<tr><td><strong>Familienstatus:</strong> </td><td>%s</td></tr>" % \
+                    fall['akte__fs__name']
+            anmeldungen = fall['anmeldung']
+            if anmeldungen and anmeldungen[0]['zm'] != fstat['zm']:
+                warnen = True
+                warning += "<tr><td><strong>Empfohlen von:</strong></td><td>%s</td></tr>" % \
+                    anmeldungen[0]['zm__name']
+            warning += "</table><br /><br /><br />" + \
+                       'Markieren Sie "Diskrepanz zur Akte zulassen", um trotzdem zu speichern.<br /><br /><br />'
+            if warnen:
+                raise EE(warning)
     if fall_id and akte:
         akte.akte_undo_cached_fields()
 

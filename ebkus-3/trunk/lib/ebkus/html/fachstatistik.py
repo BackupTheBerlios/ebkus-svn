@@ -32,10 +32,11 @@ class _fachstatistik(Request.Request, akte_share):
     def _customize_fieldset(self, f):
         res = []
         self._legend = None # _customize item kann hier was reinschreiben
-        for zeile in f.daten:
-            z = self._customize_zeile(zeile)
-            if z:
-                res.append(z)
+        if f:
+            for zeile in f.daten:
+                z = self._customize_zeile(zeile)
+                if z:
+                    res.append(z)
         if res:
             f.daten = res
             if self._legend:
@@ -93,6 +94,23 @@ class _fachstatistik(Request.Request, akte_share):
                  fsjok=None,
                  pageonly=False
                  ):
+        if config.FACHSTATISTIK_AKTE_DISKREPANZ_NICHT_ZULASSEN:
+            # immer die drei Werte direkt von der Akte setzen
+            von_akte_readonly = True # == FACHSTATISTIK_AKTE_DISKREPANZ_NICHT_ZULASSEN
+            fall_id = fs['fall_id']
+            if fall_id:
+                fall = Fall(fall_id)
+                _fs = fall['akte__fs']
+                anm = fall['anmeldung']
+                if anm:
+                    _zm = anm[0]['zm']
+                _eleistungen = ' '.join([
+                        str(leist['le']) for leist in fall['leistungen']])
+        else:
+            von_akte_readonly = False
+            _zm = fs['zm']
+            _fs = fs['fs']
+            _eleistungen = fs['eleistungen']
         if fsjok == None:
             fsjok = fs
         falldaten = h.FieldsetInputTable(
@@ -146,12 +164,14 @@ class _fachstatistik(Request.Request, akte_share):
                                     ),
                       ],
                      [h.SelectItem(label='Lebensmittelpunkt Kind/Jugendliche(r)',
+                                   readonly=von_akte_readonly,
                                    name='fs',
-                                   options=self.for_kat('fsfs', fs['fs']),
+                                   options=self.for_kat('fsfs', _fs),
                                    ),
                       h.SelectItem(label='Empfohlen von',
                                    name='zm',
-                                   options=self.for_kat('fszm', fs['zm']),
+                                   readonly=von_akte_readonly,
+                                   options=self.for_kat('fszm', _zm),
                                    ),
                       ],
                      [h.SelectItem(label='Beschäftigung Jugendliche(r)',
@@ -363,11 +383,12 @@ class _fachstatistik(Request.Request, akte_share):
         eleistungen = h.FieldsetInputTable(
             legend='Erbrachte Leistungen',
             daten=[[h.SelectItem(label='',
+                                 readonly=von_akte_readonly,
                                  name='eleistungen',
                                  class_='listbox310',
                                  label_width=label_width,
                                  multiple=True,
-                                 options=self.for_kat('fsle', fs['eleistungen']),
+                                 options=self.for_kat('fsle', _eleistungen),
                                  size=8,
                                  ),
                     ]],
@@ -431,6 +452,20 @@ class _fachstatistik(Request.Request, akte_share):
                                ),
             ]],
             )
+        diskrepanz_akzeptieren = None
+        if config.WARNUNG_BEI_FACHSTATISTIK_AKTE_DISKREPANZ:
+            diskrepanz_akzeptieren = h.FieldsetInputTable(
+                legend="Diskrepanz zur Akte zulassen",
+                daten=[[h.CheckItem(label="Diskrepanz zur Akte zulassen",
+                                    name="diskr",
+                                    value='1',
+                                    checked=False,
+                                    tip="Markieren, um Diskrepanz zur Akte hinsichtlich "
+                                        "Lebensmittelpunkt/Empfohlen von/erbrachte Leistungen zuzulassen",
+                                    ),
+                        h.DummyItem(),
+                        ]],
+                )
 #         if file == 'updfs':
 #             fstat = fs
 #         else:
@@ -449,7 +484,23 @@ class _fachstatistik(Request.Request, akte_share):
                 eleistungen,
                 termine,
                 notiz,
+                diskrepanz_akzeptieren,
                 ))
+        hidden = ()
+        if von_akte_readonly:
+            hidden += (('zm', fs['zm']),
+                      ('fs', fs['fs']),
+                      )
+            for le in fs['eleistungen'].split():
+                hidden += (('eleistungen', le),)
+        hidden += (('file', file),
+                   ('stz', fs['stz']),
+                   ('fallid', fs['fall_id']),
+                   ('fall_fn', fs['fall_fn']),
+                   ('mitid', fs['mit_id']),
+                   ('fsid', fs['id']),
+                   ('gs', fs['gs']),
+                   )
         res = h.FormPage(
             title=title,
             help=False,
@@ -458,14 +509,7 @@ class _fachstatistik(Request.Request, akte_share):
                            ('Klientenkarte', 'klkarte?akid=%(fall__akte_id)s' % fs),
                            ),
             rows=rows + (h.SpeichernZuruecksetzenAbbrechen(),),
-            hidden=(('file', file),
-                    ('stz', fs['stz']),
-                    ('fallid', fs['fall_id']),
-                    ('fall_fn', fs['fall_fn']),
-                    ('mitid', fs['mit_id']),
-                    ('fsid', fs['id']),
-                    ('gs', fs['gs']),
-                    ),
+            hidden=hidden,
             )
         if pageonly:
             return res
