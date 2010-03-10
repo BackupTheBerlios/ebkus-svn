@@ -91,6 +91,7 @@ a:active { text-decoration:none; font-weight:bold; background-color:#CCCCCC; }
 .largetextbold {font-size:12pt;font-weight:bold}
 .childtext {font-size:9pt;}
 .labeltext {font-size:10pt;}
+.labeltextred {font-size:10pt;color:red;font-weight:bold}
 .legendtext {font-size:10pt;font-weight:bold}
 .titeltext {font-size:12pt;font-weight:bold}
 .strtext11 {  font-family: Courier; font-size: 11pt;}

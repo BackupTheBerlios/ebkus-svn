@@ -457,6 +457,7 @@ class _fachstatistik(Request.Request, akte_share):
             diskrepanz_akzeptieren = h.FieldsetInputTable(
                 legend="Diskrepanz zur Akte zulassen",
                 daten=[[h.CheckItem(label="Diskrepanz zur Akte zulassen",
+                                    label_class="labeltextred",
                                     name="diskr",
                                     value='1',
                                     checked=False,

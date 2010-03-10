@@ -1148,8 +1148,10 @@ def _fs_check(form, fstat, fstatold=None):
                 warnen = True
                 warning += "<tr><td><strong>Empfohlen von:</strong></td><td>%s</td></tr>" % \
                     anmeldungen[0]['zm__name']
-            warning += "</table><br /><br /><br />" + \
-                       'Markieren Sie "Diskrepanz zur Akte zulassen", um trotzdem zu speichern.<br /><br /><br />'
+            warning += "</table><br /><br /><br />"
+            warning += "Bitte überprüfen Sie, welches die richtigen Angaben sind.<br /><br /><br />"
+            warning += "Wenn sie wirklich diese Diskrepanz abspeichern möchten, markieren Sie \"Diskrepanz zur Akte zulassen\".<br /><br /><br />"
+
             if warnen:
                 raise EE(warning)
     if fall_id and akte:
