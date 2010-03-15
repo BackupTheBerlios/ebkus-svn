@@ -1,0 +1,84 @@
+#!%(PYTHON_EXECUTABLE)s
+# coding: latin-1
+
+# Initdatei fuer EBKuS
+# Diese Datei wird generiert.
+
+ 
+# Die Konfiguration wird initialisiert, und der
+# Python-Pfad wird entsprechend der Konfiguration gesetzt.
+#
+# Jede Skript, das die Konfiguration nutzen will, macht
+# einmal am Anfang ein
+#
+# import init
+#
+# Nach der Initialisierung erhaelt man durch
+# 
+# from ebkus.config import config
+#
+# ein Konfigurationsobjekt, das alle Konfigurationsvariablen
+# als Attribute enthaelt, z.B.
+#
+# config.EBKUS_HOME
+# config.INSTANCE_NAME
+#
+# Mit config.show() laesst sich eine Tabelle der Werte
+# ausgeben.
+
+
+EBKUS_PYTHON_PATH = r'%(EBKUS_PYTHON_PATH)s'
+EBKUS_HOME = r'%(EBKUS_HOME)s'
+INSTANCE_NAME = '%(INSTANCE_NAME)s'
+INSTANCE_HOME = r'%(INSTANCE_HOME)s'
+
+import os, sys
+assert sys.version_info >= (2,3), "Es wird Python 2.3 oder höher benötigt"
+from os.path import normcase, normpath, exists, getsize
+
+ebkus_conf = os.path.join(EBKUS_HOME, 'ebkus.conf')
+instance_conf = os.path.join(INSTANCE_HOME, '%%s.conf' %% INSTANCE_NAME)
+
+# Pfad setzen
+path = EBKUS_PYTHON_PATH
+if path and path != sys.path[0]:
+    sys.path.insert(0, path)
+
+# Konfiguration einlesen und initialisieren
+from ebkus.config import init
+init(INSTANCE_NAME, [ebkus_conf, instance_conf])
+
+# sanity check
+from ebkus.config import config
+assert normcase(normpath(config.EBKUS_PYTHON_PATH)) == normcase(normpath(EBKUS_PYTHON_PATH))
+assert normcase(normpath(config.EBKUS_HOME)) == normcase(normpath(EBKUS_HOME))
+assert normcase(normpath(config.INSTANCE_NAME)) == normcase(normpath(INSTANCE_NAME))
+assert normcase(normpath(config.INSTANCE_HOME)) == normcase(normpath(INSTANCE_HOME))
+# ein schwacher Test, ob es sich um dasselbe Python Executable handelt
+exe1 = normcase(normpath(config.PYTHON_EXECUTABLE)).split()[0]
+exe2 = normcase(normpath(sys.executable))
+assert getsize(exe1) == getsize(exe2), "Nicht dasselbe Python-Executable wie in der Konfiguration"
+
+if '--show' in sys.argv:
+    config.show()
+
+# logging initialisieren
+import logging
+log_level = config.LOG_LEVEL
+for l in ('--critical', '--error', '--warning', '--info', '--debug'):
+    if l in sys.argv:
+        log_level = l[2:].upper()
+        break
+assert log_level in ('CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG')
+if '--console' in sys.argv:
+    hdlr = logging.StreamHandler(sys.stdout)
+else:    
+    hdlr = logging.FileHandler(config.LOG_FILE)
+logger = logging.getLogger()
+formatter = logging.Formatter('%%(asctime)s %%(levelname)s %%(module)s %%(message)s')
+formatter = logging.Formatter('%%(levelname)s %%(asctime)s (%%(module)s): %%(message)s',
+                              "%%Y-%%m-%%d %%H:%%M:%%S")
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging._levelNames[log_level])
+
