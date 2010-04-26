@@ -1128,7 +1128,7 @@ def _fs_check(form, fstat, fstatold=None):
                 a = set()
             except:
                 from sets import Set as set
-            fall_leistungen = set(str(leist['le']) for leist in fall['leistungen'])
+            fall_leistungen = set([str(leist['le']) for leist in fall['leistungen']])
             fs_leistungen = set(fstat['eleistungen'].split())
             if fall_leistungen != fs_leistungen:
                 leistungen_name = list(set([leist['le__name'] for leist in fall['leistungen']]))
