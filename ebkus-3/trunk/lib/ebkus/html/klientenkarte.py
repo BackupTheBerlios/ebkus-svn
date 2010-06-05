@@ -2,7 +2,7 @@
 
 """Module für die Klientenkarte."""
 # TODO an die Standards anpassen
-import time
+import re, time
 from ebkus.config import config
 from ebkus.app import Request
 from ebkus.app import ebupd
@@ -472,7 +472,6 @@ class klkarte(Request.Request, akte_share):
                          h.String(string= "%(bezugsp__vn)s %(bezugsp__na)s" % bg)]
                         for bg in bezugspersongruppen_list],
                 )
-            
         res = h.FormPage(
             title='Klientenkarte',
             name="",action="",method="",hidden=(),
@@ -481,6 +480,8 @@ class klkarte(Request.Request, akte_share):
                            ),
             rows=(menu,
                   klientendaten,
+                  #None,
+                  self.get_extern_fieldset(akte),
                   bezugspersonen,
                   beratungskontakte,
                   leistungen,
@@ -496,3 +497,31 @@ class klkarte(Request.Request, akte_share):
             ))
         return res.display()
 
+    def get_extern_fieldset(self, akte):
+        if not config.EXTERN_FIELDSET_LABEL:
+            return None
+        letzter_fall = akte['letzter_fall']
+        aktueller_fall = akte['aktueller_fall']
+        if aktueller_fall:
+            fall = aktueller_fall
+        else:
+            fall =letzter_fall
+        extern_data = []
+        for i in range(1, 5):
+            url = getattr(config, "EXTERN_BUTTON%s_URL" % i)
+            if '$$fall_id$$' in url:
+                url = url.replace('$$fall_id$$', str(fall['id']))
+            label = getattr(config, "EXTERN_BUTTON%s_LABEL" % i)
+            if url and label:
+                extern_data.append((label, url))
+        fieldset = h.FieldsetInputTable(
+            legend=config.EXTERN_FIELDSET_LABEL,
+            daten=[[
+            h.Button(value=label,
+                     onClick="go_to_url('newXX %s')" % (url,),
+                     )
+            for label, url in extern_data
+            ]])
+        if extern_data:
+            return fieldset
+        return None

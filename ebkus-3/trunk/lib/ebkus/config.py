@@ -82,6 +82,15 @@ _params = (
 #    ('instance', 'FEHLER_BEI_FACHSTATISTIK_AKTE_DISKREPANZ', 'fehler_bei_fachstatistik_akte_diskrepanz', 'b', 'e:False'),
     ('instance', 'WARNUNG_BEI_FACHSTATISTIK_AKTE_DISKREPANZ', 'warnung_bei_fachstatistik_akte_diskrepanz', 'b', 'e:False'),
     ('instance', 'FACHSTATISTIK_AKTE_DISKREPANZ_NICHT_ZULASSEN', 'fachstatistik_akte_diskrepanz_nicht_zulassen', 'b', 'e:False'),
+    ('instance', 'EXTERN_FIELDSET_LABEL', 'extern_fieldset_label', 's', 's:'),
+    ('instance', 'EXTERN_BUTTON1_LABEL', 'extern_button1_label', 's', 's:'),
+    ('instance', 'EXTERN_BUTTON1_URL', 'extern_button1_url', 's', 's:'),
+    ('instance', 'EXTERN_BUTTON2_LABEL', 'extern_button2_label', 's', 's:'),
+    ('instance', 'EXTERN_BUTTON2_URL', 'extern_button2_url', 's', 's:'),
+    ('instance', 'EXTERN_BUTTON3_LABEL', 'extern_button3_label', 's', 's:'),
+    ('instance', 'EXTERN_BUTTON3_URL', 'extern_button3_url', 's', 's:'),
+    ('instance', 'EXTERN_BUTTON4_LABEL', 'extern_button4_label', 's', 's:'),
+    ('instance', 'EXTERN_BUTTON4_URL', 'extern_button4_url', 's', 's:'),
     )
 
 # werden von show/dump nicht angezeigt
