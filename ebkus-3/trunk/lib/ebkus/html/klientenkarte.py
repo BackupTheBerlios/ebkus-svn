@@ -505,13 +505,13 @@ class klkarte(Request.Request, akte_share):
         if aktueller_fall:
             fall = aktueller_fall
         else:
-            fall =letzter_fall
+            fall = letzter_fall
         extern_data = []
         for i in range(1, 5):
-            url = getattr(config, "EXTERN_BUTTON%s_URL" % i)
-            if '$$fall_id$$' in url:
+            url = getattr(config, "EXTERN_BUTTON%s_URL" % i, None)
+            if url and '$$fall_id$$' in url:
                 url = url.replace('$$fall_id$$', str(fall['id']))
-            label = getattr(config, "EXTERN_BUTTON%s_LABEL" % i)
+            label = getattr(config, "EXTERN_BUTTON%s_LABEL" % i, None)
             if url and label:
                 extern_data.append((label, url))
         fieldset = h.FieldsetInputTable(
