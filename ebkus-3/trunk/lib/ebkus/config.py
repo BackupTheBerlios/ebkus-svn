@@ -83,6 +83,7 @@ _params = (
     ('instance', 'WARNUNG_BEI_FACHSTATISTIK_AKTE_DISKREPANZ', 'warnung_bei_fachstatistik_akte_diskrepanz', 'b', 'e:False'),
     ('instance', 'FACHSTATISTIK_AKTE_DISKREPANZ_NICHT_ZULASSEN', 'fachstatistik_akte_diskrepanz_nicht_zulassen', 'b', 'e:False'),
     ('instance', 'EXTERN_FIELDSET_LABEL', 'extern_fieldset_label', 's', 's:'),
+    ('instance', 'EXTERN_FIELDSET_POSITION', 'extern_fieldset_position', 'i', 's:2'),
     ('instance', 'EXTERN_BUTTON1_LABEL', 'extern_button1_label', 's', 's:'),
     ('instance', 'EXTERN_BUTTON1_URL', 'extern_button1_url', 's', 's:'),
     ('instance', 'EXTERN_BUTTON2_LABEL', 'extern_button2_label', 's', 's:'),

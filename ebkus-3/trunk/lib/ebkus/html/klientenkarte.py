@@ -472,30 +472,54 @@ class klkarte(Request.Request, akte_share):
                          h.String(string= "%(bezugsp__vn)s %(bezugsp__na)s" % bg)]
                         for bg in bezugspersongruppen_list],
                 )
+        rows = [
+            menu,
+            klientendaten,
+            bezugspersonen,
+            beratungskontakte,
+            leistungen,
+            h.Pair(left=stand,
+                   right=bearbeiter),
+            anmeldekontakte,
+            einrichtungskontakte,
+            h.Pair(left=fachstatistik,
+                   right=jugendhilfestatistik),
+            notizen,
+            h.Pair(left=fallgruppen,
+                   right=bezugspersongruppen),
+            ]
+        extern = self.get_extern_fieldset(akte)
+        if extern:
+            rows.insert(config.EXTERN_FIELDSET_POSITION, extern)
         res = h.FormPage(
             title='Klientenkarte',
             name="",action="",method="",hidden=(),
             help=True,
             breadcrumbs = (('Hauptmenü', 'menu'),
                            ),
-            rows=(menu,
-                  klientendaten,
-                  #None,
-                  self.get_extern_fieldset(akte),
-                  bezugspersonen,
-                  beratungskontakte,
-                  leistungen,
-                  h.Pair(left=stand,
-                         right=bearbeiter),
-                  anmeldekontakte,
-                  einrichtungskontakte,
-                  h.Pair(left=fachstatistik,
-                         right=jugendhilfestatistik),
-                  notizen,
-                  h.Pair(left=fallgruppen,
-                         right=bezugspersongruppen),
-            ))
+            rows=rows,
+            )
         return res.display()
+
+    def _interpolate_external_url(self, url, fall, mitarbeiter):
+        """Urls können Abschnitte der folgenden Form enthalten:
+        $$<fall oder mitarbeiter>_<feld>$$
+        Der ganze Abschnitt wird durch den Wert von <feld> ersetzt, 
+        wobei entweder im fall-Objekt oder im Mitarbeiter-Objekt 
+        nachgeschlagen wird. 
+        Beispiele:
+        $$fall_id$$, $$mitarbeiter_na$$, $$fall_akte__ort$$
+        """
+        params = re.findall(r"\$\$(mitarbeiter|fall)_(\w+)\$\$", url)
+        value = None
+        for prefix, key in params:
+            if prefix == 'fall':
+                value = fall[key]
+            elif prefix == 'mitarbeiter':
+                value = mitarbeiter[key]
+            if value != None:
+                url = url.replace('$$%s_%s$$' % (prefix, key), str(value))
+        return url
 
     def get_extern_fieldset(self, akte):
         if not config.EXTERN_FIELDSET_LABEL:
@@ -509,8 +533,7 @@ class klkarte(Request.Request, akte_share):
         extern_data = []
         for i in range(1, 5):
             url = getattr(config, "EXTERN_BUTTON%s_URL" % i, None)
-            if url and '$$fall_id$$' in url:
-                url = url.replace('$$fall_id$$', str(fall['id']))
+            url = self._interpolate_external_url(url, fall, self.mitarbeiter)
             label = getattr(config, "EXTERN_BUTTON%s_LABEL" % i, None)
             if url and label:
                 extern_data.append((label, url))
