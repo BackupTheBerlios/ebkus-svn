@@ -1,0 +1,88 @@
+EBKuS 4.3.1.2 (8. Juni 2010)
+============================
+
+Update von 4.3.1.1 auf 4.3.1.2
+------------------------------
+
+Das Datenbankschema hat sich nicht verändert. Die neuen Features
+stehen nach dem Kopieren der veränderten Dateien nach einem
+Neustart zur Verfügung.
+
+
+Klientkarte - Schaltfeld zum Aufruf externer Anwendungen
+--------------------------------------------------------
+
+[Rev 242-245]
+Die folgenden Konfigurationsvariablen bewirken, dass auf der
+Klientenkarte ein Kasten mit vier Buttons erscheint, die in einem
+neuen Tab/Fenster eine URL aufrufen, die Felder des aktuellen
+(letzten) Falles bzw. des angemeldeten Mitarbeiters als
+Bestandteile haben kann::
+
+  # Kein Kasten, wenn diese Variable keinen Wert hat.
+  extern_fieldset_label: Externe Anwendung
+  # Position auf der Klientenkarte
+  extern_fieldset_position: 6
+  # Maximal vier Buttons, für jeden eine Bezeichnung und eine Url.
+  # Ein Button kommt nur zustande, wenn sowohl Label als auch Url
+  # einen Wert haben. 
+  extern_button1_label: GoogleWeb
+  extern_button1_url: http://www.google.com/search?q=$$fall_id$$
+  $$fall_akte__ort$$hah?
+  extern_button2_label: GoogleMaps
+  extern_button2_url: http://www.google.com/maps?q=$$mitarbeiter_na$$
+  extern_button3_label: GoogleImages
+  extern_button3_url: http://www.google.com/images?q=$$fall_akte__ort$$
+  extern_button4_label: GoogleNews
+  extern_button4_url: http://www.google.com/news?q=$$fall_fn$$
+  
+Urls können Abschnitte der folgenden Form enthalten:
+``$$<fall oder mitarbeiter>_<feld>$$``
+Der ganze Abschnitt wird durch den Wert von ``<feld>`` ersetzt, 
+wobei entweder im Fall-Objekt oder im Mitarbeiter-Objekt 
+nachgeschlagen wird. 
+Beispiele:
+``$$fall_id$$``, ``$$mitarbeiter_na$$``, ``$$fall_akte__ort$$``
+
+EBKuS 4.3.1.1 (26. April 2010)
+==============================
+
+Update von 4.3.1 auf 4.3.1.1
+----------------------------
+
+Das Datenbankschema hat sich nicht verändert. Die neuen Features
+stehen nach dem Kopieren der veränderten Dateien nach einem
+Neustart zur Verfügung.
+
+
+Fachstatistik - Handhabung einer Diskrepanz von Akte und Fachstatistik
+----------------------------------------------------------------------
+
+[Rev. 237-241] 
+Hier geht es um die Behandlung der Items Familienstatus,
+Empfohlen von, Erbrachte Leistungen in der Fachstatistik, deren
+Werte im Normalfall aus der Akte vorbelegt werden, dann aber in
+der Fachstatistik unabhängig von der Akte modifierzierbar sind.
+Die beiden neuen Konfigurationsvariable, deren Standardwert 'false'
+ist, ermöglichen eine strengere Handhabung sofern eine von beiden
+auf 'true' gesetzt wird.
+
+1.::
+  
+  warnung_bei_fachstatistik_akte_diskrepanz: true
+
+Wenn eine Diskrepanz zwischen Akte und Fachstatistik vorhanden ist,
+kommt beim Speichern eine entsprechende Meldung. Wenn man bei dem
+(neu eingeführten) Item "Diskrepanz zur Akte zulassen" ein Häkchen
+setzt, kann man trotzdem speichern.
+
+2.::
+
+  fachstatistik_akte_diskrepanz_nicht_zulassen: true
+
+Die entsprechenden Items in der Fachstatistik zeigen die Werte
+aus der Akte und sind nicht modifizierbar. Eine Diskrepanz kann
+so gar nicht entstehen. Allerdings muss bei Änderungen in der
+Akte die Fachstatistik neu abgespeichert werden, damit die
+Änderungen übernommen werden und für die Statistik wirksam wird.
+
