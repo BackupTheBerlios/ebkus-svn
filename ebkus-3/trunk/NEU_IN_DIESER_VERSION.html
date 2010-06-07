@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
-<title>EBKuS 4.3.1 (8. Dezember 2009)</title>
+<title></title>
 <style type="text/css">
 
 /*
@@ -256,122 +256,94 @@ ul.auto-toc {
 </style>
 </head>
 <body>
-<div class="document" id="ebkus-4-3-1-8-dezember-2009">
-<h1 class="title">EBKuS 4.3.1 (8. Dezember 2009)</h1>
+<div class="document">
 
-<p>ACHTUNG:
-Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
-aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
-nach wie vor gültig.</p>
-<div class="section" id="update-von-4-3-auf-4-3-1">
-<h3>Update von 4.3 auf 4.3.1</h3>
+
+<div class="section" id="ebkus-4-3-1-2-8-juni-2010">
+<h3>EBKuS 4.3.1.2 (8. Juni 2010)</h3>
+<div class="section" id="update-von-4-3-1-1-auf-4-3-1-2">
+<h4>Update von 4.3.1.1 auf 4.3.1.2</h4>
 <p>Das Datenbankschema hat sich nicht verändert. Die neuen Features
 stehen nach dem Kopieren der veränderten Dateien nach einem
 Neustart zur Verfügung.</p>
 </div>
-<div class="section" id="fach-und-bundesstatistik">
-<h3>Fach- und Bundesstatistik</h3>
-<div class="section" id="ausschluss-abgeschlossener-f-lle-ohne-kontakt-im-abschlussjahr">
-<h4>Ausschluss abgeschlossener Fälle ohne Kontakt im Abschlussjahr</h4>
-<p>[Rev 218, 219]
-Abgeschlossene Fälle, bei denen im Abschlussjahr kein
-Beratungskontakt im Sinne der Bundesstatistik stattfand, können
-von der Statistik ausgeschlossen werden. Dies funktioniert nur,
-wenn EBKuS mit &quot;BERATUNGSKONTAKTE: true&quot; konfiguriert ist. In
-diesem Fall erscheint eine zusätzliche Checkbox mit dem Label
-&quot;Keine Fälle ohne Kontakt im Abschlussjahr&quot; im Kasten
-&quot;Grundgesamtheit&quot; der Statistikabfrage.</p>
-<p>Kontakte in diesem Sinne sind gegeben:</p>
-<p>1. In der Konfiguration &quot;BERATUNGSKONTAKTE: true&quot; und
-&quot;BERATUNGSKONTAKTE_BS: true&quot; (Braunschweig):
-Die Kontaktart ist durch ein Item aus der Tabelle &quot;Art des
-Beratungskontakts (BS)&quot; beschrieben, bei denen in der
-Dokumentation &quot;bs:ja&quot; steht. Die Zeitdauer inkl. der von EBKuS
-berechneten Vor- und Nachbereitungszeit beträgt mindestens 30
-Minuten (= 1 Kontakt i.S. der Bundesstatistik).</p>
-<p>2. In der Konfiguration &quot;BERATUNGSKONTAKTE: true&quot; und
-&quot;BERATUNGSKONTAKTE_BS: false&quot;:
-Ein Beratungskontakt, dessen Dauer mindestens 30 Minuten
-beträgt.</p>
-<p>Es werden nur solche Fälle ausgeschlossen, für die überhaupt
-Beratungskontakte eingetragen sind (also solche aus dem Vorjahr).
-Wenn überhaupt keine Kontakte eingetragen sind, wird angenommen,
-dass für einen solchen Fall die Kontakte nicht mit EBKuS gepflegt
-werden, also auch nicht geschlossen werden kann, dass es im
-Abschlussjahr keine gegeben hat.</p>
-</div>
-<div class="section" id="komplette-statistikergebnisse-druckfreundlich-darstellen">
-<h4>Komplette Statistikergebnisse druckfreundlich darstellen</h4>
-<p>[Rev 218, 219]
-Auf der Seite Statistikauszählung erscheinen zwei neue Buttons
-im Kasten &quot;Auswahlmenu&quot;, &quot;Drucken&quot; und &quot;CSV-Datei&quot;, die die
-gleiche Funktion haben, wie die bereits für jede Einzeltabelle
-vorhandenen Buttons.</p>
-<p>Beim Anklicken von &quot;Drucken&quot; erscheint eine druckfreundliche
-HTML-Seite in einem weiteren Tab bzw. Fenster, in der nur die
-Definition der Abfrage, das Abfragedatum sowie die einzelnen
-Tabellen stehen, die dann über den Browser ausgedruckt werden
-kann.</p>
-</div>
-<div class="section" id="komplette-statistikergebnisse-als-csv-datei">
-<h4>Komplette Statistikergebnisse als CSV-Datei</h4>
-<p>[Rev 218, 219]
-Auf der Seite Statistikauszählung erscheinen zwei neue Buttons
-im Kasten &quot;Auswahlmenu&quot;, &quot;Drucken&quot; und &quot;CSV-Datei&quot;, die die gleiche
-Funktion haben, wie die bereits für jede Einzeltabelle vorhandenen
-Buttons.</p>
-<p>Unter &quot;CSV-Datei&quot; wird eine CSV-Datei erzeugt, die alle
-Ergebnistabellen beinhaltet. Diese kann dann mit einem Schlag in
-die Tabellenkalkulation importiert werden.</p>
+<div class="section" id="klientkarte-schaltfeld-zum-aufruf-externer-anwendungen">
+<h4>Klientkarte - Schaltfeld zum Aufruf externer Anwendungen</h4>
+<p>[Rev 242-245]
+Die folgenden Konfigurationsvariablen bewirken, dass auf der
+Klientenkarte ein Kasten mit vier Buttons erscheint, die in einem
+neuen Tab/Fenster eine URL aufrufen, die Felder des aktuellen
+(letzten) Falles bzw. des angemeldeten Mitarbeiters als
+Bestandteile haben kann:</p>
+<pre class="literal-block">
+# Kein Kasten, wenn diese Variable keinen Wert hat.
+extern_fieldset_label: Externe Anwendung
+# Position auf der Klientenkarte
+extern_fieldset_position: 6
+# Maximal vier Buttons, für jeden eine Bezeichnung und eine Url.
+# Ein Button kommt nur zustande, wenn sowohl Label als auch Url
+# einen Wert haben.
+extern_button1_label: GoogleWeb
+extern_button1_url: http://www.google.com/search?q=$$fall_id$$
+$$fall_akte__ort$$hah?
+extern_button2_label: GoogleMaps
+extern_button2_url: http://www.google.com/maps?q=$$mitarbeiter_na$$
+extern_button3_label: GoogleImages
+extern_button3_url: http://www.google.com/images?q=$$fall_akte__ort$$
+extern_button4_label: GoogleNews
+extern_button4_url: http://www.google.com/news?q=$$fall_fn$$
+</pre>
+<p>Urls können Abschnitte der folgenden Form enthalten:
+<tt class="docutils literal"><span class="pre">$$&lt;fall</span> <span class="pre">oder</span> <span class="pre">mitarbeiter&gt;_&lt;feld&gt;$$</span></tt>
+Der ganze Abschnitt wird durch den Wert von <tt class="docutils literal"><span class="pre">&lt;feld&gt;</span></tt> ersetzt,
+wobei entweder im Fall-Objekt oder im Mitarbeiter-Objekt
+nachgeschlagen wird.
+Beispiele:
+<tt class="docutils literal"><span class="pre">$$fall_id$$</span></tt>, <tt class="docutils literal"><span class="pre">$$mitarbeiter_na$$</span></tt>, <tt class="docutils literal"><span class="pre">$$fall_akte__ort$$</span></tt></p>
 </div>
 </div>
-<div class="section" id="klientenkarte">
-<h3>Klientenkarte</h3>
-<div class="section" id="beratungskontakte-f-r-einen-fall-ausdrucken">
-<h4>Beratungskontakte für einen Fall ausdrucken</h4>
-<p>[Rev 220,225]
-Die Liste der Beratungskontakte eines Falls inkl. Notizen werden
-ausdruckbar gemacht als Einlegeblatt für die Akte, analog dem
-Aktenvorblatt. Dazu gibt es im Dropdown-Menu &quot;Anzeige&quot; oben auf der
-Klientenkarte zusätzlich zu &quot;Aktenvorblatt&quot; und &quot;Klientendokument&quot;
-einen Eintrag &quot;Beratungskontakte&quot; (sofern EBKuS mit
-Beratungskontakten konfiguriert ist). Es werden nur die
-Beratungskontakte für den aktuellen Fall ausgegeben.</p>
+<div class="section" id="ebkus-4-3-1-1-26-april-2010">
+<h3>EBKuS 4.3.1.1 (26. April 2010)</h3>
+<div class="section" id="update-von-4-3-1-auf-4-3-1-1">
+<h4>Update von 4.3.1 auf 4.3.1.1</h4>
+<p>Das Datenbankschema hat sich nicht verändert. Die neuen Features
+stehen nach dem Kopieren der veränderten Dateien nach einem
+Neustart zur Verfügung.</p>
 </div>
-<div class="section" id="ausgef-llte-fachstatistik-f-r-einen-fall-ausdrucken">
-<h4>Ausgefüllte Fachstatistik für einen Fall ausdrucken</h4>
-<p>[Rev 224]
-Auf der Klientenkarte neben der Fachstatistik erscheint
-zusätzlich zum Button &quot;Bearbeiten&quot; einen Button &quot;Ansehen/Drucken&quot;
-(wie bei Bezugspersonen), der eine Seite mit einer Tabelle mit
-den Fragen und den für den Fall ausgewählten Antworten ausgibt, die
-dann ohne die bekannten Probleme gedruckt werden kann.</p>
+<div class="section" id="fachstatistik-handhabung-einer-diskrepanz-von-akte-und-fachstatistik">
+<h4>Fachstatistik - Handhabung einer Diskrepanz von Akte und Fachstatistik</h4>
+<p>[Rev. 237-241]
+Hier geht es um die Behandlung der Items Familienstatus,
+Empfohlen von, Erbrachte Leistungen in der Fachstatistik, deren
+Werte im Normalfall aus der Akte vorbelegt werden, dann aber in
+der Fachstatistik unabhängig von der Akte modifierzierbar sind.
+Die beiden neuen Konfigurationsvariable, deren Standardwert 'false'
+ist, ermöglichen eine strengere Handhabung sofern eine von beiden
+auf 'true' gesetzt wird.</p>
+<p>1.:</p>
+<pre class="literal-block">
+warnung_bei_fachstatistik_akte_diskrepanz: true
+</pre>
+<p>Wenn eine Diskrepanz zwischen Akte und Fachstatistik vorhanden ist,
+kommt beim Speichern eine entsprechende Meldung. Wenn man bei dem
+(neu eingeführten) Item &quot;Diskrepanz zur Akte zulassen&quot; ein Häkchen
+setzt, kann man trotzdem speichern.</p>
+<p>2.:</p>
+<pre class="literal-block">
+fachstatistik_akte_diskrepanz_nicht_zulassen: true
+</pre>
+<p>Die entsprechenden Items in der Fachstatistik zeigen die Werte
+aus der Akte und sind nicht modifizierbar. Eine Diskrepanz kann
+so gar nicht entstehen. Allerdings muss bei Änderungen in der
+Akte die Fachstatistik neu abgespeichert werden, damit die
+Änderungen übernommen werden und für die Statistik wirksam wird.</p>
 </div>
-</div>
-<div class="section" id="administration">
-<h3>Administration</h3>
-<div class="section" id="gruppen-l-schen">
-<h4>Gruppen löschen</h4>
-<p>[Rev 223]
-Unter Administrationshauptmenü -&gt; Akten -&gt; Löschen/Fehlerkorrektur
-wird zusätzlich zu &quot;Fall löschen&quot; die Möglichkeit zum Löschen einer
-Gruppe angeboten. Zur Sicherheit können nur Gruppen gelöscht werden,
-die kein Abschlussdatum und die keine Teilnehmer haben (kann man bei
-Bedarf immer vorher löschen).</p>
-</div>
-</div>
-<div class="section" id="eingabevalidierung">
-<h3>Eingabevalidierung</h3>
-<p>[Rev 228]
-Es kam vereinzelt zu kryptischen Fehlermeldungen, wenn zuviele
-Zeichen in Eingabefelder eingegeben wurden. Jetzt erscheint eine
-verständliche Meldung.</p>
 </div>
 </div>
 <div class="footer">
 <hr class="footer" />
 <a class="reference external" href="NEU_IN_DIESER_VERSION.txt">View document source</a>.
-Generated on: 2009-12-08 20:14 UTC.
+Generated on: 2010-06-07 17:23 UTC.
 
 </div>
 </body>
