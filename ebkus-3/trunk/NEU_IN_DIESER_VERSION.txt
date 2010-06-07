@@ -9,8 +9,8 @@ stehen nach dem Kopieren der veränderten Dateien nach einem
 Neustart zur Verfügung.
 
 
-Klientkarte - Schaltfeld zum Aufruf externer Anwendungen
---------------------------------------------------------
+Klientenkarte - Schaltfeld zum Aufruf externer Anwendungen
+----------------------------------------------------------
 
 [Rev 242-245]
 Die folgenden Konfigurationsvariablen bewirken, dass auf der
@@ -27,8 +27,7 @@ Bestandteile haben kann::
   # Ein Button kommt nur zustande, wenn sowohl Label als auch Url
   # einen Wert haben. 
   extern_button1_label: GoogleWeb
-  extern_button1_url: http://www.google.com/search?q=$$fall_id$$
-  $$fall_akte__ort$$hah?
+  extern_button1_url: http://www.google.com/search?q=$$fall_id$$_$$fall_akte__ort$$
   extern_button2_label: GoogleMaps
   extern_button2_url: http://www.google.com/maps?q=$$mitarbeiter_na$$
   extern_button3_label: GoogleImages
