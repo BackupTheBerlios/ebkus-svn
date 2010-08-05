@@ -3,6 +3,7 @@
 """Module für Akte und Fall."""
 
 import string,time
+import logging
 
 from ebkus.db.sql import SQL
 from ebkus.app import Request
@@ -746,8 +747,20 @@ class rmakten(Request.Request, akte_share):
             alle_faelle = FallList(
                 where = 'zday <= %(year)s and zdam <= %(month)s and zday > 0'
                 % rmdatum)
-            faelle = [f for f in alle_faelle
-                      if f == f['akte__letzter_fall'] and aufbew == f['akte__aufbew']]
+            # Hier gab es einen Fehler (in Reinickendorf):
+            # AttributeError: Could not resolve field 'akte__letzter_fall' for instance of 'Fall'
+            # Daher wurde nichts zum löschen angezeigt
+            # faelle = [f for f in alle_faelle
+            #           if f == f['akte__letzter_fall'] and aufbew == f['akte__aufbew']]
+            faelle = []
+            for f in alle_faelle:
+                try:
+                    if f == f['akte__letzter_fall'] and aufbew == f['akte__aufbew']:
+                        faelle.append(f)
+                except Exception, e:
+                    t = sys.exc_info()[0]
+                    logging.exception("Interner Fehler: %s: %s", t, e)
+                    logging.exception("  Falle ohne Akte? fall_id=%s" % f['id'])
             akten = h.FieldsetFormDataTable(
                 name="rmakten",
                 #action="abfragedef",
