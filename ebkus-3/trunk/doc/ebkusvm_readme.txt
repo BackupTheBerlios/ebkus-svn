@@ -1,7 +1,7 @@
 EBKuS Virtuelle Maschine für VMware
 -----------------------------------
 
-.. |download_url| replace:: ftp://ftp.efb-berlin.de/pub/ebkus/us-10.04-i386-ebkus-vm.zip
+.. |download_url| replace:: ftp://ftp.efb-berlin.de/pub/ebkus/ebkusvm/us-10.04-i386-ebkus-vm.zip
 
 :Autor: Albrecht Schmiedel
 :Email: albrecht.schmiedel@ebkus.org
