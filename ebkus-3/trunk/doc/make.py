@@ -75,6 +75,10 @@ def mtime(path):
         
 def is_newer(file1, file2):
     """Ist file1 nach file2 modifiziert worden? (mtime)"""
+    if not exists(file1):
+        return False
+    if not exists(file2):
+        return True
     return mtime(file1) > mtime(file2)
 
 def newest(*paths):
@@ -111,6 +115,10 @@ make.py [-h, --help, -r, --readme] [html|latex|pdf|clean]
 
    Wenn html, latex oder pdf angegeben wird, wird nur der betreffende
    Teil bei Bedarf generiert.
+
+   Wenn -r oder --readme angegeben wird, wird bei Bedarf
+   NEU_IN_DIESER_VERSION, VERSIONS_GESCHICHTE und ebkusvm_readme 
+   neu generiert. Die übrige Dokumentation bleibt unangetastet.
 
    Setzt voraus, dass das Paket ``docutils`` installiert ist,
    (rst2html, rst2latex).
@@ -157,8 +165,17 @@ def make_readme():
     for d in docs:
 #         os.system("rst2html.py --input-encoding=latin1 --stylesheet-path=manual.css " +
 #                   "--config=docutils.conf --initial-header-level=3 ../%s.txt ../%s.html" % (d, d))
-        os.system("rst2html --input-encoding=latin1 --stylesheet-path=manual.css " +
-                  "--config=docutils.conf --initial-header-level=3 ../%s.txt ../%s.html" % (d, d))
+        if is_newer("../%s.txt" % d, "../%s.html" % d):
+            os.system("rst2html --input-encoding=latin1 --stylesheet-path=manual.css " +
+                      "--config=docutils.conf --initial-header-level=3 ../%s.txt ../%s.html" % (d, d))
+        else:
+            print "Uptodate: %s.html" % d
+    d = "ebkusvm_readme"
+    if is_newer("%s.txt" % d, "%s.html" % d):
+        os.system("rst2html --input-encoding=utf8 --stylesheet-path=manual.css " +
+                  "--config=docutils.conf --initial-header-level=3 %s.txt %s.html" % (d, d))
+    else:
+        print "Uptodate: %s.html" % d
 
 if __name__ == '__main__':
     os.chdir(dirname(abspath(sys.argv[0])))
