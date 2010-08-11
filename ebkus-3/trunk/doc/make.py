@@ -172,8 +172,8 @@ def make_readme():
             print "Uptodate: %s.html" % d
     d = "ebkusvm_readme"
     if is_newer("%s.txt" % d, "%s.html" % d):
-        os.system("rst2html --input-encoding=utf8 --stylesheet-path=manual.css " +
-                  "--config=docutils.conf --initial-header-level=3 %s.txt %s.html" % (d, d))
+        os.system("rst2html --input-encoding=utf8 --stylesheet-path=readme.css " +
+                  "--config=docutils.conf %s.txt %s.html" % (d, d))
     else:
         print "Uptodate: %s.html" % d
 
