@@ -2,7 +2,7 @@
 
 """Module für Akte und Fall."""
 
-import string,time
+import string,time,sys
 import logging
 
 from ebkus.db.sql import SQL
@@ -744,9 +744,13 @@ class rmakten(Request.Request, akte_share):
             rmdatum = today().add_month(-(alter+1)) # damit immer mindestens die Anzahl Monate
                                                     # dazwischen liegt
             #print 'LOESCHDATUM', rmdatum
+            #alle_faelle = FallList(
+            #    where = 'zday <= %(year)s and zdam <= %(month)s and zday > 0'
+            #    % rmdatum)
             alle_faelle = FallList(
-                where = 'zday <= %(year)s and zdam <= %(month)s and zday > 0'
-                % rmdatum)
+                where = '(zday < %(year)s or (zday = %(year)s and zdam <= %(month)s)) and zday > 0'
+                   % rmdatum, 
+                order = 'zday, zdam, zdad')
             # Hier gab es einen Fehler (in Reinickendorf):
             # AttributeError: Could not resolve field 'akte__letzter_fall' for instance of 'Fall'
             # Daher wurde nichts zum löschen angezeigt
@@ -768,8 +772,9 @@ class rmakten(Request.Request, akte_share):
                 method="post",
                 hidden = (),
                 legend='Akten zum löschen auswählen (Statistiken bleiben erhalten)',
-                headers=('Name', 'Vorname', 'Geburtsdatum', 'Letzter Fallabschluss', '', 'Löschen'),
-                daten=[[h.String(string=fall['akte__na']),
+                headers=('Fallnummer', 'Name', 'Vorname', 'Geburtsdatum', 'Letzter Fallabschluss', '', 'Löschen'),
+                daten=[[h.String(string=fall['fn']),
+                        h.String(string=fall['akte__na']),
                         h.String(string=fall['akte__vn']),
                         h.String(string=fall['akte__gb']),
                         h.Datum(date=fall.getDate('zda')),
@@ -847,3 +852,4 @@ class rmakten2(Request.Request, akte_share):
                   ),
             )
         return res.display()
+
