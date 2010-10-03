@@ -1278,7 +1278,7 @@ class ComponentEbkusInstance(Component):
                 self._cursor_execute(cursor, c)
                     
             assert self.check_instance_database()
-            self.log("Datenbank fuer %s erfolgreich eingrichtet" % self.name, pop=True)
+            self.log("Datenbank fuer %s erfolgreich eingerichtet" % self.name, pop=True)
         except:
             cursor.execute("DROP DATABASE %s" % self.config.DATABASE_NAME)
             self.log("Datenbank fuer %s konnte nicht eingerichtet werden" % self.name, pop=True)
@@ -1395,7 +1395,7 @@ class ComponentEbkusInstance(Component):
                 
             
         
-    def dump_database(self, dir=None):
+    def dump_database(self, dir=None, file_name=None):
         """macht einen Dump der Datenbank der Instanz im Verzeichnis dir.
 
         Falls dir None ist, wird der dump in EBKUS_HOME abgelegt.
@@ -1407,10 +1407,11 @@ class ComponentEbkusInstance(Component):
         if not exists(dir):
             raise InstallException("Verzeichnis %s existiert nicht" % dir)
         from ebkus import Version
-        file_name = "%s_dump_v%s_%s.sql" % (self.config.INSTANCE_NAME,
-                                            Version,
-                                            time.strftime("%Y-%m-%d_%H-%M-%S",
-                                                          time.localtime(time.time())))
+        if not file_name:
+            file_name = "%s_dump_v%s_%s.sql" % (self.config.INSTANCE_NAME,
+                                                Version,
+                                                time.strftime("%Y-%m-%d_%H-%M-%S",
+                                                              time.localtime(time.time())))
         file_name = join(dir, file_name)
         self.log("SQL-Datei: %s" % file_name)
         pw = self.config.DATABASE_PASSWORD
@@ -1431,6 +1432,123 @@ class ComponentEbkusInstance(Component):
             self.log("Fehler beim Datenbank-Dump", pop=True)
             return False
             
+    def remove_client_data(self, cursor):
+        zu_loeschende_tabellen = (
+            'akte', 
+            'fall', 
+            'anmeldung', 
+            'bezugsperson', 
+            'einrichtung', 
+            'leistung', 
+            'beratungskontakt', 
+            'mitarbeiterberatungskontakt', 
+            'fallberatungskontakt', 
+            'mitarbeiterfua_bs', 
+            'fua_bs', 
+            'zustaendigkeit', 
+            'dokument', 
+            'gruppendokument', 
+            'gruppe', 
+            'fallgruppe', 
+            'bezugspersongruppe', 
+            'mitarbeitergruppe', 
+            'fachstat', 
+            'jghstat', 
+            'jghstat07', 
+            'protokoll', 
+            'abfrage', 
+            'altdaten', 
+            'beratungskontakt_bs', 
+            )
+        admin_data = (
+            ('vn', 'Admin'), ('na', 'Administrator'), ('ben', 'Admin'), 
+            ('anr', ''), ('tl1', ''), ('fax', ''), ('mail', ''), 
+            ('pass', '4e7afebcfbae000b22c7c85e5560f89a2a0280b4') # hash fuer 'Admin'
+            )
+        for t in zu_loeschende_tabellen:
+            try:
+                cursor.execute('delete from %s' % t)
+                self.log("Daten aus Tabelle '%s' geloescht." % t)
+            except Exception, e:
+                self.log("Daten aus Tabelle '%s' konnte nicht geloescht werden. Grund: %s" % (t, str(e)))
+        # id des ersten Administrators im Dienst finden
+        select_admins = """
+        select mitarbeiter.id from mitarbeiter, code c1, code c2 
+        where mitarbeiter.stat = c1.id and c1.code = 'i' and c1.kat_code = 'status' and 
+              mitarbeiter.benr = c2.id and c2.code = 'admin' and c2.kat_code = 'benr';
+        """
+        cursor.execute(select_admins)
+        res = cursor.fetchone()
+        id_admin = res[0]
+        # alle anderen Mitarbeiter loeschen
+        cursor.execute("delete from mitarbeiter where id != %s" % id_admin)
+        self.log("Daten aus Tabelle 'mitarbeiter' geloescht (außer 'Admin').")
+        # Administrator updaten: vn, na, ben, anr, tl1, fax, mail, pass
+        for field, value in admin_data:
+            cursor.execute("update mitarbeiter set %s='%s' where id = %s" % (field, value, id_admin))
+        
+    def dump_database_ohne_daten(self, dir=None):
+        """Macht einen Dump der Datenbank der Instanz ohne Klienten und Mitarbeiterdaten im Verzeichnis dir.                                         
+        Alle Klientendaten werden gelöscht. Alle Mitarbeiter werden gelöscht. Es bleiben                                     
+        die Stellen und als einziger Benutzer 'Admin' mit dem Passwort 'Admin'.                                                                  
+        Falls dir None ist, wird der dump in EBKUS_HOME abgelegt.                                                            
+        """
+        if not dir:
+            dir = self.config.EBKUS_HOME
+        self.log("Datenbank ohne Klientendaten erzeugen", push=True)
+        # Namen
+        file_name = 'TEMP_DUMP.sql'
+        database_name = self.name + '_XX_temp_XX'
+        file_name_without_client_data = "%s_db_ohne_klientendaten.sql" % self.config.INSTANCE_NAME
+        # DB der Instanz dumpen
+        #self.log("Temporaere Datenbank '%s' angelegt" % database_name)
+        self.dump_database(dir=dir, file_name=file_name)
+        # temporaere db anlegen                                                                                              
+        from MySQLdb import connect, version_info
+        import traceback # MODIFE
+        admin_pw = self._get_database_admin_passwort()
+        self._mysqldb_needs_unicode = (version_info > (1,2,1))
+        db = connect(host=self.config.DATABASE_ADMIN_HOST,
+                     user=self.config.DATABASE_ADMIN_USER,
+                     passwd=admin_pw
+                     )
+        cursor = db.cursor()
+        try:
+            cursor.execute("DROP DATABASE %s" % database_name)
+        except:
+            pass
+        try:
+            cursor.execute("CREATE DATABASE %s" % database_name)
+            cursor.execute("USE %s" % database_name)
+            # Dump einlesen
+            for c in sql_split(file_name):
+                self._cursor_execute(cursor, c)
+            self.log("Temporaere Datenbank '%s' mit Daten aus '%s' angelegt" % (database_name, file_name))
+            # Klientendaten löschen
+            self.remove_client_data(cursor)
+            # Bearbeitete DB dumpen
+            pw = admin_pw
+            pw_arg = pw and "-p%s" % pw or ''
+            cmd = "%s -c -u%s %s --default-character-set latin1 %s > %s" % \
+                      (join(self.config.MYSQL_DIR, 'mysqldump'),
+                       self.config.DATABASE_ADMIN_USER,
+                       pw_arg,
+                       database_name,
+                       file_name_without_client_data,
+                       )
+            #print cmd
+            res = os.system(cmd)
+            if res == 0:
+                self.log("Temporaere Datenbank '%s' in die Datei '%s' gedumpt (ohne Klientendaten)." % 
+                         (database_name, file_name_without_client_data), 
+                         pop=True)
+                return file_name
+            else:
+                self.log("Fehler beim Datenbank-Dump", pop=True)
+                return False
+        finally:
+            # Temporaere DB loeschen
+            cursor.execute("DROP DATABASE %s" % database_name)
 
     def drop_database(self):
         self.log("Datenbank fuer %s loeschen" % self.name, push=True)
@@ -1621,6 +1739,8 @@ class ComponentEbkusInstance(Component):
              0700, True),
             (join(TEMPLATES, 'datenbank_sichern.py.template'),
              join(config.INSTANCE_HOME, 'datenbank_sichern.py'), 0700, True),
+            (join(TEMPLATES, 'datenbank_ohne_klientendaten_sichern.py.template'),
+             join(config.INSTANCE_HOME, 'datenbank_ohne_klientendaten_sichern.py'), 0700, True),
             (join(TEMPLATES, 'dienst.py.template'),
              join(config.INSTANCE_HOME, 'dienst.py'), 0700, win32),
             (join(TEMPLATES, 'index.html.template'),
