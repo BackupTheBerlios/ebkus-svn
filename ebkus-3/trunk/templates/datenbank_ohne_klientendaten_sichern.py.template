@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!%(PYTHON_EXECUTABLE)s
 # coding: latin-1
 
 # Diese Datei wird generiert.
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     if args:
         sql_dir = args[0]
-        assert isdir(sql_dir), "%s ist kein Verzeichnis" % sql_dir
+        assert isdir(sql_dir), "%%s ist kein Verzeichnis" %% sql_dir
     else:
         sql_dir = os.getcwd()
 
