@@ -631,6 +631,7 @@ class abfr4(_abfr):
             hauptfzahl = hauptf.count(i)
             geschwzahl = geschw.count(i)
             laufendzahl = 0
+            davonkeinzdazahl = 0
             # immer der erste des Folgemonats
             if i == 12:
                 laufend_stichtag = Date(jahr+1, 1, 1)
@@ -640,6 +641,11 @@ class abfr4(_abfr):
                 if (f.getDate('bg') < laufend_stichtag and
                     f.getDate('zda') >= laufend_stichtag):
                     laufendzahl +=1
+                    jgh = f['jgh']
+                    if jgh and jgh['ey'] == jahr and jgh['em'] == i:
+                        # laufender Fall am Ende des Monats, aber 
+                        # Ende der Beratung für diesen Monat bereits eingetragen
+                        davonkeinzdazahl += 1
             if i <= 3:
                 quartal1_neu += neumeldezahl
                 quartal1_asd += asdzahl
@@ -668,7 +674,7 @@ class abfr4(_abfr):
                 quartal4_hauptf += hauptfzahl
                 quartal4_geschw += geschwzahl
             monats_ergebnisse.append((i, laufendzahl, neumeldezahl, asdzahl,
-                                      hauptfzahl, geschwzahl, zdazahl)) 
+                                      hauptfzahl, geschwzahl, zdazahl, davonkeinzdazahl)) 
             i = i + 1
         quartals_ergebnisse = []
         quartals_ergebnisse.append((1, quartal1_neu, quartal1_asd, quartal1_hauptf,
@@ -711,7 +717,7 @@ class abfr4(_abfr):
         report = h.FieldsetDataTable(
             legend='Neumeldungen und Abschlüsse %s' % jahr,
             headers=('Monat', 'Laufende am Monatsende', 'Neu', 'davon ASD', 'Hauptfall',
-                     'Geschwisterfall', 'abgeschl. Bundesstatistik'),
+                     'Geschwisterfall', 'abgeschl. Bundesstatistik', 'davon noch ohne z.d.A'),
             daten=[[h.String(string=m[0]),
                     h.String(string=m[1]),
                     h.String(string=m[2]),
@@ -719,8 +725,9 @@ class abfr4(_abfr):
                     h.String(string=m[4]),
                     h.String(string=m[5]),
                     h.String(string=m[6]),
+                    h.String(string=m[7]),
             ] for m in monats_ergebnisse] +
-            [[h.String(string='Quartal %s' % m[0],
+            [[h.String(string='Quartal&nbsp;%s' % m[0],
                       class_='tabledatabold'),
              h.String(string=''),
              h.String(string=m[1],
@@ -733,6 +740,7 @@ class abfr4(_abfr):
                       class_='tabledatabold'),
              h.String(string=m[5],
                       class_='tabledatabold'),
+             h.String(string=''),
              ] for m in quartals_ergebnisse] +
             [[h.String(string='Gesamt',
                       class_='tabledatabold'),
@@ -747,6 +755,7 @@ class abfr4(_abfr):
                       class_='tabledatabold'),
              h.String(string=gesamt_ergebnisse[4],
                       class_='tabledatabold'),
+             h.String(string=''),
              ]],
             )
         res = h.FormPage(
