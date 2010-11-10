@@ -131,6 +131,14 @@ class Date(object):
     def totuple(self):
         return self.year, self.month, self.day
         
+    def quartal(self):
+        """Liefert das Quartal: 1,2,3,4. 
+        Falls Datum(0,0,0), 0.
+        """
+        if self.year == 0:
+            return 0
+        else:
+            return (self.month + 2) / 3
     def __getitem__(self, key):
         if key == 'day': return self.day
         elif key == 'month': return self.month
