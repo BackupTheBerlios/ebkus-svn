@@ -410,7 +410,15 @@ def _bkont_check(form, bkont):
     mit_ids = check_list(form, 'mitid', 'Keine Mitarbeiter')
     faelle = [Fall(id) for id in fall_ids]
     mitarbeiter = [Mitarbeiter(id) for id in mit_ids]
+    datum = check_date(form, 'k', "Fehler im Beratungskontaktdatum")
     if config.BERATUNGSKONTAKTE_BS:
+        # frueheres Quartal?
+        fruehquart = form.get('fruehquart')
+        mdiff = datum.diff(today()) # Differenz, nur die Monate
+        if fruehquart != '1' and (mdiff >= 3 or datum.quartal() != today().quartal()):
+            # 'früheres Quartal' nicht markiert
+            # Datum des Beratungskontakts liegt in einem früheren Quartal
+            raise EE("Datum des Beratungskontakts liegt in einem früheren Quartal. Wenn trotzdem gespeichert werden soll, bitte 'früheres Quartal' markieren.")
         zeit = check_time(form, 'k', "Fehler in Uhrzeit", Time())
         bkont.setTime('k', zeit)
         bkont['art_bs'] = check_code(form, 'art_bs', 'kabs', "Fehler in Beratungskontaktart")
@@ -437,7 +445,6 @@ def _bkont_check(form, bkont):
         # wir tragen einfach den Mittelwert zwischen den Bereichsgrenzen ein
         bkont['dauer'] = int((Code(dauer_kat)['mini'] + Code(dauer_kat)['maxi'])/2.)
     bkont['no'] = check_str_not_empty(form, 'no', 'Keine Notiz', '')
-    datum = check_date(form, 'k', "Fehler im Beratungskontaktdatum")
     for fall in faelle:
         if datum < fall.getDate('bg'):
             raise EE("Datum vor Fallbeginn von %(akte__vn)s %(akte__na)s" % fall )
