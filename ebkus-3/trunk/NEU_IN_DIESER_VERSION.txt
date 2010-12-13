@@ -1,3 +1,46 @@
+EBKuS 4.3.1.4 (13. Dezember 2010)
+=================================
+
+Update von 4.3.1.2 auf 4.3.1.4
+------------------------------
+
+(Für 4.3.1.3 wurde ein Tag erzeugt, aber hier nicht weiter eingetragen).
+
+Das Datenbankschema hat sich nicht verändert. Die neuen Features
+stehen nach dem Kopieren der veränderten Dateien nach einem
+Neustart zur Verfügung.
+
+[Rev 261]
+Neue Spalte 'davon noch ohne z.d.A' bei Neumelde- und Abschlusszahlen
+
+[Rev 260]
+Warnung für Beratungskontakte Braunschweig, wenn Datum in
+frueherem Quartal liegt.
+
+[Rev 259]
+Quartalsfunktion für Date in ebapi.h definiert.
+
+[Rev 256, 257]
+Skript ``datenbank_ohne_klientendaten_sichern.py``
+hinzugefügt. Wird genau wie andere Skripte generiert. Damit kann
+ein Datenbank-Dump ohne Klienten- und Mitarbeiterdaten erzeugt
+werden. Man erhält eine SQL-Datei, mit der sich eine leere
+Instanz erstellen lässt mit derselben Konfiguration
+wie die Instanz, von der man den Dump gezogen hat.
+Dazu fügt man in die Konfiguration der neuen Instanz die Zeile::
+
+  initial_content: <Pfad zur SQL-Datei>
+
+ein. Beim erstmaligen Aufruf von ``configure.py`` oder nachdem
+man eine vorhandene Datenbank für die Instanz gelöscht hat, wird
+die Datenbank für diese Instanz mit dem Inhalt der Datei
+initialisiert.
+
+[Rev 248, 255]
+Fehler beim Löschen von Akten durch den Admin beseitigt. (Von
+Klaus Stork gemeldet).
+
+
 EBKuS 4.3.1.2 (8. Juni 2010)
 ============================
 
