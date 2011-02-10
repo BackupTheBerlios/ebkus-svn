@@ -90,9 +90,10 @@ class akte_share(options):
     def _get_ort_zusatz_items(self, data):
         "Optionale, konfigurierbare Felder für Klientendaten readonly"
         from ebkus.html.strkat import get_strasse
-        items = [h.DummyItem(), h.DummyItem()]
-        strasse = get_strasse(data)
-        if strasse:
+        items = []
+        zusatzfelder = [k for k in config.STRASSENSUCHE.split() if k != 'ort']
+        if zusatzfelder:
+            strasse = get_strasse(data)
             items_dict = {'bezirk': h.TextItem(label='Bezirk',
                                                tip='Bezirk',
                                                value=strasse.get('bezirk',''),
@@ -109,16 +110,57 @@ class akte_share(options):
                                                      readonly=True,
                                                      ),
                           }
-            zusatzfelder = [k for k in config.STRASSENSUCHE.split() if k != 'ort']
-##             if strasse.get('samtgemeinde') == strasse['ort']:
-##                 if 'samtgemeinde' in zusatzfelder:
-##                     zusatzfelder.remove('samtgemeinde')
             if len(zusatzfelder) == 1:
-                items[0] = items_dict[zusatzfelder[0]]
+                items.append(items_dict[zusatzfelder[0]])
+                items += self._get_email(data, 1, 1)
             elif len(zusatzfelder) > 1:
-                items[0] = items_dict[zusatzfelder[0]]
-                items[1] = items_dict[zusatzfelder[1]]
+                items.append(items_dict[zusatzfelder[0]])
+                items.append(items_dict[zusatzfelder[1]])
+        else:
+            items += self._get_email(data, 1, 3)
         return items
+
+    def _get_telefon_or_email(self, data):
+        "Optionale, konfigurierbare Felder für Klientendaten readonly"
+        zusatzfelder = [k for k in config.STRASSENSUCHE.split() if k != 'ort']
+        items = [h.TextItem(label='Telefon 1',
+                           name='tl1',
+                           value=data['tl1'],
+                           readonly=True,
+                           ),
+                 ]
+        if len(zusatzfelder) < 2 or data['tl2']: 
+            # email schon erledigt oder doch 2. Telefon
+            items.append(h.TextItem(label='Telefon 2',
+                                    name='tl2',
+                                    value=data['tl2'],
+                                    readonly=True,
+                                    ))
+        else:
+            # kein 2 Telefon, email noch nicht erledigt, auf jeden Fall für E-Mail nehmen
+            items += self._get_email(data)
+        return items
+
+    def _get_email(self, data, label_col=1, value_col=1):
+            return [h.String(string="E-Mail:",
+                                  class_="labeltext",
+                                  align="right",
+                                  n_col=label_col,
+                             ),
+                    h.String(string= data['mail_link'],
+                             class_="labeltext",
+                             n_col=value_col,
+                             )
+                    ]
+
+    def _get_email_extra_zeile(self, data):
+        """Liefert nur dann einen Wert, wenn bei der Adresse 2 Zusatzfelder
+        belegt sind und wenn es 2 Telefonnummern gibt.
+        """
+        zusatzfelder = [k for k in config.STRASSENSUCHE.split() if k != 'ort']
+        if len(zusatzfelder) > 1 and data['tl1'] and data['tl2']:
+            return [h.DummyItem(),h.DummyItem(),] + self._get_email(data, 1, 3)
+        return None
 
 
     def get_klientendaten_readonly(self, data, button=None):
@@ -168,7 +210,7 @@ class akte_share(options):
                    [h.TextItem(label='Geburtstag',
                                name='gb',
                                value=data['gb'],
-                               class_='textbox52',
+                               class_='textbox60',
                                readonly=True,
                               ),
                     h.TextItem(label='Geschl.',
@@ -183,18 +225,9 @@ class akte_share(options):
                                value=data['ber'],
                                readonly=True,
                                n_col=4,
-                               ),
-                    h.TextItem(label='Telefon 1',
-                              name='tl1',
-                              value=data['tl1'],
-                              readonly=True,
-                              ),
-                    h.TextItem(label='Telefon 2',
-                              name='tl2',
-                              value=data['tl2'],
-                              readonly=True,
-                              ),
-                    ],
+                               )] +
+                   self._get_telefon_or_email(data),
+                   self._get_email_extra_zeile(data),
                    [isinstance(data, Akte) and
                     h.TextItem(label='Aufbewahrungs-<br />kategorie',
                                name='aufbew',
@@ -235,11 +268,13 @@ class akte_share(options):
             daten=[[h.TextItem(label='Vorname',
                                name='vn',
                                value=data['vn'],
+                               class_='textbox170',
                                tip='Vorname %s' % bezug,
                                )],
                    [h.TextItem(label='Nachname',
                                name='na',
                                value=data['na'],
+                               class_='textbox170',
                                tip='Nachname %s' % bezug,
                                )],
                    [h.DatumItem(label='Geburtstag',
@@ -261,15 +296,23 @@ class akte_share(options):
                                  )],
                    [h.TextItem(label='Telefon1',
                                name='tl1',
+                               class_='textbox170',
                                value=data['tl1'],
                                )],
                    [h.TextItem(label='Telefon2',
                                name='tl2',
+                               class_='textbox170',
                                value=data['tl2'],
+                               )],
+                   [h.TextItem(label='E-Mail',
+                               name='mail',
+                               value=data['mail'],
+                               class_='textbox170',
                                )],
                    [h.TextItem(label='Ausbildung',
                                name='ber',
                                value=data['ber'],
+                               class_='textbox170',
                                tip='Die Ausbildung %s' % bezug,
                                )],
                    isinstance(data, Akte) and
@@ -510,7 +553,7 @@ class akte_share(options):
                            ):
         bezugspersonen = h.FieldsetDataTable(
             legend= 'Bezugspersonen',
-            headers= ('Art', 'Vorname', 'Nachname', 'Telefon 1', 'Telefon 2', 'Notiz'),
+            headers= ('Art', 'Vorname', 'Nachname', 'Telefon 1', 'Telefon 2', 'E-Mail', 'Notiz'),
             noheaders=3,
             daten= [[aktueller_fall and edit_button and
                      h.Icon(href='updpers?akid=%(akte_id)d&bpid=%(id)d' % b,
@@ -536,6 +579,7 @@ class akte_share(options):
                      h.String(string= b['na']),
                      h.String(string= b['tl1']),
                      h.String(string= b['tl2']),
+                     h.String(string= b['mail_link']),
                      h.String(string= b['no'],
                               class_=cc('notizbed', 't')==b['nobed'] and 'tabledatared'
                               or 'tabledata',

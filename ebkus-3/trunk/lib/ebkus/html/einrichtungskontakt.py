@@ -28,8 +28,12 @@ class _einr(Request.Request, akte_share):
                                 name='status',
                                 value=cc('einrstat', 'ja'),
                                 checked=(einrichtung['status'] == cc('einrstat', 'ja')),
-                                n_col=4,
                               ),
+                   h.TextItem(label='E-Mail',
+                             name='mail',
+                             value=einrichtung['mail'],
+                             maxlength=60,
+                             ),
                     ],
                    [h.TextItem(label='Name',
                              name='na',
@@ -67,6 +71,7 @@ class _einr(Request.Request, akte_share):
                 h.String(string=einr['na']),
                 h.String(string=einr['tl1']),
                 h.String(string=einr['tl2']),
+                h.String(string=einr['mail_link']),
                 h.String(string=einr['status__code']),
                 ])
             einr_daten.append([
@@ -77,7 +82,7 @@ class _einr(Request.Request, akte_share):
                 ])
         einrichtungskontakte = h.FieldsetDataTable(
             legend='Einrichtungskontakte',
-            headers=('Art', 'Name', 'Telefon 1', 'Telefon 2', 'Aktuell'),
+            headers=('Art', 'Name', 'Telefon 1', 'Telefon 2', 'E-Mail', 'Aktuell'),
             daten=einr_daten,
             )
         res = h.FormPage(

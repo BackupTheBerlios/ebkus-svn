@@ -322,7 +322,7 @@ class klkarte(Request.Request, akte_share):
 
         einrichtungskontakte = h.FieldsetDataTable(
             legend= 'Einrichtungskontakte',
-            headers= ('Art', 'Name', 'Telefon 1', 'Telefon 2', 'Aktuell', 'Notiz'),
+            headers= ('Art', 'Name', 'Telefon 1', 'Telefon 2', 'E-Mail', 'Aktuell', 'Notiz'),
             noheaders=2,
             daten= [[aktueller_fall and
                      h.Icon(href= 'updeinr?einrid=%(id)d' % e,
@@ -338,6 +338,7 @@ class klkarte(Request.Request, akte_share):
                      h.String(string= e['na']),
                      h.String(string= e['tl1']),
                      h.String(string= e['tl2']),
+                     h.String(string= e['mail_link']),
                      h.String(string= e['status__code']),
                      h.String(string= e['no'],
                               class_=ebapi.cc('notizbed', 't')==e['nobed'] and 'tabledatared'
