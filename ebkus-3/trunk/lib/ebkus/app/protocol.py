@@ -246,13 +246,13 @@ def set_protocol_limit(limit):
     limit = int(limit)
     if limit < 100000 or limit > 100000000:
         raise EE('Füllgrenze muss zwischen 100.000 und 100.000.000 liegen')
-    register_set('protokoll_fuellgrenze', limit)
+    register_set('protokoll_fuellgrenze', str(limit))
 
 def get_protocol_limit():
     """Holt die maximale Anzahl der Einträge in die Protokolltabelle.
     Wenn diese Anzal überschritten wird, wird automatisch archiviert.
     """
-    return register_get('protokoll_fuellgrenze', default=200000)
+    return int(register_get('protokoll_fuellgrenze', default=200000))
 
 def _getNewId(self):
     """Überschreibt die Standardmethode, um neue Werte für

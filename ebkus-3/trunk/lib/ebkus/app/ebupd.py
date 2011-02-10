@@ -5,6 +5,7 @@ hier. """
 import time
 import sha
 import os
+import re
 from ebkus.app.ebapi import *
 from ebkus.app.ebapih import *
 from ebkus.config import config
@@ -19,7 +20,7 @@ def akteeinf(form):
       "Akte (id: %(id)s, Name: %(na)s, %(vn)s, Geburtsdatum %(gb)s) existiert bereits")
     akte = Akte()
     get_string_fields(akte, form,
-          ['vn', 'na', 'ber', 'tl1', 'tl2', 'no'],'')
+          ['vn', 'na', 'ber', 'tl1', 'tl2', 'mail', 'no'],'')
     setAdresse(akte, form)
     akte['na'] = check_str_not_empty(form, 'na', "Kein Name")
 
@@ -105,7 +106,7 @@ def updakte(form):
 ##     akte['gb'] = check_str_not_empty(form, 'gb', "Kein Geburtsdatum", akteold)
     get_string_fields(akte, form,
                       ['vn', 'ber',
-                       'tl1', 'tl2', 'no'], akteold)
+                       'tl1', 'tl2', 'mail', 'no'], akteold)
     
     setAdresse(akte, form)
     akte['fs'] = check_code(form,'fs', 'fsfs',
@@ -123,7 +124,7 @@ def perseinf(form):
     pers = Bezugsperson()
     pers['akte_id'] = check_fk(form, 'akid', Akte, "Keine Akte")
     get_string_fields(pers, form,
-                      ['vn', 'na', 'ber', 'tl1', 'tl2', 'no'],'')
+                      ['vn', 'na', 'ber', 'tl1', 'tl2', 'mail', 'no'],'')
     if pers['vn'] == '' and pers['na'] == '':
         raise EE("Kein Name")
     pers['verw'] = check_code(form, 'verw', 'klerv',
@@ -171,7 +172,7 @@ def updpers(form):
     persold = check_exists(form, 'bpid', Bezugsperson, "Bezugspersonid fehlt")
     pers = Bezugsperson()
     get_string_fields(pers, form,
-                      ['vn', 'na', 'ber', 'tl1', 'tl2', 'no','hsnr'],
+                      ['vn', 'na', 'ber', 'tl1', 'tl2', 'mail', 'no','hsnr'],
                       persold)
     if pers['vn'] == '' and pers['na'] == '':
         raise EE("Kein Name")
@@ -222,7 +223,7 @@ def einreinf(form):
       "Einrichtungskontakt (id: %(id)s, Name: %(na)s) existiert bereits")
     einr = Einrichtungskontakt()
     einr['akte_id'] = check_fk(form, 'akid', Akte, "Keine Akte")
-    get_string_fields(einr, form, ['na','tl1','tl2', 'no'],'')
+    get_string_fields(einr, form, ['na','tl1','tl2', 'mail', 'no'],'')
     if einr['na'] == '':
         raise EE("Kein Name")
     einr['insta'] = check_code(form, 'insta', 'klinsta',
@@ -246,7 +247,7 @@ def updeinr(form):
         
     einrold = check_exists(form, 'einrid', Einrichtungskontakt, "Einrichtungskontaktid fehlt")
     einr = Einrichtungskontakt()
-    get_string_fields(einr, form, ['na','tl1','tl2', 'no'], einrold)
+    get_string_fields(einr, form, ['na','tl1','tl2', 'mail', 'no'], einrold)
     if einr['na'] == '':
         raise EE("Kein Name")
     einr['insta'] = check_code(form, 'insta', 'klinsta',
@@ -375,25 +376,6 @@ def updleist(form):
     leistold.update(leist)
     _stamp_akte(leistold['akte'])
 
-## def _bkont_check(form, bkont):
-##     bkont['fall_id'] = check_fk(form, 'fallid', Fall, "Kein Fall")
-##     bkont['mit_id'] = check_fk(form, 'mitid', Mitarbeiter, "Kein Mitarbeiter")
-##     bkont['art'] = check_code(form, 'art', 'fska', "Fehler in Beratungskontaktart")
-##     bkont['no'] = check_str_not_empty(form, 'no', 'Keine Notiz', '')
-##     if config.BERATUNGSKONTAKTE_MINUTEN:
-##         bkont['f2f_min'] = check_int_not_empty(form, 'f2f_min', "Fehler in Face-2-Face Minuten")
-##         bkont['vn_min'] = check_int_not_empty(form, 'vn_min', "Fehler in Vor/Nachbereitung Minuten")
-##     else:
-##         bkont['dauer'] = check_code(form, 'dauer', 'fskd', "Fehler in Beratungskontaktdauer")
-##     datum = check_date(form, 'k', "Fehler im Beratungskontaktdatum")
-##     fall = Fall(bkont['fall_id'])
-##     if datum < fall.getDate('bg'):
-##         raise EE("Datum vor Fallbeginn")
-##     if fall.get('ey') and datum > fall.getDate('e'):
-##         raise EE("Datum nach Fallende")
-##     bkont.setDate('k', datum)
-##     bkont['stz'] = check_code(form, 'stz', 'stzei',
-##                             "Kein Stellenzeichen für den Beratungskontakt")
 
 def removeleist(form):
     """Löschen der Leistung."""
@@ -1002,7 +984,7 @@ def waufneinf(form):
 ##     akte['gb'] = check_str_not_empty(form, 'gb',
 ##                                      "Kein Geburtsdatum", akteold)
     get_string_fields(akte, form,
-                      ['vn', 'ber', 'tl1', 'tl2', 'no'], akteold)
+                      ['vn', 'ber', 'tl1', 'tl2', 'mail', 'no'], akteold)
     akte['fs'] = check_code(form,'fs', 'fsfs',
                             "Fehler im Familienstatus", akteold)
     setAdresse(akte, form)
@@ -2872,9 +2854,6 @@ def setAdresse(obj, form):
         else:
             obj['hsnr'] = hsnr
         if 'plraum' in obj.fields:
-##             # Übernahme des Planungsraums aus dem Straßenkatalogs
-##             # Was übernommen wird, ist config-abhängig
-##             obj['planungsr'] = strasse[config.PLANUNGSRAUMFELD]
             obj['plraum'] = strasse['plraum']
     else:
         # Ohne Abgleich mit Straßenkatalog
@@ -2890,3 +2869,32 @@ def setAdresse(obj, form):
                 raise EBUpdateDataError("Kein gültiger Planungsraum")
             obj['plraum'] =  planungs_raum or '0'
 
+def updkonfig(form):
+    """Update Konfigurationsvariable."""
+    
+    konfig_name = check_str_not_empty(form, 'konfig_name', "Kein Name für Konfigurationsvariable")
+    konfig_list = [kv for kv in config.iter() if kv.name == konfig_name and kv.fachlich]
+    if konfig_list:
+        kv = konfig_list[0]
+    else:
+        raise EE("Unbekannte Konfigurationsvariable: %s" % konfig_name)
+    konfig_value = form.get('konfig_value', '').strip()
+    if kv.valid_pattern:
+        m = re.match(kv.valid_pattern, konfig_value)
+        if not m:
+            raise EE("Ungültiger Wert für '%s': %s" % (konfig_name, konfig_value))
+    if kv.is_boolean():
+        if konfig_value not in ('true', 'false'):
+            raise EE("Ungültiger Wert für boolsche Konfigurationsvariable: %s" % konfig_value)
+    elif kv.is_int():
+        if not konfig_value.isdigit():
+            raise EE("Ungültiger Wert für integer Konfigurationsvariable: %s" % konfig_value)
+    register_set(konfig_name, konfig_value)
+    if kv.is_boolean():
+        konfig_value = konfig_value == 'true'
+    elif kv.is_int():
+        konfig_value = int(konfig_value)
+    setattr(config, kv.NAME, konfig_value)
+    if kv.NAME == 'GEMEINDESCHLUESSEL_VON_PLZ':
+        from ebkus.app.gemeindeschluessel import delete_cache
+        delete_cache()

@@ -10,6 +10,7 @@ in diesem Modul abgelegt werden.
 
 import sys, string, math, os
 import datetime
+import urllib
 from ebkus.app.ebapigen import *
 from ebkus.db import dbapp, sql
 from ebkus.config import config
@@ -485,7 +486,24 @@ def _get_strkat_ortsangabe(self, key):
         strasse = self['strasse'] = get_strasse(self)
     return strasse.get(key)
 
-        
+def _get_mail_link(self, key):
+    mail = self['mail']
+    if not mail:
+        return ''
+    # Einrichtungskontakt hat keinen vn
+    try: vn = self['vn']
+    except: vn = ''
+    na = self['na']
+    if vn or na:
+        anr = "%s %s" % (vn, na)
+        href = "%s <%s>" % (anr.strip(), mail)
+    else:
+        href = "%s" % mail
+    href = urllib.quote(href)
+    #link = '<a href="mailto:%s">%s</a>' % (href, 'E-Mail')
+    link = '<a href="mailto:%s">%s</a>' % (href, mail)
+    return link
+
 Akte.attributemethods['name'] = _akte_name
 Akte.attributemethods['wiederaufnehmbar'] = _wiederaufnehmbar
 Akte.attributemethods['letzter_fall'] = _letzter_fall
@@ -498,12 +516,16 @@ Akte.attributemethods['ortsteil'] = _get_strkat_ortsangabe
 Akte.attributemethods['samtgemeinde'] = _get_strkat_ortsangabe
 # Achtung ganz doof: Akte hat eigenes Feld planungsr
 Akte.attributemethods['plraum'] = _get_strkat_ortsangabe
+Akte.attributemethods['mail_link'] = _get_mail_link
 
 Bezugsperson.attributemethods['str_inner'] = _str_inner
 Bezugsperson.attributemethods['str_ausser'] = _str_ausser
 Bezugsperson.attributemethods['bezirk'] = _get_strkat_ortsangabe
 Bezugsperson.attributemethods['ortsteil'] = _get_strkat_ortsangabe
 Bezugsperson.attributemethods['samtgemeinde'] = _get_strkat_ortsangabe
+Bezugsperson.attributemethods['mail_link'] = _get_mail_link
+
+Einrichtungskontakt.attributemethods['mail_link'] = _get_mail_link
 
 ############################
 # Berechnete Felder für Fall
@@ -1316,7 +1338,12 @@ def convert_pstoascii():
 # Ein Register in der Datenbank, wo man beliebige Python-Objekte
 # mit einem Schlüssel persistent ablegen kann
 def register_set(key, value=None):
-    from cPickle import dumps
+    if isinstance(value, basestring):
+        if len(value) > 65535:
+            raise EE("Wert für register_set zu lang: %s" % value)
+    else:
+        assert value == None
+    #print 'REGISTER_SET', key, value
     r = None
     try:
         r = Register(regkey=key)
@@ -1326,25 +1353,23 @@ def register_set(key, value=None):
         if r:
             r.delete()
         return
-    p = dumps(value)
     if r:
-        r.update({'value': p})
+        # key vorhanden -> update
+        r.update({'valuestr': value})
     else:
+        # neu einführen
         r = Register()
-        r.init(id=Register().getNewId(),
-               regkey=key,
-               value=p,)
+        r.init(regkey=key,
+               valuestr=value,)
+        r.new()
         r.insert()
 def register_get(key, default=None):
-    from cPickle import loads
     try:
         r = Register(regkey=key)
     except dbapp.DBAppError:
         return default
-    s = r['value']
-    try: s = s.tostring() # kommt manchmal als array.array raus
-    except: pass # war schon string
-    return loads(s)
+    value = r['valuestr']
+    return value
 
 
 # TBD wieder wegnehmen beim Umstieg auf höhrere Version

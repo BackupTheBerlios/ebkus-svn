@@ -12,6 +12,43 @@ config = None
 import ebkus
 _ebkus_version = ebkus.Version
 
+from ebkus.config_doku import param_doks
+
+class KonfigVar(object):
+    def __init__(self, data, dok, value):
+        self.section = data[0]
+        self.NAME = data[1]
+        self.name = data[2]
+        self.typ = data[3]
+        self.default = data[4]
+        if dok:
+            self.fachlich = dok[0]
+            self.valid_pattern = dok[1]
+            self.beschreibung = dok[2]
+            try: self.doku = dok[3]
+            except: self.doku = ''
+        else:
+            self.fachlich = False
+            self.valid_pattern = ''
+            self.beschreibung = "Das ist die erste Zeile mit der Kurzbeschreibung"
+            self.doku = ("Und jetzt kommt die <strong>Langbeschreibung</strong>. Die" +
+                             "kann sich ewig hinziehen, auch mit einer Liste:<ul>" +
+                             "<li>erster Punkt</li>" +
+                             "<li>zweiter Punkt</li></ul>" +
+                             "Und danach gehts weiter.")
+        self.value = value
+    def print_value(self, key):
+        v = getattr(self, key)
+        if isinstance(v, bool):
+            return v and 'true' or 'false'
+        return v
+    def __getitem__(self, key):
+        return getattr(self, key)
+    def is_boolean(self):
+        return self.typ == 'b'
+    def is_int(self):
+        return self.typ == 'i'
+
 # (section, Name fuer config Nutzer, Name in config Datei, typ, Default)  
 # typ: p path, s string, i int, b boolean
 # default modifier: i interpolate, e eval, s literal
@@ -72,11 +109,9 @@ _params = (
     ('instance', 'BERATUNGSKONTAKTE', 'beratungskontakte', 'b', 'e:False'),
     ('instance', 'BERATUNGSKONTAKTE_BS', 'beratungskontakte_bs', 'b', 'e:False'),
     ('instance', 'FALLUNABHAENGIGE_AKTIVITAETEN_BS', 'fallunabhaengige_aktivitaeten_bs', 'b', 'e:False'),
-    ('instance', 'BERATUNGSKONTAKTE_MINUTEN', 'beratungskontakte_minuten', 'b', 'e:False'),
     ('instance', 'STRASSENKATALOG', 'strassenkatalog', 's', 's:'),
     ('instance', 'STRASSENKATALOG_VOLLSTAENDIG', 'strassenkatalog_vollstaendig', 'b', 'e:False'),
     ('instance', 'STRASSENSUCHE', 'strassensuche', 's', 's:'), # ort ortsteil bezirk samtgemeinde
-    ('instance', 'PLANUNGSRAUMFELD', 'planungsraumfeld', 's', 's:plraum'), # deprecated
     ('instance', 'SQL_ABFRAGE', 'sql_abfrage', 'b', 'e:False'),
     ('instance', 'ANMELDUNGSDATEN_OBLIGATORISCH', 'anmeldungsdaten_obligatorisch', 'b', 'e:False'),
 #    ('instance', 'FEHLER_BEI_FACHSTATISTIK_AKTE_DISKREPANZ', 'fehler_bei_fachstatistik_akte_diskrepanz', 'b', 'e:False'),
@@ -92,6 +127,9 @@ _params = (
     ('instance', 'EXTERN_BUTTON3_URL', 'extern_button3_url', 's', 's:'),
     ('instance', 'EXTERN_BUTTON4_LABEL', 'extern_button4_label', 's', 's:'),
     ('instance', 'EXTERN_BUTTON4_URL', 'extern_button4_url', 's', 's:'),
+    ('instance', 'WOHNT_NICHT_AUSSERHALB', 'wohnt_nicht_ausserhalb', 's', 's:'),
+    ('instance', 'GEMEINDESCHLUESSEL_VON_PLZ', 'gemeindeschluessel_von_plz', 's', 's:'),
+    ('instance', 'NEUMELDUNGEN_NACH_REGION', 'neumeldungen_nach_region', 's', 's:'),
     )
 
 # werden von show/dump nicht angezeigt
@@ -256,9 +294,22 @@ Bitte nur kleine Buchstaben (keine Umlaute) und Unterstrich verwenden.""" % (val
         self._init_PARAMS()
 
     def dump(self):
+        from ebkus.app.ebapi import register_get
         l = []
         for s, P, p, v, t in self._param_iterator(_params):
-            l.append("%s: %s" % (p, v))
+            v_ebkus_conf = v
+            # Fachliche Konfigurationsvariable können im Admin-Menü editiert werden
+            # und werden in der Datenbank abgelegt.
+            v_db = None
+            try:
+                v_db = register_get(p)
+            except:
+                pass
+            if v_db and v_db != v_ebkus_conf:
+                v_out = "%s (in ebkus.conf: %s)" % (v_db, v_ebkus_conf)
+            else:
+                v_out = v_ebkus_conf
+            l.append("%s: %s" % (p, v_out))
         return '\n'.join(l)
         
     def show_section(self, sections):
@@ -295,6 +346,17 @@ Bitte nur kleine Buchstaben (keine Umlaute) und Unterstrich verwenden.""" % (val
             print "%-15s %-32s %-25s %-3s  %s" % (s, P, p, t, v)
             assert v == getattr(self, P)
 
+    def iter(self):
+        """Iterator über alle Konfigurationsvariablen.
+        Es wird für jede Variable eine Instanz der Klasse KonfigVar
+        zurückgegeben.
+        """
+        for p in _params:
+            NAME = p[1]
+            name = p[2]
+            dok = param_doks.get(name)
+            p = KonfigVar(p, dok, getattr(self, NAME))
+            yield p
 
 if __name__ == '__main__':
     #init('demo', '/home/atms/dev/ebkus/ebkus-2/ebkus.conf')

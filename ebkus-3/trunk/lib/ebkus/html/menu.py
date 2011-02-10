@@ -1,8 +1,7 @@
 # coding: latin-1
 import string
 from ebkus.app import Request
-from ebkus.app.ebapi import today, ZustaendigkeitList, TabelleList, \
-     register_set, register_get
+from ebkus.app.ebapi import today, ZustaendigkeitList, TabelleList
 from ebkus.app_surface.menu_templates import *
 from ebkus.app_surface.standard_templates import *
 from ebkus.config import config
@@ -210,6 +209,14 @@ class menu(Request.Request, akte_share):
 
 
     def _hauptmenu_admin(self):
+        allgemeine_konfiguration = h.FieldsetInputTable(
+            legend='Allgemeine Konfiguration',
+            daten=[[h.Button(value='Bearbeiten',
+                             onClick="go_to_url('konfigausw')",
+                             tip="Allgemeine Konfiguration bearbeiten",
+                             ),
+                    ]],
+            )
         mitarbeiter = h.FieldsetInputTable(
             legend='Mitarbeiter',
             daten=[[h.Button(value='Bearbeiten',
@@ -344,16 +351,16 @@ class menu(Request.Request, akte_share):
             breadcrumbs = ((),),
             rows=(self.get_abmelden_pw(),
                   h.Pair(left=mitarbeiter,
-                         right=akten,
+                         right=allgemeine_konfiguration,
                          ),
                   h.Pair(left=bundesstatistik,
                          right=fachstatistik,
                          ),
                   h.Pair(left=merkmalskataloge,
-                         right=strassenkatalog,
+                         right=akten,
                          ),
                   h.Pair(left=sql_abfrage,
-                         right='',
+                         right=strassenkatalog,
                          ),
                   protokoll,
                   ),

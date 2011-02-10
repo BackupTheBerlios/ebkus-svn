@@ -11,6 +11,7 @@ from ebkus import Version
 from ebkus.db import sql
 from ebkus.db import dbapp
 from ebkus.config import config
+from ebkus.app.ebapi import register_get
 
 class EBKuS:
     """Eine Instanz dieser Klasse bildet den Ausgangspunkt für Bobos
@@ -29,8 +30,19 @@ class EBKuS:
         logging.info("EBKuS-Konfigurationsdatei: %s", config.ebkus_conf)
         if config.instance_conf:
             logging.info("Instanz-Konfigurationsdatei: %s", config.instance_conf)
-        logging.debug("Aktuelle Konfiguration:\n%s>>>>\n%s\n<<<<%s", '-'*50,
-                      config.dump(), '-'*50)
+        # Konfiguration aus der Datenbank einlesen
+        # kv ist eine Instanz von KonfigVar (siehe config.py)
+        for kv in config.iter():
+            v_db = register_get(kv.name)
+            #print 'CONFIG', v_db, kv.value
+            if v_db != None:
+                if kv.is_boolean():
+                    v_db = (v_db == 'true')
+                elif kv.is_int():
+                    v_db = int(v_db)
+                setattr(config, kv.NAME, v_db)
+        # logging.debug("Aktuelle Konfiguration:\n%s>>>>\n%s\n<<<<%s", '-'*50,
+        #               config.dump(), '-'*50)
         try:
             sql.opendb()
         except:
@@ -78,14 +90,6 @@ class EBKuS:
     def index_html(self, REQUEST, RESPONSE):
         return "Die Default Seite"
 
-##     def get_template(self, template_name):
-##         template = self.templates.get(template_name)
-##         if template:
-##             return template
-##         template = Template(template_name, self.template_loader)
-##         self.templates[template_name] = template
-##         return template
-
         
 def makeObject(dict):
     class p: pass
@@ -118,7 +122,7 @@ def getClassesToBePublished():
     # der Funktion ebupd.updfs und der Klasse updfs gibt. klkarte.py ist verzockt.
     from ebkus.html.fachstatistik import fsneu, updfs, updfs as updfsform, viewfs
     from ebkus.html.jghstatistik import jghneu, updjgh, jgh07neu, updjgh07, jgh_check, \
-         updjgh as updjghform
+         updjgh as updjghform, jgh_wohnt_ausserhalb_check
     from ebkus.html.aktenvorblatt import vorblatt
     from ebkus.html.dokumentenkarte import kldok,grdok
     from ebkus.html.dokument import vermneu, updverm, upload, updgrverm, rmdok
@@ -131,6 +135,7 @@ def getClassesToBePublished():
     from ebkus.html.abfragedef import abfragedef
     from ebkus.html.datenaustausch import formabfrjghexport, jghexportfeedback, jghexportlist
     from ebkus.html.mitarbeiter import mitausw, mitneu, updmit
+    from ebkus.html.konfig import konfigausw, updkonfig
     from ebkus.html.code import codelist, codeneu, updcode, updkat
     from ebkus.html.administration import admin, feedback, admin_protocol
     from ebkus.html.fskonfig import fskonfig
