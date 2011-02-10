@@ -38,6 +38,7 @@ if __name__ == '__main__':
         
 from ebkus.app.ebapi import JugendhilfestatistikList, Jugendhilfestatistik2007List, today
 from ebkus.app.ebupd import jgh_laufende_nummer_setzen
+from ebkus.html.jghstatistik import get_ags_plz_ort_if_wohnort_ausserhalb
 
 ## def jghexport(jahr):
 ##     """Erzeugt den Datensatz für die Jugendhilfestatistik.
@@ -174,7 +175,7 @@ def get_datensatz_ab_2007(r):
 
     Zurückgegeben wird der eigentliche Datensatz sowie ein Kontrolldatensatz.
     """
-    d = [' ']*157      # Datensatz
+    d = [' ']*210      # Datensatz
     _set(d, 1, 1, 'A')
     _set(d, 2, 3, int(r['land__code']), "%02d")
     #_set(d, 4, 4, '0') # Regierungsbezirk jetzt beim Kreis mit drin
@@ -215,9 +216,18 @@ def get_datensatz_ab_2007(r):
     _set(d, 151, 152, r['grende__code'], None, {None: ' '*2})
     _set(d, 153, 154, r['aort_nac__code'], None, {None: ' '*2})
     _set(d, 155, 155, r['unh__code'], None, {None: ' '})
-    _set(d, 156, 157, '\r\n') # neu: newline zwischen den Datensätzen
+    ags = plz = ort = ''
+    ags_plz_ort = get_ags_plz_ort_if_wohnort_ausserhalb(r)
+    if ags_plz_ort:
+        ags, plz, ort = ags_plz_ort
+        if ags:
+            plz = ort = '' # plz, ort nur wenn Gemeindeschlüssel unbekannt ist.
+    _set(d, 156, 163, ags, '%8s') # Gemeindeschlüssel für Orte außerhalb des Kreises
+    _set(d, 164, 168, plz, '%5s') # plz ausserhalb
+    _set(d, 169, 208, ort, '%-40s') # ort ausserhalb
+    _set(d, 209, 210, '\r\n') # neu: newline zwischen den Datensätzen
     datensatz = ''.join(d)
-    assert len(datensatz) == 157
+    assert len(datensatz) == 210
     if datensatz[122] == '1': # Hilfe dauert an
         assert datensatz[137:155] == ' '*18
     else:

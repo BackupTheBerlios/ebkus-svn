@@ -246,9 +246,9 @@ bestaetigung_t = """
             <td height="67" class="normaltext" align="center" colspan="4">%(zeile)s</td>
           </tr>
         <tr>
-        <td class="labeltext" align="right" rowspan="3" width="25%%">Exportjahr:
+        <td class="labeltext" align="right" rowspan="4" width="25%%">Exportjahr:
         </td>
-        <td rowspan="3" width="25%%">
+        <td rowspan="4" width="25%%">
             <input type="text" class="textboxmid" size="4" maxlength="4" value="%(jahr)s" name="jahr">
         </td align="left">
         <td class="labeltext" align="right" width="36%%">Abgeschlossene Fälle:
@@ -269,6 +269,13 @@ bestaetigung_t = """
         </td>
         <td align="left">
           <input type="radio" value="keine" name="welche">
+        </td>
+        </tr>        
+        <tr>
+        <td class="labeltext" align="right">Adressen außerhalb prüfen:
+        </td>
+        <td align="left">
+          <input type="radio" value="adressen" name="welche">
         </td>
         </tr>        
         <tr>

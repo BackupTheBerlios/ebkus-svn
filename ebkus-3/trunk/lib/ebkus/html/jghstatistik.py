@@ -20,6 +20,7 @@
 
 """Module für die Jugendhilfestatistik."""
 
+import re
 import logging
 import string
 from ebkus.config import config
@@ -27,9 +28,11 @@ from ebkus.app import ebapi
 from ebkus.app import Request
 from ebkus.app.ebapi import Akte, Fall, Jugendhilfestatistik, Code, \
      JugendhilfestatistikList, cc, cn, today, EE, check_date, calc_age, \
-     Jugendhilfestatistik2007List, Jugendhilfestatistik2007
+     Jugendhilfestatistik2007List, Jugendhilfestatistik2007, \
+     BezugspersonList
 from ebkus.app.ebupd import upgrade_jgh
 from ebkus.app.ebapih import get_codes, mksel, get_all_codes
+from ebkus.app.gemeindeschluessel import get_gemeindeschluessel
 from ebkus.app_surface.standard_templates import *
 from ebkus.app_surface.jgh_templates import *
 from ebkus.app_surface.jgh07_templates import *
@@ -719,6 +722,16 @@ class _jgh07(Request.Request, akte_share):
             jgh['laufendenr'] = jgh['lnr']
         else:
             jgh['laufendenr'] = 'noch nicht vergeben'
+        # wohnung außerhalb
+        plz = ort = ags = ''
+        ags_plz_ort = get_ags_plz_ort_if_wohnort_ausserhalb(jgh)
+        if ags_plz_ort:
+            ags, plz, ort = ags_plz_ort
+        if ags:
+            jgh['ags'] = "(AGS: %s)" % ags
+        else:
+            jgh['ags'] = ''
+        jgh['plz'], jgh['ort'] = plz, ort
         res = []
         res.append(jghhead_t % jgh)
         res.append(jghfalldaten_t % jgh)
@@ -980,10 +993,149 @@ class jgh_check(Request.Request):
         meldung = submit_or_back_t % d
         return meldung
 
-        
-        
-        
-        
-        
-        
-        
+
+from ebkus.html.jgh_wohnt_ausserhalb import wohnt_ausserhalb
+from ebkus.html.strkat import get_strasse
+
+def _get_adress_data(jgh):
+    """Holt Adressdaten ergänzt um Info aus dem Strassenkatalog falls vorhanden.
+    Zur Zeit nur aus Akte, also Klient selber.
+    Evt. auch aus Bezugsperson, aber nicht klar wie.
+    Klient könnte allein wohnen, oä.
+
+    Es werden nur Adressen herangezogen, wenn es eine 5-stellige PLZ und 
+    einen Eintrag für den Ort gibt.
+    """
+    # def daten_ausreichend(data):
+    #     if not re.match(r'^\d{5,5}$', data['plz']): # Nur korrekt geformte plz verwenden.
+    #         data['plz'] = ''
+    #         if not data['plz'] or not data['ort']: # Ohne korrekte plz und ort kann 'wohnt ausserhalb' nicht bestätigt werden.
+    #             return False
+    def data_from_obj(obj):
+        data = dict(
+            hsnr=obj.get('hsnr', ''), 
+            str=obj.get('str', ''), 
+            plz=obj.get('plz', ''),
+            ort=obj.get('ort', ''),
+            ortsteil=obj.get('ortsteil', ''),
+            samtgemeinde=obj.get('samtgemeinde', ''),
+            bezirk=obj.get('bezirk', ''),
+            plraum=obj.get('plraum', ''),
+            )
+        return data
+        # update nimmt keine keyword-Argumente in python 2.3:
+        # data.update(hsnr=obj['hsnr'], str=obj['str'], plz=obj['plz'], ort=obj['ort'], plraum=obj['plraum'])
+        # data.update(d)
+
+        # d = (hsnr=obj['hsnr'], str=obj['str'], plz=obj['plz'], ort=obj['ort'], plraum=obj['plraum'])
+        # for k in data.keys():
+        #     v = obj.get(k)
+        #     if v:
+        #         data[k] = v
+
+    akte = jgh['fall__akte']
+    if akte:
+        adressquelle = akte
+        data = data_from_obj(adressquelle)
+        # passiert alles später:
+        # if not daten_ausreichend(data):
+        #     return None
+            # for art in ('Mutter', 'Vater',):
+            #     for bp in akte['bezugspersonen']:
+            #         if bp['verw__name'] == art:
+        if config.STRASSENKATALOG:
+            strasse = get_strasse(adressquelle)
+            data.update(strasse)
+        data['fall_fn'] = jgh['fall_fn']
+        return data
+    return None
+
+def get_ags_plz_ort_if_wohnort_ausserhalb(jgh):
+    data = _get_adress_data(jgh)
+    if wohnt_ausserhalb(data, config):
+        plz, ort = data['plz'], data['ort']
+        ags = get_gemeindeschluessel(ort, plz)
+        return ags, plz, ort
+    else:
+        return None
+
+class jgh_wohnt_ausserhalb_check(Request.Request, akte_share):
+    """Liefert Liste von Adressen & ob wohnt_ausserhalb detektiert wird mit aktueller Konfiguration.
+    Wird nur benötigt zur Prüfung der Konfiguration. 
+    """
+    permissions = Request.ADMIN_PERM
+
+    def get_daten(self, jahr=None):
+        """Adressdaten für alle Bundesstatistikdatensätze für jahr.
+        Liefert Liste von dicts mit Feldern:
+        felder = 'str','hsnr','plz','ort',
+                 'ortsteil','samtgemeinde','bezirk' # je nach config.STRASSENSUCHE
+                 'plz_ausser', 'ort_ausser'
+        damit man prüfen kann, für welche Adressen "wohnt außerhalb" generiert wird.
+        """
+        if jahr:
+            jahr = int(jahr)
+            where = 'jahr = %s' % jahr
+        else:
+            where = ''
+        jghlist = Jugendhilfestatistik2007List(where=where)
+        def get_data(jgh):
+            data = _get_adress_data(jgh)
+            if not data:
+                return None
+            res = get_ags_plz_ort_if_wohnort_ausserhalb(jgh)
+            if not res:
+                res = '','',''
+            data['ags_ausser'], data['plz_ausser'], data['ort_ausser']  = res
+            return data
+        daten = [data for data in [get_data(jgh) for jgh in jghlist] if data]
+        return daten
+
+    def get_felder_und_daten_zeilen(self, jahr):
+        """Liefert Liste von Listen von StringItems für FieldsetDataTable"""
+        felder = 'fall_fn', 'str','hsnr','plz','ort'
+        zusatzfelder = config.STRASSENSUCHE.split()
+        if 'ort' in zusatzfelder:
+            zusatzfelder.remove('ort')
+        felder += tuple(zusatzfelder)
+        if 'plraum' not in felder:
+            felder += ('plraum',)
+        felder += ('plz_ausser', 'ort_ausser', 'ags_ausser')
+        daten_zeilen = []
+        for data in self.get_daten(jahr):
+            res = []
+            for f in felder:
+                res.append(h.String(string=data[f]))
+            daten_zeilen.append(res)
+        return felder, daten_zeilen
+
+    def processForm(self, REQUEST, RESPONSE):
+        jahr = self.form.get('jahr')
+        felder, daten_zeilen = self.get_felder_und_daten_zeilen(jahr)
+        adress_table = h.FieldsetDataTable(
+            legend="Adressen zur Prüfung der Konfiguration",
+            headers=felder,
+            daten=daten_zeilen,
+            )
+        konfig_table = h.FieldsetDataTable(
+            legend="Konfiguration für Adressen 'wohnt ausserhalb'",
+            headers=('Variable', 'Wert'),
+            daten=[[h.String(string="%s:" % var.lower(),
+                             class_='labeltext',
+                             align='right',
+                             ),
+                    h.String(string=getattr(config, var)),]
+                   for var in (
+                    'WOHNT_NICHT_AUSSERHALB',
+                    # 'GEMEINDESCHLUESSEL_VON_PLZ',
+                    )],
+            )
+        res = h.Page(
+            title='Adressen zur Prüfung der Bundesstatistik',
+            rows=(self.get_hauptmenu(),
+                  konfig_table,
+                  adress_table,
+                  ),
+            )
+        return res.display()
+

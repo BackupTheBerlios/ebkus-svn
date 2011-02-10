@@ -70,6 +70,11 @@ jghfalldaten_t = """
                   <td  align="right" class="labeltext">Laufende-Nr.:</td>
                   <td  align="left" class="legendtext">%(laufendenr)s</td>
                 </tr>
+                <tr>
+                  <td colspan="4"><span class="labeltext">Wohnort auﬂerhalb: </span>
+                   <span class="legendtext">%(plz)s %(ort)s %(ags)s</span>
+                  </td>
+                </tr>
               </table>
               </fieldset>
             </td>

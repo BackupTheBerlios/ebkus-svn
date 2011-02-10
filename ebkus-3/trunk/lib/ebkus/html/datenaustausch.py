@@ -74,6 +74,9 @@ ORDER BY mitarbeiter.na, fall.bgy, fall.bgm""" % jahr
         
         if  self.form.get('welche') == 'keine':
             return self._keine_statistik_liste(jahr)
+        if  self.form.get('welche') == 'adressen':
+            RESPONSE.redirect('jgh_wohnt_ausserhalb_check?jahr=%s' % jahr)
+            return ''
         andauernd = self.form.get('welche') == 'andauernd'
         if andauernd and jahr < 2007:
             self.last_error_message = \

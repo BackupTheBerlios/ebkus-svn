@@ -102,8 +102,8 @@ class Akte(DBObjekt):
     table = 'akte'
     fields =  ['id', 'vn', 'na', 'gb', 'gs', 'ber', 'aufbew', 'str', \
                        'hsnr', 'plz', 'plraum', 'lage', 'ort', 'tl1', 'tl2', \
-                       'fs', 'no', 'stzbg', 'stzak', 'zeit']
-    fieldlengths = [None, 35, 35, 10, None, 30, None, 35, 5, 9, 60, None, 60, 25, 25, None, 255, None, None, None]
+                       'mail', 'fs', 'no', 'stzbg', 'stzak', 'zeit']
+    fieldlengths = [None, 35, 35, 10, None, 30, None, 35, 5, 9, 60, None, 60, 25, 25, 80, None, 255, None, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -182,9 +182,9 @@ class AnmeldungList(Container):
 class Bezugsperson(DBObjekt):
     table = 'bezugsperson'
     fields =  ['id', 'akte_id', 'vn', 'na', 'gb', 'gs', 'ber', 'str', \
-                       'hsnr', 'lage', 'plz', 'ort', 'tl1', 'tl2', 'fs', \
-                       'verw', 'no', 'nobed', 'vrt']
-    fieldlengths = [None, None, 35, 35, 10, None, 30, 35, 5, None, 9, 35, 25, 25, None, None, 255, None, None]
+                       'hsnr', 'lage', 'plz', 'ort', 'tl1', 'tl2', 'mail', \
+                       'fs', 'verw', 'no', 'nobed', 'vrt']
+    fieldlengths = [None, None, 35, 35, 10, None, 30, 35, 5, None, 9, 35, 25, 25, 80, None, None, 255, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -209,9 +209,9 @@ class BezugspersonList(Container):
 
 class Einrichtungskontakt(DBObjekt):
     table = 'einrichtung'
-    fields =  ['id', 'akte_id', 'na', 'tl1', 'tl2', 'insta', 'no', \
-                       'nobed', 'status']
-    fieldlengths = [None, None, 80, 25, 25, None, 255, None, None]
+    fields =  ['id', 'akte_id', 'na', 'tl1', 'tl2', 'mail', 'insta', \
+                       'no', 'nobed', 'status']
+    fieldlengths = [None, None, 80, 25, 25, 80, None, 255, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -794,8 +794,8 @@ class TabelleList(Container):
 
 class Register(DBObjekt):
     table = 'register'
-    fields =  ['id', 'regkey', 'value']
-    fieldlengths = [None, 255, None]
+    fields =  ['id', 'regkey', 'value', 'valuestr']
+    fieldlengths = [None, 255, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -866,6 +866,32 @@ class Altdaten(DBObjekt):
 
 class AltdatenList(Container):
     resultClass = Altdaten
+    querySQL = resultClass.querySQL
+
+#####################################
+# AGS  (Tabelle 'ags')
+#####################################
+
+
+class AGS(DBObjekt):
+    table = 'ags'
+    fields =  ['id', 'plz', 'ags', 'ort']
+    fieldlengths = [None, None, None, 60]
+    fieldtypes = {}
+    foreignfieldtypes = {}
+    inversefieldtypes = {}
+    multikatfieldtypes = {}
+    attributemethods = {}
+    conditionalfields = {}
+    pathdefinitions = {}
+    attributehandler = None
+    primarykey = 'id'
+    otherkeys = [('ort',)]
+    querySQL  = SimpleSQL(table = table, fields = fields)
+    updateSQL = querySQL
+
+class AGSList(Container):
+    resultClass = AGS
     querySQL = resultClass.querySQL
 
     

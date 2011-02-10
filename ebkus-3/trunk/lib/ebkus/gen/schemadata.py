@@ -121,6 +121,7 @@ lage, INT, inBerlin, p,
 ort, VARCHAR(60), Ort, p,
 tl1, VARCHAR(25), Telefon, p,
 tl2, VARCHAR(25), Diensttelefon, p,
+mail, VARCHAR(80), E-Mail-Adresse, p
 fs, INT, Familienstatus (lebt bei), k, fsfs,
 no, VARCHAR(255), Notiz, p,
 stzbg, INT, Aufnahmedienststelle, k, stzei
@@ -164,6 +165,7 @@ plz, VARCHAR(9), Postleitzahl, p,
 ort, VARCHAR(35), Ort, p,
 tl1, VARCHAR(25), Telefon, p,
 tl2, VARCHAR(25), Diensttelefon, p,
+mail, VARCHAR(80), E-Mail Adresse, p
 fs, INT, Familienstatus (lebt bei), k, fsfs
 verw, INT, Verwandschaftsgrad, k, klerv
 no, VARCHAR(255), Notiz, p,
@@ -176,6 +178,7 @@ akte_id, INT, Aktenid, f, akte, einrichtungen
 na, VARCHAR(80), Name, p,
 tl1, VARCHAR(25), Telefon1, p,
 tl2, VARCHAR(25), Telefon2, p,
+mail, VARCHAR(80), E-Mail Adresse, p
 insta, INT, Einrichtungsart, k, klinsta
 no, VARCHAR(255), Notiz, p,
 nobed, INT, Notizbedeutung, k, notizbed
@@ -542,6 +545,7 @@ table, register, regkey, Register, Register
 id, INT, id, s,
 regkey, VARCHAR(255), Schluessel, p,
 value, MEDIUMBLOB, Wert, p,
+valuestr, TEXT, Wert, p,
 
 table, abfrage, name, Abfrage, Abfrage
 id, INT, id, s,
@@ -569,39 +573,10 @@ telefon1, VARCHAR(25), Telefon, p,
 telefon2, VARCHAR(25), Diensttelefon, p,
 memo, TEXT, Memo, p,
 
-"""
-
-#fname, fdbtype, lname, vtyp =  {s,f,k,b,p}, { , tablename, kat_code, kat_code, }
-#tname, fn1/fn3.fn3/fn5.fn6, lname, classname
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-table, beratungskontakt_bs, , Beratungskontakt_BS, Beratungskontakt_BS
+table, ags, ort, Amtliche Gemeindeschlüssel, AGS
 id, INT, id, s,
-fall_id, INT, Fallid, f, fall, beratungskontakte_bs
-fall1_id, INT, Fallid, f, fall, beratungskontakte_bs1
-fall2_id, INT, Fallid, f, fall, beratungskontakte_bs2
-mit_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs
-mit1_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs1
-mit2_id, INT, Mitarbeiterid, f, mitarbeiter, beratungskontakte_bs2
-teilnehmer, VARCHAR(60), Teilnehmer am Kontakt, m, teilnbs
-anzahl, INT, Anzahl der Teilnehmer, p
-art, INT, Kontaktart, k, kabs
-kd, INT, Kontakt Tag, p,
-km, INT, Kontakt Monat, p,
-ky, INT, Kontakt Jahr, p,
-dauer, INT, Dauer der Kontakts in 10-Minuten-Einheiten (ohne Vor- und Nachbereitung), b, kdbs
-offenespr, INT, Beratung in der offenen Sprechstunde, k, ja_nein
-no, VARCHAR(255), Notiz, p,
-stz, INT, Dienststelle, k, stzei
+plz, CHAR(5), Postleitzahl, p,
+ags, CHAR(12), Gemeindeschlüssel, p
+ort, VARCHAR(60), Ort, p,
+
 """
