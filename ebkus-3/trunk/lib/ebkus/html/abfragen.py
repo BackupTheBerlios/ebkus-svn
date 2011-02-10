@@ -8,8 +8,10 @@ from ebkus.app import Request
 from ebkus.app.ebapi import JugendhilfestatistikList, Jugendhilfestatistik2007List, \
      ZustaendigkeitList, AkteList, BezugspersonList, FallList, GruppeList, \
      Tabelle, Code, Feld, Mitarbeiter, MitarbeiterList, MitarbeiterGruppeList, \
+     AbfrageList, \
      today, cc, check_int_not_empty, \
      check_str_not_empty, EBUpdateDataError, EE, getQuartal, get_rm_datum, Date
+from ebkus.html.abfragedef import Query
 from ebkus.app.statistik import BereichsKategorieAuszaehlung        
 import ebkus.html.htmlgen as h
 from ebkus.html.akte_share import akte_share
@@ -767,11 +769,98 @@ class abfr4(_abfr):
             rows=(self.get_auswertungs_menu(),
                   anzeige,
                   report,
+                  self.get_neumelde_nach_region_tabelle(jahr)
                   ),
             )
         return res.display()
 
+    def get_neumelde_nach_region_daten(self, jahr):
+        """Konfigurationsvariable:
+        neumeldungen_nach_region: name1;name2;name3
+        """
+        abfrage_namen = [name.strip() for name in config.NEUMELDUNGEN_NACH_REGION.split(';') if name.strip()]
+
+        # queries = None
+        # if abfrage_namen:
+        #     abfragen = AbfrageList(where='name in (%s)' % ','.join([("'%s'" % n) for n in abfrage_namen]))
+        #     queries = [(a['name'], Query(a)) for a in abfragen]
+        # if not queries:
+        #     return None,None,None,None
+
+        queries = []
+        for n in abfrage_namen:
+            abfragen = AbfrageList(where="name = '%s'" % n)
+            if abfragen:
+                queries.append((n, Query(abfragen[0])))
+        if not queries:
+            return None,None,None,None
+
+
+        stelle = self.stelle
+        JGHList = (jahr >= 2007 and Jugendhilfestatistik2007List or JugendhilfestatistikList)
+        neumeldungen = FallList(where = 'bgy = %s' % jahr
+                                + ' and akte_id__stzbg = %d' % stelle['id'],
+                                order = 'bgm' )
+        neul = [n['bgm'] for n in neumeldungen]
+        # analog für Regionen
+        # für jede Region eine Liste, jeder Eintrag entspricht einem Monat, in der die Neumeldung
+        # aus dieser Region erfolgte.
+        # Liste (name, monatsliste)
+        regiolisten = []
+        for name, query in queries:
+            rl = [f['bgm'] for f in neumeldungen if query.test(f['akte'])]
+            regiolisten.append(rl)
+        n = len(regiolisten) + 1 # Neumeldungen, für jede Region eine weitere Spalte
+        quartale = [([i]+[0]*n) for i in range(1,5)] # zusätzlich Quartalsnummer als erstes Element
+        monate =   [([i]+[0]*n) for i in range(1,13)] # zusätzlich Monatsnummer als erstes Element
+        for monat in monate:
+            # i steht für den Monat in jahr
+            i = monat[0]
+            #print 'MONAT', i, 'QUARTAL', getQuartal(i)
+            #print quartale
+            quartal = quartale[getQuartal(i)-1] # getQuartal: {1..12} --> {1..4}
+            monat[1] = neul.count(i)
+            quartal[1] += monat[1]
+            for j,rl in enumerate(regiolisten):
+                monat[j+2] = rl.count(i)
+                quartal[j+2] += monat[j+2]
+        gesamt = (len(neul),) + tuple([len(rl) for rl in regiolisten])
+        return tuple(abfrage_namen), monate, quartale, gesamt
+    
+    def get_neumelde_nach_region_tabelle(self, jahr):
+        """Neumeldungen aufgeteilt nach Region.
+        Gibts nur, wenn die Konfigurationsvariable 'neumeldungen_nach_region' 
+        eingerichtet ist.
+        neumeldungen_nach_region: name1;name2;name3
+        name1, ... sind Namen von Teilmengendefinitionen, die in der Tabelle abfrage
+        gespeichert sind.
+        """
+        regionen, monats_ergebnisse, quartals_ergebnisse, gesamt_ergebnisse = \
+            self.get_neumelde_nach_region_daten(jahr)
+        if not regionen:
+            return None
+        report_nach_region = h.FieldsetDataTable(
+            legend='Neumeldungen nach Region %s' % jahr,
+            headers=('Monat', 'Neu gesamt',) + tuple([("davon aus %s" % r) for r in regionen]),
+            daten=
+            [[h.String(string=m[i]) for i in range(len(m))]
+              for m in monats_ergebnisse] +
+
+            [[h.String(string='Quartal&nbsp;%s' % q[0],
+                       class_='tabledatabold'),] +
+             [h.String(string=q[i],
+                       class_='tabledatabold')
+              for i in range(1, len(q))]
+             for q in quartals_ergebnisse] +
         
+            [[h.String(string='Gesamt',
+                       class_='tabledatabold'),] +
+             [h.String(string=g,
+                       class_='tabledatabold')
+              for g in gesamt_ergebnisse]
+             ],
+        )
+        return report_nach_region
         
         
 
