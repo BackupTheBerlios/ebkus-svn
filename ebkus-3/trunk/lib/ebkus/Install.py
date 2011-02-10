@@ -1417,8 +1417,9 @@ class ComponentEbkusInstance(Component):
         pw = self.config.DATABASE_PASSWORD
         pw_arg = pw and "-p%s" % pw or ''
         self.log("SQL-Datei ausgeben")
-        cmd = "%s -c -u%s %s --default-character-set latin1 %s > %s" % \
+        cmd = "%s -c -h%s -u%s %s --default-character-set latin1 %s > %s" % \
                   (join(self.config.MYSQL_DIR, 'mysqldump'),
+                   self.config.DATABASE_HOST,
                    self.config.DATABASE_USER,
                    pw_arg,
                    self.config.DATABASE_NAME,
