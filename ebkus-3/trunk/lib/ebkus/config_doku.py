@@ -380,7 +380,9 @@ Beispiel:
         (True,
          "",
          """Inhalt wird als Meldung vom Administrator unübersehbar auf jeder EBKuS-Seite über der Statuszeile ausgegeben.""",
-         """<br /><br />
+         """Damit kann der Administrator
+Meldungen an alle aktiven EBKuS-Nutzer ausgeben, z.B. um einen
+Ausfall von EBKuS wegen Wartungsarbeiten anzukündigen.
 """,
          ),
     
