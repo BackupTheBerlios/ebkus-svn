@@ -376,6 +376,14 @@ Beispiel:
 """,
          ),
     
+    'meldung_vom_admin':
+        (True,
+         "",
+         """Inhalt wird als Meldung vom Administrator unübersehbar auf jeder EBKuS-Seite über der Statuszeile ausgegeben.""",
+         """<br /><br />
+""",
+         ),
+    
     }
 
 if __name__ == "__main__":

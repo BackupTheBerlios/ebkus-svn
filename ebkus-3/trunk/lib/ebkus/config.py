@@ -130,6 +130,7 @@ _params = (
     ('instance', 'WOHNT_NICHT_AUSSERHALB', 'wohnt_nicht_ausserhalb', 's', 's:'),
     ('instance', 'GEMEINDESCHLUESSEL_VON_PLZ', 'gemeindeschluessel_von_plz', 's', 's:'),
     ('instance', 'NEUMELDUNGEN_NACH_REGION', 'neumeldungen_nach_region', 's', 's:'),
+    ('instance', 'MELDUNG_VOM_ADMIN', 'meldung_vom_admin', 's', 's:'),
     )
 
 # werden von show/dump nicht angezeigt

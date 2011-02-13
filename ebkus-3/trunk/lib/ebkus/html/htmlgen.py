@@ -120,21 +120,6 @@ class Base(_HTML):
     #                    <table><tr><td class="breadcrumb" align="left">%s</td>
     #                               <td class="breadcrumb" align="right">%s</td>
     #                    </tr></table></td></tr>"""
-    xstatuszeile_t = """
-<div id="help">%(help)s</div>
-<div id="breadcrumb">%(breadcrumb)s</div>
-<div id="instanz">%(instanz)s</div>
-<div id="login">%(login)s</div>
-<div id="logout"><a href="logout">Abmelden</a></div>
-"""
-    xstatuszeile_t = """
-<table class="breadcrumb" width="100%%"><tr>
-<td align="left">%(help)s</tdd>
-<td>%(breadcrumb)s</tdd>
-<td>%(instanz)s</tdd>
-<td>%(login)s</tdd>
-<td align="right"><a href="logout">Abmelden</a></td>
-"""
     statuszeile_t = """
 <table class="breadcrumb" width="100%%"><tr valign="top">
 <td width="5%%" align="left">%(help)s</td>
@@ -144,9 +129,9 @@ class Base(_HTML):
 <td width="8%%" align="right"><a href="logout">Abmelden</a></td>
 </tr></table>
 """
-    
-
-
+    message_from_admin_t = """
+<div align="center" style="color:rede;font-size:14pt;background-color:white">%(message_from_admin)s</div>
+"""
     def _init(self):
         super(Base, self)._init()
         self.expand_attr('onload')
@@ -176,6 +161,9 @@ class Base(_HTML):
             self.breadcrumb = crumbs
             self.instanz = "EBKuS %s: %s" % (Version, config.INSTANCE_TITLE)
             self.statuszeile = self.statuszeile_t % self
+        self.message_from_admin = config.MELDUNG_VOM_ADMIN
+        if self.message_from_admin:
+            self.message_from_admin = self.message_from_admin_t % self
     tmpl = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -187,6 +175,7 @@ class Base(_HTML):
 <link rel="stylesheet" type="text/css" href="/ebkus/ebkus_styles/css_styles.css">
 </head>
 <body%(onload_attr)s><a name="top"></a>
+%(message_from_admin)s
 %(statuszeile)s
 <table class="pageframe">
   <tr>
