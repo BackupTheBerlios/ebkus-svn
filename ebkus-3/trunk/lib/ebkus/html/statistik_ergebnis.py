@@ -147,7 +147,17 @@ class auszergebnis(Request.Request):
         self.RESPONSE.setHeader('content-disposition',
                                 'attachment; filename=%s' % filename + '.csv')
         self.RESPONSE.setBody(res)
+
+
     def show_chart(self):
+        """GDchart zeigt keine labels ab python 2.5, daher HTML-Implementierung."""
+        if sys.version_info >= (2,5):
+        #if sys.version_info >= (2,4):
+            return self.show_chart_html()
+        else:
+            return self.show_chart_gd()
+
+    def show_chart_gd(self):
         """Zeigt eine eine HTML-Seite für eine Ergebnistabelle,
         die als einzigen Inhalt einen Link auf das Chart-Image hat."""
         image_url = "auszergebnis?typ=image&session_key=%s&id=%s" % (self.session_key, self.id)
@@ -156,6 +166,34 @@ class auszergebnis(Request.Request):
         res = efbchart_html_tag_datei % inhalt2
         return res
         
+    def show_chart_html(self):
+        """Zeigt eine eine HTML-Seite für eine Ergebnistabelle,
+        Barchart in HTML
+        """
+        title = self.auszaehlung.title + ' (Statistikauswertung vom %(day)d.%(month)d.%(year)d)' % today()
+        daten = []
+        for i, data in enumerate(self.auszaehlung.get_result()):
+            daten.append([
+                    h.String(string=data[0]),
+                    h.String(string=data[1]),
+                    h.Bar(prozent="%.2f%%" % data[2],
+                          width=round(data[2]*3),
+                          height=16,
+                          color="blue",
+                          ),
+                    ])
+        chart = h.FieldsetDataTable(
+            legend=title,
+            headers=('Merkmal', 'Häufigkeit', '%',),
+            daten=daten,
+            )
+        res = h.Page(
+            title=title,
+            rows=(chart,
+                  ),
+            )
+        return res.display()
+
     def show_tabelle(self):
         """Zeigt eine einzelne Ergebnistabelle"""
         res = []
@@ -169,56 +207,6 @@ class auszergebnis(Request.Request):
         res.append(fsergebnis_ende_tab_t)
         return ''.join(res)
 
-    # def show_tabelle_all(self):
-    #     """Zeigt alle Ergebnistabellen"""
-    #     from  ebkus.html.statistik_abfrage import get_abfrage
-    #     abfrage = get_abfrage(self.anzeige_gg, self.query, self.anzahl, h.TableDataTable)
-    #     res = []
-    #     res.append(abfrage.display())
-    #     tabellen = []
-    #     for auszaehlung in self.auszaehlungen:
-    #         res.append(head_normal_ohne_help_t % auszaehlung.auswertungs_ueberschrift)
-    #         res.append(fsergebnis1_tab_t)
-    #         res.append(thkategoriejgh_tab_t % auszaehlung.title)
-    #         for i, data in enumerate(auszaehlung.get_result()):
-    #             template = i%2 and item_tab_g_t or item_tab_w_t
-    #             res.append(template % (data[0],  data[1], data[2]) )
-    #         res.append(item_ende_tab_t)
-    #         res.append(fsergebnis_ende_tab_t)
-    #     # for auszaehlung in self.auszaehlungen:
-    #     #     res.append(head_normal_ohne_help_t % auszaehlung.auswertungs_ueberschrift)
-    #     #     res.append(fsergebnis1_tab_t)
-    #     #     res.append(thkategoriejgh_tab_t % auszaehlung.title)
-    #     #     for i, data in enumerate(auszaehlung.get_result()):
-    #     #         template = i%2 and item_tab_g_t or item_tab_w_t
-    #     #         res.append(template % (data[0],  data[1], data[2]) )
-    #     #     res.append(item_ende_tab_t)
-    #     #     res.append(fsergebnis_ende_tab_t)
-    #     return ''.join(res)
-
-    # def show_tabelle_all(self):
-    #     """Zeigt alle Ergebnistabellen"""
-    #     from  ebkus.html.statistik_abfrage import get_abfrage
-    #     abfrage = get_abfrage(self.anzeige_gg, self.query, self.anzahl, h.TableDataTable)
-    #     tabellen = []
-    #     for auszaehlung in self.auszaehlungen:
-    #         tabellen.append(
-    #             h.TableDataTable(
-    #                 headers=(auszaehlung.title, 'S', '%'),
-    #                 daten=[[
-    #                         h.String(string=data[0]),
-    #                         h.String(string=data[1]),
-    #                         h.String(string=data[2]),
-    #                         ]
-    #                        for data in auszaehlung.get_result()
-    #                        ],
-    #                 )
-    #             )
-    #     res = h.Page(
-    #         title='Statistikauswertung vom %(day)d.%(month)d.%(year)d.' % today(),
-    #         rows=[abfrage,] + tabellen,
-    #         )
-    #     return res.display()
 
     def show_tabelle_all(self):
         """Zeigt alle Ergebnistabellen druckerfreundlich"""

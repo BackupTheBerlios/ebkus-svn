@@ -673,6 +673,36 @@ class SelectGoto(Item):
      </td>
 """
 
+# class Bar(Item):
+#     """obligat: width (in pixel)
+#     optional: color (default: blue)
+#               height (default: 16px)
+#     """
+#     color = 'blue'
+#     height = 16
+#     tmpl = """<td%(colspan_attr)s%(rowspan_attr)s><div style="float:left;background-color:%(color)s;
+# 	width:%(width)spx;height:%(height)spx;"></div>&nbsp;%(annot)s</td>
+# """    
+
+
+class Bar(Item):
+    """obligat: width (in pixel)
+                prozent 
+    optional: color (default: blue)
+              height (default: 16px)
+    """
+    class_ = 'tabledata'
+    color = 'blue'
+    height = 16
+    tmpl = """<td class="%(class_)s" valign="middle"%(colspan_attr)s%(rowspan_attr)s>
+<table>
+<tr><td><div style="background-color:%(color)s;width:%(width)spx;height:%(height)spx;"></div></td>
+<td>%(prozent)s</td>
+</tr>
+</table>
+</td>
+"""
+
 class InputItem(Item):
     """Items, die der Eingabe von Daten dienen.
     optional: label, ohne label wird kein ':' geschrieben
