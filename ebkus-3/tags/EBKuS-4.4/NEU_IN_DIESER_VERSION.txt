@@ -1,0 +1,119 @@
+EBKuS 4.4 (14. Februar 2011)
+============================
+
+
+ACHTUNG:
+Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
+aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
+noch weitgehend gültig.
+
+Update von 4.2 bzw. 4.3 auf 4.4
+-------------------------------
+
+Das Datenbankschema hat sich verändert (Gemeindeschlüssel,
+Konfigurationsvariablen, E-Mail-Felder).
+Die Datenbanken sind nicht kompatibel. Beim ersten Neustart
+mit der Version 4.4 wird ein Update-Skript ausgeführt, das
+automatisch die vorhandene Datenbank an die neue Version anpasst. 
+
+
+Bundesstatistik
+---------------
+
+
+Anpassung der exportierten Datensätze für die Bundesstatistik 2010
+..................................................................
+
+[Rev 268]
+Die Datensatzbeschreibung für die Bundesstatistik hat sich
+geändert. Hinzu kommen die Positionen 156 bis 208, in denen der
+Wohnort des Klienten kodiert wird, sofern dieser außerhalb des
+Kreises der Beratungsstelle liegt. Es soll wenn möglich der
+amtliche Gemeindeschlüssel angegeben werden, ansonsten die
+Postleitzahl und der Ortsname. 
+
+Diese Änderung macht eine neue EBKuS-Version zwingend
+erforderlich, da ansonsten die erzeugten Datensätze von den
+statistischen Landesämtern nicht akzeptiert werden.
+
+EBKuS ermittelt anhand der Adresse des Klienten, ob dessen Wohnort
+außerhalb liegt. Wenn ja, wird automatisch ein entsprechender
+Eintrag in die Bundesstatistik vorgenommen. Der Anwender sieht
+den Eintrag im Bundesstatistikformular oben im Kasten
+"Falldaten".
+
+Dies funktioniert nur dann korrekt, wenn der der
+Anwendungsbetreuer die Konfigurationsvariable
+``wohnt_nicht_ausserhalb`` entsprechend einrichtet. Wie dabei
+vorzugehen ist, wird unter "Administratorhauptmenü -> Allgemeine
+Konfiguration -> wohnt_nicht_ausserhalb" beschrieben. Dort ist
+auch der Wert einzutragen.
+
+[Rev 266]
+Um wie gewünscht den amtlichen Gemeindeschlüssel eintragen zu
+können, beinhaltet die neue Version eine entsprechende
+Tabelle. Der Eintrag erfolgt automatisch.
+
+
+Administration
+--------------
+
+Konfigurationsvariablen als Anwendungsbetreuer ändern
+.....................................................
+
+
+[Rev 265]
+Die anwendungsbezogenen (im Unterschied zu den systembezogenen)
+Konfigurationsvariablen wurden in das Administratormenü
+integriert. Sie können jetzt von Anwendungsbetreuer ohne Hilfe
+der IT-Stelle bzw. Systemadministration bearbeitet werden. Die
+Bedeutung jeder Variablen und wie man sie verwendet ist direkt in
+der Bearbeitungsmaske erklärt.
+
+
+Meldung des Anwendungsbetreuer an alle aktiven Nutzer
+.....................................................
+
+
+[Rev 270,271] Der Inhalt der neuen Konfigurationsvariablen
+``meldung_vom_admin`` wird unübersehbar auf jeder EBKuS-Seite
+über der Statuszeile ausgegeben. Damit kann der Administrator
+Meldungen an alle aktiven EBKuS-Nutzer ausgeben, z.B. um einen
+Ausfall von EBKuS wegen Wartungsarbeiten anzukündigen
+(Administratorhauptmenü -> Allgemeine Konfiguration ->
+meldung_vom_admin).
+
+
+Neumeldungen nach Region
+------------------------
+
+[Rev 264]
+Über die Konfigurationsvariable ``neumeldungen_nach_region`` lässt
+sich unter "Hauptmenü > Neumelde- und Abschlusszahlen" eine neue
+Tabelle definieren, in der die Neumeldungen nach Regionen
+aufgegliedert sind. Regionen müssen vorher über "Hauptmenü ->
+Statistikabfrage -> Teilmenge -> Neu" definiert werden. Siehe
+Administratorhauptmenü -> Allgemeine Konfiguration ->
+neumeldungen_nach_region.
+
+
+E-Mail-Felder
+-------------
+
+[Rev 269]
+Für Klienten, Bezugspersonen sowie Einrichtungskontakte besteht
+nunmehr die Möglichkeit, eine E-Mail-Adresse anzugeben. Ein Klick
+auf die E-Mail-Adresse öffnet bei korrekter Konfiguration des
+Browsers das E-Mail-Programm mit einer leeren E-Mail, wo die
+E-Mail-Adresse schon eingetragen ist.
+
+
+Fehler in Balkendiagrammen der Statistikauswertung
+--------------------------------------------------
+
+[Rev 272]
+Die Balkendiagramme der Statistikauswertung waren in manchen
+Fällen fehlerhaft (fehlende Merkmalsnamen aufgrund eines Fehlers
+in verwendeter Software). In diesen Fällen wird nun ein korrektes
+Balkendiagramm mit HTML generiert anstatt mit gdchart.
+
