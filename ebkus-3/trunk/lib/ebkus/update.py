@@ -71,7 +71,12 @@ class UpdateDB(object):
                        exc_info=True)
         # Ist-Version der Datenbank feststellen
         self.tables = getDBHandle().listtables()
-        self.ist_db = self.get_version()
+        try:
+            ist_db = self.get_version()
+            vt = ist_db.split('.')
+            self.ist_db = "%s.%s" % (vt[0], vt[1])
+        except:
+            self.ist_db = None
 
     def abort(self, message, exc_info=False):
         logging.critical(message, exc_info=exc_info)
@@ -94,6 +99,8 @@ class UpdateDB(object):
                 if version:
                     return version
             except SQLError:
+                pass
+            try:
                 # Neues Schema ab 4.4, DB ist älter, also Versionsinfo direkt mit SQL holen
                 werte = SQL("SELECT value FROM register where regkey='Version'").execute()
                 if werte:
@@ -103,6 +110,8 @@ class UpdateDB(object):
                     except: pass # war schon string
                     res = loads(s)
                     return res
+            except:
+                pass
             # register-Tabelle vorhanden aber keine Version gefunden, also 4.0 oder 4.0.1
             return '4.0'
         else:
