@@ -4,7 +4,7 @@ from os.path import join, exists
 from time import time
 from itertools import chain
 from ebkus.config import config
-from ebkus.db.sql import opendb, closedb, getDBHandle, SQL
+from ebkus.db.sql import opendb, closedb, getDBHandle, SQL, SQLError
 from ebkus.gen.schemagen import get_schema_info
 from ebkus.gen.schemadata import schemainfo
 from ebkus.gen.genEb import generate_ebapi
@@ -44,10 +44,13 @@ class UpdateDB(object):
 
     # Die Datenbank muss mindestens auf diesem Niveau sein, damit 
     # ein Update möglich ist.
-    ist_moeglich = ['4.2']
+    # ist_moeglich_db = ['4.2']
+    # ist_moeglich_db = ['4.3']
+    ist_moeglich_db = ['4.2', '4.3']
     # Die Update Software kann die Datenbankversion auf dieses Niveau
     # heben (d.h. es gibt eine update_<ist_möglich>_nach_<soll_möglich>
-    soll_moeglich = ['4.3']
+    # soll_moeglich_db = ['4.3']
+    soll_moeglich_db = ['4.4']
 
     def __init__(self):
         # Protokoll stoert
@@ -55,20 +58,20 @@ class UpdateDB(object):
         temp_off()
         # Sollversion ist immer die Major-Version der Software (4.1, 4.4, ...)
         from ebkus import Version
+        self.ist_sw = Version
         # Minor-Version spielt keine Rolle
         vt = Version.split('.')
-        self.soll2 = "%s.%s" % (vt[0], vt[1])
-        self.soll = Version
+        self.soll_db = "%s.%s" % (vt[0], vt[1])
         try:
             opendb()
         except:
             # Zum Update muss die Datenbank verfügbar sein.
             # Daher:
-            self.abort("Für das Update muss die Datenbank verfügbar sein!",
+            self.abort("Fuer das Update muss die Datenbank verfuegbar sein!",
                        exc_info=True)
-        # Ist-Version feststellen
+        # Ist-Version der Datenbank feststellen
         self.tables = getDBHandle().listtables()
-        self.ist = self.get_version()
+        self.ist_db = self.get_version()
 
     def abort(self, message, exc_info=False):
         logging.critical(message, exc_info=exc_info)
@@ -86,47 +89,57 @@ class UpdateDB(object):
             return '3.3'
         elif 'register' in tables:
             from ebkus.app.ebapi import register_get
-            version = register_get('Version')
-            if version:
-                return version
-            else:
-                # 4.0 oder 4.0.1
-                return '4.0'
+            try:
+                version = register_get('Version')
+                if version:
+                    return version
+            except SQLError:
+                # Neues Schema ab 4.4, DB ist älter, also Versionsinfo direkt mit SQL holen
+                werte = SQL("SELECT value FROM register where regkey='Version'").execute()
+                if werte:
+                    from cPickle import loads
+                    s = werte[0][0]
+                    try: s = s.tostring() # kommt manchmal als array.array raus
+                    except: pass # war schon string
+                    res = loads(s)
+                    return res
+            # register-Tabelle vorhanden aber keine Version gefunden, also 4.0 oder 4.0.1
+            return '4.0'
         else:
             return None
 
     def update_noetig(self):
-        if not self.ist:
+        if not self.ist_db:
             logging.error("Version der Datenbank nicht feststellbar, Update nicht möglich.")
             return False
-        elif self.ist == self.soll:
-            logging.info("Datenbankversion und Softwareversion stimmen überein.")
+        elif self.ist_db == self.ist_sw:
+            logging.info("Datenbankversion und Softwareversion stimmen ueberein.")
             logging.info("Keine Update erforderlich")
             return False
-        elif self.ist == self.soll2:
+        elif self.ist_db == self.soll_db:
             logging.info("Datenbankversion und Softwareversion sind kompatibel.")
             logging.info("Keine Update erforderlich")
             return False
         else:
-            logging.info("Datenbankversion: %s" % self.ist)
-            logging.info("Softwareversion:  %s" % self.soll)
+            logging.info("Datenbankversion: %s" % self.ist_db)
+            logging.info("Softwareversion:  %s" % self.ist_sw)
             logging.info("Update der Datenbank erforderlich")
-        if self.soll2 not in self.soll_moeglich:
-            self.abort("Update auf Version %s nicht möglich" % self.soll)
-        if not self.ist in self.ist_moeglich:
-            self.abort("Update von Version %s nicht möglich" % self.ist)
-        logging.info("Datenbank wird auf Version %s updatet" % self.soll)
+        if self.soll_db not in self.soll_moeglich_db:
+            self.abort("Update auf Version %s nicht moeglich" % self.ist_sw)
+        if not self.ist_db in self.ist_moeglich_db:
+            self.abort("Update von Version %s nicht moeglich" % self.ist_db)
+        logging.info("Datenbank wird auf Version %s updatet" % self.soll_db)
         return True
 
     def update(self):
-        method = "update_%s_nach_%s" % (self.ist, self.soll)
+        method = "update_%s_nach_%s" % (self.ist_db, self.soll_db)
         method = method.replace('.', '_')
         res = getattr(self, method)()
         from ebkus import Version
         from ebkus.app.ebapi import register_set
-        register_set("Version", self.soll)
+        register_set("Version", self.soll_db)
         logging.info("Datenbank von Version %s auf Version %s erfolgreich updatet" %
-                     (self.ist, self.soll))
+                     (self.ist_db, self.soll_db))
 
     def update_4_1_nach_4_1_1(self):
         self.fsqualij_code_reparieren()
@@ -146,6 +159,56 @@ class UpdateDB(object):
         self.wartezeit_bereichskategorie_eintragen()
         self.fua_bs_neue_tabelle_fuer_mitarbeiter_zuordnung()
 
+    def update_4_3_nach_4_4(self):
+        self.add_field_to_register()
+        self.add_mail_fields_to_akte_bezugsperson()
+        self.neue_tabelle_fuer_gemeindeschluessel()
+        from ebkus.app.gemeindeschluessel import get_gemeindeschluessel
+        get_gemeindeschluessel('Berlin', '12047')
+
+    def update_4_2_nach_4_4(self):
+        self.update_4_2_nach_4_3()
+        self.update_4_3_nach_4_4()
+
+    def add_field_to_register(self):
+        SQL("ALTER TABLE register ADD valuestr TEXT").execute()
+        t = Tabelle(tabelle='register')
+        f = Feld()
+        f.init(
+            tab_id=t['id'],
+            feld='valuestr',
+            name='Wert als String',
+            inverse=None,
+            typ='TEXT',
+            verwtyp=cc('verwtyp', 'p'),
+            ftab_id=None,
+            flag=0,
+            )
+        f.new()
+        f.insert()
+        # Nicht unbedingt nötig, aber es ist klarer, wenn das Feld künftig leer ist.
+        SQL("UPDATE register set value=NULL,valuestr='%s' where regkey='Version'" % self.ist_db).execute()
+        logging.info("Feld 'valuestr' fuer Tabelle 'register' eingefuehrt")
+
+    def add_mail_fields_to_akte_bezugsperson(self):
+        tabellen = ('akte', 'bezugsperson', 'einrichtung')
+        for tn in tabellen:
+            SQL("ALTER TABLE %s ADD mail VARCHAR(80)" % tn).execute()
+            t = Tabelle(tabelle=tn)
+            f = Feld()
+            f.init(
+                tab_id=t['id'],
+                feld='mail',
+                name='E-Mail',
+                inverse=None,
+                typ='VARCHAR(80)',
+                verwtyp=cc('verwtyp', 'p'),
+                ftab_id=None,
+                flag=0,
+                )
+            f.new()
+            f.insert()
+            logging.info("Feld 'mail' fuer Tabelle '%s' eingefuehrt" % t['tabelle'])
 
     def wartezeit_bereichskategorie_eintragen(self):
         kat_code = 'wartez'
@@ -164,7 +227,7 @@ class UpdateDB(object):
             )
         k.insert()
         kat_id = k['id']
-        logging.info("Bereichskategorie 'wartez' hinzugefügt")
+        logging.info("Bereichskategorie 'wartez' hinzugefuegt")
         assert isinstance(kat_id, (int, long))
         code_data = (
             ('1', 'am selben Tag', 0, 0, ),
@@ -194,8 +257,56 @@ class UpdateDB(object):
                 )
             assert c['kat_code'] == kat_code == k['code'] == 'wartez'
             c.insert()
-            logging.info("Code für 'wartez' hinzugefügt: code=%s name=%s" % (code, name))
+            logging.info("Code fuer 'wartez' hinzugefuegt: code=%s name=%s" % (code, name))
 
+    def neue_tabelle_fuer_gemeindeschluessel(self):
+        if 'ags' in self.tables:
+            logging.info("Tabelle 'ags' existiert bereits")
+            return
+        try:
+            SQL("""CREATE TABLE ags (
+id int NOT NULL,
+plz CHAR(5),
+ags CHAR(12),
+ort VARCHAR(60),
+PRIMARY KEY (id),
+KEY(ort(10))
+)""").execute()
+
+            t = Tabelle()
+            t.init(
+                tabelle="ags",
+                name="Amtliche Gemeindeschlüssel",
+                klasse="AGS",
+                flag=0,
+                maxist=0
+                )
+            t.new()
+            t.insert()
+            felder = (
+                ('id', 'id', None, 'INT', cc('verwtyp', 's'), None,),
+                ('plz', 'Postleitzahl', None, 'CHAR(5)', cc('verwtyp', 'p'), None,),
+                ('ags', 'Gemeindeschlüssel', None, 'CHAR(12)', cc('verwtyp', 'p'), None,),
+                ('ort', 'Ort', None, 'VARCHAR(60)', cc('verwtyp', 'p'), None,),
+                )
+            for feld, name, inverse, typ, verwtyp, ftab_id in felder:
+                f = Feld()
+                f.init(
+                    tab_id=t['id'],
+                    feld=feld,
+                    name=name,
+                    inverse=inverse,
+                    typ=typ,
+                    verwtyp=verwtyp,
+                    ftab_id=ftab_id,
+                    flag=0,
+                    )
+                f.new()
+                f.insert()
+            logging.info("Neue Tabelle 'ags' fuer Gemeindeschluessel eingefuehrt")
+        except:
+            #raise
+            logging.error("************ Fehler beim Anlegen der Tabelle 'ags'")
 
     def fua_bs_neue_tabelle_fuer_mitarbeiter_zuordnung(self):
         if 'mitarbeiterfua_bs' in self.tables:

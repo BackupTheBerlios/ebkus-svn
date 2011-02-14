@@ -1,5 +1,5 @@
-EBKuS 4.3.1
-===========
+EBKuS 4.4
+=========
 
 Klientenverwaltung, Aktendokumentation, Gruppenverwaltung 
 und Statistik für Erziehungs- und Familienberatungsstellen
@@ -29,7 +29,8 @@ der Textdateien (insbesondere der Konfigurationsdatei)
 verwenden. Der Windows-Standardeditor ``notepad`` versteht die
 Zeilenstruktur nicht. 
 
-EBKuS läuft nur auf Windows NT/2000/XP, nicht Windows 95/98/ME.
+EBKuS läuft nur auf Windows NT/2000/XP (und höher vermutlich,
+habe ich selber nicht getestet), nicht Windows 95/98/ME.
 Auf Windows NT ist das Service-Pack 6 erforderlich.
 
 Dokumentation

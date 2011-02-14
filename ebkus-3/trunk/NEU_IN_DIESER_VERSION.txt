@@ -1,130 +1,119 @@
-EBKuS 4.3.1.4 (13. Dezember 2010)
-=================================
-
-Update von 4.3.1.2 auf 4.3.1.4
-------------------------------
-
-(Für 4.3.1.3 wurde ein Tag erzeugt, aber hier nicht weiter eingetragen).
-
-Das Datenbankschema hat sich nicht verändert. Die neuen Features
-stehen nach dem Kopieren der veränderten Dateien nach einem
-Neustart zur Verfügung.
-
-[Rev 261]
-Neue Spalte 'davon noch ohne z.d.A' bei Neumelde- und Abschlusszahlen
-
-[Rev 260]
-Warnung für Beratungskontakte Braunschweig, wenn Datum in
-frueherem Quartal liegt.
-
-[Rev 259]
-Quartalsfunktion für Date in ebapi.h definiert.
-
-[Rev 256, 257]
-Skript ``datenbank_ohne_klientendaten_sichern.py``
-hinzugefügt. Wird genau wie andere Skripte generiert. Damit kann
-ein Datenbank-Dump ohne Klienten- und Mitarbeiterdaten erzeugt
-werden. Man erhält eine SQL-Datei, mit der sich eine leere
-Instanz erstellen lässt mit derselben Konfiguration
-wie die Instanz, von der man den Dump gezogen hat.
-Dazu fügt man in die Konfiguration der neuen Instanz die Zeile::
-
-  initial_content: <Pfad zur SQL-Datei>
-
-ein. Beim erstmaligen Aufruf von ``configure.py`` oder nachdem
-man eine vorhandene Datenbank für die Instanz gelöscht hat, wird
-die Datenbank für diese Instanz mit dem Inhalt der Datei
-initialisiert.
-
-[Rev 248, 255]
-Fehler beim Löschen von Akten durch den Admin beseitigt. (Von
-Klaus Stork gemeldet).
-
-
-EBKuS 4.3.1.2 (8. Juni 2010)
+EBKuS 4.4 (14. Februar 2011)
 ============================
 
-Update von 4.3.1.1 auf 4.3.1.2
-------------------------------
 
-Das Datenbankschema hat sich nicht verändert. Die neuen Features
-stehen nach dem Kopieren der veränderten Dateien nach einem
-Neustart zur Verfügung.
+ACHTUNG:
+Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
+aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
+noch weitgehend gültig.
 
+Update von 4.2 bzw. 4.3 auf 4.4
+-------------------------------
 
-Klientenkarte - Schaltfeld zum Aufruf externer Anwendungen
-----------------------------------------------------------
-
-[Rev 242-245]
-Die folgenden Konfigurationsvariablen bewirken, dass auf der
-Klientenkarte ein Kasten mit vier Buttons erscheint, die in einem
-neuen Tab/Fenster eine URL aufrufen, die Felder des aktuellen
-(letzten) Falles bzw. des angemeldeten Mitarbeiters als
-Bestandteile haben kann::
-
-  # Kein Kasten, wenn diese Variable keinen Wert hat.
-  extern_fieldset_label: Externe Anwendung
-  # Position auf der Klientenkarte
-  extern_fieldset_position: 6
-  # Maximal vier Buttons, für jeden eine Bezeichnung und eine Url.
-  # Ein Button kommt nur zustande, wenn sowohl Label als auch Url
-  # einen Wert haben. 
-  extern_button1_label: GoogleWeb
-  extern_button1_url: http://www.google.com/search?q=$$fall_id$$_$$fall_akte__ort$$
-  extern_button2_label: GoogleMaps
-  extern_button2_url: http://www.google.com/maps?q=$$mitarbeiter_na$$
-  extern_button3_label: GoogleImages
-  extern_button3_url: http://www.google.com/images?q=$$fall_akte__ort$$
-  extern_button4_label: GoogleNews
-  extern_button4_url: http://www.google.com/news?q=$$fall_fn$$
-  
-Urls können Abschnitte der folgenden Form enthalten:
-``$$<fall oder mitarbeiter>_<feld>$$``
-Der ganze Abschnitt wird durch den Wert von ``<feld>`` ersetzt, 
-wobei entweder im Fall-Objekt oder im Mitarbeiter-Objekt 
-nachgeschlagen wird. 
-Beispiele:
-``$$fall_id$$``, ``$$mitarbeiter_na$$``, ``$$fall_akte__ort$$``
-
-EBKuS 4.3.1.1 (26. April 2010)
-==============================
-
-Update von 4.3.1 auf 4.3.1.1
-----------------------------
-
-Das Datenbankschema hat sich nicht verändert. Die neuen Features
-stehen nach dem Kopieren der veränderten Dateien nach einem
-Neustart zur Verfügung.
+Das Datenbankschema hat sich verändert (Gemeindeschlüssel,
+Konfigurationsvariablen, E-Mail-Felder).
+Die Datenbanken sind nicht kompatibel. Beim ersten Neustart
+mit der Version 4.4 wird ein Update-Skript ausgeführt, das
+automatisch die vorhandene Datenbank an die neue Version anpasst. 
 
 
-Fachstatistik - Handhabung einer Diskrepanz von Akte und Fachstatistik
-----------------------------------------------------------------------
+Bundesstatistik
+---------------
 
-[Rev. 237-241] 
-Hier geht es um die Behandlung der Items Familienstatus,
-Empfohlen von, Erbrachte Leistungen in der Fachstatistik, deren
-Werte im Normalfall aus der Akte vorbelegt werden, dann aber in
-der Fachstatistik unabhängig von der Akte modifierzierbar sind.
-Die beiden neuen Konfigurationsvariable, deren Standardwert 'false'
-ist, ermöglichen eine strengere Handhabung sofern eine von beiden
-auf 'true' gesetzt wird.
 
-1.::
-  
-  warnung_bei_fachstatistik_akte_diskrepanz: true
+Anpassung der exportierten Datensätze für die Bundesstatistik 2010
+..................................................................
 
-Wenn eine Diskrepanz zwischen Akte und Fachstatistik vorhanden ist,
-kommt beim Speichern eine entsprechende Meldung. Wenn man bei dem
-(neu eingeführten) Item "Diskrepanz zur Akte zulassen" ein Häkchen
-setzt, kann man trotzdem speichern.
+[Rev 268]
+Die Datensatzbeschreibung für die Bundesstatistik hat sich
+geändert. Hinzu kommen die Positionen 156 bis 208, in denen der
+Wohnort des Klienten kodiert wird, sofern dieser außerhalb des
+Kreises der Beratungsstelle liegt. Es soll wenn möglich der
+amtliche Gemeindeschlüssel angegeben werden, ansonsten die
+Postleitzahl und der Ortsname. 
 
-2.::
+Diese Änderung macht eine neue EBKuS-Version zwingend
+erforderlich, da ansonsten die erzeugten Datensätze von den
+statistischen Landesämtern nicht akzeptiert werden.
 
-  fachstatistik_akte_diskrepanz_nicht_zulassen: true
+EBKuS ermittelt anhand der Adresse des Klienten, ob dessen Wohnort
+außerhalb liegt. Wenn ja, wird automatisch ein entsprechender
+Eintrag in die Bundesstatistik vorgenommen. Der Anwender sieht
+den Eintrag im Bundesstatistikformular oben im Kasten
+"Falldaten".
 
-Die entsprechenden Items in der Fachstatistik zeigen die Werte
-aus der Akte und sind nicht modifizierbar. Eine Diskrepanz kann
-so gar nicht entstehen. Allerdings muss bei Änderungen in der
-Akte die Fachstatistik neu abgespeichert werden, damit die
-Änderungen übernommen werden und für die Statistik wirksam wird.
+Dies funktioniert nur dann korrekt, wenn der der
+Anwendungsbetreuer die Konfigurationsvariable
+``wohnt_nicht_ausserhalb`` entsprechend einrichtet. Wie dabei
+vorzugehen ist, wird unter "Administratorhauptmenü -> Allgemeine
+Konfiguration -> wohnt_nicht_ausserhalb" beschrieben. Dort ist
+auch der Wert einzutragen.
+
+[Rev 266]
+Um wie gewünscht den amtlichen Gemeindeschlüssel eintragen zu
+können, beinhaltet die neue Version eine entsprechende
+Tabelle. Der Eintrag erfolgt automatisch.
+
+
+Administration
+--------------
+
+Konfigurationsvariablen als Anwendungsbetreuer ändern
+.....................................................
+
+
+[Rev 265]
+Die anwendungsbezogenen (im Unterschied zu den systembezogenen)
+Konfigurationsvariablen wurden in das Administratormenü
+integriert. Sie können jetzt von Anwendungsbetreuer ohne Hilfe
+der IT-Stelle bzw. Systemadministration bearbeitet werden. Die
+Bedeutung jeder Variablen und wie man sie verwendet ist direkt in
+der Bearbeitungsmaske erklärt.
+
+
+Meldung des Anwendungsbetreuer an alle aktiven Nutzer
+.....................................................
+
+
+[Rev 270,271] Der Inhalt der neuen Konfigurationsvariablen
+``meldung_vom_admin`` wird unübersehbar auf jeder EBKuS-Seite
+über der Statuszeile ausgegeben. Damit kann der Administrator
+Meldungen an alle aktiven EBKuS-Nutzer ausgeben, z.B. um einen
+Ausfall von EBKuS wegen Wartungsarbeiten anzukündigen
+(Administratorhauptmenü -> Allgemeine Konfiguration ->
+meldung_vom_admin).
+
+
+Neumeldungen nach Region
+------------------------
+
+[Rev 264]
+Über die Konfigurationsvariable ``neumeldungen_nach_region`` lässt
+sich unter "Hauptmenü > Neumelde- und Abschlusszahlen" eine neue
+Tabelle definieren, in der die Neumeldungen nach Regionen
+aufgegliedert sind. Regionen müssen vorher über "Hauptmenü ->
+Statistikabfrage -> Teilmenge -> Neu" definiert werden. Siehe
+Administratorhauptmenü -> Allgemeine Konfiguration ->
+neumeldungen_nach_region.
+
+
+E-Mail-Felder
+-------------
+
+[Rev 269]
+Für Klienten, Bezugspersonen sowie Einrichtungskontakte besteht
+nunmehr die Möglichkeit, eine E-Mail-Adresse anzugeben. Ein Klick
+auf die E-Mail-Adresse öffnet bei korrekter Konfiguration des
+Browsers das E-Mail-Programm mit einer leeren E-Mail, wo die
+E-Mail-Adresse schon eingetragen ist.
+
+
+Fehler in Balkendiagrammen der Statistikauswertung
+--------------------------------------------------
+
+[Rev 272]
+Die Balkendiagramme der Statistikauswertung waren in manchen
+Fällen fehlerhaft (fehlende Merkmalsnamen aufgrund eines Fehlers
+in verwendeter Software). In diesen Fällen wird nun ein korrektes
+Balkendiagramm mit HTML generiert anstatt mit gdchart.
 
