@@ -27,10 +27,12 @@ def update():
     #register_set("Version", "4.2")
     #u.ist = u.get_version()
     u.keep_alive_anpassen()
-    u.fallnummer_pruefen_und_reparieren()
-    u.fsqualij_code_reparieren()
+    # darf hier nicht passieren, wenn das Schema geändert wurde, da Objekte
+    # mit dem neuen Code nicht richtig aus der alten DB gelesen werden können!
+    #u.fsqualij_code_reparieren()
     if u.update_noetig():
         u.update()
+    u.fallnummer_pruefen_und_reparieren()
         
 class UpdateDB(object):
     """Zum Update einer EBKuS-Datenbank von einer Version auf eine höhere.
@@ -172,6 +174,7 @@ class UpdateDB(object):
         self.add_field_to_register()
         self.add_mail_fields_to_akte_bezugsperson()
         self.neue_tabelle_fuer_gemeindeschluessel()
+        # stoesst die Initialisierung an:
         from ebkus.app.gemeindeschluessel import get_gemeindeschluessel
         get_gemeindeschluessel('Berlin', '12047')
 
@@ -418,22 +421,39 @@ PRIMARY KEY (id)
             
 
     def fallnummer_reparieren(self, fn):
-        faelle = FallList(where="fn='%s'" % fn)
+        faelle = FallList(where="fn='%s'" % fn, order="bgy,bgm,bgd")
         for f in faelle[1:]:
-            stz_code = f['akte__stzbg__code']
-            jahr = f['bgy']
-            new_fn = getNewFallnummer(stz_code, jahr)
-            f.update({'fn': new_fn})
-            fall_id = f['id'] 
-            where = 'fall_id=%s' % fall_id
-            for s in chain(JugendhilfestatistikList(where=where),
-                           Jugendhilfestatistik2007List(where=where),
-                           FachstatistikList(where=where),
-                           ):
-                s.update({'fall_fn': new_fn})
-            logging.info("Fallnummer repariert: fall_id=%s: %s --> %s" %
-                         (fall_id, fn, new_fn))
-
+            try:
+                logging.info("Versuche Fallnummer zu reparieren: fn=%(fn)s id=%(id)s  akte_id=%(akte_id)s" % f)
+                akte_id = f['akte_id']
+                if akte_id:
+                    try:
+                        akte = f['akte']
+                        logging.info("  Akte: na=%(na)s vn=%(vn)s  id=%(id)s" % akte)
+                    except Exception, m:
+                        logging.error("  Kein Aktenobjekt: %s" % m)
+                        raise
+                else:
+                    logging.error("  Keine Akten-Id")
+                    raise Exception("  Keine Akten-Id")
+                stz_code = f['akte__stzbg__code']
+                jahr = f['bgy']
+                new_fn = getNewFallnummer(stz_code, jahr)
+                f.update({'fn': new_fn})
+                fall_id = f['id'] 
+                where = 'fall_id=%s' % fall_id
+                for s in chain(JugendhilfestatistikList(where=where),
+                               Jugendhilfestatistik2007List(where=where),
+                               FachstatistikList(where=where),
+                               ):
+                    s.update({'fall_fn': new_fn})
+                logging.info("Fallnummer repariert: fall_id=%s: %s --> %s" %
+                             (fall_id, fn, new_fn))
+            except:
+                logging.error(
+                    "****Fallnummer konnte nicht repariert werden:  "
+                    "fn=%(fn)s id=%(id)s  akte_id=%(akte_id)s" % f)
+                                 
 
 
     def _get_jokf_int_felder(self):
