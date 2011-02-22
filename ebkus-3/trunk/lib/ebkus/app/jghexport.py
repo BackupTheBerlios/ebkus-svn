@@ -222,9 +222,9 @@ def get_datensatz_ab_2007(r):
         ags, plz, ort = ags_plz_ort
         if ags:
             plz = ort = '' # plz, ort nur wenn Gemeindeschlüssel unbekannt ist.
-    _set(d, 156, 163, ags, '%8s') # Gemeindeschlüssel für Orte außerhalb des Kreises
-    _set(d, 164, 168, plz, '%5s') # plz ausserhalb
-    _set(d, 169, 208, ort, '%-40s') # ort ausserhalb
+    _set(d, 156, 163, ags, '%8s', {None: ' '*8}) # Gemeindeschlüssel für Orte außerhalb des Kreises
+    _set(d, 164, 168, plz, '%5s', {None: ' '*5}) # plz ausserhalb
+    _set(d, 169, 208, ort, '%-40s', {None: ' '*40}) # ort ausserhalb
     _set(d, 209, 210, '\r\n') # neu: newline zwischen den Datensätzen
     datensatz = ''.join(d)
     assert len(datensatz) == 210
