@@ -1,0 +1,72 @@
+Installation von EBKuS auf Windows XP mit neuer Software
+
+Voraussetzung: Internetzugang, Administratorrechte
+
+1. Python 2.7.1 installieren
+http://www.python.org/
+- Standardinstallation
+
+2. Installationsverzeichnis anlegen, z.B. C:\ebkus_installation
+
+3. MySQL-python 1.2.3 for Windows and Python 2.7 installieren:
+http://www.codegood.com/download/10/
+- Standardinstallation
+
+4. MySQL installieren:
+mysql-essential-5.1.56-win32.msi
+http://dev.mysql.com/downloads/mysql/5.1.html
+Konfiguration alles default, außer:
+- Server Type: Server (nicht Entwicklung, nicht dedeicated mysql, mittlerer Speicherverbrauch)
+- Standard Character Set: latin1
+- Install as Windows Service: yes
+- Modify Security Settings: Rootpasswort: Häkchen entfernen, sodass kein Passwort gesetzt wird.
+
+Mysql-Dienst ist danach gestartet.
+
+5. Apache installieren
+http://apache.abdaal.com//httpd/binaries/win32/httpd-2.2.17-win32-x86-openssl-0.9.8o.msi
+
+Konfiguration:
+(Alle drei Angaben spielen keine Rolle, aber er meckert, wenn nichts da steht)
+- ServerName: localhost
+- Domain: localhost
+- Admin Email: asf@afadf
+
+Apache2.2 Dienst ist danach gestartet.
+
+6. Apache anpassen
+httpd.conf:
+- Listen 80 auskommentieren
+- KeepAlive Off einfügen
+- LoadModule ssl_module modules/mod_ssl.so entkommentieren
+- ServerAdmin auskommentieren
+- ServerName auskommentieren
+- Include conf/extra/httpd-ssl.conf entkommentieren
+- Include C:\ebkus_installation\ebkus\ebkus_httpd.conf einfügen
+
+conf/extra/httpd-ssl.conf
+- darin <VirtualHost ...> ... </VirtualHost> löschen
+
+Dienst restarten
+
+7. In der EBKuS-Distribution install.py ausführen 
+install.py -c <Installationsverzeichnis>
+Damit wird im Installationsverzeichnis ein Verzeichnis ebkus und darin eine Datei
+ebkus.conf angelegt.
+
+
+8. ebkus.conf anpassen
+- openssl_executable: C:\Programme\Apache Software Foundation\Apache2.2\bin\openssl.exe eintragen
+- die gewünschten Instanzen definieren
+- Instanzen können mit einem Dump initialisiert werden:
+initial_content: C:\ebkus_installation\demo_braunschweig_backup_v4.4_2011-02-14_15-25-54.zip
+
+9. In der EBKuS-Distribution nochmal install.py ausführen
+install.py --no_apache --no_mysql <Installationsverzeichnis>
+(srvstart hat sich nicht verändert und funktioniert noch)
+
+Danach sollte alles gehen.
+Dienste entweder im GUI oder mit net start/stop bedienen, da das dienst.py Skript 
+vermutlich nicht mehr funktioniert.
+(Da die Pfade für mysql und apache nicht mehr stimmen. Außerdem
+ist der Name des Dienstes jetzt Apache2.2 und nicht Apache.) 
