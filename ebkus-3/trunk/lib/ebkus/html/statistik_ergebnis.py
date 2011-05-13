@@ -8,7 +8,11 @@ from ebkus.app_surface.abfragen_templates import *
 import ebkus.html.htmlgen as h
 from ebkus.app.ebapi import today
 
-import gdchart
+try:
+    import gdchart
+except:
+    gdchart = None
+
 import cStringIO
 import tempfile
 
@@ -151,7 +155,7 @@ class auszergebnis(Request.Request):
 
     def show_chart(self):
         """GDchart zeigt keine labels ab python 2.5, daher HTML-Implementierung."""
-        if sys.version_info >= (2,5):
+        if sys.version_info >= (2,5) or gdchart == None:
         #if sys.version_info >= (2,4):
             return self.show_chart_html()
         else:
