@@ -48,6 +48,10 @@
 
 <VirtualHost %(SERVER_NAME)s:443>
 
+# Mit 'On' gibt es manchmal Probleme (Seite wird nicht als HTML dargestellt)
+# Mit 'Off' nicht, und es ist schnell genug.
+KeepAlive Off
+
 # neuerdings ist UTF-8 als default eingestellt, das wollen wir nicht
 AddDefaultCharset ISO-8859-1
 
