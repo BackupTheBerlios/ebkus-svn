@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="Docutils 0.6: http://docutils.sourceforge.net/" />
-<title>EBKuS 4.4 (14. Februar 2011)</title>
+<title>EBKuS 4.4.1 (10. juni 2011)</title>
 <style type="text/css">
 
 /*
@@ -256,108 +256,48 @@ ul.auto-toc {
 </style>
 </head>
 <body>
-<div class="document" id="ebkus-4-4-14-februar-2011">
-<h1 class="title">EBKuS 4.4 (14. Februar 2011)</h1>
+<div class="document" id="ebkus-4-4-1-10-juni-2011">
+<h1 class="title">EBKuS 4.4.1 (10. juni 2011)</h1>
 
-<p>ACHTUNG:
-Das Handbuch selbst ist noch nicht für die stark veränderte Version 4
-aktualisiert! Die Installationsanleitung im Handbuch ist jedoch
-noch weitgehend gültig.</p>
-<div class="section" id="update-von-4-2-bzw-4-3-auf-4-4">
-<h3>Update von 4.2 bzw. 4.3 auf 4.4</h3>
-<p>Das Datenbankschema hat sich verändert (Gemeindeschlüssel,
-Konfigurationsvariablen, E-Mail-Felder).
-Die Datenbanken sind nicht kompatibel. Beim ersten Neustart
-mit der Version 4.4 wird ein Update-Skript ausgeführt, das
-automatisch die vorhandene Datenbank an die neue Version anpasst.</p>
+<div class="section" id="update-von-4-4-auf-4-4-1">
+<h3>Update von 4.4 auf 4.4.1</h3>
+<p>Das Datenbankschema hat sich nicht verändert. Die neuen Features
+stehen nach dem Kopieren der veränderten Dateien nach einem
+Neustart zur Verfügung.</p>
 </div>
-<div class="section" id="bundesstatistik">
-<h3>Bundesstatistik</h3>
-<div class="section" id="anpassung-der-exportierten-datensatze-fur-die-bundesstatistik-2010">
-<h4>Anpassung der exportierten Datensätze für die Bundesstatistik 2010</h4>
-<p>[Rev 268]
-Die Datensatzbeschreibung für die Bundesstatistik hat sich
-geändert. Hinzu kommen die Positionen 156 bis 208, in denen der
-Wohnort des Klienten kodiert wird, sofern dieser außerhalb des
-Kreises der Beratungsstelle liegt. Es soll wenn möglich der
-amtliche Gemeindeschlüssel angegeben werden, ansonsten die
-Postleitzahl und der Ortsname.</p>
-<p>Diese Änderung macht eine neue EBKuS-Version zwingend
-erforderlich, da ansonsten die erzeugten Datensätze von den
-statistischen Landesämtern nicht akzeptiert werden.</p>
-<p>EBKuS ermittelt anhand der Adresse des Klienten, ob dessen Wohnort
-außerhalb liegt. Wenn ja, wird automatisch ein entsprechender
-Eintrag in die Bundesstatistik vorgenommen. Der Anwender sieht
-den Eintrag im Bundesstatistikformular oben im Kasten
-&quot;Falldaten&quot;.</p>
-<p>Dies funktioniert nur dann korrekt, wenn der der
-Anwendungsbetreuer die Konfigurationsvariable
-<tt class="docutils literal">wohnt_nicht_ausserhalb</tt> entsprechend einrichtet. Wie dabei
-vorzugehen ist, wird unter &quot;Administratorhauptmenü -&gt; Allgemeine
-Konfiguration -&gt; wohnt_nicht_ausserhalb&quot; beschrieben. Dort ist
-auch der Wert einzutragen.</p>
-<p>[Rev 266]
-Um wie gewünscht den amtlichen Gemeindeschlüssel eintragen zu
-können, beinhaltet die neue Version eine entsprechende
-Tabelle. Der Eintrag erfolgt automatisch.</p>
+<div class="section" id="anpassungen-an-neue-software">
+<h3>Anpassungen an neue Software</h3>
+<p>[Rev 282,283,285] EBKuS funktioniert jetzt auch mir neuen
+Versionen von Python, MySQL und Apache, unter Windows und
+GNU/Linux Betriebsystemen, sowohl in der 32 als auch in der 64bit
+Variante. Alternativ zum &quot;srvstart.exe&quot; kann der EBKuS-Server
+jetzt auch mit den &quot;Python for Windows extensions&quot; als
+Windowsdienst betrieben werden.</p>
 </div>
+<div class="section" id="ebkus-ohne-bundesstatistik">
+<h3>EBKuS ohne Bundesstatistik</h3>
+<p>[Rev 284] Wenn die neue Konfigurationsvariable <tt class="docutils literal">keine_bundesstatistik</tt>
+auf <tt class="docutils literal">true</tt> gesetzt wird, werden alle Funktionen, die die
+Bundesstatistik betreffen, deaktiviert. Insbesondere kann ein Fall ohne
+Bundesstatistik abgeschlossen werden, und auch sonst taucht die
+Bundesstatistik nicht mehr auf.</p>
 </div>
-<div class="section" id="administration">
-<h3>Administration</h3>
-<div class="section" id="konfigurationsvariablen-als-anwendungsbetreuer-andern">
-<h4>Konfigurationsvariablen als Anwendungsbetreuer ändern</h4>
-<p>[Rev 265]
-Die anwendungsbezogenen (im Unterschied zu den systembezogenen)
-Konfigurationsvariablen wurden in das Administratormenü
-integriert. Sie können jetzt von Anwendungsbetreuer ohne Hilfe
-der IT-Stelle bzw. Systemadministration bearbeitet werden. Die
-Bedeutung jeder Variablen und wie man sie verwendet ist direkt in
-der Bearbeitungsmaske erklärt.</p>
+<div class="section" id="systemadministration">
+<h3>Systemadministration</h3>
+<p>[Rev 275,276] Es wurde das <tt class="docutils literal">ebkusrestore</tt> Skript hinzugefuegt
+inverse Ergänzung von <tt class="docutils literal">ebkusdump</tt>.</p>
 </div>
-<div class="section" id="meldung-des-anwendungsbetreuer-an-alle-aktiven-nutzer">
-<h4>Meldung des Anwendungsbetreuer an alle aktiven Nutzer</h4>
-<p>[Rev 270,271] Der Inhalt der neuen Konfigurationsvariablen
-<tt class="docutils literal">meldung_vom_admin</tt> wird unübersehbar auf jeder EBKuS-Seite
-über der Statuszeile ausgegeben. Damit kann der Administrator
-Meldungen an alle aktiven EBKuS-Nutzer ausgeben, z.B. um einen
-Ausfall von EBKuS wegen Wartungsarbeiten anzukündigen
-(Administratorhauptmenü -&gt; Allgemeine Konfiguration -&gt;
-meldung_vom_admin).</p>
-</div>
-</div>
-<div class="section" id="neumeldungen-nach-region">
-<h3>Neumeldungen nach Region</h3>
-<p>[Rev 264]
-Über die Konfigurationsvariable <tt class="docutils literal">neumeldungen_nach_region</tt> lässt
-sich unter &quot;Hauptmenü &gt; Neumelde- und Abschlusszahlen&quot; eine neue
-Tabelle definieren, in der die Neumeldungen nach Regionen
-aufgegliedert sind. Regionen müssen vorher über &quot;Hauptmenü -&gt;
-Statistikabfrage -&gt; Teilmenge -&gt; Neu&quot; definiert werden. Siehe
-Administratorhauptmenü -&gt; Allgemeine Konfiguration -&gt;
-neumeldungen_nach_region.</p>
-</div>
-<div class="section" id="e-mail-felder">
-<h3>E-Mail-Felder</h3>
-<p>[Rev 269]
-Für Klienten, Bezugspersonen sowie Einrichtungskontakte besteht
-nunmehr die Möglichkeit, eine E-Mail-Adresse anzugeben. Ein Klick
-auf die E-Mail-Adresse öffnet bei korrekter Konfiguration des
-Browsers das E-Mail-Programm mit einer leeren E-Mail, wo die
-E-Mail-Adresse schon eingetragen ist.</p>
-</div>
-<div class="section" id="fehler-in-balkendiagrammen-der-statistikauswertung">
-<h3>Fehler in Balkendiagrammen der Statistikauswertung</h3>
-<p>[Rev 272]
-Die Balkendiagramme der Statistikauswertung waren in manchen
-Fällen fehlerhaft (fehlende Merkmalsnamen aufgrund eines Fehlers
-in verwendeter Software). In diesen Fällen wird nun ein korrektes
-Balkendiagramm mit HTML generiert anstatt mit gdchart.</p>
+<div class="section" id="fehlerbehebung">
+<h3>Fehlerbehebung</h3>
+<p>[Rev 274, 278]
+Fehler beim Update, u.a. beim Korrigieren doppelter Fallnummern,
+wurden behoben.</p>
 </div>
 </div>
 <div class="footer">
 <hr class="footer" />
 <a class="reference external" href="NEU_IN_DIESER_VERSION.txt">View document source</a>.
-Generated on: 2011-02-14 00:14 UTC.
+Generated on: 2011-06-06 20:28 UTC.
 
 </div>
 </body>

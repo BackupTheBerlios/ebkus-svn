@@ -13,8 +13,8 @@ http://www.codegood.com/download/10/
 - Standardinstallation
 
 4. MySQL installieren:
-mysql-essential-5.1.56-win32.msi
 http://dev.mysql.com/downloads/mysql/5.1.html
+mysql-essential-5.1.{neueste}-win32.msi
 Konfiguration alles default, auﬂer:
 - Server Type: Server (nicht Entwicklung, nicht dedeicated mysql, mittlerer Speicherverbrauch)
 - Standard Character Set: latin1
@@ -24,7 +24,8 @@ Konfiguration alles default, auﬂer:
 Mysql-Dienst ist danach gestartet.
 
 5. Apache installieren
-http://apache.abdaal.com//httpd/binaries/win32/httpd-2.2.17-win32-x86-openssl-0.9.8o.msi
+http://apache.abdaal.com//httpd/binaries/win32/
+httpd-2.2.{neueste}-win32-x86-openssl-0.9.8o.msi
 
 Konfiguration:
 (Alle drei Angaben spielen keine Rolle, aber er meckert, wenn nichts da steht)

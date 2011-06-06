@@ -1,0 +1,5 @@
+[Rev 280]
+Import von gdchart nicht mehr notwendig.
+
+[Rev ??]
+jghexport repariert
