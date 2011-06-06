@@ -1744,6 +1744,8 @@ class ComponentEbkusInstance(Component):
              join(config.INSTANCE_HOME, 'datenbank_ohne_klientendaten_sichern.py'), 0700, True),
             (join(TEMPLATES, 'dienst.py.template'),
              join(config.INSTANCE_HOME, 'dienst.py'), 0700, win32),
+            (join(TEMPLATES, 'pydienst.py.template'),
+             join(config.INSTANCE_HOME, 'pydienst.py'), 0700, win32),
             (join(TEMPLATES, 'index.html.template'),
              join(config.DOCUMENT_ROOT, 'index.html'), 0644, True),
             (join(TEMPLATES, 'ebcgi.py.template'),

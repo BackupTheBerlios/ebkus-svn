@@ -1,0 +1,57 @@
+#!%(PYTHON_EXECUTABLE)s
+# coding: latin-1
+
+# Diese Datei wird generiert.
+
+def start():
+    import os
+    os.chdir("%(INSTANCE_HOME)s")
+    import init
+    import ebkus.ebs
+    from ebkus.bobo.pcgi_publisher import main
+    main('ebkus.ebs')
+
+def stop():
+    import sys, socket, os, traceback
+    port = int(%(PORT)s)
+    # Wir sind im selben Prozess, localhost sollte immer gehen
+    host = 'localhost'
+    tosend = 'XX6859236XXquit'
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
+        s.send(tosend)
+        s.shutdown(1)
+        s.close()
+    except:
+        #traceback.print_exc()
+        #print 'Something went wrong'
+        sys.exit(1)
+        
+
+import win32serviceutil
+import win32service
+import win32event
+
+class Instanzdienst(win32serviceutil.ServiceFramework):
+    _svc_name_ = "ebkus_py_" + "%(INSTANCE_NAME)s"
+    _svc_display_name_ = "EBKuS-py " + "%(INSTANCE_NAME)s"
+    def __init__(self, args):
+        win32serviceutil.ServiceFramework.__init__(self, args)
+
+    def SvcStop(self):
+        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+        stop()
+
+    def SvcDoRun(self):
+        start()
+        
+if __name__=='__main__':
+    for s in ('?', '/?', '-h', '--help', '-help', 'help'):
+        if s in sys.argv:
+            print 'Usage: pydienst.py install                 --  Dienst installieren'
+            print '       pydienst.py --startup auto install  --  Dienst installieren mit Starttyp automatisch'
+            print '       pydienst.py remove                  --  Dienst deinstallieren'
+            print '       pydienst.py start                   --  Dienst starten'
+            print '       pydienst.py stop                    --  Dienst beenden'
+    win32serviceutil.HandleCommandLine(Instanzdienst)

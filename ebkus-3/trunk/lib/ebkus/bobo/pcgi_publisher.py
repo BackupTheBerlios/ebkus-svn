@@ -72,7 +72,6 @@ except: from StringIO import StringIO
 publish = None
 mustdie = 0
 
-
 def exit(n):
     logging.critical("Fataler Fehler", exc_info=True)
     logging.shutdown()
@@ -175,7 +174,8 @@ def main(module_name):
             # kann aus handle_request() kommen
             v = v[0]
             if v == 0:
-                sys.exit(0)
+                # Normale Beendigung ohne Fehler
+                break
             else:
                 exit(v)
         except:

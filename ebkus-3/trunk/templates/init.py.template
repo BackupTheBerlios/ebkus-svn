@@ -57,7 +57,8 @@ assert normcase(normpath(config.INSTANCE_HOME)) == normcase(normpath(INSTANCE_HO
 # ein schwacher Test, ob es sich um dasselbe Python Executable handelt
 exe1 = normcase(normpath(config.PYTHON_EXECUTABLE)).split()[0]
 exe2 = normcase(normpath(sys.executable))
-assert getsize(exe1) == getsize(exe2), "Nicht dasselbe Python-Executable wie in der Konfiguration"
+if not 'pythonservice' in exe2:
+   assert getsize(exe1) == getsize(exe2), "Nicht dasselbe Python-Executable wie in der Konfiguration"
 
 if '--show' in sys.argv:
     config.show()
