@@ -904,7 +904,7 @@ def zdaeinf(form):
             raise EE("Die vorhandene Jugendhilfestatistik ist nicht für einen abgeschlossenen Fall.")
         if jgh['jahr'] != zdadatum.year:
             raise EE("Jahr der Bundesstatistik entspricht nicht dem Jahr des Fallabschlusses")
-    if not jgh:
+    if not jgh and not config.KEINE_BUNDESSTATISTIK:
         raise EE("Keine Jugendhilfestatistik für Fallnummer '%(fn)s' vorhanden" % fallold )
     akteold = fallold['akte']
     letzter_fall = akteold['letzter_fall']

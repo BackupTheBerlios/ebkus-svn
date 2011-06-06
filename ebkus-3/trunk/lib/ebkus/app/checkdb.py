@@ -27,9 +27,9 @@ ebapi.Code()._test_consistency()
 ebapi.Kategorie()._test_consistency()
 ebapi.Jugendhilfestatistik()._test_consistency()
 ebapi.Fachstatistik()._test_consistency()
-ebapi.Fachstatistikleistung()._test_consistency()
-ebapi.Fachstatistikkindproblem()._test_consistency()
-ebapi.Fachstatistikelternproblem()._test_consistency()
+#ebapi.Fachstatistikleistung()._test_consistency()
+#ebapi.Fachstatistikkindproblem()._test_consistency()
+#ebapi.Fachstatistikelternproblem()._test_consistency()
 
 ## höchstens eine Anmeldung/Fall
 ## höchstens ein aktueller Fall
