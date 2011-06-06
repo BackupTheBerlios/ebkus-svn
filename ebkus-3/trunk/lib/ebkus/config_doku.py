@@ -386,6 +386,13 @@ Ausfall von EBKuS wegen Wartungsarbeiten anzukündigen.
 """,
          ),
     
+    'keine_bundesstatistik':
+        (False,
+         "",
+         """Fall kann ohne Bundestatistik abgeschlossen werden.""",
+         """Alles andere sollte trotzdem noch funktionieren.
+""",
+         ),
     }
 
 if __name__ == "__main__":

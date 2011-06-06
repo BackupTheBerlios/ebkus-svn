@@ -71,33 +71,38 @@ class statabfr(_statistik):
                     ],
                    ],
             )
+        daten_zeile = [h.CheckItem(label='Fachstatistik',
+                                   tip="Häufigkeitstabellen für die Fragen der Fachstatistik",
+                                   name='item_auswahl',
+                                   value='fs_gesamt',
+                                   ),
+                       ]
+        if not config.KEINE_BUNDESSTATISTIK:
+            daten_zeile.append(
+                       h.CheckItem(label='Bundesstatistik',
+                                   name='item_auswahl',
+                                   tip="Häufigkeitstabellen für die Fragen der Bundesstatistik",
+                                   value='jgh_gesamt',
+                                   ),
+                       )
+        daten_zeile += [h.CheckItem(label='Regionalstatistik',
+                                    name='item_auswahl',
+                                    tip="Häufigkeitstabellen für %s" %
+                                    ', '.join(['Planungsraum', 'Ort', 'PLZ'] +
+                                              [s.capitalize() for s in config.STRASSENSUCHE.split()]),
+                                    value='regional',
+                                   ),
+                        h.CheckItem(label='Teilmengen',
+                                    name='item_auswahl',
+                                    tip="Eine Häufigkeitstabelle mit der Anzahl der Klienten "
+                                    "in jeder der benutzerdefinierten Teilmengen",
+                                    value='teilmengen',
+                                    ),
+                        ]
+
         auszaehlung = h.FieldsetInputTable(
             legend='Auszählung',
-            daten=[[h.CheckItem(label='Fachstatistik',
-                                tip="Häufigkeitstabellen für die Fragen der Fachstatistik",
-                                name='item_auswahl',
-                                value='fs_gesamt',
-                                ),
-                    h.CheckItem(label='Bundesstatistik',
-                                name='item_auswahl',
-                                tip="Häufigkeitstabellen für die Fragen der Bundesstatistik",
-                                value='jgh_gesamt',
-                                ),
-                    h.CheckItem(label='Regionalstatistik',
-                                name='item_auswahl',
-                                tip="Häufigkeitstabellen für %s" %
-                                ', '.join(['Planungsraum', 'Ort', 'PLZ'] +
-                                          [s.capitalize() for s in config.STRASSENSUCHE.split()]),
-                                value='regional',
-                                ),
-                    h.CheckItem(label='Teilmengen',
-                                name='item_auswahl',
-                                tip="Eine Häufigkeitstabelle mit der Anzahl der Klienten "
-                                "in jeder der benutzerdefinierten Teilmengen",
-                                value='teilmengen',
-                                ),
-                    ],
-                   ]
+            daten=[daten_zeile,],
             )
 
         buttons = h.FieldsetInputTable(daten=[[

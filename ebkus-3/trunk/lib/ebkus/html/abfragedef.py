@@ -355,32 +355,33 @@ class Condition(object):
                 feld = fsc.get(f)
                 qstr = "%s_f%s" % (index, feld['id'])
                 options.append(tmpl % (qstr, feld['name']))
-        options += [tmpl % ('', '[Bundesstatistik]')]
-        for f in ('hilf_art', 
-                  'hilf_ort', 
-                  'traeger', 
-                  'gs', 
-                  'aort_vor', 
-                  'sit_fam', 
-                  'ausl_her', 
-                  'vor_dt', 
-                  'wirt_sit', 
-                  'aip', 
-                  'ees', 
-                  'va52', 
-                  'rgu', 
-                  'gr1', 
-                  'gr2', 
-                  'gr3', 
-                  'nbkges', 
-                  'lbk6m', 
-                  'grende', 
-                  'aort_nac', 
-                  'unh', 
-                  ):
-            feld = ebapi.get_feld(f, klasse='Jugendhilfestatistik2007')
-            qstr = "%s_f%s" % (index, feld['id'])
-            options.append(tmpl % (qstr, feld['name']))
+        if not config.KEINE_BUNDESSTATISTIK:
+            options += [tmpl % ('', '[Bundesstatistik]')]
+            for f in ('hilf_art', 
+                      'hilf_ort', 
+                      'traeger', 
+                      'gs', 
+                      'aort_vor', 
+                      'sit_fam', 
+                      'ausl_her', 
+                      'vor_dt', 
+                      'wirt_sit', 
+                      'aip', 
+                      'ees', 
+                      'va52', 
+                      'rgu', 
+                      'gr1', 
+                      'gr2', 
+                      'gr3', 
+                      'nbkges', 
+                      'lbk6m', 
+                      'grende', 
+                      'aort_nac', 
+                      'unh', 
+                      ):
+                feld = ebapi.get_feld(f, klasse='Jugendhilfestatistik2007')
+                qstr = "%s_f%s" % (index, feld['id'])
+                options.append(tmpl % (qstr, feld['name']))
         return '\n'.join(options)
 class All(Condition):
     def __init__(self, query, index=None):

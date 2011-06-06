@@ -301,21 +301,37 @@ class abfr1(_abfr):
                                      sort=sort)
 
         #faelle = ('fn', 'vn', 'na', 'gb', 'fallbeginn', 'fallende', 'mitarbeiter', 'fs', 'jgh')
-        report = h.FieldsetDataTable(
-            legend=title + legend_app,
-            headers=('Fallnr.', 'Vorname', 'Name', 'Geb.', 'Beginn', 'z.d.A', 'Zuständig', 'FS', 'BS'),
-            daten=[[h.Link(string=fall['fn'],
-                           url='klkarte?akid=%(akte_id)s' % fall),
-                    h.String(string=fall['akte__vn']),
-                    h.String(string=fall['akte__na']),
-                    h.String(string=fall['akte__gb']),
-                    h.Datum(date=fall.getDate('bg')),
-                    h.Datum(date=fall.getDate('zda')),
-                    h.String(string=fall['zuletzt_zustaendig__mit__na']),
-                    h.String(string=fall['has_fachstatistik']),
-                    h.String(string=fall['has_jghstatistik']),
-            ] for fall in beratungen],
-            )
+        if config.KEINE_BUNDESSTATISTIK:
+            report = h.FieldsetDataTable(
+                legend=title + legend_app,
+                headers=('Fallnr.', 'Vorname', 'Name', 'Geb.', 'Beginn', 'z.d.A', 'Zuständig', 'FS',),
+                daten=[[h.Link(string=fall['fn'],
+                               url='klkarte?akid=%(akte_id)s' % fall),
+                        h.String(string=fall['akte__vn']),
+                        h.String(string=fall['akte__na']),
+                        h.String(string=fall['akte__gb']),
+                        h.Datum(date=fall.getDate('bg')),
+                        h.Datum(date=fall.getDate('zda')),
+                        h.String(string=fall['zuletzt_zustaendig__mit__na']),
+                        h.String(string=fall['has_fachstatistik']),
+                ] for fall in beratungen],
+                )
+        else:
+            report = h.FieldsetDataTable(
+                legend=title + legend_app,
+                headers=('Fallnr.', 'Vorname', 'Name', 'Geb.', 'Beginn', 'z.d.A', 'Zuständig', 'FS', 'BS'),
+                daten=[[h.Link(string=fall['fn'],
+                               url='klkarte?akid=%(akte_id)s' % fall),
+                        h.String(string=fall['akte__vn']),
+                        h.String(string=fall['akte__na']),
+                        h.String(string=fall['akte__gb']),
+                        h.Datum(date=fall.getDate('bg')),
+                        h.Datum(date=fall.getDate('zda')),
+                        h.String(string=fall['zuletzt_zustaendig__mit__na']),
+                        h.String(string=fall['has_fachstatistik']),
+                        h.String(string=fall['has_jghstatistik']),
+                ] for fall in beratungen],
+                )
 
         res = h.FormPage(
             title=title,
@@ -323,154 +339,6 @@ class abfr1(_abfr):
             breadcrumbs = (('Hauptmenü', 'menu'),
                            ),
             hidden=(("seq", ''.join([('%s' % i) for i in sort_seq])),
-                    ),
-            rows=(self.get_auswertungs_menu(),
-                  anzeige,
-                  report,
-                  ),
-            )
-        return res.display()
-        
-    def xprocessForm(self, REQUEST, RESPONSE):
-        default_sort = ('bgy', 'fn_count', 'akte__na',
-                        'zuletzt_zustaendig__mit__na',
-                        'has_fachstatistik', 'has_jghstatistik')
-        default_sort_code = '012345' # Indizes in default_sort
-        tmpl = '<option value="%s"%s>%s</option>'
-        # erster Wert ist Index in default_sort
-        sort_options_data = (
-            (0, 'Jahr des Fallbeginns'),
-            (1, 'Fallnummer'),
-            (2, 'Name des Klienten'),
-            (3, 'Name des Mitarbeiters'),
-            (4, 'Fachstatistik vorhanden'),
-            (5, 'Bundesstatistik vorhanden'),
-            )
-        welche = check_str_not_empty(self.form, 'w', "Keine Fallart", 'laufend')
-        sel = ' selected="selected"'
-        welche_options = '\n'.join([tmpl % (v,
-                                            v==welche and sel or '',
-                                            v.capitalize())
-                                    for v in ('laufend', 'abgeschlossen', 'alle')])
-        title = (welche=='laufend' and 'Laufende' or
-                 welche=='abgeschlossen' and 'Abgeschlossene' or
-                 welche=='alle' and 'Alle' or '') + ' Beratungen'
-        legend_app = ''
-        jahr = check_int_not_empty(self.form, 'jahr', "Fehler im Jahr", '')
-        fn_count = check_int_not_empty(self.form, 'fnc', "Fehler in laufender Nummer", '')
-        if fn_count and not jahr:
-            raise EE("Laufende Fallnummer nur zusammen mit Jahr")
-        if fn_count:
-            legend_app += ' ab Fallnummer %s-%s%s' % (fn_count, jahr, self.stelle['code'])
-        elif jahr:
-            legend_app += ' ab Jahr %s' % (jahr,)
-        mit_id = check_str_not_empty(self.form, 'mitid', "Kein Mitarbeiter", '')
-        seq = check_str_not_empty(self.form, 'seq', "Keine Sortierung", default_sort_code)
-        seq = [int(x) for x in seq]
-        seq_new = check_str_not_empty(self.form, 'seqn', "Keine Sortierung", '1')
-        if seq_new:
-            seq_new = int(seq_new)
-            assert seq_new in seq, 'Fehler beim Sortieren'
-            if seq_new == 1:
-                seq.remove(1)
-                seq.remove(0)
-                seq = [0,1] + seq
-            else:
-                seq.remove(seq_new)
-                seq = [seq_new] + seq
-        sort_options = '\n'.join([tmpl % (c, c==seq_new and sel or '', n)
-                                  for c, n in sort_options_data])
-        sort = tuple([default_sort[i] for i in seq])
-        mitarbeiter = None
-        if self.mitarbeiter['benr__code'] == 'verw':
-            if mit_id:
-                mitarbeiter = Mitarbeiter(mit_id)
-                mitarbeiter_options = (tmpl % ('', '', 'Alle')
-                + self.for_mitarbeiter(sel=int(mit_id)))
-            else:
-                mitarbeiter_options = (tmpl % ('', 'selected="selected"', 'Alle')
-                + self.for_mitarbeiter(sel=None))
-        elif self.mitarbeiter['benr__code'] == 'bearb':
-            mitarbeiter = self.mitarbeiter
-        beratungen = self.beratungen(welche=welche,
-                                     stelle=self.stelle,
-                                     mitarbeiter=mitarbeiter,
-                                     ab_jahr=jahr,
-                                     ab_fallnummer=fn_count,
-                                     sort=sort)
-
-        anzeige = h.FieldsetInputTable(
-            legend='Anzuzeigende Beratungen',
-            daten=[[h.SelectItem(label='Welche',
-                                 name='w',
-                                 options=welche_options,
-    tip='Nur laufende, nur abgeschlossene, oder alle Fälle zeigen',
-                                 ),
-                    h.SelectItem(label='Fallbeginn ab Jahr',
-                                 name='jahr',
-                                 class_='listbox45',
-                                 tip='Nur Fälle ab dem gewählten Jahr zeigen',
-                                 options=self.for_jahre(sel=jahr,
-                                                        erster_eintrag='Alle'),
-                                 ),
-                    h.TextItem(label='ab laufender Nummer',
-                               name='fnc',
-                               class_='textboxmid',
-                               value=fn_count,
-                               tip='z.B. 9, 23, etc.',
-                               ),
-                    ],
-                    [self.mitarbeiter['benr__code'] == 'verw' and
-                     h.SelectItem(label='Mitarbeiter',
-                                  name='mitid',
-                                  tip='Nur Fälle des gewählten Mitarbeiters zeigen',
-                                  options=mitarbeiter_options,
-                                  ) or
-                    h.TextItem(label='Mitarbeiter',
-                               name='xxx',
-                               value=mitarbeiter['na'],
-                               readonly=True,
-                               ),
-                     h.SelectItem(label='Sortieren nach',
-                                  name='seqn',
-                                  tip='Wonach die Fälle sortiert sein sollen',
-                                  options=sort_options,
-                                  ),
-                    ],
-                   [h.Dummy(n_col=8)],
-                   [h.Button(value="Anzeigen",
-                             name='op',
-                             tip="Beratungen anzeigen",
-                             type='submit',
-                             n_col=8,
-                             ),
-                    ],
-                   ],
-            )
-
-        #faelle = ('fn', 'vn', 'na', 'gb', 'fallbeginn', 'fallende', 'mitarbeiter', 'fs', 'jgh')
-        report = h.FieldsetDataTable(
-            legend=title + legend_app,
-            headers=('Fallnr.', 'Vorname', 'Name', 'Geb.', 'Beginn', 'z.d.A', 'Zuständig', 'FS', 'BS'),
-            daten=[[h.Link(string=fall['fn'],
-                           url='klkarte?akid=%(akte_id)s' % fall),
-                    h.String(string=fall['akte__vn']),
-                    h.String(string=fall['akte__na']),
-                    h.String(string=fall['akte__gb']),
-                    h.Datum(date=fall.getDate('bg')),
-                    h.Datum(date=fall.getDate('zda')),
-                    h.String(string=fall['zuletzt_zustaendig__mit__na']),
-                    h.String(string=fall['has_fachstatistik']),
-                    h.String(string=fall['has_jghstatistik']),
-            ] for fall in beratungen],
-            )
-
-        res = h.FormPage(
-            title=title,
-            name='beratungen',action="abfr1",method="post",
-            breadcrumbs = (('Hauptmenü', 'menu'),
-                           ),
-            hidden=(("seq", ''.join([('%s' % i) for i in seq])),
                     ),
             rows=(self.get_auswertungs_menu(),
                   anzeige,
@@ -691,6 +559,79 @@ class abfr4(_abfr):
         gesamt_ergebnisse = (len(neul), len(asdl), len(hauptf), len(geschw), len(zdal))
         return monats_ergebnisse, quartals_ergebnisse, gesamt_ergebnisse
     
+    def get_neumelde_abschluss_daten_ohne_bundesstatistik(self, jahr):
+        "So viel wie möglich aber ohne Rückgriff auf die Bundesstatistik."
+        stelle = self.stelle
+        neumeldungen = FallList(where = 'bgy = %s' % jahr
+                                + ' and akte_id__stzbg = %d' % stelle['id'],
+                                order = 'bgm' )
+        asdliste = [f for f in neumeldungen
+                    if f['anmeldung'] and f['anmeldung'][0]['zm__code'] == '3']
+        zdaliste_fall = FallList(where = 'zday = %s' % jahr
+                                + ' and akte_id__stzbg = %d' % stelle['id'],
+                                order = 'zdam' )
+        laufendliste = FallList(where = 'bgy <= %s' % jahr
+                                + ' and akte_id__stzbg = %d' % stelle['id']
+                                + ' and (zday = 0 or zday >= %s)' % jahr,
+                                order = 'bgy, bgm' )
+        neul = [n['bgm'] for n in neumeldungen]
+        asdl = [f['bgm'] for f in asdliste]
+        zdal = [z['zdam'] for z in zdaliste_fall]
+        quartal1_neu = quartal1_asd = quartal1_zda = quartal1_hauptf = quartal1_geschw = 0
+        quartal2_neu = quartal2_asd = quartal2_zda = quartal2_hauptf = quartal2_geschw = 0
+        quartal3_neu = quartal3_asd = quartal3_zda = quartal3_hauptf = quartal3_geschw = 0
+        quartal4_neu = quartal4_asd = quartal4_zda = quartal4_hauptf = quartal4_geschw = 0
+        i = 1
+        monats_ergebnisse = []
+        while i < 13:
+            # i steht für den Monat in jahr
+            neumeldezahl = neul.count(i)
+            asdzahl = asdl.count(i)
+            zdazahl = zdal.count(i)
+            laufendzahl = 0
+            # immer der erste des Folgemonats
+            if i == 12:
+                laufend_stichtag = Date(jahr+1, 1, 1)
+            else:
+                laufend_stichtag = Date(jahr, i+1, 1)
+            for f in laufendliste:
+                if (f.getDate('bg') < laufend_stichtag and
+                    f.getDate('zda') >= laufend_stichtag):
+                    laufendzahl +=1
+            if i <= 3:
+                quartal1_neu += neumeldezahl
+                quartal1_asd += asdzahl
+                quartal1_zda += zdazahl
+            elif i <= 6:
+                quartal2_neu += neumeldezahl
+                quartal2_asd += asdzahl
+                quartal2_zda += zdazahl
+            elif i <= 9:
+                quartal3_neu += neumeldezahl
+                quartal3_asd += asdzahl
+                quartal3_zda += zdazahl
+            elif i <= 12:
+                quartal4_neu += neumeldezahl
+                quartal4_asd += asdzahl
+                quartal4_zda += zdazahl
+            monats_ergebnisse.append((i, laufendzahl, neumeldezahl, asdzahl,
+                                      zdazahl, 
+                                      )) 
+            i = i + 1
+        quartals_ergebnisse = []
+        quartals_ergebnisse.append((1, quartal1_neu, quartal1_asd, 
+                                    quartal1_zda,))
+        
+        quartals_ergebnisse.append((2, quartal2_neu, quartal2_asd, 
+                                    quartal2_zda,))
+        quartals_ergebnisse.append((3, quartal3_neu, quartal3_asd, 
+                                    quartal3_zda,))
+        quartals_ergebnisse.append((4, quartal4_neu, quartal4_asd, 
+                                    quartal4_zda,))
+        gesamt_ergebnisse = (len(neul), len(asdl), 
+                             len(zdal))
+        return monats_ergebnisse, quartals_ergebnisse, gesamt_ergebnisse
+
     def processForm(self, REQUEST, RESPONSE):
         jahr = check_int_not_empty(self.form, 'jahr', "Fehler im Jahr", '')
         if not jahr:
@@ -712,8 +653,26 @@ class abfr4(_abfr):
                     ],
                    ],
             )
-
+        if config.KEINE_BUNDESSTATISTIK:
+            report = self.get_report_ohne_bundesstatistik(jahr)
+        else:
+            report = self.get_report(jahr)
+        res = h.FormPage(
+            title='Neumelde- und Abschlusszahlen',
+            name='neumelde',action="abfr4",method="post",
+            breadcrumbs = (('Hauptmenü', 'menu'),
+                           ),
+            hidden=(),
+            rows=(self.get_auswertungs_menu(),
+                  anzeige,
+                  report,
+                  self.get_neumelde_nach_region_tabelle(jahr)
+                  ),
+            )
+        return res.display()
         #faelle = ('fn', 'vn', 'na', 'gb', 'fallbeginn', 'fallende', 'mitarbeiter', 'fs', 'jgh')
+
+    def get_report(self, jahr):
         monats_ergebnisse, quartals_ergebnisse, gesamt_ergebnisse = \
                            self.get_neumelde_abschluss_daten(jahr)
         report = h.FieldsetDataTable(
@@ -760,19 +719,46 @@ class abfr4(_abfr):
              h.String(string=''),
              ]],
             )
-        res = h.FormPage(
-            title='Neumelde- und Abschlusszahlen',
-            name='neumelde',action="abfr4",method="post",
-            breadcrumbs = (('Hauptmenü', 'menu'),
-                           ),
-            hidden=(),
-            rows=(self.get_auswertungs_menu(),
-                  anzeige,
-                  report,
-                  self.get_neumelde_nach_region_tabelle(jahr)
-                  ),
+        return report
+
+    def get_report_ohne_bundesstatistik(self, jahr):
+        monats_ergebnisse, quartals_ergebnisse, gesamt_ergebnisse = \
+                           self.get_neumelde_abschluss_daten_ohne_bundesstatistik(jahr)
+        report = h.FieldsetDataTable(
+            legend='Neumeldungen und Abschlüsse %s' % jahr,
+            headers=('Monat', 'Laufende am Monatsende', 'Neu', 'davon ASD', 
+                     'Abgeschlossen', #'abgeschl. Bundesstatistik', 
+                     ),
+            daten=[[h.String(string=m[0]),
+                    h.String(string=m[1]),
+                    h.String(string=m[2]),
+                    h.String(string=m[3]),
+                    h.String(string=m[4]),
+            ] for m in monats_ergebnisse] +
+            [[h.String(string='Quartal&nbsp;%s' % m[0],
+                      class_='tabledatabold'),
+             h.String(string=''),
+             h.String(string=m[1],
+                      class_='tabledatabold'),
+             h.String(string=m[2],
+                      class_='tabledatabold'),
+             h.String(string=m[3],
+                      class_='tabledatabold'),
+             h.String(string=''),
+             ] for m in quartals_ergebnisse] +
+            [[h.String(string='Gesamt',
+                      class_='tabledatabold'),
+             h.String(string=''),
+             h.String(string=gesamt_ergebnisse[0],
+                      class_='tabledatabold'),
+             h.String(string=gesamt_ergebnisse[1],
+                      class_='tabledatabold'),
+             h.String(string=gesamt_ergebnisse[2],
+                      class_='tabledatabold'),
+             h.String(string=''),
+             ]],
             )
-        return res.display()
+        return report
 
     def get_neumelde_nach_region_daten(self, jahr):
         """Konfigurationsvariable:
@@ -797,7 +783,7 @@ class abfr4(_abfr):
 
 
         stelle = self.stelle
-        JGHList = (jahr >= 2007 and Jugendhilfestatistik2007List or JugendhilfestatistikList)
+        #JGHList = (jahr >= 2007 and Jugendhilfestatistik2007List or JugendhilfestatistikList)
         neumeldungen = FallList(where = 'bgy = %s' % jahr
                                 + ' and akte_id__stzbg = %d' % stelle['id'],
                                 order = 'bgm' )

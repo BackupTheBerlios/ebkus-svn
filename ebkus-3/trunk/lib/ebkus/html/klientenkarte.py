@@ -423,25 +423,28 @@ class klkarte(Request.Request, akte_share):
                 if js['bgy']: # warum diese Prüfung?
                     js['action'] = 'updjgh07'
                     jugendhilfestatistik_list.append(js)
-        jugendhilfestatistik = h.FieldsetDataTable(
-            legend= 'Jugendhilfestatistiken',
-            headers= ('Fallnummer', 'Ende'),
-            daten= [[h.Icon(href= '%(action)s?jghid=%(id)d' % js,
-                          icon= "/ebkus/ebkus_icons/edit_stat_button.gif",
-                          tip= 'Jugendhilfestatistik bearbeiten'),
-                     h.String(string= js['fall_fn']),
-                     h.Datum(month= js['em'],
-                           year=  js['ey'])]
-                    for js in jugendhilfestatistik_list],
-            button= (aktueller_fall and
-                     not (aktueller_fall['jgh_statistiken'] or
-                          aktueller_fall['jgh07_statistiken']) and
-                     h.Button(value= "Hinzufügen",
-                            tip= "Jugendhilfestatistik hinzufügen",
-                            onClick=
-                            "go_to_url('jgh07neu?fallid=%(id)d')" % aktueller_fall,
-                            ) or None),
-            )
+        if config.KEINE_BUNDESSTATISTIK:
+            jugendhilfestatistik = ''
+        else:
+            jugendhilfestatistik = h.FieldsetDataTable(
+                legend= 'Jugendhilfestatistiken',
+                headers= ('Fallnummer', 'Ende'),
+                daten= [[h.Icon(href= '%(action)s?jghid=%(id)d' % js,
+                              icon= "/ebkus/ebkus_icons/edit_stat_button.gif",
+                              tip= 'Jugendhilfestatistik bearbeiten'),
+                         h.String(string= js['fall_fn']),
+                         h.Datum(month= js['em'],
+                               year=  js['ey'])]
+                        for js in jugendhilfestatistik_list],
+                button= (aktueller_fall and
+                         not (aktueller_fall['jgh_statistiken'] or
+                              aktueller_fall['jgh07_statistiken']) and
+                         h.Button(value= "Hinzufügen",
+                                tip= "Jugendhilfestatistik hinzufügen",
+                                onClick=
+                                "go_to_url('jgh07neu?fallid=%(id)d')" % aktueller_fall,
+                                ) or None),
+                )
 
         bezugspersongruppen = fallgruppen = ''
         if fallgruppen_list:
