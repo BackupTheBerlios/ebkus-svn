@@ -77,7 +77,11 @@ class _HTML(object):
     def __getattr__(self, k):
         return ''
     def __getitem__(self, k):
-        return getattr(self, k)
+        #return getattr(self, k)
+        val = getattr(self, k)
+        if val is None:
+            return ''
+        return val
     def __str__(self):
         return self.display()
     def display(self):
