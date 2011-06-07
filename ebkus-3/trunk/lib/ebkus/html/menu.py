@@ -162,11 +162,11 @@ class menu(Request.Request, akte_share):
 ##                                 tip='Fachstatistik für ausgewählten Fall ändern',
 ##                                 ),
 ##                     ],
-                   [h.RadioItem(label='Bundesstatistik',
+                   [(not config.KEINE_BUNDESSTATISTIK) and h.RadioItem(label='Bundesstatistik',
                                 name='file',
                                 value='updjghform', # wird in klientenkarte.py differenziert ausgewertet
                                 tip='Bundesstatistik für ausgewählten Fall bearbeiten',
-                                ),
+                                ) or None,
                     h.RadioItem(label='Fachstatistik',
                                 name='file',
                                 value='updfsform', # wird in klientenkarte.py differenziert ausgewertet
@@ -229,39 +229,62 @@ class menu(Request.Request, akte_share):
                              ),
                     ]],
             )
-        akten = h.FieldsetInputTable(
-            legend='Akten',
-            daten=[[h.Button(value='Löschen/Datenschutz',
-                             onClick="go_to_url('rmakten')",
-                             tip="Löschen von Akten nach Ablauf der Löschfrist",
-                             class_="buttonbig",
-                             ),
-                    h.Button(value='Altdaten importieren',
-                             onClick="go_to_url('altimport')",
-                             tip="Importieren von Klientendaten aus früheren Systemen",
-                             class_="buttonbig",
-                             ),
-                    ],
-                   [h.Button(value='Löschen/Fehlerkorrektur',
-                             onClick="go_to_url('rmaktenf')",
-                             tip="Löschen von fehlerhaften Fällen und Akten",
-                             class_="buttonbig",
-                             ),
-                    h.DummyItem(),
-                    ]],
+        if config.KEINE_BUNDESSTATISTIK:
+            bundesstatistik = None
+            # Damits schöner aussieht ...
+            akten = h.FieldsetInputTable(
+                legend='Akten',
+                daten=[[h.Button(value='Löschen/Datenschutz',
+                                 onClick="go_to_url('rmakten')",
+                                 tip="Löschen von Akten nach Ablauf der Löschfrist",
+                                 class_="buttonbig",
+                                 ),
+                       h.Button(value='Löschen/Fehlerkorrektur',
+                                 onClick="go_to_url('rmaktenf')",
+                                 tip="Löschen von fehlerhaften Fällen und Akten",
+                                 class_="buttonbig",
+                                 ),
+                        h.Button(value='Altdaten importieren',
+                                 onClick="go_to_url('altimport')",
+                                 tip="Importieren von Klientendaten aus früheren Systemen",
+                                 class_="buttonbig",
+                                 ),
+                        ]],
             )
-        bundesstatistik = h.FieldsetInputTable(
-            legend='Bundesstatistik',
-            daten=[[h.Button(value='Exportieren',
-                             onClick="go_to_url('formabfrjghexport')",
-                             tip="Bundesstatistik im amtlichen Format erstellen",
-                             ),
-                    h.Button(value='Download',
-                             onClick="go_to_url('jghexportlist')",
-                             tip="Bundesstatistik herunterladen",
-                             ),
-                    ]],
-            )
+        else:
+            akten = h.FieldsetInputTable(
+                legend='Akten',
+                daten=[[h.Button(value='Löschen/Datenschutz',
+                                 onClick="go_to_url('rmakten')",
+                                 tip="Löschen von Akten nach Ablauf der Löschfrist",
+                                 class_="buttonbig",
+                                 ),
+                        h.Button(value='Altdaten importieren',
+                                 onClick="go_to_url('altimport')",
+                                 tip="Importieren von Klientendaten aus früheren Systemen",
+                                 class_="buttonbig",
+                                 ),
+                        ],
+                       [h.Button(value='Löschen/Fehlerkorrektur',
+                                 onClick="go_to_url('rmaktenf')",
+                                 tip="Löschen von fehlerhaften Fällen und Akten",
+                                 class_="buttonbig",
+                                 ),
+                        h.DummyItem(),
+                        ]],
+                )
+            bundesstatistik = h.FieldsetInputTable(
+                legend='Bundesstatistik',
+                daten=[[h.Button(value='Exportieren',
+                                 onClick="go_to_url('formabfrjghexport')",
+                                 tip="Bundesstatistik im amtlichen Format erstellen",
+                                 ),
+                        h.Button(value='Download',
+                                 onClick="go_to_url('jghexportlist')",
+                                 tip="Bundesstatistik herunterladen",
+                                 ),
+                        ]],
+                )
         fachstatistik = h.FieldsetInputTable(
             legend='Fachstatistik',
             daten=[[h.Button(value='Konfigurieren',
@@ -345,11 +368,23 @@ class menu(Request.Request, akte_share):
                 )
         else:
             protokoll = None
-        res = h.Page(
-            title='Administratorhauptmenü',
-            help="das-hauptmen",
-            breadcrumbs = ((),),
-            rows=(self.get_abmelden_pw(),
+
+        if config.KEINE_BUNDESSTATISTIK:
+            rows = (self.get_abmelden_pw(),
+                  h.Pair(left=mitarbeiter,
+                         right=allgemeine_konfiguration,
+                         ),
+                  akten,
+                  h.Pair(left=merkmalskataloge,
+                         right=fachstatistik,
+                         ),
+                  h.Pair(left=sql_abfrage,
+                         right=strassenkatalog,
+                         ),
+                  protokoll,
+                  )
+        else:
+            rows = (self.get_abmelden_pw(),
                   h.Pair(left=mitarbeiter,
                          right=allgemeine_konfiguration,
                          ),
@@ -363,7 +398,13 @@ class menu(Request.Request, akte_share):
                          right=strassenkatalog,
                          ),
                   protokoll,
-                  ),
+                  )
+
+        res = h.Page(
+            title='Administratorhauptmenü',
+            help="das-hauptmen",
+            breadcrumbs = ((),),
+            rows=rows,
             )
         return res.display()
 

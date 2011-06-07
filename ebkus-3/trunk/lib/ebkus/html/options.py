@@ -52,6 +52,11 @@ class options(object):
                      <option value="bkontbsabfr">- Beratungskontaktzeiten
                      <option value="fuabsabfr">- Fallunabhängige Aktivitäten
                      """
+        if config.KEINE_BUNDESSTATISTIK:
+            stat = '   <option value="nothing">[ Fach- und Regionalstatistik ]'
+        else:
+            stat = '   <option value="nothing">[ Fach- und Bundesstatistik ]'
+
         options = ("""
                       <option value="nothing">[ Beratungen ]
                       <option value="abfr1?w=alle">- alle Beratungen
@@ -70,7 +75,9 @@ class options(object):
                       <option value="adressen?wel=fall">- Fälle
                       <option value="adressen?wel=gruppe">- Gruppen
                       <option value="nothing">
-                      <option value="nothing">[ Fach- und Bundesstatistik ]
+                      """
+                      + stat +
+                      """
                       <option value="statabfr">- Statistik
                       """
                       + bs
