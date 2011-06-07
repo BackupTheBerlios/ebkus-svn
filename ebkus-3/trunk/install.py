@@ -146,13 +146,14 @@ if __name__ == '__main__':
     if win32 and not no_apache:
         installer.openssl.install()
         installer.apache.install()
-        if not no_srvstart:
-            installer.srvstart.install()
+    if not no_srvstart:
+        installer.srvstart.install()
 
     installer.ebkus.install()
     installer.ebkus.configure()
     installer.reportlab.install()
-    installer.pygdchart.install()
+    # Wird nicht mehr unterstützt
+    #installer.pygdchart.install()
 
     if win32 and not no_apache:
         installer.apache.configure()
