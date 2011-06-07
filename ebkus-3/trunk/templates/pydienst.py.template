@@ -3,6 +3,8 @@
 
 # Diese Datei wird generiert.
 
+import sys
+
 def start():
     import os
     os.chdir("%(INSTANCE_HOME)s")
