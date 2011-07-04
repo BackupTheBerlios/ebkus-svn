@@ -12,7 +12,7 @@ Neustart zur Verfügung.
 Anpassungen an neue Software
 ----------------------------
 
-[Rev 282,283,285 ...] EBKuS funktioniert jetzt auch mir neuen
+[Rev 282,283,285-295] EBKuS funktioniert jetzt auch mir neuen
 Versionen von Python, MySQL und Apache, unter Windows und
 GNU/Linux Betriebsystemen, sowohl in der 32 als auch in der 64bit
 Variante. Bei der automatischen Installation werden 64bit
@@ -54,7 +54,7 @@ Systemadministration
 --------------------
 
 [Rev 275,276] Es wurde das ``ebkusrestore`` Skript hinzugefuegt
-inverse Ergänzung von ``ebkusdump``.
+inverse Ergänzung von ``ebkusdump`` (Nur für GNU/Linux).
 
 
 Fehlerbehebung
