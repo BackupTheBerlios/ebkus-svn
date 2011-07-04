@@ -1,10 +1,11 @@
-Update von EBKuS 4.3 nach 4.3.1
+Update von EBKuS 4.4 nach 4.4.1
 ===============================
 
 
-Update einer vorhandenen Version 4.3 nach 4.3.1:
+Update einer vorhandenen Version 4.4 (möglich ist auch eine
+vorhandene Version 4.2 oder 4.3 oder 4.3.1) nach 4.4.1:
 
-0. Stellen Sie sicher, dass die Version 4.3 installiert
+0. Stellen Sie sicher, dass eine Version 4.2 oder höher installiert
    ist. Die Version erscheint in der Mitte der Statuszeile, die auf
    fast allen Masken der Anwendung ausgegeben wird.
 
@@ -58,7 +59,7 @@ Log-Meldungen direkt auf der Konsole.
 Kompatibilität der Datenbankdumps
 ---------------------------------
 
-Da das Datenbankschema in EBKuS 4.3.1 sich gegenüber 4.3 nicht
+Da das Datenbankschema in EBKuS 4.4.1 sich gegenüber 4.4 nicht
 verändert hat, sind die Datenbanksicherungen kompatibel. 
 
 Bei Problemen, Fragen, Anregungen wenden Sie sich bitte an
