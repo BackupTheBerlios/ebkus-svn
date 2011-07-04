@@ -17,8 +17,10 @@ ACHTUNG
 DAS HANDBUCH IST NOCH NICHT FÜR DIE STARK VERÄNDERTE VERSION 4
 AKTUALISIERT! 
 
-DIE INSTALLATIONSANLEITUNG IM HANDBUCH IST JEDOCH NACH WIE VOR
-GÜLTIG. 
+Die Dokumentation wird nach und nach in den
+EBKuS-Dokumentations-Wiki überführt:
+
+- http://ebkus.org/wiki
 
 
 Hinweis für Windows-Benutzer
@@ -29,34 +31,40 @@ der Textdateien (insbesondere der Konfigurationsdatei)
 verwenden. Der Windows-Standardeditor ``notepad`` versteht die
 Zeilenstruktur nicht. 
 
-EBKuS läuft nur auf Windows NT/2000/XP (und höher vermutlich,
-habe ich selber nicht getestet), nicht Windows 95/98/ME.
-Auf Windows NT ist das Service-Pack 6 erforderlich.
+EBKuS läuft nur auf Windows ab NT/2000/XP und höher, nicht auf
+Windows 95/98/ME.  Auf Windows NT ist das Service-Pack 6
+erforderlich.
 
 Dokumentation
 -------------
 
-Handbuch:
+Die Dokumentation wird nach und nach in den
+EBKuS-Dokumentations-Wiki überführt:
 
-lokal: 
+- http://ebkus.org/wiki
 
-VERALTET!
-
-- doc/EBKuS_Handbuch.html
-- doc/EBKuS_Handbuch.pdf
-
-WWW:   
-
-VERALTET!
+Das Handbuch ist vielfach hilfreich aber zum Teil veraltet.
 
 - http://ebkus.org/doc/EBKuS_Handbuch.html
 - http://ebkus.org/doc/EBKuS_Handbuch.pdf
 
+Im Zweifelsfall kann man hier die jeweiligen Änderungen von
+Version zu Version nachlesen: 
+
+- http://ebkus.org/VERSIONS_GESCHICHTE.html
+
+Auch als lokale Dateien verfügbar:
+
+- NEU_IN_DIESER_VERSION.txt, VERSIONS_GESCHICHTE.txt 
+
+
 Installation
 ------------
 
-Zur Installation siehe die Datei doc/installation.txt bzw. das
-Kapitel Installation im Handbuch (nicht veraltet!).
+http://ebkus.org/wiki/Windows_Installation
+
+http://ebkus.org/wiki/Linux_Installation
+
 
 
 

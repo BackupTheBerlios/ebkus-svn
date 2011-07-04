@@ -21,6 +21,14 @@ uninstall.py  --all <Installationsverzeichnis>
 Evt. muesse verbliebene Dateien und Verzeichnisse manuell geloescht
 werden.
 
+uninstall.py  --all -f  <Installationsverzeichnis> 
+uninstall.py  --all --force  <Installationsverzeichnis> 
+
+  Deinstalliert die gesamte EBKuS-Installation, 
+  auch wenn noch Klientendokumente vorhanden sind.
+
+Sicherheitskopien aller Instanzen werden im Installationsverzeichnis abgelegt.
+
 Beispiele:
 
 python uninstall.py .. ebkus
@@ -53,20 +61,22 @@ if __name__ == '__main__':
     sys.path.insert(0, join(dir, 'lib'))
     try:
         optlist, args = getopt.getopt(sys.argv[1:],
-                                      'h',
-                                      ['help', 'all', 
+                                      'hf',
+                                      ['help', 'all', 'force', 
                                        ])
     except getopt.GetoptError, m:
         print str(m)
         print '------------'
         usage()
 
-    all = False
+    all = force = False
     for option, value in optlist:
         if option in ('--help', '-h'):
             usage()
         if option in ('--all',):
             all = True
+        if option in ('--force', '-f'):
+            force = True
 
     if len(args) < 1:
         print "zuwenig Argumente"
@@ -92,13 +102,12 @@ if __name__ == '__main__':
         installer = InstallFromHome(EBKUS_HOME)
     installer.init()
     if all:
-        uninstall = installer.config.get_instances() + \
-                    ['apache', 'mysql', 'openssl', 'srvstart', 'ebkus']
+        uninstall = ['ebkus', 'apache', 'mysql', 'openssl', 'srvstart',]
     for u in uninstall:
         component = installer[u]
         if component:
             installer.apache.stop_service()
-            component.uninstall()
+            component.uninstall(force)
         else:
             print "%s ist weder eine bekannte Komponente noch eine konfigurierte EBKuS-Instanz" % u
     sys.exit(0)

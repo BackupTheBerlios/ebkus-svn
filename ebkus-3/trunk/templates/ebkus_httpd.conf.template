@@ -46,7 +46,13 @@
 # Ab hier das eigentliche Template
 #########################################
 
-<VirtualHost %(SERVER_NAME)s:443>
+# Damit diese Meldung nicht mehr kommt:
+# "Could not reliably determine the server's 
+# fully qualified domain name, using 127.0.1.1 for ServerName"
+# (Schadet nicht, da die eigentliche Arbeit über den VirtualHost laeuft.)
+ServerName 127.0.0.1
+
+<VirtualHost %(SERVER_NAME)s:%(SERVER_HTTPS_PORT)s>
 
 # Mit 'On' gibt es manchmal Probleme (Seite wird nicht als HTML dargestellt)
 # Mit 'Off' nicht, und es ist schnell genug.

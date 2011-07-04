@@ -30,12 +30,8 @@ class KonfigVar(object):
         else:
             self.fachlich = False
             self.valid_pattern = ''
-            self.beschreibung = "Das ist die erste Zeile mit der Kurzbeschreibung"
-            self.doku = ("Und jetzt kommt die <strong>Langbeschreibung</strong>. Die" +
-                             "kann sich ewig hinziehen, auch mit einer Liste:<ul>" +
-                             "<li>erster Punkt</li>" +
-                             "<li>zweiter Punkt</li></ul>" +
-                             "Und danach gehts weiter.")
+            self.beschreibung = ''
+            self.doku = ''
         self.value = value
     def print_value(self, key):
         v = getattr(self, key)
@@ -55,7 +51,7 @@ class KonfigVar(object):
 
 _params = (
     ('ebkus', 'INSTALL_DIR', 'install_dir', 'p', None),
-    ('ebkus', 'DOWNLOAD_DIR', 'download_dir', 'p', 'i:%(install_dir)s'),
+    ('ebkus', 'DOWNLOAD_DIR', 'download_dir', 'p', 'i:%(install_dir)s/download'),
 ##     ('ebkus', 'SW_LINUX_DIR', 'sw_linux_dir', 'p', 'i:%(install_dir)s/../linux'),
 ##     ('ebkus', 'SW_WIN32_DIR', 'sw_win32_dir', 'p', 'i:%(install_dir)s/../win32'),
     ('ebkus', 'EBKUS_HOME', 'ebkus_home', 'p', 'i:%(install_dir)s/ebkus'),
@@ -74,6 +70,8 @@ _params = (
     ('apache', 'APACHE_LOG_DIR', 'apache_log_dir', 'p', 'i:%(ebkus_home)s/log'),
     ('apache', 'SERVER_ADMIN', 'server_admin', 's', 's:admin@localhost'),
     ('apache', 'SERVER_NAME', 'server_name', 's', 's:localhost'),
+    ('apache', 'SERVER_HTTPS_PORT', 'server_https_port', 'i', 's:443'),
+    ('apache', 'SERVER_HTTP_PORT', 'server_http_port', 'i', 's:80'),
     ('openssl', 'STAAT', 'staat', 's', 's:DE'),
     ('openssl', 'LAND', 'land', 's', 's:Berlin'),
     ('openssl', 'ORT', 'ort', 's', 's:Berlin'),
@@ -359,6 +357,11 @@ Bitte nur kleine Buchstaben (keine Umlaute) und Unterstrich verwenden.""" % (val
             dok = param_doks.get(name)
             p = KonfigVar(p, dok, getattr(self, NAME))
             yield p
+
+    def prtable(self):
+        sections = self._conf.sections()
+        for s in sections:
+            pass
 
 if __name__ == '__main__':
     #init('demo', '/home/atms/dev/ebkus/ebkus-2/ebkus.conf')

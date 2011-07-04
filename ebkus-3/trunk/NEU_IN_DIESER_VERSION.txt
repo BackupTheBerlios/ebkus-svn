@@ -1,4 +1,4 @@
-EBKuS 4.4.1 (10. juni 2011)
+EBKuS 4.4.1 (04. Juli 2011)
 ===========================
 
 Update von 4.4 auf 4.4.1
@@ -12,12 +12,32 @@ Neustart zur Verfügung.
 Anpassungen an neue Software
 ----------------------------
 
-[Rev 282,283,285] EBKuS funktioniert jetzt auch mir neuen
+[Rev 282,283,285 ...] EBKuS funktioniert jetzt auch mir neuen
 Versionen von Python, MySQL und Apache, unter Windows und
 GNU/Linux Betriebsystemen, sowohl in der 32 als auch in der 64bit
-Variante. Alternativ zum "srvstart.exe" kann der EBKuS-Server
-jetzt auch mit den "Python for Windows extensions" als
-Windowsdienst betrieben werden.
+Variante. Bei der automatischen Installation werden 64bit
+allerdings nicht unterstützt, da die 32bit Variante genauso gut
+funktioniert. Der EBKuS-Server wird jetzt mit den "Python for
+Windows extensions" als Windowsdienst betrieben und benötigt
+nicht mehr "srvstart.exe".
+
+Die Dokumentation für die automatische Installation unter Windows
+mit der neuen Software findet sich hier:
+http://ebkus.org/wiki/Windows_Installation 
+
+Eine auf den neuesten Stand gebrachte Anleitung für GNU/Linux
+findet sich hier:
+http://ebkus.org/wiki/Linux_Installation 
+
+Dokumentation
+-------------
+
+Die EBKuS-Dokumentation soll nach und nach in ein Wiki überführt
+werden: http://ebkus.org/wiki/
+Bisher finden sich dort folgende Beiträge:
+- http://ebkus.org/wiki/Windows_Installation
+- http://ebkus.org/wiki/Linux_Installation
+- http://ebkus.org/wiki/Konfiguration
 
 
 EBKuS ohne Bundesstatistik

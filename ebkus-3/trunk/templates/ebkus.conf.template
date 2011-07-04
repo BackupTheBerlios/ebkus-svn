@@ -56,6 +56,8 @@ mysql_dir: %(MYSQL_DIR)s
 # Name oder IP-Nummer
 server_name: %(SERVER_NAME)s
 server_admin: %(SERVER_ADMIN)s
+#server_https_port: 443
+#server_http_port: 80
 #apache_log_dir: %%(ebkus_home)s/log
 #ssl_certificate_file: %%(ebkus_home)s/ebkus_ssl_certificates/ebkusserver.cert
 #ssl_certificate_key_file: %%(ebkus_home)s/ebkus_ssl_certificates/ebkusserver.key

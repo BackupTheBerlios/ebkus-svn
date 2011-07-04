@@ -45,3 +45,19 @@ apache_linux = ftp_bke_linux + 'apache_1.3.31.tar.gz'
 srvstart_win32 = ftp_bke_win32 + 'srvstart_run.v110.zip'
 
 reportlab = ftp_bke_linux + 'ReportLab_1_19.zip'
+
+# Neue Windows downloads im neuen Verzeichnis
+# Thu Jun  9 19:09:12 2011
+
+ftp_bke_win32_new = "ftp://ftp.efb-berlin.de/pub/ebkus/win32/"
+
+# Diese drei werden nicht automatisch installiert
+python27_win32 = ftp_bke_win32_new + 'python-2.7.1.msi'
+pywin32 = ftp_bke_win32_new + 'pywin32-216.win32-py2.7.exe'
+
+# Original-Quelle ist http://www.codegood.com/10
+mysql_python27_win32 = ftp_bke_win32_new + 'MySQL-python-1.2.3.win32-py2.7.exe'
+
+
+mysql51_win32 = ftp_bke_win32_new + 'mysql-essential-5.1.57-win32.msi'
+apache22_win32 = ftp_bke_win32_new + 'httpd-2.2.19-win32-x86-openssl-0.9.8r.msi'

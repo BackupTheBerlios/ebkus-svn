@@ -45,25 +45,29 @@ if __name__ == '__main__':
     try:
         optlist, args = getopt.getopt(sys.argv[1:],
                                       'h',
-                                      ['help', 'sql', 'zip'])
+                                      ['help', 'sql', 'zip', 'csv'])
     except getopt.GetoptError, m:
         print str(m)
         print '---------'
         usage()
 
-    sql = zip = None 
+    sql = zip = csv = None 
     for option, value in optlist:
         if option in ('--help', '-h'):
             usage()
         if option in ('--zip', ):
             zip = True
-            sql = False
+            sql = csv = False
         if option in ('--sql',):
             sql = True
-            zip = False
+            zip = csv = False
+        if option in ('--csv',):
+            csv = True
+            zip = sql = False
 
-    if not (sql or zip):
+    if not (sql or zip or csv):
         usage()
+
     if args:
         sql_dir = args[0]
         assert isdir(sql_dir), "%%s ist kein Verzeichnis" %% sql_dir
@@ -79,6 +83,8 @@ if __name__ == '__main__':
         res = instance.dump_database(sql_dir)
     if zip:
         res = instance.backup_instance(sql_dir)
+    if csv:
+        res = instance.dump_database_as_csv(sql_dir)
     if res:
         sys.exit(0)
     else:

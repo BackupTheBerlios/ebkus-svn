@@ -12,7 +12,12 @@ import re
 
 # Abkuerzung
 win32 = sys.platform == 'win32'
+win32new = win32 and sys.version_info >= (2,7)
 debian = (not win32 and len(os.popen('ls /usr/bin/ap* | grep apt').read().split()) > 6)
+py23 = sys.version_info < (2,4)
+
+MYSQL_DIR_NAME = 'mysql5.1'
+APACHE_DIR_NAME = 'apache2.2'
 
 def readable(path):
     return os.access(path, os.R_OK)
@@ -23,74 +28,6 @@ def assert_readable(path):
 
 class InstallException(Exception):
     pass
-
-def create_cd(dist_dir, cd_dir, version, for_linux, for_win32):
-    global win32
-    saved_win32 = win32
-    # Windows Sachen runterladen
-    if for_win32:
-        win32 = True
-        download_dir = join(cd_dir, 'win32')
-        install_dir = join(cd_dir, 'ebkus_win32')
-        create_directory(install_dir)
-        create_directory(download_dir)
-        installer = InstallFromDist(dist_dir, install_dir, download_dir)
-        installer.init()
-        installer.close_log()
-        installer.python._download()
-        installer.mysql_python._download()
-        installer.mysql._download()
-        installer.apache._download()
-        installer.openssl._download()
-        installer.pygdchart._download()
-        installer.reportlab._download()
-        installer.srvstart._download()
-        myrmtree(install_dir, logf=installer.log)
-    
-    # Linux Sachen runterladen
-    if for_linux:
-        win32 = False
-        download_dir = join(cd_dir, 'linux')
-        install_dir = join(cd_dir, 'ebkus_linux')
-        create_directory(install_dir)
-        create_directory(download_dir)
-        installer = InstallFromDist(dist_dir, install_dir, download_dir)
-        installer.init()
-        installer.close_log()
-        installer.python._download()
-        installer.mysql_python._download()
-        installer.mysql._download()
-        installer.apache._download()
-        installer.modssl._download()
-        installer.openssl._download()
-        installer.pygdchart._download()
-        installer.reportlab._download()
-        myrmtree(install_dir, logf=installer.log)
-
-    # EBKuS Dateien kopieren
-    ebkus_dir = join(cd_dir, 'ebkus-%s' % version)
-    create_directory(ebkus_dir)
-    for f in os.listdir(dist_dir):
-        src = join(dist_dir, f)
-        mycopytree(src, ebkus_dir, exclude_dirs=['CVS', '.svn'],
-                   overwrite=True, logf=installer.log)
-    os.chmod(join(ebkus_dir, 'install.py'), 0700)
-    os.chmod(join(ebkus_dir, 'create_cd.py'), 0700)
-
-    # Doku bauen
-    try:
-        cwd = os.getcwd()
-        os.chdir(join(ebkus_dir, 'doc'))
-        res = os.system('./make.py')
-        if res == 0:
-            aux = ['manual.aux', 'manual.out', 'manual.log']
-            for f in aux:
-                try: os.remove(f)
-                except: pass
-            installer.log('Dokumentation erfolgreich erzeugt')
-    finally:
-        os.chdir(cwd)
-    win32 = saved_win32
 
 class Installer(object):
     # hier tragen sich die Komponenten mit Namen und Objekt ein
@@ -179,10 +116,6 @@ class Installer(object):
         ebkus.config.init(instance, conf_files)
         return ebkus.config.config
 
-
-# http://prdownloads.sourceforge.net/mysql-python/MySQL-python.exe-0.9.2.win32-py2.3.exe
-# http://prdownloads.sourceforge.net/mysql-python/MySQL-python-0.9.2.tar.gz
-
     def init_components(self):
         # Klassenvariablen werden von allen Instanzen von Component geerbt.
         Component.config = self.config
@@ -203,7 +136,10 @@ class Installer(object):
         #              Verzeichnis fuer die Komponente angelegt wird.
 
         python = Component('python')
-        if win32:
+        if win32new:
+            python.url = spl(d.python27_win32)[0]
+            python.archive = spl(d.python27_win32)[1]
+        elif win32:
             python.url = spl(d.python_win32)[0]
             python.archive = spl(d.python_win32)[1]
         else:
@@ -211,9 +147,18 @@ class Installer(object):
             python.archive = spl(d.python_linux)[1]
         self.python = python
 
+        pywin32 = Component('pywin32')
+        if win32new:
+            pywin32.url = spl(d.pywin32)[0]
+            python.archive = spl(d.pywin32)[1]
+            self.pywin32 = pywin32
+        self.pywin32 = pywin32
+
         mysql_python = ComponentMySQLPython('mysql_python')
-        mysql_python.url = spl(d.mysql_python_win32)[0]
-        if win32:
+        if win32new:
+            mysql_python.url = spl(d.mysql_python27_win32)[0]
+            mysql_python.archive = spl(d.mysql_python27_win32)[1]
+        elif win32:
             mysql_python.url = spl(d.mysql_python_win32)[0]
             mysql_python.archive = spl(d.mysql_python_win32)[1]
             mysql_python.archive_dir = 'mysql-python-1.0.0.win32-py2.3'
@@ -224,8 +169,18 @@ class Installer(object):
         self.mysql_python = mysql_python
 
         mysql = ComponentMySQL('mysql')
-        mysql.url =  spl(d.mysql_win32)[0]
-        if win32:
+        if win32new:
+            mysql = ComponentMySQL27('mysql')
+            mysql.url =  spl(d.mysql51_win32)[0]
+            mysql.archive = spl(d.mysql51_win32)[1]
+            mysql.archive_dir = 'MySQL\MySQL Server 5.1'
+            mysql.target_dir = MYSQL_DIR_NAME
+            mysql.service_install_cmd = r"%s\bin\mysqld --install" % mysql.install_path
+            mysql.service_install_success_string = 'successfully installed'
+            mysql.service_uninstall_cmd = r"%s\bin\mysqld --remove" % mysql.install_path
+            mysql.service_uninstall_success_string = 'successfully removed'
+            mysql.service_name = 'MySQL'
+        elif win32:
             mysql.url =  spl(d.mysql_win32)[0]
             mysql.archive = spl(d.mysql_win32)[1]
             mysql.archive_dir = 'mysql-4.0.18'
@@ -248,18 +203,22 @@ class Installer(object):
         self.reportlab = reportlab
 
         pygdchart = ComponentPygdchart('pygdchart')
-        if win32:
-            pygdchart.url = spl(d.pygdchart_win32)[0]
-            pygdchart.archive = spl(d.pygdchart_win32)[1]
-        else:
-            pygdchart.url = spl(d.pygdchart_linux)[0]
-            pygdchart.archive = spl(d.pygdchart_linux)[1]
-        pygdchart.archive_dir = ''
-        pygdchart.target_dir = ''
+        if py23:
+            if win32:
+                pygdchart.url = spl(d.pygdchart_win32)[0]
+                pygdchart.archive = spl(d.pygdchart_win32)[1]
+            else:
+                pygdchart.url = spl(d.pygdchart_linux)[0]
+                pygdchart.archive = spl(d.pygdchart_linux)[1]
+            pygdchart.archive_dir = ''
+            pygdchart.target_dir = ''
         self.pygdchart = pygdchart
 
         openssl = ComponentOpenssl('openssl')
-        if win32:
+        if win32new:
+            # im Apache2.2 drin
+            pass
+        elif win32:
             openssl.url = spl(d.openssl_win32)[0]
             openssl.archive = spl(d.openssl_win32)[1]
             openssl.archive_dir = ''
@@ -276,7 +235,18 @@ class Installer(object):
         self.modssl = modssl
 
         apache = ComponentApache('apache')
-        if win32:
+        if win32new:
+            apache = ComponentApache22('apache')
+            apache.url = spl(d.apache22_win32)[0]
+            apache.archive = spl(d.apache22_win32)[1]
+            apache.archive_dir = 'program files\Apache Software Foundation\Apache2.2'
+            apache.target_dir = APACHE_DIR_NAME
+            apache.service_install_cmd = r"%s\bin\httpd -n Apache -k install" %  apache.install_path
+            apache.service_install_success_string = 'successfully'
+            apache.service_uninstall_cmd = r"%s\bin\httpd -n Apache -k uninstall" % apache.install_path
+            apache.service_uninstall_success_string = 'successfully'
+            apache.service_name = 'Apache'
+        elif win32:
             apache.url = spl(d.apache_win32)[0]
             apache.archive = spl(d.apache_win32)[1]
             apache.archive_dir = ''
@@ -292,7 +262,7 @@ class Installer(object):
         self.apache = apache
 
         srvstart = ComponentSrvstart('srvstart')
-        if win32:
+        if win32 and not win32new:
             srvstart.url = spl(d.srvstart_win32)[0]
             srvstart.archive = spl(d.srvstart_win32)[1]
             srvstart.archive_dir = ''
@@ -304,10 +274,11 @@ class Installer(object):
         ebkus.archive = ''
         ebkus.archive_dir = ''
         ebkus.target_dir = 'ebkus'
-        ebkus.files = [
-            'CHANGES.txt',
+        ebkus._files = [
+            'NEU_IN_DIESER*',
+            'VERSIONS*',
             'LICENSE.txt',
-            'README.txt',
+            'README*',
             'TODO.txt',
             'ebkus.conf',
             'configure.py',
@@ -323,23 +294,27 @@ class Installer(object):
         
 
 class InstallFromDist(Installer):
-    def __init__(self, dist_dir, install_dir, download_dir, uninstall_only=False):
+    def __init__(self, dist_dir, install_dir, download_dir, uninstall_only=False, preconfig_dir=None):
         self._dist_dir = dist_dir
         self._install_dir = install_dir
         self._download_dir = download_dir
         self._uninstall_only = uninstall_only
+        self._preconfig_dir = preconfig_dir
         self._init_log(self._install_dir)
         
     def init(self):
         self.assert_true( exists(self._dist_dir), "Kein Distributionsverzeichnis")
         if not self._install_dir:
             raise InstallException("kein Installationsverzeichnis angegeben")
-        if not exists(self._install_dir):
+        if not isdir(self._install_dir):
             raise InstallException("Installationsverzeichnis existiert nicht: %s" % self._install_dir)
         self.log("Installationsverzeichnis: %s" % self._install_dir)
-        if not exists(self._download_dir):
-            raise InstallException("Download-Verzeichnis existiert nicht: %s" % self._download_dir)
-        self.log("Downloadverzeichnis: %s" % self._download_dir)
+        # if not exists(self._download_dir):
+        #     raise InstallException("Download-Verzeichnis existiert nicht: %s" % self._download_dir)
+        if self._preconfig_dir and not exists(self._preconfig_dir):
+            raise InstallException("Preconfig-Verzeichnis existiert nicht: %s" % self._preconfig_dir)
+        if self._preconfig_dir:
+            self.log("Preconfig-Verzeichnis: %s" % self._preconfig_dir)
         ebkus_home = join(self._install_dir, 'ebkus')
         if self._uninstall_only:
             # Fuers deinstallieren wird auch eine ebkus.conf aus ebkus_home genommen
@@ -350,12 +325,19 @@ class InstallFromDist(Installer):
             dirs = [ebkus_home]
         if not self.find_ebkus_conf(dirs):
             self.generate_default_ebkus_conf()
+            # Kommt nur zum tragen, wenn es vorher kein ebkus.conf gab, also
+            # bei einer Neuinstallation.
+            if self._preconfig_dir:
+                self.preconfig()
         self.config = self.init_config()
         self.config.EBKUS_DIST = self._dist_dir
-        if not equalpath(self.config.DOWNLOAD_DIR, self._download_dir) \
-           and not self._uninstall_only: # beim deinstallieren spielt
-                                         # Downloadverzeichnis keine Rolle
-            raise InstallException("Angegebenes Downloadverzeichnis nicht identisch mit dem in ebkus.conf")
+        if not self._uninstall_only: 
+            # beim deinstallieren spielt Downloadverzeichnis keine Rolle
+            if self._download_dir and not equalpath(self.config.DOWNLOAD_DIR, self._download_dir):
+                raise InstallException("Angegebenes Downloadverzeichnis nicht identisch mit dem in ebkus.conf")
+            if not isdir(self.config.DOWNLOAD_DIR):
+                raise InstallException("Download-Verzeichnis existiert nicht: %s" % self.config.DOWNLOAD_DIR)
+            self.log("Downloadverzeichnis: %s" % self.config.DOWNLOAD_DIR)
         if not equalpath(self.config.INSTALL_DIR, self._install_dir):
             raise InstallException("Angegebenes Installationsverzeichnis nicht identisch mit dem in ebkus.conf")
             
@@ -364,13 +346,20 @@ class InstallFromDist(Installer):
 
     def generate_default_ebkus_conf(self):
         """generiert eine default ebkus.conf in EBKUS_HOME"""
-        ebkus_home = join(self._install_dir, 'ebkus')
+        self._ebkus_home = ebkus_home = join(self._install_dir, 'ebkus')
         create_directory(ebkus_home)
+        if not self._download_dir:
+            self._download_dir = join(self._install_dir, 'download')
+            create_directory(self._download_dir)
         #ebkus_conf = join(self._dist_dir, 'ebkus.conf')
         ebkus_conf = join(ebkus_home, 'ebkus.conf')
         template = join(self._dist_dir, 'templates', 'ebkus.conf.template')
         # python auf windows immer mit '-u' aufrufen, sonst geht gar nichts ...
-        if win32:
+        if win32new:
+            minus_u = ' -u'
+            OPENSSL_EXECUTABLE = join(self._install_dir, APACHE_DIR_NAME, 'bin', 'openssl.exe')
+            MYSQL_DIR = join(self._install_dir, MYSQL_DIR_NAME, 'bin')
+        elif win32:
             minus_u = ' -u'
             OPENSSL_EXECUTABLE = join(self._install_dir, 'openssl', 'openssl.exe')
             MYSQL_DIR = join(self._install_dir, 'mysql', 'bin')
@@ -395,6 +384,17 @@ class InstallFromDist(Installer):
         self._ebkus_conf = ebkus_conf
         self.log("Konfigurationsdatei mit default-Werten erzeugt: %s" % ebkus_conf)
 
+    def preconfig(self):
+        ebkus_conf = join(self._preconfig_dir, 'ebkus.conf')
+        if not isfile(ebkus_conf):
+            raise InstallException("Keine 'ebkus.conf' im Preconfig-Verzeichnis %s" % self._preconfig_dir)
+        # Alle Dateien nach EBKUS_HOME kopieren.
+        # Es wird nicht überprüft, ob die initialen Dateien passen.
+        # Die Pfade müssen richtig drin stehen.
+        filenames = os.listdir(self._preconfig_dir)
+        for fn in filenames:
+            f = join(self._preconfig_dir, fn)
+            mycopytree(f, self._ebkus_home, logf=self.log)
 
 class InstallFromHome(Installer):
     def __init__(self, ebkus_home):
@@ -452,11 +452,14 @@ class Component(object):
     install_path = property(get_install_path, None, None)
 
 
-    def install(self):
+    def install(self, update=False):
+        # wenn update True ist, ebkus-Dateien auf jeden Fall kopieren
+        # Damit kann ein update erzwungen werden. Aber nur von ebkus und reportlab,
+        # nicht den anderen Komponenten.
         if not self.installable():
             return
         self.log("%s installieren" % self.name, push=True)
-        if self.is_installed():
+        if self.is_installed(update):
             self.log('%s ist bereits installiert' % self.name, pop=True)
             return
         self._install()
@@ -474,14 +477,38 @@ class Component(object):
     def _configure(self):
         self.log("nichts zu konfigurieren")
         
-    def uninstall(self):
+    def _install_msi(self):
+        """msiexec schreibt alles unter TARGETDIR\<archive_dir>, 
+        z.B. c:\ebkus_installation\apache2.2tmp\program files\Apache Software Foundation\Apache2.2
+        Nach rename stehen alle Dateien im Installationsverzeichnis
+        unter install_path:
+        zB c:\ebkus_installation\apache2.2
+        """
+        self._download()
+        archive_path = self.archive_path
+        tempdir = self.install_path + 'tmp'
+        self.log("%s Dateien extrahieren nach %s" % (self.name, tempdir))
+        self.popen("msiexec /a %s /qn TARGETDIR=%s" % (archive_path, tempdir))
+        self.unpack_path = join(tempdir, self.archive_dir)
+        self.log("Umbenennen: %s --> %s" % (tempdir, self.install_path))
+        rename(self.unpack_path, self.install_path)
+        # Nach dem rename ist dieses tmp-Verzeichnis fast leer, kann jetzt weg:
+        myrmtree(tempdir, logf=self.log)
+        # Ich dachte, das Umbenennen geht nicht, geht aber doch irgendwie
+        # if exists(self.unpack_path):
+        #     self.log('bereits entpackt: %s' % archive_path)
+        # else:
+        #     # danach gibt es Verz. 'MySQL Server 5.1' in dem Installationsverzeichnis
+        #     mycopytree(self.unpack_path, self.config.INSTALL_DIR, logf=self.log)
+
+    def uninstall(self, force=False):
         if not self.installable():
             return
         self.log("%s deinstallieren" % self.name, push=True)
         if not self.is_installed():
             self.log("%s war nicht installiert" % self.name, pop=True)
             return
-        if not self.safe_to_remove():
+        if not self.safe_to_remove(force):
             self.log("nicht deinstalliert", pop=True)
             return
         self._uninstall()
@@ -524,7 +551,7 @@ class Component(object):
             self.log('erfolgreich heruntergeladen', pop=True)
         self.archive_path = target
         
-    def is_installed(self):
+    def is_installed(self, update=False):
         try:
             return exists(self.install_path)
         except:
@@ -539,7 +566,7 @@ class Component(object):
         return False
 
     # wird ueberschrieben in Unterklassen
-    def safe_to_remove(self):
+    def safe_to_remove(self, force=False):
         """darf die Komponente ueber dieses Skript
         deinstalliert werden?
         """
@@ -674,13 +701,15 @@ class ComponentReportlab(Component):
         self._unpack()
         self._copy_to_python(join(self.unpack_path, 'reportlab'))
 
-    def is_installed(self):
+    def is_installed(self, update=False):
+        if update:
+            return False
         return exists(join(self.config.EBKUS_PYTHON_PATH, 'reportlab'))
 
 class ComponentPygdchart(Component):
     dll_name = win32 and 'gdchart.pyd' or 'gdchart.so'
     def installable(self):
-        return True
+        return py23
     def _get_install_path(self):
         return join(self.config.EBKUS_PYTHON_PATH, self.dll_name)
     def _install(self):
@@ -693,8 +722,8 @@ class ComponentPygdchart(Component):
 
 class ComponentMySQLPython(Component):
     def installable(self):
-        """nur unter win32 installierbar"""
-        return win32
+        """nur unter win32 und altem Python installierbar"""
+        return win32 and py23
     def _get_install_path(self):
         return join(self.config.EBKUS_PYTHON_PATH, 'MySQLdb')
     def _install(self):
@@ -720,8 +749,6 @@ class ComponentMySQLPython(Component):
                 remove(ip)
 
 class ComponentMySQL(Component):
-
-
     def setup(self):
         if self.is_ready_for_admin_connect():
             self.log("mysql ist betriebsbereit")
@@ -761,7 +788,7 @@ class ComponentMySQL(Component):
         rename(self.unpack_path, self.install_path)
 
 
-    def safe_to_remove(self):
+    def safe_to_remove(self, force=False):
         """darf die Komponente ueber dieses Skript
         deinstalliert werden?
         """
@@ -811,9 +838,25 @@ class ComponentMySQL(Component):
                        self._get_database_admin_passwort())
         cursor.execute("FLUSH PRIVILEGES")
         
+class ComponentMySQL27(ComponentMySQL):
+    def _install(self):
+        self._install_msi()
+    def _configure(self):
+        mysql_conf_path = join(self.install_path, 'my.ini')
+        self.log("mysql Konfiguration erzeugen: %s" % mysql_conf_path)
+        create_file(join(self.config.EBKUS_DIST, 'templates', 'my51.ini.template'),
+                   mysql_conf_path,
+                   params = {'MYSQL_DIR': self.install_path,
+                             'MYSQL_DATA_DIR': join(self.install_path, 'data')})
+        # remove my.cnf
+        mysql_cnf = join(os.getenv('SystemRoot'), 'my.cnf')
+        if exists(mysql_cnf):
+            remove(mysql_cnf)
+    
+
 class ComponentOpenssl(Component):
     def installable(self):
-        return win32
+        return win32 and py23
     def _install(self):
         """
         - falls apache dir in install_dir existiert nichts machen
@@ -824,6 +867,7 @@ class ComponentOpenssl(Component):
         self._unpack()
 
 class ComponentApache(Component):
+    httpd_conf_template = 'httpd.conf.template'
     def installable(self):
         return win32
     def runs_as_service(self):
@@ -831,6 +875,7 @@ class ComponentApache(Component):
 
     def _install(self):
         """
+        Fuer Apache 1.3 ohne ssl
         - falls apache dir in install_dir existiert nichts machen
         - runterladen, falls noch nicht in install_dir
         - dasselbe fuer openssl
@@ -855,19 +900,37 @@ class ComponentApache(Component):
         apache_conf = join(ip, 'conf', 'httpd.conf')
         self.log("apache Konfiguration erzeugen: %s" % apache_conf)
         keep_alive = win32 and 'Off' or 'On'
-        create_file(join(self.config.EBKUS_DIST, 'templates', 'httpd.conf.template'),
+        create_file(join(self.config.EBKUS_DIST, 'templates', self.httpd_conf_template),
                    apache_conf,
                    params = {'KEEP_ALIVE': keep_alive,
                              'SERVER_ROOT': ip,
+                             'SERVER_HTTPS_PORT': self.config.SERVER_HTTPS_PORT,
+                             'SERVER_HTTP_PORT': self.config.SERVER_HTTP_PORT,
                              'EBKUS_HTTPD_CONF': join(self.config.EBKUS_HOME, 'ebkus_httpd.conf')})
-
-    def safe_to_remove(self):
+        self._extra_config()
+    def _extra_config(self):
+        pass
+    def safe_to_remove(self, force=False):
         """nicht entfernen wenn noch Instanzen da sind, so wie für mysql."""
         return self._no_instances_configured()
     
+class ComponentApache22(ComponentApache):
+    httpd_conf_template = 'httpd22.conf.template'
+    def _install(self):
+        self._install_msi()
+    def _extra_config(self):
+        #mime.types kopieren aus conf/original/mime.types
+        #logs Verzeichnis anlegen
+        logs = join(self.install_path, 'logs')
+        if not isdir(logs):
+            os.mkdir(logs, 0755)
+        if not isfile(join(self.install_path, 'conf', 'mime.types')):
+            copy2(join(self.install_path, 'conf', 'original', 'mime.types'),
+                  join(self.install_path, 'conf'))
+
 class ComponentSrvstart(Component):
     def installable(self):
-        return win32
+        return win32 and py23
     def _install(self):
         """
         - falls apache dir in install_dir existiert nichts machen
@@ -901,7 +964,26 @@ class ComponentEbkus(Component):
         for i in self.config.get_instances():
             self._create_instance(i)
 
-    def is_installed(self):
+    def _get_files(self):
+        """Damit kann man '*' in die _files-Liste schreiben,
+        so dass man auch neue README-updates-* findet."""
+        from glob import glob
+        files = []
+        try:
+            dir = self.config.EBKUS_DIST
+        except:
+            # Wir installieren (oder deinstallieren) von ebkus_home
+            dir = self.config.EBKUS_HOME
+        for f in self._files:
+            files += glob(join(dir, f))
+        files = [basename(p) for p in files]
+        return files
+    files = property(_get_files)
+                          
+    def is_installed(self, update=False):
+        if update:
+            # damit wird erneutes kopieren der Dateien ausgelöst
+            return False
         already_installed = True
         for f in self.files:
             target = join(self.config.EBKUS_HOME, f)
@@ -916,21 +998,31 @@ class ComponentEbkus(Component):
 
     def _install(self):
         self.log("Verzeichnis erzeugen: %s" % self.config.EBKUS_HOME)
-        create_directory(self.config.EBKUS_HOME)
+        dst = self.config.EBKUS_HOME
+        create_directory(dst)
         for f in self.files:
+            flag = ''
             src = join(self.config.EBKUS_DIST, f)
-            mycopytree(src, self.config.EBKUS_HOME, exclude_dirs=['CVS', '.svn'],
-                       overwrite=True, logf=self.log)
+            if isdir(src):
+                flag = '\\'
+            self.log("kopieren:  %s%s  -->  %s" % (src, flag, dst))
+            mycopytree(src, dst, exclude_dirs=['CVS', '.svn'],
+                       overwrite=True)
 
-    def uninstall(self):
+    def uninstall(self, force=False):
         # erst alle Instanzen
         for i in self.instances:
-            i.uninstall()
+            i.uninstall(force)
         # dann selbst
         #Component.uninstall(self)
-        super(ComponentEbkus, self).uninstall()
+        if force:
+            # keine weitere Prüfungen, gleich löschen
+            self._uninstall()
+            self.log("%s deinstalliert" % self.name, pop=True)
+        else:
+            super(ComponentEbkus, self).uninstall(force)
 
-    def safe_to_remove(self):
+    def safe_to_remove(self, force=False):
         for i in self.instances:
             if i.is_installed():
                 self.log("Instanz %s muss zuerst deinstalliert werden" % i.name)
@@ -968,7 +1060,16 @@ class ComponentEbkus(Component):
              join(self.config.EBKUS_HOME, 'ebkus_httpd.conf'), 0644),
             (join(TEMPLATES, 'configure.py.template'),
              join(self.config.EBKUS_HOME, 'configure.py'), 0700),
-        )
+            )
+        if debian:
+            files += (
+                (join(TEMPLATES, 'ebkusctl.template'),
+                 join(self.config.EBKUS_HOME, 'ebkusctl'), 0700),
+                (join(TEMPLATES, 'ebkusdump.template'),
+                 join(self.config.EBKUS_HOME, 'ebkusdump'), 0700),
+                (join(TEMPLATES, 'ebkusrestore.template'),
+                 join(self.config.EBKUS_HOME, 'ebkusrestore'), 0700),
+                )
         return dirs, files
 
     def makeCertificates(self):
@@ -1011,18 +1112,30 @@ class ComponentEbkus(Component):
             assert_readable(instance_conf)
             config = self.installer.init_config(instance_name, instance_conf)
         
-        instance = ComponentEbkusInstance(instance_name)
+        if win32new:
+            # pywin32 Dienst 
+            instance = ComponentEbkusInstance27(instance_name)
+        else:
+            # srvstart Dienst bei win32
+            instance = ComponentEbkusInstance(instance_name)
         instance.config = config
         assert instance.name == instance_name
         instance.service_name = "EBKuS-%s" % instance.name
-        srv_conf = normpath("%s\srvstart.conf" % config.INSTANCE_HOME)
-        instance.service_install_cmd = r"%s\srvstart\srvstart.exe install %s -c %s" % \
-                                       (config.INSTALL_DIR, instance.service_name,
-                                        srv_conf)
-        instance.service_install_success_string = 'created non-desktop service'
-        instance.service_uninstall_cmd = r"%s\srvstart\srvstart.exe remove %s" % \
-                                         (config.INSTALL_DIR, instance.service_name)
-        instance.service_uninstall_success_string = 'Deletion of service'
+        if win32new:
+            # pywin32 Dienst 
+            instance.service_install_cmd = "%s\pydienst.py install" % config.INSTANCE_HOME
+            instance.service_install_success_string = 'installed'
+            instance.service_uninstall_cmd = "%s\pydienst.py remove" % config.INSTANCE_HOME
+            instance.service_uninstall_success_string = 'removed'
+        elif win32:
+            srv_conf = normpath("%s\srvstart.conf" % config.INSTANCE_HOME)
+            instance.service_install_cmd = r"%s\srvstart\srvstart.exe install %s -c %s" % \
+                                           (config.INSTALL_DIR, instance.service_name,
+                                            srv_conf)
+            instance.service_install_success_string = 'created non-desktop service'
+            instance.service_uninstall_cmd = r"%s\srvstart\srvstart.exe remove %s" % \
+                                             (config.INSTALL_DIR, instance.service_name)
+            instance.service_uninstall_success_string = 'Deletion of service'
         self.instances.append(instance)
         setattr(self, instance_name, instance)
 
@@ -1033,7 +1146,7 @@ class ComponentEbkusInstance(Component):
     def _get_install_path(self):
         return self.config.INSTANCE_HOME
 
-    def is_installed(self):
+    def is_installed(self, update=False):
         home = self.config.INSTANCE_HOME
         if exists(join(home, 'start.py')) and \
                exists(join(home, 'init.py')):
@@ -1055,6 +1168,10 @@ class ComponentEbkusInstance(Component):
                 self.log("Verzeichnis erzeugen: %s" % path)
                 create_directory(path, mode)
         params = vars(self.config)
+        from datetime import date
+        from ebkus import Version
+        params['YEAR'] = date.today().year
+        params['EBKUS_VERSION'] = Version
         if not win32:
             # wird für das ebkus_server template gebraucht (sudo -u $EBKUS_USER)
             import getpass
@@ -1070,15 +1187,14 @@ class ComponentEbkusInstance(Component):
         if self.check_instance_database():
             self.log("Datenbank betriebsbereit: name=%s" % self.config.DATABASE_NAME)
         else:
-            try:
-                path = self.config.INITIAL_CONTENT
-            except:
-                path = None
+            path = self.config.INITIAL_CONTENT
             if path:
-                self.log("Datenbank initialisieren mit: %s" % path, push=True)
-                ext = path and path.lower()[-3:] or None
+                if not isfile(path):
+                    path = join(self.config.EBKUS_HOME, path)
                 if isfile(path):
+                    ext = path and path.lower()[-3:] or None
                     if ext in ('zip','sql'):
+                        self.log("Datenbank initialisieren mit: %s" % path, push=True)
                         if ext == 'zip':
                             self.restore_instance(path)
                         elif ext == 'sql':
@@ -1089,7 +1205,7 @@ class ComponentEbkusInstance(Component):
                     self.log("Fehler: Datei existiert nicht: %s" % path, pop=True)
             if not self.check_instance_database():
                 self.create_database()
-        if win32:
+        if win32 and py23:
             srv_conf = join(self.config.INSTANCE_HOME, 'srvstart.conf')
             self.log("Datei erzeugen: %s" % srv_conf)
             create_file(
@@ -1170,7 +1286,7 @@ class ComponentEbkusInstance(Component):
         self._remove_instance_from_ebkus_httpd_config()
         # dump nach Installationsverzeichnis, da EBKUS_HOME
         # und INSTANCE_HOME evt. geloescht werden sollen
-        if not self.dump_database(dir=self.config.INSTALL_DIR):
+        if not self.backup_instance(dir=self.config.INSTALL_DIR):
             self.log("Fehler beim Datenbank-Dump")
         # muss hier bereits gedumpt sein!
         self.drop_database()
@@ -1178,7 +1294,9 @@ class ComponentEbkusInstance(Component):
         self._uninstall_logrotate_conf_in_logrotate_d()
         super(ComponentEbkusInstance, self)._uninstall()
         
-    def safe_to_remove(self):
+    def safe_to_remove(self, force=False):
+        if force:
+            return True
         daten_dir = join(self.config.INSTANCE_HOME, 'daten')
         protocol_dir = self.config.PROTOCOL_DIR
         if dir_and_subdirs_contain_files(daten_dir):
@@ -1205,6 +1323,33 @@ class ComponentEbkusInstance(Component):
 ##             traceback.print_exc()
             return False
         return True
+
+    def get_mysql_version(self):
+        from MySQLdb import connect
+        server_version = None
+        try:
+            db = connect(host=self.config.DATABASE_HOST,
+                         user=self.config.DATABASE_USER,
+                         passwd=self.config.DATABASE_PASSWORD,
+                         db=self.config.DATABASE_NAME)
+            server_version = db.get_server_info()
+            return server_version
+        except Exception, e:
+            pass
+        try:
+            db = connect(host=self.config.DATABASE_ADMIN_HOST,
+                         user=self.config.DATABASE_ADMIN_USER,
+                         passwd=self._get_database_admin_passwort()
+                         )
+            server_version = db.get_server_info()
+            return server_version
+        except Exception, e:
+            pass
+        if server_version:
+            # '4.1.17-nt' --> (4,1)
+            return tuple([int(x) for x in db.get_server_info().split('.')[:2]])
+        else:
+            return None
 
     def create_database(self, sql_file=None):
         self.log("Datenbank fuer %s einrichten" % self.name, push=True)
@@ -1272,7 +1417,7 @@ class ComponentEbkusInstance(Component):
                                                    demo_daten=demo_daten)
 
             self.log("initialisieren mit %s" % sql_file)
-            for c in sql_split(sql_file):
+            for c in sql_split(sql_file, self.get_mysql_version()):
                 # MODIFE cursor.execute am besten mit Unicode strings fuettern,
                 # wenn Umlaute drin sein koennten
                 self._cursor_execute(cursor, c)
@@ -1391,10 +1536,44 @@ class ComponentEbkusInstance(Component):
             self.log("Fehler beim Wiederherstellen von %s" %
                      self.config.INSTANCE_NAME, pop=True)
             return False
-            
-                
-            
-        
+
+    def mysql_dump_database(self,
+                            host,
+                            user,
+                            password,
+                            database,
+                            sql_file,
+                            success_message="Datenbank-Dump erfolgt",
+                            push=False):
+
+        if password:
+            pw_arg = "-p%s" % password
+        else:
+            pw_arg = ''
+        self.log("SQL-Datei ausgeben: %s" % sql_file, push)
+        if self.get_mysql_version() < (4,1):
+            options = "--quick --complete-insert --extended-insert --disable-keys " \
+                      "--lock-tables --add-drop-table --default-character-set latin1"
+        else:
+            options = "--quick --complete-insert --extended-insert --disable-keys " \
+                      "--lock-tables --add-drop-table --default-character-set latin1"
+        cmd = "%s  -h%s -u%s %s %s %s > %s" % \
+                  (join(self.config.MYSQL_DIR, 'mysqldump'),
+                   host,
+                   user,
+                   pw_arg,
+                   options,
+                   database,
+                   sql_file)
+        #print cmd
+        res = os.system(cmd)
+        if res == 0:
+            self.log("%s" % success_message, pop=True)
+            return True
+        else:
+            self.log("Fehler beim Datenbank-Dump", pop=True)
+            return False
+
     def dump_database(self, dir=None, file_name=None):
         """macht einen Dump der Datenbank der Instanz im Verzeichnis dir.
 
@@ -1413,26 +1592,54 @@ class ComponentEbkusInstance(Component):
                                                 time.strftime("%Y-%m-%d_%H-%M-%S",
                                                               time.localtime(time.time())))
         file_name = join(dir, file_name)
-        self.log("SQL-Datei: %s" % file_name)
-        pw = self.config.DATABASE_PASSWORD
-        pw_arg = pw and "-p%s" % pw or ''
-        self.log("SQL-Datei ausgeben")
-        cmd = "%s -c -h%s -u%s %s --default-character-set latin1 %s > %s" % \
-                  (join(self.config.MYSQL_DIR, 'mysqldump'),
-                   self.config.DATABASE_HOST,
-                   self.config.DATABASE_USER,
-                   pw_arg,
-                   self.config.DATABASE_NAME,
-                   file_name)
-        #print cmd
-        res = os.system(cmd)
-        if res == 0:
-            self.log("Datenbank-Dump erfolgt", pop=True)
+        if self.mysql_dump_database(
+            self.config.DATABASE_HOST,
+            self.config.DATABASE_USER,
+            self.config.DATABASE_PASSWORD,
+            self.config.DATABASE_NAME,
+            file_name):
             return file_name
         else:
-            self.log("Fehler beim Datenbank-Dump", pop=True)
             return False
-            
+
+    def dump_database_as_csv(self, dir, prefix=None):
+        """Erzeugt im Verzeichnis dir eine .csv Datei für jede Tabelle in der Datenbank.
+        """
+        self.log("CSV Datei für jede Datenbanktabelle erzeugen", push=True)
+        self.log("Datenbankname: %s" % self.config.DATABASE_NAME)
+        import ebkus.config
+        ebkus.config.config = self.config
+        #from ebkus.gen.migrate_strkat import read_strkat
+        from ebkus.db.sql import opendb, closedb, getDBHandle, execute
+        opendb()
+        db = getDBHandle()
+        res = db.listtables()
+        closedb()
+
+        from MySQLdb import connect, version_info
+        self._mysqldb_needs_unicode = (version_info > (1,2,1))
+        admin_pw = self._get_database_admin_passwort()
+        db = connect(host=self.config.DATABASE_ADMIN_HOST,
+                     user=self.config.DATABASE_ADMIN_USER,
+                     db=self.config.DATABASE_NAME,
+                     passwd=admin_pw
+                     )
+        cursor = db.cursor()
+
+
+        for t in res:
+            filename = join(abspath(dir), "%s.csv" % t)
+            filename = filename.replace("\\", "/")
+            q = """SELECT * INTO OUTFILE '%s'
+FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+FROM %s;""" %  (filename, t)
+            cursor.execute(q)
+            # Das ging nicht als normaler DB-User
+            #db.query(q)
+        self.log("CSV Dateien in %s erzeugt" % filename, pop=True)
+        return True
+
     def remove_client_data(self, cursor):
         zu_loeschende_tabellen = (
             'akte', 
@@ -1522,30 +1729,23 @@ class ComponentEbkusInstance(Component):
             cursor.execute("CREATE DATABASE %s" % database_name)
             cursor.execute("USE %s" % database_name)
             # Dump einlesen
-            for c in sql_split(file_name):
+            for c in sql_split(file_name, self.get_mysql_version()):
                 self._cursor_execute(cursor, c)
             self.log("Temporaere Datenbank '%s' mit Daten aus '%s' angelegt" % (database_name, file_name))
             # Klientendaten löschen
             self.remove_client_data(cursor)
             # Bearbeitete DB dumpen
-            pw = admin_pw
-            pw_arg = pw and "-p%s" % pw or ''
-            cmd = "%s -c -u%s %s --default-character-set latin1 %s > %s" % \
-                      (join(self.config.MYSQL_DIR, 'mysqldump'),
-                       self.config.DATABASE_ADMIN_USER,
-                       pw_arg,
-                       database_name,
-                       file_name_without_client_data,
-                       )
-            #print cmd
-            res = os.system(cmd)
-            if res == 0:
-                self.log("Temporaere Datenbank '%s' in die Datei '%s' gedumpt (ohne Klientendaten)." % 
-                         (database_name, file_name_without_client_data), 
-                         pop=True)
+            success_message = "Temporaere Datenbank '%s' in die Datei '%s' gedumpt (ohne Klientendaten)." % \
+                (database_name, file_name_without_client_data)
+            if self.mysql_dump_database(
+                self.config.DATABASE_ADMIN_HOST,
+                self.config.DATABASE_ADMIN_USER,
+                admin_pw,
+                database_name,
+                file_name_without_client_data,
+                success_message=success_message):
                 return file_name
             else:
-                self.log("Fehler beim Datenbank-Dump", pop=True)
                 return False
         finally:
             # Temporaere DB loeschen
@@ -1609,7 +1809,7 @@ class ComponentEbkusInstance(Component):
                 self.log("Strassenkatalog %s einlesen (kann lange dauern!) ..." % str_kat)
                 cursor.execute("DROP TABLE IF EXISTS strkatalog")
                 if sys.platform == 'win32':
-                    for c in sql_split(str_kat):
+                    for c in sql_split(str_kat, self.get_mysql_version()):
                         cursor.execute(c)
                 else:
                     # viel schneller
@@ -1626,22 +1826,25 @@ class ComponentEbkusInstance(Component):
 ##                 globals = {}
 ##                 execfile(demo_daten, globals)
 ##                 globals['create_demo_daten']()
-            pw = self._get_database_admin_passwort()
-            pw_arg = pw and "-p%s" % pw or ''
-            self.log("SQL-Datei ausgeben: %s" % sql_file_out)
-            #os.system("%s -c -u%s %s --default-character-set latin1 %s > %s" %
-            # TODO Das haengt nicht von Windows ab, sondern von der Mysql-Version!!!!!
-            skip_opt = '--skip-opt'
-            if win32:
-                skip_opt = ''
-            os.system("%s -u%s %s %s --add-drop-table --default-character-set latin1 %s > %s" %
-                      (join(self.config.MYSQL_DIR, 'mysqldump'),
-                       self.config.DATABASE_ADMIN_USER,
-                       pw_arg,
-                       skip_opt,          
-                       database_name,
-                       sql_file_out)
-                      )
+
+
+            self.mysql_dump_database(
+                self.config.DATABASE_ADMIN_HOST,
+                self.config.DATABASE_ADMIN_USER,
+                self._get_database_admin_passwort(),
+                database_name,
+                sql_file_out,
+                push=True)
+            # pw = self._get_database_admin_passwort()
+            # pw_arg = pw and "-p%s" % pw or ''
+            # self.log("SQL-Datei ausgeben: %s" % sql_file_out)
+            # os.system("%s --compact -c -u%s %s --default-character-set latin1 %s > %s" %
+            #           (join(self.config.MYSQL_DIR, 'mysqldump'),
+            #            self.config.DATABASE_ADMIN_USER,
+            #            pw_arg,
+            #            database_name,
+            #            sql_file_out)
+            #           )
         finally:
             cursor.execute("DROP DATABASE %s" % database_name)
             closedb()
@@ -1753,6 +1956,12 @@ class ComponentEbkusInstance(Component):
         )
         return dirs, files
 
+class ComponentEbkusInstance27(ComponentEbkusInstance):
+    """Hier Service mit pywin32 implementieren.
+    """
+    pass
+
+
 def _extract(self, todir='', matching=None):
     """monkey-patch fuer die ZipFile Klasse"""
     for name in self.namelist():
@@ -1777,7 +1986,7 @@ zipfile.ZipFile.extract = _extract
 
 # Hilfsfunktionen
 
-def sql_split(filename):
+def sql_split(filename, mysql_version):
     """Generator der eine mysqldump-Datei in eine Liste von
     SQL-Statements zerlegt.
 
@@ -1791,6 +2000,7 @@ def sql_split(filename):
 
     Es wird auch eine gzip komprimiert Datei akzeptiert.
     """
+    mysql40 = mysql_version < (4,1)
     if filename.lower().endswith('.gz'):
         import gzip
         f = gzip.GzipFile(filename)
@@ -1806,7 +2016,11 @@ def sql_split(filename):
             continue
         cmd.append(l)
         if l.endswith(';'):
-            yield ''.join(cmd)
+            res =  ''.join(cmd)
+            #print res
+            if mysql40 and res.startswith('CREATE TABLE'):
+                res = res.replace('DEFAULT CHARSET=latin1', '')  
+            yield res
             cmd = []
 
 def create_directory(path, mode=0755):
