@@ -510,7 +510,7 @@ zeit, INT, Änderungszeit, p,
 table, kategorie, code/name, Kategorie, Kategorie
 id, INT, id, s,
 code, VARCHAR(8), Code, p,
-name, VARCHAR(60), Name, p,
+name, VARCHAR(255), Name, p,
 kat_id, INT, Kategorienart, f, kategorie, kategorien
 dok, VARCHAR(255), Erläuterung, p,
 flag, INT, Flags, p
@@ -520,7 +520,7 @@ table, feld, tab_id.feld, Feld, Feld
 id, INT, id, s,
 tab_id, INT, Tabelle, f, tabelle, felder
 feld, VARCHAR(30), Feldname, p,
-name, VARCHAR(60), Langname des Feldes, p,
+name, VARCHAR(255), Langname des Feldes, p,
 inverse, VARCHAR(60), Name für inverse Beziehung, p,
 typ, VARCHAR(20), Datenbanktyp, p,
 laenge, INT, Feldlänge, p,
