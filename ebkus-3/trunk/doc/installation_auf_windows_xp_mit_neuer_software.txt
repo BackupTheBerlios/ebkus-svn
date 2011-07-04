@@ -5,25 +5,40 @@ Voraussetzung: Internetzugang, Administratorrechte
 1. Python 2.7.1 installieren
 http://www.python.org/
 - Standardinstallation
+Test: start --> programme --> python2.7 --> python (command line)
 
-2. Installationsverzeichnis anlegen, z.B. C:\ebkus_installation
+1a pywin32-216.win32-py2.7.exe
+
+Test: Python starten, 'import win32service' funktioniert.
 
 3. MySQL-python 1.2.3 for Windows and Python 2.7 installieren:
 http://www.codegood.com/download/10/
 - Standardinstallation
+Test: 'import MySQLdb' funktioniert
+
 
 4. MySQL installieren:
 http://dev.mysql.com/downloads/mysql/5.1.html
 mysql-essential-5.1.{neueste}-win32.msi
 Konfiguration alles default, außer:
-- Server Type: Server (nicht Entwicklung, nicht dedeicated mysql, mittlerer Speicherverbrauch)
+- Server Type: Server (nicht Entwicklung, nicht dedeicated mysql,
+mittlerer Speicherverbrauch)
+- Multifunctional Database
+- Table space: standard
+- Decision Support (standard)
 - Standard Character Set: latin1
 - Install as Windows Service: yes
 - Modify Security Settings: Rootpasswort: Häkchen entfernen, sodass kein Passwort gesetzt wird.
 
-Mysql-Dienst ist danach gestartet.
+Test: Mysql-Dienst ist danach gestartet.
+
+
 
 5. Apache installieren
+
+In einem Pfad ohne Blanks anlegen! zB Programme\Apache2.2
+Dazu muss man den Pfad ändern!
+
 http://apache.abdaal.com//httpd/binaries/win32/
 httpd-2.2.{neueste}-win32-x86-openssl-0.9.8o.msi
 
@@ -33,22 +48,28 @@ Konfiguration:
 - Domain: localhost
 - Admin Email: asf@afadf
 
+Typical
+
 Apache2.2 Dienst ist danach gestartet.
 
 6. Apache anpassen
 httpd.conf:
-- Listen 80 auskommentieren
-- KeepAlive Off einfügen
+- evt. Listen 80 auskommentieren
 - LoadModule ssl_module modules/mod_ssl.so entkommentieren
-- ServerAdmin auskommentieren
-- ServerName auskommentieren
+- evt. ServerAdmin auskommentieren
+- evt. ServerName auskommentieren
 - Include conf/extra/httpd-ssl.conf entkommentieren
 - Include C:\ebkus_installation\ebkus\ebkus_httpd.conf einfügen
 
+Test: Dienst startet nicht
+
 conf/extra/httpd-ssl.conf
 - darin <VirtualHost ...> ... </VirtualHost> löschen
+- Falls nicht auf Port 443 laufen soll, Listen: <neuer port eintragen>
 
-Dienst restarten
+Test: Jetzt startet der Dienst, aber antwortet nicht auf requests.
+
+
 
 7. In der EBKuS-Distribution install.py ausführen 
 install.py -c <Installationsverzeichnis>
@@ -57,13 +78,19 @@ ebkus.conf angelegt.
 
 
 8. ebkus.conf anpassen
-- openssl_executable: C:\Programme\Apache Software Foundation\Apache2.2\bin\openssl.exe eintragen
+- openssl_executable: C:\<apache pfad>\bin\openssl.exe eintragen
 - die gewünschten Instanzen definieren
 - Instanzen können mit einem Dump initialisiert werden:
-initial_content: C:\ebkus_installation\demo_braunschweig_backup_v4.4_2011-02-14_15-25-54.zip
+initial_content: C:\ebkus_installation\ebkus\demo_braunschweig_backup_v4.4_2011-02-14_15-25-54.zip
+- IP Nummer, servername
+- mysql dir, je nach dem wo mysql installiert wurde, kann auch
+weggelassen werden falls im pfad
+- evt. ebkus_home entkommentieren, falls das verwendet werden soll
 
 9. In der EBKuS-Distribution nochmal install.py ausführen
-install.py --no_apache --no_mysql <Installationsverzeichnis>
+- unbedingt run as administrator, sonst geht es nicht in neueren windows, auch wenn der
+  Benutzer Administratorrechte hat
+install.py --no_apache --no_mysql [-d downloadverzeichnis] <Installationsverzeichnis>
 (srvstart hat sich nicht verändert und funktioniert noch)
 
 Danach sollte alles gehen.
