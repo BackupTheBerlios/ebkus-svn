@@ -714,7 +714,7 @@ class CodeList(Container):
 class Kategorie(DBObjekt):
     table = 'kategorie'
     fields =  ['id', 'code', 'name', 'kat_id', 'dok', 'flag', 'zeit']
-    fieldlengths = [None, 8, 60, None, 255, None, None]
+    fieldlengths = [None, 8, 255, None, 255, None, None]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
@@ -742,7 +742,7 @@ class Feld(DBObjekt):
     fields =  ['id', 'tab_id', 'feld', 'name', 'inverse', 'typ', \
                        'laenge', 'notnull', 'verwtyp', 'ftab_id', 'kat_id', \
                        'kat_code', 'flag', 'dok']
-    fieldlengths = [None, None, 30, 60, 60, 20, None, None, None, None, None, 8, None, 255]
+    fieldlengths = [None, None, 30, 255, 60, 20, None, None, None, None, None, 8, None, 255]
     fieldtypes = {}
     foreignfieldtypes = {}
     inversefieldtypes = {}
