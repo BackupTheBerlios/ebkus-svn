@@ -104,6 +104,8 @@ class _fachstatistik(Request.Request, akte_share):
                 anm = fall['anmeldung']
                 if anm:
                     _zm = anm[0]['zm']
+                else:
+                    _zm = fs['zm']
                 _eleistungen = ' '.join([
                         str(leist['le']) for leist in fall['leistungen']])
         else:
