@@ -12,6 +12,7 @@ class Instanzdienst(win32serviceutil.ServiceFramework):
     _svc_name_ = "ebkus_" + "%(INSTANCE_NAME)s"
     _svc_display_name_ = "EBKuS-" + "%(INSTANCE_NAME)s"
     _svc_description_ = "EBKuS-Dienst fuer " + "%(INSTANCE_TITLE)s"
+    _svc_deps_ = (u"MySQL",)
     _instance_port_ = %(PORT)s
     _instance_home_ = "%(INSTANCE_HOME)s"
     def __init__(self, args):
@@ -72,6 +73,7 @@ def HandleCommandLine(cls):
     serviceName = cls._svc_name_
     serviceDisplayName = cls._svc_display_name_
     description = cls._svc_description_
+    serviceDeps = cls._svc_deps_
     serviceClassString = win32serviceutil.GetServiceClassString(cls)
     startup = win32service.SERVICE_AUTO_START
     if arg=="start":
@@ -86,7 +88,8 @@ def HandleCommandLine(cls):
         print "%%s restarted" %% serviceDisplayName
     elif arg=="install":
         try:
-            win32serviceutil.InstallService(serviceClassString, serviceName, serviceDisplayName, 
+            win32serviceutil.InstallService(serviceClassString, serviceName, serviceDisplayName,
+                                            serviceDeps=serviceDeps,
                                             startType=startup ,description=description)
             print "%%s installed" %% serviceDisplayName
         except win32service.error, exc:
