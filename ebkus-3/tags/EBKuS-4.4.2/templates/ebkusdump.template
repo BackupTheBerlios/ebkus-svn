@@ -1,0 +1,98 @@
+#!/usr/bin/python
+# coding: utf-8
+
+"""
+Sicherung von Instanzen. 
+
+Es werden nur real existierende Instanzen aufgerufen.
+Wird bis jetzt nur in der virtuellen Maschine verwendet.
+"""
+
+import os, sys, getopt
+
+EBKUS_HOME = '%(EBKUS_HOME)s'
+
+import os, sys
+assert sys.version_info >= (2,3), "Es wird Python 2.3 oder höher benötigt"
+
+ebkus_conf = os.path.join(EBKUS_HOME, 'ebkus.conf')
+
+# Pfad setzen
+path = os.path.join(EBKUS_HOME, 'lib')
+if path and path != sys.path[0]:
+    sys.path.insert(0, path)
+
+# Konfiguration einlesen und initialisieren
+from ebkus.config import init
+config = init(None, [ebkus_conf,])
+
+def get_instance_info(config):
+    """Fuer jede Instanz Kurzname, Langname, Start/Stop-Skript"""
+    info = []
+    for n in config.get_instances():
+        config = init(n, [ebkus_conf])
+        info.append((
+                config.INSTANCE_NAME,
+                config.INSTANCE_TITLE,
+                "/etc/init.d/ebkus_%%s" %% config.INSTANCE_NAME,
+                ))
+    return info
+
+
+
+# Instanzeninfo aus der ebkus.conf erzeugen
+INSTANZEN = get_instance_info(config)
+
+
+def usage(error=None):
+    if error:
+        print '******', error
+    s = """\
+EBKuS-Instanzen sichern
+
+ebkusdump <Instanzname oder 'alle'> <Verzeichnis>
+
+z.B.
+
+ebkusdump alle /home/ebkus/backups
+ebkusdump %%s .
+
+Gültige Instanznamen: %%s
+Zuordnung der Instanznamen:
+%%s
+""" %% (
+        INSTANZEN[0][0],
+        ', '.join([name for name, _, _ in INSTANZEN]),
+        '\n'.join([("  %%s:  %%s" %% (name, ort,)) for name, ort, _ in INSTANZEN])
+       )
+    print s
+    sys.exit(1)
+
+if __name__ == '__main__':
+    try:
+        optlist, args = getopt.getopt(sys.argv[1:],
+                                      'h',
+                                      ['help', 
+                                       ])
+    except getopt.GetoptError, m:
+        usage(m)
+
+    for option, value in optlist:
+        if option in ('--help', '-h'):
+            usage()
+    if len(args) < 2:
+        usage('Zuwenig Argumente')
+    instanz, pfad = args[0], args[1]
+    if not os.path.isdir(pfad):
+        usage('Kein Verzeichnis: %%s' %% pfad)
+    pfad = os.path.abspath(pfad)
+    if instanz not in [name for name,_,_ in INSTANZEN] + ['all', 'alle',]:
+        usage('Unbekannte Instanz')
+    # Kommando ausfuehren
+    for name, _, _ in INSTANZEN:
+        if instanz in ('all', 'alle') + (name,):
+            instance_dir = os.path.join(EBKUS_HOME, name)
+            os.chdir(instance_dir) # leider notwendig, sollte nicht sein
+            scr = os.path.join(instance_dir, 'datenbank_sichern.py --zip %%s' %% pfad)
+            os.system(scr)
+            
