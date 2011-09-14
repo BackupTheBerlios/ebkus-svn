@@ -2488,8 +2488,14 @@ def updmit(form):
     mit['zeit'] = int(time.time())
     
     mitold.update(mit)
-    undo_cached_fields()
-    
+
+    # So ist immer ein Fehler aufgetreten, wenn man einem Mitarbeiter eine
+    # neu definierte Dienststelle zugeordnet hat und weiter Mitarbeiter hinzufügen
+    # wollte.
+    # undo_cached_fields()
+
+    # Den ganzen Cache flushen beseitigt das Problem:
+    flush_cache()
     
 def codeeinf(form):
     """Neuer Code."""
